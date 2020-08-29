@@ -23,7 +23,7 @@ libraryDependencies ++= Seq(
   "org.scalatest"     %% "scalatest"           % scalatestVersion % "test",
   "org.scalactic"     %% "scalactic"           % scalatestVersion % "test",
   "ch.qos.logback"     % "logback-classic"     % "1.2.3",
-  "ml.dmlc"           %% "xgboost4j"           % "1.1.1" excludeAll (
+  "ml.dmlc"           %% "xgboost4j"           % "1.2.0" excludeAll (
     ExclusionRule(organization = "com.esotericsoftware.kryo"),
     ExclusionRule(organization = "com.typesafe.akka"),
     ExclusionRule(organization = "org.scala-lang"),

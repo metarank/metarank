@@ -11,10 +11,6 @@ import me.dfdx.metarank.config.Config
 import org.http4s.server.blaze._
 import org.http4s.implicits._
 import org.http4s.server.Router
-import pureconfig.ConfigSource
-import pureconfig.error.ConfigReaderFailures
-import pureconfig._
-import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext
 
@@ -37,7 +33,7 @@ object Main extends IOApp {
     val services = HealthcheckService.route
     val httpApp  = Router("/" -> services).orNotFound
     BlazeServerBuilder[IO](executor)
-      .bindHttp(config.listen.port, config.listen.hostname)
+      .bindHttp(config.core.listen.port, config.core.listen.hostname)
       .withHttpApp(httpApp)
       .serve
       .compile
@@ -45,17 +41,6 @@ object Main extends IOApp {
       .as(ExitCode.Success)
   }
 
-  def loadConfig(logger: SelfAwareStructuredLogger[IO]): IO[Config] =
-    ConfigSource.default.load[Config] match {
-      case Left(value) =>
-        for {
-          _      <- logger.error(s"Cannot load config: $value")
-          config <- IO.raiseError[Config](ConfigLoadingError(value))
-        } yield {
-          config
-        }
-      case Right(value) => IO.pure(value)
-    }
+  def loadConfig(logger: SelfAwareStructuredLogger[IO]): IO[Config] = ???
 
-  case class ConfigLoadingError(errors: ConfigReaderFailures) extends Throwable
 }

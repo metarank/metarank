@@ -1,0 +1,13 @@
+core:
+  listen:
+    hostname: localhost
+    port: 8080
+
+feedback:
+  types:
+    - name: click
+      weight: 1
+    - name: cart
+      weight: 2
+    - name: purchase
+      weight: 3

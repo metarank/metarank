@@ -6,7 +6,20 @@ import io.circe.yaml.parser.{parse => parseYaml}
 import io.circe.generic.semiauto._
 import io.circe.parser._
 
-case class Config(core: CoreConfig, feedback: FeedbackConfig, schema: SchemaConfig)
+case class Config(core: CoreConfig, feedback: FeedbackConfig, schema: SchemaConfig) {
+  def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
+    val iface = cmd.hostname.getOrElse(core.listen.hostname)
+    val port  = cmd.port.getOrElse(core.listen.port)
+    copy(core =
+      core.copy(listen =
+        core.listen.copy(
+          hostname = iface,
+          port = port
+        )
+      )
+    )
+  }
+}
 
 object Config {
   case class CoreConfig(listen: ListenConfig)

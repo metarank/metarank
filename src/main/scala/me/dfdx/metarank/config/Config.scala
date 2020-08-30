@@ -1,12 +1,12 @@
 package me.dfdx.metarank.config
 
 import io.circe.{Codec, CursorOp, Decoder}
-import me.dfdx.metarank.config.Config.{CoreConfig, FeedbackConfig, SchemaConfig}
+import me.dfdx.metarank.config.Config.{CoreConfig, FeedbackConfig, KeyspaceConfig, SchemaConfig}
 import io.circe.yaml.parser.{parse => parseYaml}
 import io.circe.generic.semiauto._
 import io.circe.parser._
 
-case class Config(core: CoreConfig, feedback: FeedbackConfig, schema: SchemaConfig) {
+case class Config(core: CoreConfig, keyspaces: Map[String, KeyspaceConfig]) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
     val iface = cmd.hostname.getOrElse(core.listen.hostname)
     val port  = cmd.port.getOrElse(core.listen.port)
@@ -22,6 +22,7 @@ case class Config(core: CoreConfig, feedback: FeedbackConfig, schema: SchemaConf
 }
 
 object Config {
+  case class KeyspaceConfig(feedback: FeedbackConfig, schema: SchemaConfig)
   case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 
@@ -42,6 +43,7 @@ object Config {
   implicit val feedbackConfigDecoder     = deriveDecoder[FeedbackConfig]
   implicit val listenConfigDecoder       = deriveDecoder[ListenConfig]
   implicit val coreConfigDecoder         = deriveDecoder[CoreConfig]
+  implicit val keyspaceConfigDecoder     = deriveDecoder[KeyspaceConfig]
   implicit val configDecoder             = deriveDecoder[Config]
 
   def load(configString: String): Either[ConfigLoadingError, Config] = {

@@ -10,7 +10,7 @@ resolvers += "XGBoost4J Release Repo" at "https://s3-us-west-2.amazonaws.com/xgb
 lazy val http4sVersion    = "0.21.7"
 lazy val log4catsVersion  = "1.1.1"
 lazy val scalatestVersion = "3.2.2"
-lazy val circeVersion     = "0.12.0"
+lazy val circeVersion     = "0.13.0"
 
 libraryDependencies ++= Seq(
   "org.typelevel"     %% "cats-effect"         % "2.1.4",

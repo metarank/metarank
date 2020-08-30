@@ -1,6 +1,5 @@
-!!! whatever
-  #nope
-core
+core:
   listen:
     hostname: localhost
     port: 8080
+

@@ -11,6 +11,7 @@ lazy val http4sVersion    = "0.21.7"
 lazy val log4catsVersion  = "1.1.1"
 lazy val scalatestVersion = "3.2.2"
 lazy val circeVersion     = "0.13.0"
+lazy val circeYamlVersion = "0.13.1"
 
 libraryDependencies ++= Seq(
   "org.typelevel"     %% "cats-effect"         % "2.1.4",
@@ -28,7 +29,7 @@ libraryDependencies ++= Seq(
     ExclusionRule(organization = "com.typesafe.akka"),
     ExclusionRule(organization = "org.scala-lang"),
   ),
-  "io.circe"             %% "circe-yaml"    % circeVersion,
+  "io.circe"             %% "circe-yaml"    % circeYamlVersion,
   "io.circe"             %% "circe-core"    % circeVersion,
   "io.circe"             %% "circe-generic" % circeVersion,
   "io.circe"             %% "circe-parser"  % circeVersion,

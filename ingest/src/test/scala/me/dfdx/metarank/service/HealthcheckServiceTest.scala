@@ -1,6 +1,7 @@
-package me.dfdx.metarank.api
+package me.dfdx.metarank.service
 
 import cats.effect._
+import me.dfdx.metarank.services.HealthcheckService
 import org.http4s.{Request, Uri}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -17,20 +17,25 @@ object Field {
   case class NumericListField(name: String, value: NonEmptyList[Double]) extends Field
   case class BooleanField(name: String, value: Boolean)                  extends Field
 
+  implicit val stringEncoder = deriveEncoder[StringField]
   implicit val stringDecoder = deriveDecoder[StringField]
     .ensure(_.value.nonEmpty, "field cannot be empty")
 
+  implicit val stringListEncoder = deriveEncoder[StringListField]
   implicit val stringListDecoder = deriveDecoder[StringListField]
     .ensure(_.value.forall(_.nonEmpty), "field cannot contain empty strings")
 
+  implicit val numericEncoder = deriveEncoder[NumericField]
   implicit val numericDecoder = deriveDecoder[NumericField]
     .ensure(n => !java.lang.Double.isNaN(n.value), "field cannot be NaN")
     .ensure(n => !java.lang.Double.isInfinite(n.value), "field must be finite")
 
+  implicit val numericListEncoder = deriveEncoder[NumericListField]
   implicit val numericListDecoder = deriveDecoder[NumericListField]
     .ensure(_.value.forall(n => !java.lang.Double.isNaN(n)), "field cannot contain NaN")
     .ensure(_.value.forall(n => !java.lang.Double.isInfinite(n)), "field cannot contain Inf")
 
+  implicit val booleanEncoder = deriveEncoder[BooleanField]
   implicit val booleanDecoder = deriveDecoder[BooleanField]
 
   private val decoderChain: List[Decoder[_ <: Field]] =
@@ -50,4 +55,11 @@ object Field {
     }
 
   implicit val fieldDecoder: Decoder[Field] = Decoder.instance(c => decodeField(c, decoderChain))
+  implicit val fieldEncoder = Encoder.instance[Field] {
+    case f: StringField      => stringEncoder(f)
+    case f: StringListField  => stringListEncoder(f)
+    case f: NumericField     => numericEncoder(f)
+    case f: NumericListField => numericListEncoder(f)
+    case f: BooleanField     => booleanEncoder(f)
+  }
 }

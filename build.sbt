@@ -5,34 +5,26 @@ version := "0.1"
 // blocked on xgboost, which is blocked on spark/flink for 2.13
 scalaVersion := "2.12.12"
 
-resolvers += "XGBoost4J Release Repo" at "https://s3-us-west-2.amazonaws.com/xgboost-maven-repo/release/"
-
-lazy val http4sVersion    = "0.21.7"
-lazy val log4catsVersion  = "1.1.1"
-lazy val scalatestVersion = "3.2.2"
-lazy val circeVersion     = "0.13.0"
-lazy val circeYamlVersion = "0.13.1"
-
-libraryDependencies ++= Seq(
-  "org.typelevel"     %% "cats-effect"         % "2.1.4",
-  "org.http4s"        %% "http4s-dsl"          % http4sVersion,
-  "org.http4s"        %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s"        %% "http4s-blaze-client" % http4sVersion,
-  "org.http4s"        %% "http4s-circe"        % http4sVersion,
-  "io.chrisdavenport" %% "log4cats-core"       % log4catsVersion,
-  "io.chrisdavenport" %% "log4cats-slf4j"      % log4catsVersion,
-  "org.scalatest"     %% "scalatest"           % scalatestVersion % "test",
-  "org.scalactic"     %% "scalactic"           % scalatestVersion % "test",
-  "ch.qos.logback"     % "logback-classic"     % "1.2.3",
-  "ml.dmlc"           %% "xgboost4j"           % "1.2.0" excludeAll (
-    ExclusionRule(organization = "com.esotericsoftware.kryo"),
-    ExclusionRule(organization = "com.typesafe.akka"),
-    ExclusionRule(organization = "org.scala-lang"),
-  ),
-  "io.circe"             %% "circe-yaml"    % circeYamlVersion,
-  "io.circe"             %% "circe-core"    % circeVersion,
-  "io.circe"             %% "circe-generic" % circeVersion,
-  "io.circe"             %% "circe-parser"  % circeVersion,
-  "com.github.pathikrit" %% "better-files"  % "3.9.1",
-  "com.github.scopt"     %% "scopt"         % "4.0.0-RC2"
+lazy val sharedSettings = Seq(
+  organization := "me.dfdx",
+  logBuffered in Test := false,
+  resolvers += "XGBoost4J Release Repo" at "https://s3-us-west-2.amazonaws.com/xgboost-maven-repo/release/",
+  scalaVersion := "2.12.12"
 )
+
+lazy val core = (project in file("core"))
+  .settings(sharedSettings)
+
+lazy val ingest = (project in file("ingest"))
+  .settings(sharedSettings)
+  .dependsOn(core % "test->test;compile->compile")
+
+lazy val api = (project in file("api"))
+  .settings(sharedSettings)
+  .dependsOn(core % "test->test;compile->compile")
+
+lazy val root = (project in file("."))
+  .aggregate(core, ingest, api)
+  .settings(
+    name := "Metarank"
+  )

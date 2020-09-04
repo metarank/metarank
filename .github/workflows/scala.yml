@@ -13,18 +13,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Cache deps
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-sbt-deps
-        with:
-          path:
-          - ~/.sbt
-          - ~/.m2
-          - ~/.ivy2
-          - ~/.cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
-      uses: actions/setup-java@v1
+    - uses: actions/cache@v2
+      with:
+        path:
+        - ~/.sbt
+        - ~/.m2
+        - ~/.ivy2
+        - ~/.cache
+        key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
+    - uses: actions/setup-java@v1
       with:
         java-version: 11
     - name: Run tests

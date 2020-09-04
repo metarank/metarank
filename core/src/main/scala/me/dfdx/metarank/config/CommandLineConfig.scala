@@ -2,7 +2,7 @@ package me.dfdx.metarank.config
 
 import better.files.File
 import me.dfdx.metarank.config.CommandLineConfig.DEFAULT_CONFIG_FILE
-import scopt.OParser
+import scopt._
 
 case class CommandLineConfig(
     hostname: Option[String] = None,

@@ -3,51 +3,51 @@ core:
     hostname: localhost
     port: 8080
 
-keyspaces:
-  demo:
-    feedback:
-      types:
-        - name: click
-          weight: 1
-        - name: cart
-          weight: 2
-        - name: purchase
-          weight: 3
+keyspace:
+  name: demo
+  feedback:
+    types:
+      - name: click
+        weight: 1
+      - name: cart
+        weight: 2
+      - name: purchase
+        weight: 3
 
-    schema:
-      windows:
-        - { start: 0, size: 1 }
-        - { start: 0, size: 2 }
-        - { start: 0, size: 4 }
-        - { start: 0, size: 8 }
-      fields:
-        - name: category
-          format:
-            type: category
-            repeated: true
-            required: true
-        - name: title
-          format:
-            type: text
-            repeated: false
-            required: true
-        - name: price
-          format:
-            type: numeric
-            repeated: false
-            required: true
-        - name: availability
-          format:
-            type: boolean
-            repeated: false
-            required: true
-        - name: colors
-          format:
-            type: string
-            repeated: true
-            required: true
-        - name: sizes
-          format:
-            type: numeric
-            repeated: true
-            required: true
+  schema:
+    windows:
+      - { start: 0, size: 1 }
+      - { start: 0, size: 2 }
+      - { start: 0, size: 4 }
+      - { start: 0, size: 8 }
+    fields:
+      - name: category
+        format:
+          type: category
+          repeated: true
+          required: true
+      - name: title
+        format:
+          type: text
+          repeated: false
+          required: true
+      - name: price
+        format:
+          type: numeric
+          repeated: false
+          required: true
+      - name: availability
+        format:
+          type: boolean
+          repeated: false
+          required: true
+      - name: colors
+        format:
+          type: string
+          repeated: true
+          required: true
+      - name: sizes
+        format:
+          type: numeric
+          repeated: true
+          required: true

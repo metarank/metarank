@@ -3,3 +3,10 @@ project/project
 project/target
 target
 .DS_STORE
+.git
+core/project
+core/target
+ingest/project
+ingest/target
+api/project
+api/target

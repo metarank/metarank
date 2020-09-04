@@ -5,7 +5,7 @@ import io.circe.generic.semiauto._
 import io.circe.yaml.parser._
 import me.dfdx.metarank.config.Config.{CoreConfig, KeyspaceConfig}
 
-case class Config(core: CoreConfig, keyspaces: Map[String, KeyspaceConfig]) {
+case class Config(core: CoreConfig, keyspace: KeyspaceConfig) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
     val iface = cmd.hostname.getOrElse(core.listen.hostname)
     val port  = cmd.port.getOrElse(core.listen.port)
@@ -21,7 +21,7 @@ case class Config(core: CoreConfig, keyspaces: Map[String, KeyspaceConfig]) {
 }
 
 object Config {
-  case class KeyspaceConfig(feedback: FeedbackConfig, schema: SchemaConfig)
+  case class KeyspaceConfig(name: String, feedback: FeedbackConfig, schema: SchemaConfig)
   case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 

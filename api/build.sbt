@@ -1,1 +1,1 @@
-name := "serve"
+name := "api"

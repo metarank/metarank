@@ -1,10 +1,9 @@
 package me.dfdx.metarank.config
 
-import io.circe.{Codec, CursorOp, Decoder}
-import me.dfdx.metarank.config.Config.{CoreConfig, FeedbackConfig, KeyspaceConfig, SchemaConfig}
-import io.circe.yaml.parser.{parse => parseYaml}
+import io.circe._
 import io.circe.generic.semiauto._
-import io.circe.parser._
+import io.circe.yaml.parser._
+import me.dfdx.metarank.config.Config.{CoreConfig, KeyspaceConfig}
 
 case class Config(core: CoreConfig, keyspaces: Map[String, KeyspaceConfig]) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
@@ -47,7 +46,7 @@ object Config {
   implicit val configDecoder             = deriveDecoder[Config]
 
   def load(configString: String): Either[ConfigLoadingError, Config] = {
-    parseYaml(configString) match {
+    parse(configString) match {
       case Left(err) => Left(YamlDecodingError(err.message, err.underlying))
       case Right(yaml) =>
         yaml.as[Config] match {

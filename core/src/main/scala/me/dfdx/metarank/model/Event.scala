@@ -1,7 +1,6 @@
 package me.dfdx.metarank.model
 
 import cats.data.NonEmptyList
-import io.circe.Codec
 import io.circe.generic.semiauto._
 
 sealed trait Event {
@@ -11,9 +10,16 @@ sealed trait Event {
 object Event {
   case class RankItem(id: ItemId, relevancy: Double)
 
-  case class ItemMetadataEvent(id: ItemId, timestamp: Timestamp, fields: NonEmptyList[Field])    extends Event
-  case class RankEvent(id: RequestId, timestamp: Timestamp, items: NonEmptyList[RankItem])       extends Event
-  case class InteractionEvent(id: RequestId, timestamp: Timestamp, `type`: String, item: ItemId) extends Event
+  case class ItemMetadataEvent(id: ItemId, timestamp: Timestamp, fields: NonEmptyList[Field]) extends Event
+  case class RankEvent(id: RequestId, timestamp: Timestamp, items: NonEmptyList[RankItem])    extends Event
+  case class InteractionEvent(
+      id: RequestId,
+      timestamp: Timestamp,
+      user: UserId,
+      session: SessionId,
+      `type`: String,
+      item: ItemId
+  ) extends Event
 
   implicit val rankItemDecoder = deriveDecoder[RankItem]
     .ensure(!_.relevancy.isNaN, "relevancy score cannot be NaN")

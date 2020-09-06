@@ -118,6 +118,8 @@ An example interaction event looks like this:
 {
   "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",
   "timestamp": "1599391467000",
+  "user": "user1",
+  "session": "session1",
   "type": "click",
   "item": "product1"
 }

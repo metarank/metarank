@@ -1,13 +1,13 @@
-Metarank
-=====
-[![YourActionName Actions Status](https://github.com/meta-rank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/{userName}/{repoName}/actions)
+# Metarank
+
+[![CI Status](https://github.com/meta-rank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/meta-rank/metarank/actions)
 
 Metarank is a toolbox for building personalized ranking systems. It can be used to re-rank 
 items in search results, recommendations and autocomplete suggestions by automating common
 data processing tasks in Learn-To-Rank applications.
 
-Purpose
-=====
+## Purpose
+
 * Collect a stream of item, search and interaction events using REST API 
 or Kafka connector.
 * Compute a wide variety of default feature values:
@@ -18,6 +18,14 @@ or Kafka connector.
 * Store all ranking-related state using pluggable database connectors: PostgreSQL, RocksDB, Cassandra
 * Export XGBoost/LightGBM/RankNet-compatible libsvm/csv training data files.
 * Serve pre-trained LTR ML models.
+
+## Docs
+
+* [Introduction](doc/01_intro.md) to the Metarank
+* [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
+* [Configuration](doc/03_configuration.md) walkthrough
+* [Contribution guide](doc/xx_development.md)
+* [License](LICENSE)
 
 Current state
 =====

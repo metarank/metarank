@@ -136,6 +136,25 @@ The API schema is not yet completely defined, but the general idea is to have it
 * ranking scope
 * list of items with their external relevancy
 
+An example JSON reranking request may look like this:
+```json
+{
+  "id": "9747e2fb-3da4-48ee-9ae2-6d09fc455622",
+  "timestamp": "1599391467000",
+  "scope": {
+    "user": "u1",
+    "session": "s1",
+    "fields": [
+      {"name": "source", "value": "search"}
+    ],
+    "items": [
+      {"id": "p1", "relevancy": 1.0},
+      {"id": "p2", "relevancy": 0.1}
+    ]
+  }
+}
+```
+
 Metarank then can use the external relevancy as one of the input feature values for the final
 ranking among with all other things in precomputed on the ingestion phase.
 

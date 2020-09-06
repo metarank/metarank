@@ -2,8 +2,7 @@ package me.dfdx.metarank.services
 
 import cats.data.NonEmptyList
 import me.dfdx.metarank.model.Event.RankItem
-import me.dfdx.metarank.model.RankRequest.Scope
-import me.dfdx.metarank.model.{ItemId, RankRequest, RequestId, SessionId, Timestamp, UserId}
+import me.dfdx.metarank.model.{ItemId, RankRequest, RequestId, Scope, SessionId, Timestamp, UserId}
 import me.dfdx.metarank.service.ServiceRouteTest
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

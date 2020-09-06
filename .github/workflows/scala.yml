@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: hseeberger/scala-sbt:11.0.8_1.3.13_2.12.12
 
     steps:
     - uses: actions/checkout@v2

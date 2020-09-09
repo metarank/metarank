@@ -10,12 +10,23 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scala.util.Random
 
 class CircularReservoirTest extends AnyPropSpec with Matchers with ScalaCheckDrivenPropertyChecks {
+  override implicit val generatorDrivenConfig: PropertyCheckConfiguration =
+    PropertyCheckConfiguration(minSuccessful = 200)
+
   val events: Gen[List[Int]] = for {
     length <- Gen.chooseNum[Int](1, 90)
     start  <- Gen.posNum[Int]
-    list   <- Gen.listOfN(length, Gen.chooseNum[Int](0, 3))
+    list   <- Gen.listOfN(length, Gen.chooseNum[Int](0, 3)).map(_.toArray)
   } yield {
-    ???
+    var acc    = start
+    val result = new Array[Int](length)
+    var i      = 0
+    while (i < length) {
+      acc += list(i)
+      result(i) = acc
+      i += 1
+    }
+    result.toList
   }
 
   def offset(start: Int, length: Int) = start + math.round(math.sqrt(Random.nextInt(length * length)).toFloat)

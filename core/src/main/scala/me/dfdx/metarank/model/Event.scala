@@ -18,12 +18,15 @@ object Event {
       user: UserId,
       session: SessionId,
       `type`: String,
-      item: ItemId
+      item: ItemId,
+      ua: Option[UserAgent] = None,
+      ip: Option[IPAddr] = None
   ) extends Event
 
   implicit val rankItemDecoder = deriveDecoder[RankItem]
     .ensure(!_.relevancy.isNaN, "relevancy score cannot be NaN")
     .ensure(!_.relevancy.isInfinite, "relevancy score cannot be Inf")
+
   implicit val rankItemEncoder = deriveEncoder[RankItem]
 
   implicit val itemMetadataCodec = deriveCodec[ItemMetadataEvent]

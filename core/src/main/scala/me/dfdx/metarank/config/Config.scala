@@ -26,7 +26,8 @@ object Config {
   case class ListenConfig(hostname: String, port: Int)
 
   case class FeedbackConfig(types: List[FeedbackTypeConfig])
-  case class FeedbackTypeConfig(name: String, weight: Int)
+  case class FeedbackTypeConfig(name: String, weight: Int, features: List[FeatureConfig])
+  case class FeatureConfig(name: String, windows: List[Int], days: Int)
 
   case class SchemaConfig(windows: List[SchemaWindowConfig])
   case class SchemaWindowConfig(start: Int, size: Int)
@@ -38,6 +39,7 @@ object Config {
   implicit val fieldConfigDecoder        = deriveDecoder[FieldConfig]
   implicit val schemaWindowConfigDecoder = deriveDecoder[SchemaWindowConfig]
   implicit val schemaConfigDecoder       = deriveDecoder[SchemaConfig]
+  implicit val featureConfigDecoder      = deriveDecoder[FeatureConfig]
   implicit val feedbackTypeConfigDecoder = deriveDecoder[FeedbackTypeConfig]
   implicit val feedbackConfigDecoder     = deriveDecoder[FeedbackConfig]
   implicit val listenConfigDecoder       = deriveDecoder[ListenConfig]

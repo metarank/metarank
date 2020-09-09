@@ -2,55 +2,39 @@ package me.dfdx.metarank.feature
 
 import java.io.{DataInput, DataOutput}
 
-import me.dfdx.metarank.model.Timestamp
+import me.dfdx.metarank.model.Event.InteractionEvent
+import me.dfdx.metarank.model.{Event, Timestamp}
 
-case class TumblingWindowCountingFeature(name: String) extends Feature {
-  override def write(out: DataOutput): Unit = ???
+case class TumblingWindowCountingFeature(
+    updated: Timestamp,
+    saved: Timestamp,
+    windows: List[Int],
+    buffer: CircularReservoir,
+    interactionType: String
+) extends Feature {
+
+  override def onEvent(event: Event): TumblingWindowCountingFeature =
+    event match {
+      case InteractionEvent(_, ts, _, _, tpe, _, _, _) if tpe == interactionType =>
+        copy(buffer = buffer.increment(ts.day), updated = ts)
+      case _ =>
+        this
+    }
+
+  override def size: Int            = windows.size
+  override def values: Array[Float] = windows.map(w => buffer.sumLast(w).toFloat).toArray
 }
 
-object TumblingWindowCountingFeature extends Feature.Loader[TumblingWindowCountingFeature] {
+object TumblingWindowCountingFeature extends Feature.Loader {
 
-  case class CircularReservoir(lastDay: Int, size: Int, buffer: Vector[Int]) {
-    def sumLast(days: Int): Int = {
-      var sum = 0
-      var pos = math.max(lastDay - days, 0)
-      while (pos < lastDay) {
-        sum += buffer(wrap(pos))
-        pos += 1
-      }
-      sum
-    }
+  override val name = "tumbling_count"
 
-    def increment(day: Int, value: Int = 1): CircularReservoir = {
-      if (lastDay == 0) {
-        // initial increment
-        val position = wrap(day)
-        copy(lastDay = day, buffer = buffer.updated(position, buffer(position) + value))
-      } else if (day == lastDay) {
-        // same day increment
-        val position = wrap(day)
-        copy(buffer = buffer.updated(position, buffer(position) + value))
-      } else {
-        // the day is incremented
-        if (day - lastDay >= size) {
-          // we have a full loop over circular buffer, so we need to wipe everything
-          copy(lastDay = day, buffer = Vector.fill(size)(0).updated(wrap(day), value))
-        } else {
-          // we're within the buffer size,
-          // so we iterate from the next day to the current one, zeroing everything in between
-          // in case if single day increment, (lastDay+1) == ts.day, so this loop is skipped
-          val skipped = ((lastDay + 1) until day).foldLeft(buffer)((buf, iday) => buf.updated(wrap(iday), 0))
-          copy(lastDay = day, buffer = skipped.updated(wrap(day), value))
-        }
-      }
-    }
-
-    def wrap(day: Int) = day % size
-  }
-
-  object CircularReservoir {
-    def apply(windowSizeDays: Int) = new CircularReservoir(0, windowSizeDays, Vector.fill(windowSizeDays)(0))
-  }
-  def apply(name: String, windowSizeDays: Int)                    = ???
-  override def load(in: DataInput): TumblingWindowCountingFeature = ???
+  def apply(windows: List[Int], windowSizeDays: Int, interactionType: String) =
+    new TumblingWindowCountingFeature(
+      Timestamp(0),
+      Timestamp(0),
+      windows,
+      CircularReservoir(windowSizeDays),
+      interactionType
+    )
 }

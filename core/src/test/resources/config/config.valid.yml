@@ -7,12 +7,22 @@ keyspace:
   name: demo
   feedback:
     types:
+      - name: search
+        weight: 1
+        features:
+          - { name: "tumbling_count", windows: [1, 3, 5], days: 90 }
       - name: click
         weight: 1
+        features:
+          - { name: "tumbling_count", windows: [1, 3, 5], days: 90 }
       - name: cart
         weight: 2
+        features:
+          - { name: "tumbling_count", windows: [1, 3, 5], days: 90 }
       - name: purchase
         weight: 3
+        features:
+          - { name: "tumbling_count", windows: [1, 3, 5], days: 90 }
 
   schema:
     windows:

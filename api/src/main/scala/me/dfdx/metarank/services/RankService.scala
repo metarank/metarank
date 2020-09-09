@@ -10,14 +10,13 @@ object RankService {
   implicit val requestJson  = jsonOf[IO, RankRequest]
   implicit val responseJson = jsonEncoderOf[IO, RankResponse]
 
-  val route = HttpRoutes.of[IO] {
-    case request @ POST -> Root / "rank" =>
-      for {
-        rankRequest <- request.as[RankRequest]
-        response    <- Ok(RankResponse(rankRequest.items))
-      } yield {
-        response
-      }
+  val route = HttpRoutes.of[IO] { case request @ POST -> Root / "rank" =>
+    for {
+      rankRequest <- request.as[RankRequest]
+      response    <- Ok(RankResponse(rankRequest.items))
+    } yield {
+      response
+    }
 
   }
 }

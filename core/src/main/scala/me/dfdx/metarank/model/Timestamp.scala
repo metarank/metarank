@@ -1,12 +1,20 @@
 package me.dfdx.metarank.model
 
 import io.circe.{Codec, Decoder, Encoder}
+import me.dfdx.metarank.model.Timestamp.MILLIS_IN_DAY
 
 import scala.util.Try
 
-case class Timestamp(value: Long) extends AnyVal
+/**
+  * A wrapper on number of milliseconds from 1970-01-01
+  * @param value
+  */
+case class Timestamp(value: Long) extends AnyVal {
+  def day: Int = math.round(value.toFloat / MILLIS_IN_DAY)
+}
 
 object Timestamp {
+  val MILLIS_IN_DAY = 24 * 60 * 60 * 1000
   implicit val tsCodec = Codec.from(
     decodeA = Decoder.decodeString
       .emapTry(str => Try(str.toLong))

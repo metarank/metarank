@@ -8,6 +8,7 @@ libraryDependencies ++= Seq(
   "io.chrisdavenport"    %% "log4cats-slf4j"  % log4catsVersion,
   "org.scalatest"        %% "scalatest"       % scalatestVersion % "test",
   "org.scalactic"        %% "scalactic"       % scalatestVersion % "test",
+  "org.scalatestplus"    %% "scalacheck-1-14" % "3.2.2.0"        % "test",
   "ch.qos.logback"        % "logback-classic" % "1.2.3",
   "io.circe"             %% "circe-yaml"      % circeYamlVersion,
   "io.circe"             %% "circe-core"      % circeVersion,

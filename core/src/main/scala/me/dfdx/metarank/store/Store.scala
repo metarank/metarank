@@ -1,8 +1,13 @@
 package me.dfdx.metarank.store
 
+import cats.effect.IO
 import me.dfdx.metarank.config.Config.InteractionType
+import me.dfdx.metarank.state.State
 
-trait Store {}
+trait Store {
+  def load[T <: State](key: String)(implicit reader: State.Reader[T]): IO[Option[T]]
+  def save[T <: State](key: String, value: T)(implicit writer: State.Writer[T]): IO[Unit]
+}
 
 object Store {
   trait Key[T] {

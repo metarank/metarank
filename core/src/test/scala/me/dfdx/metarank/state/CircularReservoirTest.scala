@@ -40,8 +40,8 @@ class CircularReservoirTest extends AnyPropSpec with Matchers with ScalaCheckDri
     forAll(events) { list =>
       val updated = list.foldLeft(CircularReservoir(10))((buf, day) => buf.increment(Timestamp.day(day)))
       val buffer  = new ByteArrayOutputStream()
-      updated.write(new DataOutputStream(buffer))
-      val read = CircularReservoir.read(new DataInputStream(new ByteArrayInputStream(buffer.toByteArray)))
+      CircularReservoir.ctWriter.write(updated, new DataOutputStream(buffer))
+      val read = CircularReservoir.crReader.read(new DataInputStream(new ByteArrayInputStream(buffer.toByteArray)))
       updated shouldBe read
     }
   }

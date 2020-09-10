@@ -1,9 +1,9 @@
 package me.dfdx.metarank.feature
 
-import me.dfdx.metarank.config.Config.{FeatureConfig, FeedbackConfig}
+import me.dfdx.metarank.config.Config.{FeatureConfig, FeedbackConfig, InteractionType}
 import me.dfdx.metarank.state.State
 
-case class FeatureRegistry(global: Map[String, List[Feature[_ <: State]]]) {}
+case class FeatureRegistry(global: Map[InteractionType, List[Feature[_ <: State]]]) {}
 
 object FeatureRegistry {
   def fromConfig(feedbackConfig: FeedbackConfig) = {
@@ -15,8 +15,8 @@ object FeatureRegistry {
     new FeatureRegistry(feedback.toMap)
   }
 
-  def fromFeatureConfig(interactionType: String, conf: FeatureConfig) =
+  def fromFeatureConfig(interactionType: InteractionType, conf: FeatureConfig): Feature[_ <: State] =
     conf.name match {
-      case "tumbling_count" => TumblingWindowCountingFeature(conf.windows, interactionType)
+      case "window_count" => WindowCountingFeature(conf.windows, interactionType)
     }
 }

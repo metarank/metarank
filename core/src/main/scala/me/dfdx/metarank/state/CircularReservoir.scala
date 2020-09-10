@@ -5,11 +5,6 @@ import java.io.{DataInput, DataOutput}
 import me.dfdx.metarank.model.Timestamp
 
 case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buffer: Vector[Int]) extends State {
-  def write(out: DataOutput): Unit = {
-    out.writeInt(lastDay)
-    out.writeInt(size)
-    buffer.foreach(out.writeInt)
-  }
   def sumLast(days: Int): Int = {
     var sum = 0
     var pos = math.max(lastDay - days, 0)
@@ -51,7 +46,23 @@ case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buff
 object CircularReservoir {
   def apply(windowSizeDays: Int) =
     new CircularReservoir(Timestamp(0), 0, windowSizeDays, Vector.fill(windowSizeDays)(0))
-  def read(in: DataInput) = {
-    ???
+
+  implicit val crReader = new State.Reader[CircularReservoir] {
+    override def read(in: DataInput): CircularReservoir = {
+      val updatedAt = Timestamp(in.readLong())
+      val lastDay   = in.readInt()
+      val size      = in.readInt()
+      val values    = for (_ <- 0 until size) yield { in.readInt() }
+      new CircularReservoir(updatedAt, lastDay, size, values.toVector)
+    }
+  }
+
+  implicit val ctWriter = new State.Writer[CircularReservoir] {
+    override def write(value: CircularReservoir, out: DataOutput): Unit = {
+      out.writeLong(value.updatedAt.value)
+      out.writeInt(value.lastDay)
+      out.writeInt(value.size)
+      value.buffer.foreach(out.writeInt)
+    }
   }
 }

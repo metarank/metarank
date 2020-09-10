@@ -28,7 +28,7 @@ object Config {
   case class InteractionType(value: String) extends AnyVal
   case class FeedbackConfig(types: List[FeedbackTypeConfig])
   case class FeedbackTypeConfig(name: InteractionType, weight: Int, features: List[FeatureConfig])
-  case class FeatureConfig(name: String, windows: List[Int], days: Int)
+  case class FeatureConfig(name: String, windows: List[Int])
 
   case class SchemaConfig(windows: List[SchemaWindowConfig])
   case class SchemaWindowConfig(start: Int, size: Int)
@@ -42,7 +42,10 @@ object Config {
   implicit val fieldConfigDecoder        = deriveDecoder[FieldConfig]
   implicit val schemaWindowConfigDecoder = deriveDecoder[SchemaWindowConfig]
   implicit val schemaConfigDecoder       = deriveDecoder[SchemaConfig]
-  implicit val featureConfigDecoder      = deriveDecoder[FeatureConfig]
+  implicit val featureConfigDecoder = deriveDecoder[FeatureConfig]
+    .ensure(_.windows.nonEmpty, "windows cannot be empty")
+    .ensure(!_.windows.contains(0), "zero length windows are impossible")
+
   implicit val interactionTypeDecoder = Decoder.decodeString
     .map(InteractionType.apply)
     .ensure(_.value.nonEmpty, "interaction type cannot be empty")

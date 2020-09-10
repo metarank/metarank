@@ -7,15 +7,15 @@ import com.github.blemale.scaffeine.Scaffeine
 import me.dfdx.metarank.state.State
 
 class HeapStore extends Store {
-  val cache = Scaffeine().build[String, Array[Byte]]()
+  val byteCache = Scaffeine().build[String, Array[Byte]]()
 
   override def load[T <: State](key: String)(implicit reader: State.Reader[T]): IO[Option[T]] = IO {
-    cache.getIfPresent(key).map(bytes => reader.read(new DataInputStream(new ByteArrayInputStream(bytes))))
+    byteCache.getIfPresent(key).map(bytes => reader.read(new DataInputStream(new ByteArrayInputStream(bytes))))
   }
 
   override def save[T <: State](key: String, value: T)(implicit writer: State.Writer[T]): IO[Unit] = IO {
     val buffer = new ByteArrayOutputStream()
     writer.write(value, new DataOutputStream(buffer))
-    cache.put(key, buffer.toByteArray)
+    byteCache.put(key, buffer.toByteArray)
   }
 }

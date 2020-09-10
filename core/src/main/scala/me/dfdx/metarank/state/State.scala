@@ -16,4 +16,6 @@ object State {
   trait Writer[T <: State] {
     def write(value: T, out: DataOutput): Unit
   }
+
+  case class StateReadException(msg: String) extends Exception(msg)
 }

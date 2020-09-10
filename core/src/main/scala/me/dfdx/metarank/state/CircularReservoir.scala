@@ -3,6 +3,7 @@ package me.dfdx.metarank.state
 import java.io.{DataInput, DataOutput}
 
 import me.dfdx.metarank.model.Timestamp
+import me.dfdx.metarank.state.State.StateReadException
 
 case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buffer: Vector[Int]) extends State {
   def sumLast(days: Int): Int = {

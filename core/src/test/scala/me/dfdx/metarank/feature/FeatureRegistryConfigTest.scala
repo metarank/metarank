@@ -8,12 +8,12 @@ class FeatureRegistryConfigTest extends AnyFlatSpec with Matchers {
   it should "load tumbling window from config" in {
     val conf = FeedbackConfig(
       List(
-        FeedbackTypeConfig("pageview", 1, List(FeatureConfig(TumblingWindowCountingFeature.name, List(1, 2, 4), 10)))
+        FeedbackTypeConfig("pageview", 1, List(FeatureConfig("tumbling_count", List(1, 2, 4), 10)))
       )
     )
     val registry = FeatureRegistry.fromConfig(conf)
-    registry.feedback shouldBe Map(
-      "pageview" -> List(TumblingWindowCountingFeature(List(1, 2, 4), 10, "pageview"))
+    registry.global shouldBe Map(
+      "pageview" -> List(TumblingWindowCountingFeature(List(1, 2, 4), "pageview"))
     )
   }
 

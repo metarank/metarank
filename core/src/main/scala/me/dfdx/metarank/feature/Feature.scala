@@ -3,19 +3,10 @@ package me.dfdx.metarank.feature
 import java.io.{DataInput, DataOutput}
 
 import me.dfdx.metarank.model.{Event, Timestamp}
+import me.dfdx.metarank.state.State
 
-trait Feature {
-  def updated: Timestamp
-  def saved: Timestamp
-  def size: Int
-  def onEvent(event: Event): Feature
-  //def write(out: DataOutput): Unit
-  def values: Array[Float]
-}
-
-object Feature {
-  trait Loader {
-    def name: String
-    //def read(in: DataInput): Feature
-  }
+trait Feature[T <: State] {
+  def name: String
+  def onEvent(state: T, event: Event): State
+  def values(state: T): Array[Float]
 }

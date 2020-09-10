@@ -10,11 +10,11 @@ import scala.util.Try
   * @param value
   */
 case class Timestamp(value: Long) extends AnyVal {
-  def day: Int = math.round(value.toFloat / MILLIS_IN_DAY)
+  def day: Int = math.round(value.toDouble / MILLIS_IN_DAY.toDouble).toInt
 }
 
 object Timestamp {
-  val MILLIS_IN_DAY = 24 * 60 * 60 * 1000
+  val MILLIS_IN_DAY = 24 * 60 * 60 * 1000L
   implicit val tsCodec = Codec.from(
     decodeA = Decoder.decodeString
       .emapTry(str => Try(str.toLong))
@@ -23,4 +23,5 @@ object Timestamp {
       .ensure(!_.value.isNaN, "timestamp cannot be NaN"),
     encodeA = Encoder.instance[Timestamp](ts => Encoder.encodeString(ts.value.toString))
   )
+  def day(n: Int) = new Timestamp(n * MILLIS_IN_DAY)
 }

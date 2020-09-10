@@ -25,8 +25,9 @@ object Config {
   case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 
+  case class InteractionType(value: String) extends AnyVal
   case class FeedbackConfig(types: List[FeedbackTypeConfig])
-  case class FeedbackTypeConfig(name: String, weight: Int, features: List[FeatureConfig])
+  case class FeedbackTypeConfig(name: InteractionType, weight: Int, features: List[FeatureConfig])
   case class FeatureConfig(name: String, windows: List[Int], days: Int)
 
   case class SchemaConfig(windows: List[SchemaWindowConfig])
@@ -35,11 +36,16 @@ object Config {
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
 
+  implicit val interactionTypeEncoder = Encoder.instance[InteractionType](tpe => Encoder.encodeString(tpe.value))
+
   implicit val fieldFormatConfigDecoder  = deriveDecoder[FieldFormatConfig]
   implicit val fieldConfigDecoder        = deriveDecoder[FieldConfig]
   implicit val schemaWindowConfigDecoder = deriveDecoder[SchemaWindowConfig]
   implicit val schemaConfigDecoder       = deriveDecoder[SchemaConfig]
   implicit val featureConfigDecoder      = deriveDecoder[FeatureConfig]
+  implicit val interactionTypeDecoder = Decoder.decodeString
+    .map(InteractionType.apply)
+    .ensure(_.value.nonEmpty, "interaction type cannot be empty")
   implicit val feedbackTypeConfigDecoder = deriveDecoder[FeedbackTypeConfig]
   implicit val feedbackConfigDecoder     = deriveDecoder[FeedbackConfig]
   implicit val listenConfigDecoder       = deriveDecoder[ListenConfig]

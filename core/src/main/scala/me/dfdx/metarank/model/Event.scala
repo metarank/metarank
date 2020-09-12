@@ -2,7 +2,7 @@ package me.dfdx.metarank.model
 
 import cats.data.NonEmptyList
 import io.circe.generic.semiauto._
-import me.dfdx.metarank.config.Config.InteractionType
+import me.dfdx.metarank.config.Config.EventType
 
 sealed trait Event {
   def timestamp: Timestamp
@@ -18,7 +18,7 @@ object Event {
       timestamp: Timestamp,
       user: UserId,
       session: SessionId,
-      `type`: InteractionType,
+      `type`: EventType,
       item: ItemId,
       ua: Option[UserAgent] = None,
       ip: Option[IPAddr] = None

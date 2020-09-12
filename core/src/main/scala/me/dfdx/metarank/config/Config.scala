@@ -1,5 +1,6 @@
 package me.dfdx.metarank.config
 
+import cats.data.NonEmptyList
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser._
@@ -21,37 +22,45 @@ case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
 }
 
 object Config {
-  case class FeaturespaceConfig(name: String, state: List[InteractionStateConfig])
+  case class FeaturespaceConfig(name: String, events: List[EventConfig], features: List[FeatureConfig])
   case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 
-  case class InteractionType(value: String) extends AnyVal
-  case class InteractionStateConfig(interaction: InteractionType, trackers: List[TrackerConfig])
-  case class TrackerConfig(name: String, days: Int)
+  case class EventType(value: String)
+  case class EventConfig(`type`: EventType)
   case class WindowConfig(from: Int, length: Int) {
     val to = from + length
+  }
+
+  case class FeatureConfig(`type`: String, events: NonEmptyList[EventType], windows: NonEmptyList[WindowConfig]) {
+    val maxDays = windows.map(w => w.from + w.length).reduceLeft(_ + _)
   }
 
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
 
-  implicit val interactionTypeEncoder = Encoder.instance[InteractionType](tpe => Encoder.encodeString(tpe.value))
+  implicit val eventTypeCodec = Codec.from(
+    decodeA = Decoder.decodeString
+      .map(EventType.apply)
+      .ensure(_.value.nonEmpty, "interaction type cannot be empty"),
+    encodeA = Encoder.instance[EventType](tpe => Encoder.encodeString(tpe.value))
+  )
 
-  implicit val fieldFormatConfigDecoder = deriveDecoder[FieldFormatConfig]
-  implicit val fieldConfigDecoder       = deriveDecoder[FieldConfig]
-  implicit val windowConfigDecoder = deriveDecoder[WindowConfig]
-    .ensure(w => (w.from >= 0) && (w.length >= 0), "from/length window fields should be positive")
-  implicit val featureConfigDecoder = deriveDecoder[TrackerConfig]
-    .ensure(_.days > 0, "days should be above zero")
+  implicit val fieldFormatCodec = deriveCodec[FieldFormatConfig]
+  implicit val fieldCodec       = deriveCodec[FieldConfig]
 
-  implicit val interactionTypeDecoder = Decoder.decodeString
-    .map(InteractionType.apply)
-    .ensure(_.value.nonEmpty, "interaction type cannot be empty")
-  implicit val feedbackTypeConfigDecoder = deriveDecoder[InteractionStateConfig]
-  implicit val listenConfigDecoder       = deriveDecoder[ListenConfig]
-  implicit val coreConfigDecoder         = deriveDecoder[CoreConfig]
-  implicit val featurespaceConfigDecoder = deriveDecoder[FeaturespaceConfig]
-  implicit val configDecoder             = deriveDecoder[Config]
+  implicit val windowConfigCodec = Codec.from(
+    decodeA = deriveDecoder[WindowConfig]
+      .ensure(w => (w.from >= 0) && (w.length >= 0), "from/length window fields should be positive"),
+    encodeA = deriveEncoder[WindowConfig]
+  )
+
+  implicit val featureConfigCodec      = deriveCodec[FeatureConfig]
+  implicit val eventConfigCodec        = deriveCodec[EventConfig]
+  implicit val listenConfigCodec       = deriveCodec[ListenConfig]
+  implicit val coreConfigCodec         = deriveCodec[CoreConfig]
+  implicit val featurespaceConfigCodec = deriveCodec[FeaturespaceConfig]
+  implicit val configCodec             = deriveCodec[Config]
 
   def load(configString: String): Either[ConfigLoadingError, Config] = {
     parse(configString) match {

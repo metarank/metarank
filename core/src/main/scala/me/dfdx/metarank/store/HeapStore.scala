@@ -4,13 +4,13 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 
 import cats.effect.IO
 import com.github.blemale.scaffeine.Scaffeine
-import me.dfdx.metarank.tracker.Tracker
+import me.dfdx.metarank.tracker.Aggregation
 import me.dfdx.metarank.tracker.state.State
 
 class HeapStore extends Store {
   val byteCache = Scaffeine().build[String, Array[Byte]]()
 
-  override def load[T <: State](tracker: String, scope: Tracker.Scope)(implicit
+  override def load[T <: State](tracker: Aggregation, scope: Aggregation.Scope)(implicit
       reader: State.Reader[T]
   ): IO[Option[T]] = IO {
     byteCache
@@ -18,7 +18,7 @@ class HeapStore extends Store {
       .map(bytes => reader.read(new DataInputStream(new ByteArrayInputStream(bytes))))
   }
 
-  override def save[T <: State](tracker: String, scope: Tracker.Scope, value: T)(implicit
+  override def save[T <: State](tracker: Aggregation, scope: Aggregation.Scope, value: T)(implicit
       writer: State.Writer[T]
   ): IO[Unit] = IO {
     val buffer = new ByteArrayOutputStream()

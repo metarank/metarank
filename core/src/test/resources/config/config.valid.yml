@@ -5,16 +5,17 @@ core:
 
 featurespace:
   name: demo
-  state:
-    - interaction: search
-      trackers:
-        - { name: "count", days: 10 }
-    - interaction: click
-      trackers:
-        - { name: "count", days: 10 }
-    - interaction: purchase
-      trackers:
-        - { name: "count", days: 10 }
+  events:
+    - type: search
+    - type: click
+    - type: purchase
+  features:
+    - type: window_count
+      events: [search, click, purchase]
+      windows:
+        - { from: 1, length: 7 }
+        - { from: 1, length: 14 }
+        - { from: 1, length: 28 }
   schema:
     fields:
       - name: category

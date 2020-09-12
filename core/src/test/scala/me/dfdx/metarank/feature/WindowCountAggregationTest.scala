@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class WindowCountTrackerTest extends AnyPropSpec with Matchers with ScalaCheckDrivenPropertyChecks {
+class WindowCountAggregationTest extends AnyPropSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
 //  property("should ser-de itself") {
 //    forAll(Gen.asciiPrintableStr) { str =>

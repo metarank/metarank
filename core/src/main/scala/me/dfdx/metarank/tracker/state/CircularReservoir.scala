@@ -1,19 +1,25 @@
-package me.dfdx.metarank.state
+package me.dfdx.metarank.tracker.state
 
 import java.io.{DataInput, DataOutput}
 
 import me.dfdx.metarank.model.Timestamp
-import me.dfdx.metarank.state.State.StateReadException
 
 case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buffer: Vector[Int]) extends State {
-  def sumLast(days: Int): Int = {
+  override def write(out: DataOutput): Unit = CircularReservoir.ctWriter.write(this, out)
+
+  def sum(from: Int, length: Int): Int = {
     var sum = 0
-    var pos = math.max(lastDay - days, 0)
-    while (pos < lastDay) {
-      sum += buffer(wrap(pos))
-      pos += 1
+    var i   = math.max(lastDay - from, 0)
+    val end = math.max(lastDay - from + length, 0)
+    while (i < end) {
+      sum += buffer(wrap(i))
+      i += 1
     }
     sum
+  }
+
+  def sumLast(days: Int): Int = {
+    sum(days, days)
   }
 
   def increment(ts: Timestamp, value: Int = 1): CircularReservoir = {

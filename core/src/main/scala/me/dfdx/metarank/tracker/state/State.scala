@@ -1,4 +1,4 @@
-package me.dfdx.metarank.state
+package me.dfdx.metarank.tracker.state
 
 import java.io.{DataInput, DataOutput}
 
@@ -6,6 +6,7 @@ import me.dfdx.metarank.model.Timestamp
 
 trait State {
   def updatedAt: Timestamp
+  def write(out: DataOutput): Unit
 }
 
 object State {
@@ -17,5 +18,5 @@ object State {
     def write(value: T, out: DataOutput): Unit
   }
 
-  case class StateReadException(msg: String) extends Exception(msg)
+  case class StateReadError(msg: String) extends Exception(msg)
 }

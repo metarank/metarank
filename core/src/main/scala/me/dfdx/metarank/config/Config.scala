@@ -3,9 +3,9 @@ package me.dfdx.metarank.config
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser._
-import me.dfdx.metarank.config.Config.{CoreConfig, KeyspaceConfig}
+import me.dfdx.metarank.config.Config.{CoreConfig, FeaturespaceConfig}
 
-case class Config(core: CoreConfig, keyspace: KeyspaceConfig) {
+case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
     val iface = cmd.hostname.getOrElse(core.listen.hostname)
     val port  = cmd.port.getOrElse(core.listen.port)
@@ -21,39 +21,36 @@ case class Config(core: CoreConfig, keyspace: KeyspaceConfig) {
 }
 
 object Config {
-  case class KeyspaceConfig(name: String, feedback: FeedbackConfig, schema: SchemaConfig)
+  case class FeaturespaceConfig(name: String, state: List[InteractionStateConfig])
   case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 
   case class InteractionType(value: String) extends AnyVal
-  case class FeedbackConfig(types: List[FeedbackTypeConfig])
-  case class FeedbackTypeConfig(name: InteractionType, weight: Int, features: List[FeatureConfig])
-  case class FeatureConfig(name: String, windows: List[Int])
-
-  case class SchemaConfig(windows: List[SchemaWindowConfig])
-  case class SchemaWindowConfig(start: Int, size: Int)
+  case class InteractionStateConfig(interaction: InteractionType, trackers: List[TrackerConfig])
+  case class TrackerConfig(name: String, days: Int)
+  case class WindowConfig(from: Int, length: Int) {
+    val to = from + length
+  }
 
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
 
   implicit val interactionTypeEncoder = Encoder.instance[InteractionType](tpe => Encoder.encodeString(tpe.value))
 
-  implicit val fieldFormatConfigDecoder  = deriveDecoder[FieldFormatConfig]
-  implicit val fieldConfigDecoder        = deriveDecoder[FieldConfig]
-  implicit val schemaWindowConfigDecoder = deriveDecoder[SchemaWindowConfig]
-  implicit val schemaConfigDecoder       = deriveDecoder[SchemaConfig]
-  implicit val featureConfigDecoder = deriveDecoder[FeatureConfig]
-    .ensure(_.windows.nonEmpty, "windows cannot be empty")
-    .ensure(!_.windows.contains(0), "zero length windows are impossible")
+  implicit val fieldFormatConfigDecoder = deriveDecoder[FieldFormatConfig]
+  implicit val fieldConfigDecoder       = deriveDecoder[FieldConfig]
+  implicit val windowConfigDecoder = deriveDecoder[WindowConfig]
+    .ensure(w => (w.from >= 0) && (w.length >= 0), "from/length window fields should be positive")
+  implicit val featureConfigDecoder = deriveDecoder[TrackerConfig]
+    .ensure(_.days > 0, "days should be above zero")
 
   implicit val interactionTypeDecoder = Decoder.decodeString
     .map(InteractionType.apply)
     .ensure(_.value.nonEmpty, "interaction type cannot be empty")
-  implicit val feedbackTypeConfigDecoder = deriveDecoder[FeedbackTypeConfig]
-  implicit val feedbackConfigDecoder     = deriveDecoder[FeedbackConfig]
+  implicit val feedbackTypeConfigDecoder = deriveDecoder[InteractionStateConfig]
   implicit val listenConfigDecoder       = deriveDecoder[ListenConfig]
   implicit val coreConfigDecoder         = deriveDecoder[CoreConfig]
-  implicit val keyspaceConfigDecoder     = deriveDecoder[KeyspaceConfig]
+  implicit val featurespaceConfigDecoder = deriveDecoder[FeaturespaceConfig]
   implicit val configDecoder             = deriveDecoder[Config]
 
   def load(configString: String): Either[ConfigLoadingError, Config] = {
@@ -67,9 +64,7 @@ object Config {
     }
   }
 
-  sealed trait ConfigLoadingError extends Throwable {
-    def msg: String
-  }
-  case class YamlDecodingError(msg: String, underlying: Throwable) extends ConfigLoadingError
-  case class ConfigSyntaxError(msg: String, chain: List[CursorOp]) extends ConfigLoadingError
+  abstract class ConfigLoadingError(msg: String)                   extends Exception(msg)
+  case class YamlDecodingError(msg: String, underlying: Throwable) extends ConfigLoadingError(msg)
+  case class ConfigSyntaxError(msg: String, chain: List[CursorOp]) extends ConfigLoadingError(msg)
 }

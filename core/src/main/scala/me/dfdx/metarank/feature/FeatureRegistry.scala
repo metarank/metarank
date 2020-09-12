@@ -1,22 +1,23 @@
 package me.dfdx.metarank.feature
 
-import me.dfdx.metarank.config.Config.{FeatureConfig, FeedbackConfig, InteractionType}
-import me.dfdx.metarank.state.State
+import me.dfdx.metarank.config.Config.{FeaturespaceConfig, InteractionType, TrackerConfig}
+import me.dfdx.metarank.tracker.state.State
+import me.dfdx.metarank.tracker.{Tracker, WindowCountTracker}
 
-case class FeatureRegistry(global: Map[InteractionType, List[Feature[_ <: State]]]) {}
+case class FeatureRegistry(global: Map[InteractionType, List[Tracker[_ <: State]]]) {}
 
 object FeatureRegistry {
-  def fromConfig(feedbackConfig: FeedbackConfig) = {
+  def fromConfig(conf: FeaturespaceConfig) = {
     val feedback = for {
-      tpe <- feedbackConfig.types
+      tpe <- conf.state
     } yield {
-      tpe.name -> tpe.features.map(fromFeatureConfig(tpe.name, _))
+      tpe.interaction -> tpe.trackers.map(fromTrackerConfig)
     }
     new FeatureRegistry(feedback.toMap)
   }
 
-  def fromFeatureConfig(interactionType: InteractionType, conf: FeatureConfig): Feature[_ <: State] =
+  def fromTrackerConfig(conf: TrackerConfig): Tracker[_ <: State] =
     conf.name match {
-      case "window_count" => WindowCountingFeature(conf.windows, interactionType)
+      case WindowCountTracker.name => WindowCountTracker
     }
 }

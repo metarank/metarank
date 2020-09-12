@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 
 import me.dfdx.metarank.feature.generator.IncrementingTimestampsGenerator
 import me.dfdx.metarank.model.Timestamp
+import me.dfdx.metarank.tracker.state.CircularReservoir
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks

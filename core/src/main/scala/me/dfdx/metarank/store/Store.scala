@@ -11,5 +11,6 @@ trait Store {
   def save[T <: State](tracker: Aggregation, scope: Aggregation.Scope, value: T)(implicit
       writer: State.Writer[T]
   ): IO[Unit]
-  protected def key[T <: State](tracker: Aggregation, scope: Aggregation.Scope) = s"${tracker.name}/${scope.key}"
+  protected def key[T <: State](tracker: Aggregation, scope: Aggregation.Scope) =
+    s"${tracker.name}/${scope.key}"
 }

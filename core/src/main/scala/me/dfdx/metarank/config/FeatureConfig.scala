@@ -1,9 +1,9 @@
 package me.dfdx.metarank.config
 
 import cats.data.NonEmptyList
-import io.circe.{Codec, Decoder, Encoder, Json}
-import io.circe.generic.extras.Configuration
 import me.dfdx.metarank.config.Config.{EventType, WindowConfig}
+import io.circe.Codec
+import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._
 
 sealed trait FeatureConfig {

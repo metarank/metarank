@@ -2,6 +2,7 @@ package me.dfdx.metarank.model
 
 import cats.data.NonEmptyList
 import io.circe.generic.semiauto._
+import me.dfdx.metarank.config.Config.EventType
 
 sealed trait Event {
   def timestamp: Timestamp
@@ -17,18 +18,20 @@ object Event {
       timestamp: Timestamp,
       user: UserId,
       session: SessionId,
-      `type`: String,
-      item: ItemId
+      `type`: EventType,
+      item: ItemId,
+      ua: Option[UserAgent] = None,
+      ip: Option[IPAddr] = None
   ) extends Event
 
   implicit val rankItemDecoder = deriveDecoder[RankItem]
     .ensure(!_.relevancy.isNaN, "relevancy score cannot be NaN")
     .ensure(!_.relevancy.isInfinite, "relevancy score cannot be Inf")
+
   implicit val rankItemEncoder = deriveEncoder[RankItem]
 
-  implicit val itemMetadataCodec = deriveCodec[ItemMetadataEvent]
-  implicit val rankEventCodec    = deriveCodec[RankEvent]
+  implicit val itemMetadataCodec  = deriveCodec[ItemMetadataEvent]
+  implicit val rankEventCodec     = deriveCodec[RankEvent]
   implicit val interactionDecoder = deriveDecoder[InteractionEvent]
-    .ensure(_.`type`.nonEmpty, "interaction type cannot be empty")
   implicit val interactionEncoder = deriveEncoder[InteractionEvent]
 }

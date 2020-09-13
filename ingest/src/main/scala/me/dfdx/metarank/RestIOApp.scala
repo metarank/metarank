@@ -5,6 +5,7 @@ import cats.effect._
 import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import me.dfdx.metarank.config.{CommandLineConfig, Config}
+import me.dfdx.metarank.feature.FeatureRegistry
 import org.http4s.HttpRoutes
 import org.http4s.server.blaze._
 import org.http4s.implicits._
@@ -23,8 +24,9 @@ trait RestIOApp extends IOApp {
       cmdline <- parseCommandLine(args)
       _       <- logger.info(s"Loading config from ${cmdline.config}")
       config  <- loadConfig(cmdline.config)
-      _       <- logger.info(s"Starting Metarank $serviceName")
-      exit    <- serveRequests(config)
+      //features <- IO { FeatureRegistry.fromConfig(config.featurespace) }
+      _    <- logger.info(s"Starting Metarank $serviceName")
+      exit <- serveRequests(config)
     } yield {
       exit
     }

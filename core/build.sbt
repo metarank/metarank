@@ -19,5 +19,5 @@ libraryDependencies ++= Seq(
   "com.github.scopt"     %% "scopt"                % "4.0.0-RC2",
   "com.github.blemale"   %% "scaffeine"            % "4.0.1",
   "com.github.fppt"       % "jedis-mock"           % "0.1.16"         % "test",
-  "redis.clients"         % "jedis"                % "2.9.0"
+  "redis.clients"         % "jedis"                % "3.3.0"
 )

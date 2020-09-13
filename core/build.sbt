@@ -3,7 +3,7 @@ name := "core"
 import Deps._
 
 libraryDependencies ++= Seq(
-  "org.typelevel"        %% "cats-effect"          % "2.1.4",
+  "org.typelevel"        %% "cats-effect"          % "2.2.0",
   "io.chrisdavenport"    %% "log4cats-core"        % log4catsVersion,
   "io.chrisdavenport"    %% "log4cats-slf4j"       % log4catsVersion,
   "org.scalatest"        %% "scalatest"            % scalatestVersion % "test",

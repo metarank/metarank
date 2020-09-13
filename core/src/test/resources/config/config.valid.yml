@@ -2,7 +2,8 @@ core:
   listen:
     hostname: localhost
     port: 8080
-
+  store:
+    type: memory # memory, redis, null
 featurespace:
   name: demo
   events:

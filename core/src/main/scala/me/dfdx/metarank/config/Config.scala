@@ -23,7 +23,7 @@ case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
 
 object Config {
   case class FeaturespaceConfig(name: String, events: List[EventConfig], features: List[FeatureConfig])
-  case class CoreConfig(listen: ListenConfig)
+  case class CoreConfig(listen: ListenConfig, store: StoreConfig)
   case class ListenConfig(hostname: String, port: Int)
 
   case class EventType(value: String)

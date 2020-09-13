@@ -8,14 +8,6 @@ import me.dfdx.metarank.aggregation.state.CircularReservoir
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class HeapBytesStoreTest extends AnyFlatSpec with Matchers {
-  it should "save/load reservoirs" in {
-    val key   = EventTypeScope(EventType("pageview"))
-    val count = CountAggregation(10)
-    val state = CircularReservoir(10).increment(Timestamp.day(1)).increment(Timestamp.day(2))
-    val store = new HeapBytesStore()
-    store.save(count, key, state).unsafeRunSync()
-    val read = store.load[CircularReservoir](count, key).unsafeRunSync()
-    read shouldBe Some(state)
-  }
+class HeapBytesStoreTest extends StoreTestSuite {
+  override lazy val store = new HeapBytesStore()
 }

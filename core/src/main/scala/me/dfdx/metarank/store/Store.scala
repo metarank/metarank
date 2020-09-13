@@ -1,8 +1,8 @@
 package me.dfdx.metarank.store
 
 import cats.effect.IO
-import me.dfdx.metarank.tracker.Aggregation
-import me.dfdx.metarank.tracker.state.State
+import me.dfdx.metarank.aggregation.Aggregation
+import me.dfdx.metarank.aggregation.state.State
 
 trait Store {
   def load[T <: State](tracker: Aggregation, scope: Aggregation.Scope)(implicit

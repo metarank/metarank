@@ -1,4 +1,4 @@
-package me.dfdx.metarank.feature
+package me.dfdx.metarank.aggregation
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

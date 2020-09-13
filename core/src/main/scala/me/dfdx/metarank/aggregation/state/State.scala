@@ -1,4 +1,4 @@
-package me.dfdx.metarank.tracker.state
+package me.dfdx.metarank.aggregation.state
 
 import java.io.{DataInput, DataOutput}
 

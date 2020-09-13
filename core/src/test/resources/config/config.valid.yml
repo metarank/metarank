@@ -10,12 +10,12 @@ featurespace:
     - type: click
     - type: purchase
   features:
-    - type: window_count
-      events: [search, click, purchase]
+    - type: "count"
+      events: ["search", "click", "purchase"]
       windows:
-        - { from: 1, length: 7 }
-        - { from: 1, length: 14 }
-        - { from: 1, length: 28 }
+      - { from: 1, length: 7 }
+      - { from: 1, length: 14 }
+      - { from: 1, length: 28 }
   schema:
     fields:
       - name: category

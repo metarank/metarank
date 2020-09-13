@@ -1,14 +1,15 @@
-package me.dfdx.metarank.tracker
+package me.dfdx.metarank.aggregation
 
 import cats.effect.IO
-import me.dfdx.metarank.config.Config.{EventType, FeatureConfig}
+import me.dfdx.metarank.config.Config.EventType
+import me.dfdx.metarank.config.FeatureConfig
 import me.dfdx.metarank.model.Event.InteractionEvent
 import me.dfdx.metarank.model.{Event, ItemId}
 import me.dfdx.metarank.store.Store
 
 trait Aggregation {
   def name: String
-  def onEvent(features: List[FeatureConfig], store: Store, scope: Aggregation.Scope, event: Event): IO[Unit]
+  def onEvent(store: Store, scope: Aggregation.Scope, event: Event): IO[Unit]
 }
 
 object Aggregation {
@@ -16,7 +17,7 @@ object Aggregation {
     def key: String
     def matches(event: InteractionEvent): Boolean
   }
-  case class InteractionTypeScope(tpe: EventType) extends Scope {
+  case class EventTypeScope(tpe: EventType) extends Scope {
     def key = s"t:${tpe.value}"
 
     override def matches(event: InteractionEvent): Boolean = event.`type` == tpe

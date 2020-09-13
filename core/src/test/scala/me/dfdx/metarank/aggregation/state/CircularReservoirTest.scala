@@ -1,10 +1,9 @@
-package me.dfdx.metarank.state
+package me.dfdx.metarank.aggregation.state
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
-import me.dfdx.metarank.feature.generator.IncrementingTimestampsGenerator
+import me.dfdx.metarank.aggregation.generator.IncrementingTimestampsGenerator
 import me.dfdx.metarank.model.Timestamp
-import me.dfdx.metarank.tracker.state.CircularReservoir
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
@@ -29,11 +28,41 @@ class CircularReservoirTest extends AnyPropSpec with Matchers with ScalaCheckDri
     buf.sumLast(100) shouldBe 1
   }
 
-  property("it should have sum of last N days") {
+  property("it should not overflow") {
+    val buf = CircularReservoir(3)
+      .increment(Timestamp.day(1))
+      .increment(Timestamp.day(2))
+      .increment(Timestamp.day(3))
+      .increment(Timestamp.day(4))
+    buf.sumLast(10) shouldBe 2
+  }
+
+  property("it should not overflow v2") {
+    val buf = CircularReservoir(10)
+      .increment(Timestamp.day(6))
+      .increment(Timestamp.day(6))
+      .increment(Timestamp.day(8))
+      .increment(Timestamp.day(8))
+      .increment(Timestamp.day(8))
+    buf.sumLast(1) shouldBe 0
+  }
+
+  property("it should not overflow v3") {
+    val buf = CircularReservoir(10)
+      .increment(Timestamp.day(5))
+      .increment(Timestamp.day(6))
+    buf.sumLast(1) shouldBe 1
+  }
+
+  property("it should have sum of last 1 days") {
     forAll(events) { list =>
-      val now     = list.max
-      val updated = list.foldLeft(CircularReservoir(10))((buf, day) => buf.increment(Timestamp.day(day)))
-      updated.sumLast(1) shouldBe list.count(day => (day >= now - 1) && (day < now))
+      if (list.nonEmpty && list.forall(_ >= 0)) {
+        val now      = list.max
+        val updated  = list.foldLeft(CircularReservoir(10))((buf, day) => buf.increment(Timestamp.day(day)))
+        val computed = updated.sumLast(1)
+        val expected = list.count(day => (day >= now - 1) && (day < now))
+        computed shouldBe expected
+      }
     }
   }
 

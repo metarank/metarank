@@ -1,4 +1,4 @@
-package me.dfdx.metarank.feature.generator
+package me.dfdx.metarank.aggregation.generator
 
 import org.scalacheck.Gen
 

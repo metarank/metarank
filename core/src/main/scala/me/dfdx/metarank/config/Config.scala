@@ -32,10 +32,6 @@ object Config {
     val to = from + length
   }
 
-  case class FeatureConfig(`type`: String, events: NonEmptyList[EventType], windows: NonEmptyList[WindowConfig]) {
-    val maxDays = windows.map(w => w.from + w.length).reduceLeft(_ + _)
-  }
-
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
 
@@ -51,11 +47,13 @@ object Config {
 
   implicit val windowConfigCodec = Codec.from(
     decodeA = deriveDecoder[WindowConfig]
-      .ensure(w => (w.from >= 0) && (w.length >= 0), "from/length window fields should be positive"),
+      .ensure(_.from > 0, "window start must be above zero")
+      .ensure(_.length > 0, "window length must be above zero"),
     encodeA = deriveEncoder[WindowConfig]
   )
 
-  implicit val featureConfigCodec      = deriveCodec[FeatureConfig]
+  import FeatureConfig._
+
   implicit val eventConfigCodec        = deriveCodec[EventConfig]
   implicit val listenConfigCodec       = deriveCodec[ListenConfig]
   implicit val coreConfigCodec         = deriveCodec[CoreConfig]

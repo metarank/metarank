@@ -1,4 +1,4 @@
-package me.dfdx.metarank.tracker.state
+package me.dfdx.metarank.aggregation.state
 
 import java.io.{DataInput, DataOutput}
 
@@ -9,17 +9,21 @@ case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buff
 
   def sum(from: Int, length: Int): Int = {
     var sum = 0
-    var i   = math.max(lastDay - from, 0)
-    val end = math.max(lastDay - from + length, 0)
-    while (i < end) {
-      sum += buffer(wrap(i))
-      i += 1
+    // as length cannot be more than buffer size
+    val effectiveLength = math.min(length - 1, size - 2)
+    // we always start from the previous day going backwards
+    var start = math.max(lastDay - from - effectiveLength, 0)
+    val end   = math.max(lastDay - from, 0)
+    while (start <= end) {
+      val pos = wrap(start)
+      sum += buffer(pos)
+      start += 1
     }
     sum
   }
 
   def sumLast(days: Int): Int = {
-    sum(days, days)
+    sum(1, days)
   }
 
   def increment(ts: Timestamp, value: Int = 1): CircularReservoir = {

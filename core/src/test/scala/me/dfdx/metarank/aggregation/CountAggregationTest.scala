@@ -1,13 +1,10 @@
-package me.dfdx.metarank.feature
+package me.dfdx.metarank.aggregation
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-
-import org.scalacheck.Gen
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.propspec.AnyPropSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class WindowCountAggregationTest extends AnyPropSpec with Matchers with ScalaCheckDrivenPropertyChecks {
+class CountAggregationTest extends AnyPropSpec with Matchers with ScalaCheckDrivenPropertyChecks {
 
 //  property("should ser-de itself") {
 //    forAll(Gen.asciiPrintableStr) { str =>

@@ -4,10 +4,10 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 
 import cats.effect.IO
 import com.github.blemale.scaffeine.Scaffeine
-import me.dfdx.metarank.tracker.Aggregation
-import me.dfdx.metarank.tracker.state.State
+import me.dfdx.metarank.aggregation.Aggregation
+import me.dfdx.metarank.aggregation.state.State
 
-class HeapStore extends Store {
+class HeapBytesStore extends Store {
   val byteCache = Scaffeine().build[String, Array[Byte]]()
 
   override def load[T <: State](tracker: Aggregation, scope: Aggregation.Scope)(implicit
@@ -25,4 +25,8 @@ class HeapStore extends Store {
     writer.write(value, new DataOutputStream(buffer))
     byteCache.put(key(tracker, scope), buffer.toByteArray)
   }
+}
+
+object HeapBytesStore {
+  def apply() = new HeapBytesStore()
 }

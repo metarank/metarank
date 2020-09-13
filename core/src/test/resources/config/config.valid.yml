@@ -3,23 +3,20 @@ core:
     hostname: localhost
     port: 8080
 
-keyspace:
+featurespace:
   name: demo
-  feedback:
-    types:
-      - name: click
-        weight: 1
-      - name: cart
-        weight: 2
-      - name: purchase
-        weight: 3
-
+  events:
+    - type: search
+    - type: click
+    - type: purchase
+  features:
+    - type: "count"
+      events: ["search", "click", "purchase"]
+      windows:
+      - { from: 1, length: 7 }
+      - { from: 1, length: 14 }
+      - { from: 1, length: 28 }
   schema:
-    windows:
-      - { start: 0, size: 1 }
-      - { start: 0, size: 2 }
-      - { start: 0, size: 4 }
-      - { start: 0, size: 8 }
     fields:
       - name: category
         format:

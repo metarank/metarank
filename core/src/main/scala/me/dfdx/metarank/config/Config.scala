@@ -1,11 +1,12 @@
 package me.dfdx.metarank.config
 
+import cats.data.NonEmptyList
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser._
-import me.dfdx.metarank.config.Config.{CoreConfig, KeyspaceConfig}
+import me.dfdx.metarank.config.Config.{CoreConfig, FeaturespaceConfig}
 
-case class Config(core: CoreConfig, keyspace: KeyspaceConfig) {
+case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
     val iface = cmd.hostname.getOrElse(core.listen.hostname)
     val port  = cmd.port.getOrElse(core.listen.port)
@@ -21,29 +22,43 @@ case class Config(core: CoreConfig, keyspace: KeyspaceConfig) {
 }
 
 object Config {
-  case class KeyspaceConfig(name: String, feedback: FeedbackConfig, schema: SchemaConfig)
+  case class FeaturespaceConfig(name: String, events: List[EventConfig], features: List[FeatureConfig])
   case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 
-  case class FeedbackConfig(types: List[FeedbackTypeConfig])
-  case class FeedbackTypeConfig(name: String, weight: Int)
-
-  case class SchemaConfig(windows: List[SchemaWindowConfig])
-  case class SchemaWindowConfig(start: Int, size: Int)
+  case class EventType(value: String)
+  case class EventConfig(`type`: EventType)
+  case class WindowConfig(from: Int, length: Int) {
+    val to = from + length
+  }
 
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
 
-  implicit val fieldFormatConfigDecoder  = deriveDecoder[FieldFormatConfig]
-  implicit val fieldConfigDecoder        = deriveDecoder[FieldConfig]
-  implicit val schemaWindowConfigDecoder = deriveDecoder[SchemaWindowConfig]
-  implicit val schemaConfigDecoder       = deriveDecoder[SchemaConfig]
-  implicit val feedbackTypeConfigDecoder = deriveDecoder[FeedbackTypeConfig]
-  implicit val feedbackConfigDecoder     = deriveDecoder[FeedbackConfig]
-  implicit val listenConfigDecoder       = deriveDecoder[ListenConfig]
-  implicit val coreConfigDecoder         = deriveDecoder[CoreConfig]
-  implicit val keyspaceConfigDecoder     = deriveDecoder[KeyspaceConfig]
-  implicit val configDecoder             = deriveDecoder[Config]
+  implicit val eventTypeCodec = Codec.from(
+    decodeA = Decoder.decodeString
+      .map(EventType.apply)
+      .ensure(_.value.nonEmpty, "interaction type cannot be empty"),
+    encodeA = Encoder.instance[EventType](tpe => Encoder.encodeString(tpe.value))
+  )
+
+  implicit val fieldFormatCodec = deriveCodec[FieldFormatConfig]
+  implicit val fieldCodec       = deriveCodec[FieldConfig]
+
+  implicit val windowConfigCodec = Codec.from(
+    decodeA = deriveDecoder[WindowConfig]
+      .ensure(_.from > 0, "window start must be above zero")
+      .ensure(_.length > 0, "window length must be above zero"),
+    encodeA = deriveEncoder[WindowConfig]
+  )
+
+  import FeatureConfig._
+
+  implicit val eventConfigCodec        = deriveCodec[EventConfig]
+  implicit val listenConfigCodec       = deriveCodec[ListenConfig]
+  implicit val coreConfigCodec         = deriveCodec[CoreConfig]
+  implicit val featurespaceConfigCodec = deriveCodec[FeaturespaceConfig]
+  implicit val configCodec             = deriveCodec[Config]
 
   def load(configString: String): Either[ConfigLoadingError, Config] = {
     parse(configString) match {
@@ -56,9 +71,7 @@ object Config {
     }
   }
 
-  sealed trait ConfigLoadingError extends Throwable {
-    def msg: String
-  }
-  case class YamlDecodingError(msg: String, underlying: Throwable) extends ConfigLoadingError
-  case class ConfigSyntaxError(msg: String, chain: List[CursorOp]) extends ConfigLoadingError
+  abstract class ConfigLoadingError(msg: String)                   extends Exception(msg)
+  case class YamlDecodingError(msg: String, underlying: Throwable) extends ConfigLoadingError(msg)
+  case class ConfigSyntaxError(msg: String, chain: List[CursorOp]) extends ConfigLoadingError(msg)
 }

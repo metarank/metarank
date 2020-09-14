@@ -5,25 +5,34 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 import cats.effect.IO
 import com.github.blemale.scaffeine.Scaffeine
 import me.dfdx.metarank.aggregation.Aggregation
-import me.dfdx.metarank.aggregation.state.State
+import me.dfdx.metarank.store.state.State
+import me.dfdx.metarank.store.state.State.ValueState
 
 class HeapBytesStore extends Store {
   val byteCache = Scaffeine().build[String, Array[Byte]]()
 
-  override def load[T <: State](tracker: Aggregation, scope: Aggregation.Scope)(implicit
-      reader: State.Reader[T]
-  ): IO[Option[T]] = IO {
+  override def get[T](desc: ValueState[T], scope: Aggregation.Scope): IO[Option[T]] = IO {
     byteCache
-      .getIfPresent(key(tracker, scope))
-      .map(bytes => reader.read(new DataInputStream(new ByteArrayInputStream(bytes))))
+      .getIfPresent(keystr(desc, scope))
+      .map(bytes => desc.codec.read(new DataInputStream(new ByteArrayInputStream(bytes))))
   }
 
-  override def save[T <: State](tracker: Aggregation, scope: Aggregation.Scope, value: T)(implicit
-      writer: State.Writer[T]
-  ): IO[Unit] = IO {
+  override def put[T](desc: ValueState[T], scope: Aggregation.Scope, value: T): IO[Unit] = IO {
     val buffer = new ByteArrayOutputStream()
-    writer.write(value, new DataOutputStream(buffer))
-    byteCache.put(key(tracker, scope), buffer.toByteArray)
+    desc.codec.write(value, new DataOutputStream(buffer))
+    byteCache.put(keystr(desc, scope), buffer.toByteArray)
+  }
+
+  override def get[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K): IO[Option[V]] = IO {
+    byteCache
+      .getIfPresent(keystr(desc, scope, key)(desc.kc))
+      .map(bytes => desc.vc.read(new DataInputStream(new ByteArrayInputStream(bytes))))
+  }
+
+  override def put[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K, value: V): IO[Unit] = IO {
+    val buffer = new ByteArrayOutputStream()
+    desc.vc.write(value, new DataOutputStream(buffer))
+    byteCache.put(keystr(desc, scope, key)(desc.kc), buffer.toByteArray)
   }
 }
 

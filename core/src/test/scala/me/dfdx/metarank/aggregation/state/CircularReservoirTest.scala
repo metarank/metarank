@@ -2,6 +2,7 @@ package me.dfdx.metarank.aggregation.state
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
+import me.dfdx.metarank.aggregation.CircularReservoir
 import me.dfdx.metarank.aggregation.generator.IncrementingTimestampsGenerator
 import me.dfdx.metarank.model.Timestamp
 import org.scalatest.matchers.should.Matchers
@@ -70,8 +71,9 @@ class CircularReservoirTest extends AnyPropSpec with Matchers with ScalaCheckDri
     forAll(events) { list =>
       val updated = list.foldLeft(CircularReservoir(10))((buf, day) => buf.increment(Timestamp.day(day)))
       val buffer  = new ByteArrayOutputStream()
-      CircularReservoir.ctWriter.write(updated, new DataOutputStream(buffer))
-      val read = CircularReservoir.crReader.read(new DataInputStream(new ByteArrayInputStream(buffer.toByteArray)))
+      CircularReservoir.ctReaderWriter.write(updated, new DataOutputStream(buffer))
+      val read =
+        CircularReservoir.ctReaderWriter.read(new DataInputStream(new ByteArrayInputStream(buffer.toByteArray)))
       updated shouldBe read
     }
   }

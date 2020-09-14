@@ -5,19 +5,23 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 import cats.effect.IO
 import com.github.blemale.scaffeine.Scaffeine
 import me.dfdx.metarank.aggregation.Aggregation
-import me.dfdx.metarank.aggregation.state.State
-import me.dfdx.metarank.aggregation.state.State.{Reader, Writer}
+import me.dfdx.metarank.store.state.State
+import me.dfdx.metarank.store.state.State.ValueState
 
 class HeapStore extends Store {
-  val byteCache = Scaffeine().build[String, State]()
+  val byteCache = Scaffeine().build[String, Any]()
 
-  override def load[T <: State: Reader](tracker: Aggregation, scope: Aggregation.Scope): IO[Option[T]] = IO {
+  override def get[T](desc: ValueState[T], scope: Aggregation.Scope): IO[Option[T]] = IO {
     byteCache
-      .getIfPresent(key(tracker, scope))
+      .getIfPresent(keystr(desc, scope))
       .map(value => value.asInstanceOf[T])
   }
 
-  override def save[T <: State: Writer](tracker: Aggregation, scope: Aggregation.Scope, value: T): IO[Unit] = IO {
-    byteCache.put(key(tracker, scope), value)
+  override def put[T](desc: ValueState[T], scope: Aggregation.Scope, value: T): IO[Unit] = IO {
+    byteCache.put(keystr(desc, scope), value)
   }
+
+  override def get[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K): IO[Option[V]] = ???
+
+  override def put[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K, value: V): IO[Unit] = ???
 }

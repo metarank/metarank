@@ -1,46 +1,72 @@
 package me.dfdx.metarank.store
 
-import java.io.{ByteArrayInputStream, DataInputStream}
 import java.nio.charset.StandardCharsets
-
-import cats.effect.IO
-import me.dfdx.metarank.aggregation.Aggregation
-import me.dfdx.metarank.store.state.State
-import me.dfdx.metarank.store.state.State.ValueState
-import redis.clients.jedis.{JedisPool, JedisPoolConfig}
+import scala.collection.JavaConverters._
+import cats.effect.{IO, Resource}
+import me.dfdx.metarank.aggregation.Aggregation.Scope
+import me.dfdx.metarank.store.RedisStore.{RedisMapStore, RedisValueStore}
+import me.dfdx.metarank.store.state.codec.Codec
+import me.dfdx.metarank.store.state.{MapState, StateDescriptor, ValueState}
+import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 
 import scala.concurrent.ExecutionContext
 
 class RedisStore(endpoint: String, port: Int)(implicit ec: ExecutionContext) extends Store {
   lazy val pool = new JedisPool(endpoint, port)
 
-  override def get[T](desc: ValueState[T], scope: Aggregation.Scope): IO[Option[T]] = for {
-    client      <- IO.delay(pool.getResource)
-    bytesOption <- IO.delay(Option(client.get(keystr(desc, scope).getBytes(StandardCharsets.UTF_8))))
-    _           <- IO.delay(client.close())
-  } yield {
-    bytesOption.map(bytes => desc.codec.read(new DataInputStream(new ByteArrayInputStream(bytes))))
+  override def kv[K, V](desc: StateDescriptor.MapStateDescriptor[K, V], scope: Scope): MapState[K, V] =
+    new RedisMapStore(
+      scope = scope,
+      client = Resource[IO, Jedis](IO(pool.getResource).map(jedis => jedis -> IO(jedis.close()))),
+      kc = desc.kc,
+      vc = desc.vc
+    )
+
+  override def value[T](desc: StateDescriptor.ValueStateDescriptor[T], scope: Scope): ValueState[T] =
+    new RedisValueStore[T](
+      scope = scope,
+      client = Resource[IO, Jedis](IO(pool.getResource).map(jedis => jedis -> IO(jedis.close()))),
+      codec = desc.codec
+    )
+
+}
+
+object RedisStore {
+  class RedisValueStore[T](scope: Scope, client: Resource[IO, Jedis], codec: Codec[T]) extends ValueState[T] {
+    override def get(): IO[Option[T]] =
+      client.use(jedis => IO(Option(jedis.get(scope.key.getBytes(StandardCharsets.UTF_8))).map(codec.read)))
+
+    override def put(value: T): IO[Unit] =
+      client.use(jedis => IO(jedis.set(scope.key.getBytes(StandardCharsets.UTF_8), codec.write(value))))
+
+    override def delete(): IO[Unit] = client.use(jedis => IO(jedis.del(scope.key.getBytes(StandardCharsets.UTF_8))))
   }
 
-  override def put[T](desc: ValueState[T], scope: Aggregation.Scope, value: T): IO[Unit] = for {
-    client <- IO.delay(pool.getResource)
-    data   <- IO.delay(desc.codec.write(value))
-    _      <- IO.delay(client.set(keystr(desc, scope).getBytes(StandardCharsets.UTF_8), data))
-    _      <- IO.delay(client.close())
-  } yield {}
+  class RedisMapStore[K, V](scope: Scope, client: Resource[IO, Jedis], kc: Codec[K], vc: Codec[V])
+      extends MapState[K, V] {
+    override def get(key: K): IO[Option[V]] = {
+      client.use(jedis =>
+        IO(Option(jedis.hget(scope.key.getBytes(StandardCharsets.UTF_8), kc.write(key))).map(vc.read))
+      )
+    }
 
-  override def get[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K): IO[Option[V]] = for {
-    client      <- IO.delay(pool.getResource)
-    bytesOption <- IO.delay(Option(client.get(keystr(desc, scope, key)(desc.kc).getBytes(StandardCharsets.UTF_8))))
-    _           <- IO.delay(client.close())
-  } yield {
-    bytesOption.map(bytes => desc.vc.read(new DataInputStream(new ByteArrayInputStream(bytes))))
+    override def put(key: K, value: V): IO[Unit] =
+      client.use(jedis => IO(jedis.hset(scope.key.getBytes(StandardCharsets.UTF_8), kc.write(key), vc.write(value))))
+
+    override def delete(key: K): IO[Unit] =
+      client.use(jedis => IO(jedis.hdel(scope.key.getBytes(StandardCharsets.UTF_8), kc.write(key))))
+
+    override def values(): IO[Map[K, V]] =
+      client.use(jedis =>
+        IO(
+          jedis
+            .hgetAll(scope.key.getBytes(StandardCharsets.UTF_8))
+            .asScala
+            .map { case (k, v) =>
+              kc.read(k) -> vc.read(v)
+            }
+            .toMap
+        )
+      )
   }
-
-  override def put[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K, value: V): IO[Unit] = for {
-    client <- IO.delay(pool.getResource)
-    data   <- IO.delay(desc.vc.write(value))
-    _      <- IO.delay(client.set(keystr(desc, scope, key)(desc.kc).getBytes(StandardCharsets.UTF_8), data))
-    _      <- IO.delay(client.close())
-  } yield {}
 }

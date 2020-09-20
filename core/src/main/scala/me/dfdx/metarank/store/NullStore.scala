@@ -1,14 +1,24 @@
 package me.dfdx.metarank.store
 import cats.effect.IO
 import me.dfdx.metarank.aggregation.Aggregation
-import me.dfdx.metarank.store.state.State
-import me.dfdx.metarank.store.state.State.ValueState
+import me.dfdx.metarank.store.state.StateDescriptor.{MapStateDescriptor, ValueStateDescriptor}
+import me.dfdx.metarank.store.state.{MapState, StateDescriptor, ValueState}
 
 object NullStore extends Store {
-  override def get[T](desc: ValueState[T], scope: Aggregation.Scope): IO[Option[T]]      = IO.pure(None)
-  override def put[T](desc: ValueState[T], scope: Aggregation.Scope, value: T): IO[Unit] = IO.unit
+  class NullMapState[K, V] extends MapState[K, V] {
+    override def delete(key: K): IO[Unit]        = IO.unit
+    override def get(key: K): IO[Option[V]]      = IO.pure(None)
+    override def put(key: K, value: V): IO[Unit] = IO.unit
+    override def values(): IO[Map[K, V]]         = IO.pure(Map.empty)
+  }
+  class NullValueState[T] extends ValueState[T] {
+    override def delete(): IO[Unit]      = IO.unit
+    override def get(): IO[Option[T]]    = IO.pure(None)
+    override def put(value: T): IO[Unit] = IO.unit
+  }
+  override def kv[K, V](desc: MapStateDescriptor[K, V], scope: Aggregation.Scope): MapState[K, V] =
+    new NullMapState[K, V]()
 
-  override def get[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K): IO[Option[V]] = IO.pure(None)
-
-  override def put[K, V](desc: State.MapState[K, V], scope: Aggregation.Scope, key: K, value: V): IO[Unit] = IO.unit
+  override def value[T](desc: ValueStateDescriptor[T], scope: Aggregation.Scope): ValueState[T] =
+    new NullValueState[T]()
 }

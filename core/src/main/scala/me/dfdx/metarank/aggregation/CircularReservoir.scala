@@ -1,9 +1,10 @@
 package me.dfdx.metarank.aggregation
 
-import java.io.{DataInput, DataOutput}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream}
 
 import me.dfdx.metarank.model.Timestamp
-import me.dfdx.metarank.store.state.State
+import me.dfdx.metarank.store.state.StateDescriptor
+import me.dfdx.metarank.store.state.codec.Codec
 
 case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buffer: Vector[Int]) {
   def sum(from: Int, length: Int): Int = {
@@ -57,8 +58,9 @@ object CircularReservoir {
   def apply(windowSizeDays: Int) =
     new CircularReservoir(Timestamp(0), 0, windowSizeDays, Vector.fill(windowSizeDays)(0))
 
-  implicit val ctReaderWriter = new State.Codec[CircularReservoir] {
-    override def read(in: DataInput): CircularReservoir = {
+  implicit val ctReaderWriter = new Codec[CircularReservoir] {
+    override def read(bytes: Array[Byte]): CircularReservoir = {
+      val in        = new DataInputStream(new ByteArrayInputStream(bytes))
       val updatedAt = Timestamp(in.readLong())
       val lastDay   = in.readInt()
       val size      = in.readInt()
@@ -66,11 +68,14 @@ object CircularReservoir {
       new CircularReservoir(updatedAt, lastDay, size, values.toVector)
     }
 
-    override def write(value: CircularReservoir, out: DataOutput): Unit = {
+    override def write(value: CircularReservoir): Array[Byte] = {
+      val buffer = new ByteArrayOutputStream()
+      val out    = new DataOutputStream(buffer)
       out.writeLong(value.updatedAt.value)
       out.writeInt(value.lastDay)
       out.writeInt(value.size)
       value.buffer.foreach(out.writeInt)
+      buffer.toByteArray
     }
   }
 }

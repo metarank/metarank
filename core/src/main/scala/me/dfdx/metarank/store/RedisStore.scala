@@ -12,23 +12,14 @@ import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 import scala.concurrent.ExecutionContext
 
 class RedisStore(endpoint: String, port: Int)(implicit ec: ExecutionContext) extends Store {
-  lazy val pool = new JedisPool(endpoint, port)
+  lazy val pool   = new JedisPool(endpoint, port)
+  lazy val client = Resource[IO, Jedis](IO(pool.getResource).map(jedis => jedis -> IO(jedis.close())))
 
   override def kv[K, V](desc: StateDescriptor.MapStateDescriptor[K, V], scope: Scope): MapState[K, V] =
-    new RedisMapStore(
-      scope = scope,
-      client = Resource[IO, Jedis](IO(pool.getResource).map(jedis => jedis -> IO(jedis.close()))),
-      kc = desc.kc,
-      vc = desc.vc
-    )
+    new RedisMapStore(scope, client, desc.kc, desc.vc)
 
   override def value[T](desc: StateDescriptor.ValueStateDescriptor[T], scope: Scope): ValueState[T] =
-    new RedisValueStore[T](
-      scope = scope,
-      client = Resource[IO, Jedis](IO(pool.getResource).map(jedis => jedis -> IO(jedis.close()))),
-      codec = desc.codec
-    )
-
+    new RedisValueStore[T](scope, client, desc.codec)
 }
 
 object RedisStore {

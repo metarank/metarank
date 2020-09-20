@@ -7,20 +7,22 @@ import me.dfdx.metarank.store.Store
 import me.dfdx.metarank.store.state.StateDescriptor.ValueStateDescriptor
 
 case class CountAggregation(windowSize: Int) extends Aggregation {
-  val reservoir = ValueStateDescriptor[CircularReservoir]("count")
   override def onEvent(
       store: Store,
       scope: Aggregation.Scope,
       event: Event
   ) = for {
-    stateOption <- store.value(reservoir, scope).get()
+    stateOption <- store.value(CountAggregation.reservoir, scope).get()
     state = stateOption.getOrElse(CircularReservoir(windowSize))
     _ <- event match {
       case e: InteractionEvent if scope.matches(e) =>
-        store.value(reservoir, scope).put(state.increment(e.timestamp))
+        store.value(CountAggregation.reservoir, scope).put(state.increment(e.timestamp))
       case _ =>
         IO.unit
     }
   } yield {}
+}
 
+object CountAggregation {
+  val reservoir = ValueStateDescriptor[CircularReservoir]("count")
 }

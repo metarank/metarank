@@ -8,7 +8,6 @@ import me.dfdx.metarank.model.{Event, ItemId}
 import me.dfdx.metarank.store.Store
 
 trait Aggregation {
-  def name: String
   def onEvent(store: Store, scope: Aggregation.Scope, event: Event): IO[Unit]
 }
 

@@ -6,13 +6,13 @@ import me.dfdx.metarank.config.Config.{EventType, WindowConfig}
 import me.dfdx.metarank.config.FeatureConfig.CountFeatureConfig
 import me.dfdx.metarank.model.Event.InteractionEvent
 import me.dfdx.metarank.model.{Nel, RandomInteractionEvent, Timestamp}
-import me.dfdx.metarank.store.{HeapBytesStore, HeapStore}
+import me.dfdx.metarank.store.HeapBytesStore
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class CountFeatureTest extends AnyFlatSpec with Matchers {
   it should "extract counts" in {
-    val store = new HeapStore()
+    val store = new HeapBytesStore()
     val scope = EventTypeScope(EventType("click"))
     val event = RandomInteractionEvent(ts = Timestamp.day(0))
     val agg   = CountAggregation(100)

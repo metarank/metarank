@@ -1,12 +1,12 @@
-package me.dfdx.metarank.aggregation.state
+package me.dfdx.metarank.aggregation
 
-import java.io.{DataInput, DataOutput}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream}
 
 import me.dfdx.metarank.model.Timestamp
+import me.dfdx.metarank.store.state.StateDescriptor
+import me.dfdx.metarank.store.state.codec.Codec
 
-case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buffer: Vector[Int]) extends State {
-  override def write(out: DataOutput): Unit = CircularReservoir.ctWriter.write(this, out)
-
+case class CircularReservoir(updatedAt: Timestamp, lastDay: Int, size: Int, buffer: Vector[Int]) {
   def sum(from: Int, length: Int): Int = {
     var sum = 0
     // as length cannot be more than buffer size
@@ -58,22 +58,24 @@ object CircularReservoir {
   def apply(windowSizeDays: Int) =
     new CircularReservoir(Timestamp(0), 0, windowSizeDays, Vector.fill(windowSizeDays)(0))
 
-  implicit val crReader = new State.Reader[CircularReservoir] {
-    override def read(in: DataInput): CircularReservoir = {
+  implicit val ctReaderWriter = new Codec[CircularReservoir] {
+    override def read(bytes: Array[Byte]): CircularReservoir = {
+      val in        = new DataInputStream(new ByteArrayInputStream(bytes))
       val updatedAt = Timestamp(in.readLong())
       val lastDay   = in.readInt()
       val size      = in.readInt()
       val values    = for (_ <- 0 until size) yield { in.readInt() }
       new CircularReservoir(updatedAt, lastDay, size, values.toVector)
     }
-  }
 
-  implicit val ctWriter = new State.Writer[CircularReservoir] {
-    override def write(value: CircularReservoir, out: DataOutput): Unit = {
+    override def write(value: CircularReservoir): Array[Byte] = {
+      val buffer = new ByteArrayOutputStream()
+      val out    = new DataOutputStream(buffer)
       out.writeLong(value.updatedAt.value)
       out.writeInt(value.lastDay)
       out.writeInt(value.size)
       value.buffer.foreach(out.writeInt)
+      buffer.toByteArray
     }
   }
 }

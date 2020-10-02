@@ -20,7 +20,7 @@ class CountFeatureTest extends AnyFlatSpec with Matchers {
     agg.onEvent(store, scope, event.copy(timestamp = Timestamp.day(1))).unsafeRunSync()
     agg.onEvent(store, scope, event.copy(timestamp = Timestamp.day(2))).unsafeRunSync()
     agg.onEvent(store, scope, event.copy(timestamp = Timestamp.day(3))).unsafeRunSync()
-    val result = CountFeature(agg, CountFeatureConfig(Nel(EventType("click")), Nel(WindowConfig(1, 10))))
+    val result = CountFeature(agg, CountFeatureConfig(Nel(WindowConfig(1, 10))))
       .values(scope, store)
       .unsafeRunSync()
     result shouldBe List(3.0f) // the last one is not counted as we exclude current day

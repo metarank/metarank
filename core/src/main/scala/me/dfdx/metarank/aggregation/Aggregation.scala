@@ -1,10 +1,7 @@
 package me.dfdx.metarank.aggregation
 
 import cats.effect.IO
-import me.dfdx.metarank.config.Config.EventType
-import me.dfdx.metarank.config.FeatureConfig
-import me.dfdx.metarank.model.Event.InteractionEvent
-import me.dfdx.metarank.model.{Event, ItemId}
+import me.dfdx.metarank.model.{Context, Event, ItemId}
 import me.dfdx.metarank.store.Store
 
 trait Aggregation {
@@ -14,21 +11,30 @@ trait Aggregation {
 object Aggregation {
   sealed trait Scope {
     def key: String
-    def matches(event: InteractionEvent): Boolean
   }
-  case class EventTypeScope(tpe: EventType) extends Scope {
-    def key = s"t:${tpe.value}"
 
-    override def matches(event: InteractionEvent): Boolean = event.`type` == tpe
+  case object GlobalScope extends Scope {
+    val key = "g"
   }
+
+  case class ContextScope(ctx: Context) extends Scope {
+    val key = (ctx.query, ctx.tag) match {
+      case (Some(q), None) => s"c:$q"
+      case (_, Some(tag))  => s"c:$tag"
+    }
+  }
+
+  sealed trait InteractionScope extends Scope
+
+  case object RankScope extends InteractionScope {
+    val key = "t:rank"
+  }
+
+  case object ClickScope extends InteractionScope {
+    val key = "t:click"
+  }
+
   case class ItemScope(id: ItemId) extends Scope {
     def key = s"i:${id.id}"
-
-    override def matches(event: InteractionEvent): Boolean = event.item == id
-  }
-  case class ItemAndTypeScope(tpe: EventType, id: ItemId) extends Scope {
-    def key = s"t:${tpe.value}|i:${id.id}"
-
-    override def matches(event: InteractionEvent): Boolean = (event.item == id) && (event.`type` == tpe)
   }
 }

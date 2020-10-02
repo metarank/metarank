@@ -6,13 +6,11 @@ core:
     type: memory # memory, redis, null
 featurespace:
   name: demo
-  events:
-    - type: search
-    - type: click
-    - type: purchase
+  aggregations:
+    - type: count
+      days_back: 30
   features:
-    - type: "count"
-      events: ["search", "click", "purchase"]
+    - type: count
       windows:
       - { from: 1, length: 7 }
       - { from: 1, length: 14 }

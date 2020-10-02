@@ -11,12 +11,10 @@ class FeatureConfigTest extends AnyFlatSpec with Matchers {
   it should "decode count feature config" in {
     val yaml =
       """type: count
-        |events: ["search"]
         |windows: [ { from: 1, length: 7 } ]
         |""".stripMargin
     parse(yaml).flatMap(_.as[FeatureConfig]) shouldBe Right(
       CountFeatureConfig(
-        events = Nel(EventType("search")),
         windows = Nel(WindowConfig(1, 7))
       )
     )

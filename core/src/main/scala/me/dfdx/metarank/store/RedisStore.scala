@@ -3,7 +3,7 @@ package me.dfdx.metarank.store
 import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 import cats.effect.{IO, Resource}
-import me.dfdx.metarank.aggregation.Aggregation.Scope
+import me.dfdx.metarank.aggregation.Scope
 import me.dfdx.metarank.store.RedisStore.{RedisMapStore, RedisValueStore}
 import me.dfdx.metarank.store.state.codec.Codec
 import me.dfdx.metarank.store.state.{MapState, StateDescriptor, ValueState}

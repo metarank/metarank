@@ -1,7 +1,7 @@
 package me.dfdx.metarank.config
 
 import cats.data.NonEmptyList
-import me.dfdx.metarank.config.Config.{EventType, WindowConfig}
+import me.dfdx.metarank.config.Config.WindowConfig
 import io.circe.Codec
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._

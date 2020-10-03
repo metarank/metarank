@@ -1,8 +1,6 @@
 package me.dfdx.metarank.store
 
-import me.dfdx.metarank.aggregation.Aggregation.EventTypeScope
 import me.dfdx.metarank.aggregation.{CircularReservoir, CountAggregation}
-import me.dfdx.metarank.config.Config.EventType
 import me.dfdx.metarank.model.Timestamp
 import me.dfdx.metarank.store.state.StateDescriptor.{MapStateDescriptor, ValueStateDescriptor}
 import org.scalatest.flatspec.AnyFlatSpec

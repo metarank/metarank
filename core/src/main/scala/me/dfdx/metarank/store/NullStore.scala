@@ -9,7 +9,6 @@ object NullStore extends Store {
     override def delete(key: K): IO[Unit]        = IO.unit
     override def get(key: K): IO[Option[V]]      = IO.pure(None)
     override def put(key: K, value: V): IO[Unit] = IO.unit
-    override def values(): IO[Map[K, V]]         = IO.pure(Map.empty)
   }
   class NullValueState[T] extends ValueState[T] {
     override def delete(): IO[Unit]      = IO.unit

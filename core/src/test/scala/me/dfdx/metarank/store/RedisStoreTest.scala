@@ -1,13 +1,7 @@
 package me.dfdx.metarank.store
 
 import com.github.fppt.jedismock.RedisServer
-import me.dfdx.metarank.aggregation.Aggregation.EventTypeScope
-import me.dfdx.metarank.aggregation.{CircularReservoir, CountAggregation}
-import me.dfdx.metarank.config.Config.EventType
-import me.dfdx.metarank.model.Timestamp
 import org.scalatest.BeforeAndAfterAll
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 class RedisStoreTest extends StoreTestSuite with BeforeAndAfterAll {
   var redisServer: RedisServer = _

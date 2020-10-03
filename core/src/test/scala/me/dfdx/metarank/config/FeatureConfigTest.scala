@@ -3,7 +3,7 @@ package me.dfdx.metarank.config
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser._
-import me.dfdx.metarank.config.Config.{EventType, WindowConfig}
+import me.dfdx.metarank.config.Config.WindowConfig
 import me.dfdx.metarank.config.FeatureConfig.CountFeatureConfig
 import me.dfdx.metarank.model.Nel
 

@@ -26,29 +26,32 @@ object HeapBytesStore {
   class HeapMapStore[K, V](scope: Scope, cache: Cache[String, ByteBuffer], kc: KeyCodec[K], vc: Codec[V])
       extends MapState[K, V] {
     override def get(key: K): IO[Option[V]] = IO {
-      cache.getIfPresent(kc.write(scope, key)).map(bb => vc.read(bb.array()))
+      val kstr = s"${Scope.write(scope)}/${kc.write(key)}"
+      cache.getIfPresent(kstr).map(bb => vc.read(bb.array()))
     }
 
     override def put(key: K, value: V): IO[Unit] = IO {
-      cache.put(kc.write(scope, key), ByteBuffer.wrap(vc.write(value)))
+      val kstr = s"${Scope.write(scope)}/${kc.write(key)}"
+      cache.put(kstr, ByteBuffer.wrap(vc.write(value)))
     }
 
     override def delete(key: K): IO[Unit] = IO {
-      cache.invalidate(kc.write(scope, key))
+      val kstr = s"${Scope.write(scope)}/${kc.write(key)}"
+      cache.invalidate(kstr)
     }
   }
 
   class HeapValueStore[T](scope: Scope, cache: Cache[String, ByteBuffer], c: Codec[T]) extends ValueState[T] {
     override def get(): IO[Option[T]] = IO {
-      cache.getIfPresent(ByteBuffer.wrap(scope.key.getBytes(StandardCharsets.UTF_8))).map(bb => c.read(bb.array()))
+      cache.getIfPresent(Scope.write(scope)).map(bb => c.read(bb.array()))
     }
 
     override def put(value: T): IO[Unit] = IO {
-      cache.put(ByteBuffer.wrap(scope.key.getBytes(StandardCharsets.UTF_8)), ByteBuffer.wrap(c.write(value)))
+      cache.put(Scope.write(scope), ByteBuffer.wrap(c.write(value)))
     }
 
     override def delete(): IO[Unit] = IO {
-      cache.invalidate(ByteBuffer.wrap(scope.key.getBytes(StandardCharsets.UTF_8)))
+      cache.invalidate(Scope.write(scope))
     }
   }
 }

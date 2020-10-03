@@ -1,6 +1,5 @@
 package me.dfdx.metarank.feature
 
-import me.dfdx.metarank.aggregation.Aggregation.EventTypeScope
 import me.dfdx.metarank.aggregation.CountAggregation
 import me.dfdx.metarank.config.Config.{EventType, WindowConfig}
 import me.dfdx.metarank.config.FeatureConfig.CountFeatureConfig

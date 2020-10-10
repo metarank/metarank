@@ -1,10 +1,8 @@
 package me.dfdx.metarank.feature
 
 import cats.effect.IO
-import me.dfdx.metarank.store.Store
-import me.dfdx.metarank.aggregation.Aggregation
-import me.dfdx.metarank.config.FeatureConfig
+import me.dfdx.metarank.model.Event.{RankEvent, RankItem}
 
 trait Feature {
-  def values(scope: Aggregation.Scope, store: Store): IO[List[Float]]
+  def values(event: RankEvent, item: RankItem): IO[List[Float]]
 }

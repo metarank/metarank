@@ -5,7 +5,7 @@ import cats.effect._
 import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import me.dfdx.metarank.config.{CommandLineConfig, Config}
-import me.dfdx.metarank.feature.FeatureRegistry
+import me.dfdx.metarank.feature.Registry
 import org.http4s.HttpRoutes
 import org.http4s.server.blaze._
 import org.http4s.implicits._

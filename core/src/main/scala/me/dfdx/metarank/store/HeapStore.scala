@@ -1,35 +1,33 @@
 package me.dfdx.metarank.store
 
-import java.nio.ByteBuffer
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 import me.dfdx.metarank.aggregation.Scope
-import me.dfdx.metarank.store.HeapBytesStore.{HeapBytesMapStore, HeapBytesValueStore}
+import me.dfdx.metarank.store.HeapStore.{HeapMapStore, HeapValueStore}
 import me.dfdx.metarank.store.state.codec.{Codec, KeyCodec}
 import me.dfdx.metarank.store.state.{MapState, StateDescriptor, ValueState}
 
-class HeapBytesStore extends Store {
-  val byteCache = Scaffeine().build[String, ByteBuffer]()
+class HeapStore extends Store {
+  val byteCache = Scaffeine().build[String, Any]()
 
   override def kv[K, V](desc: StateDescriptor.MapStateDescriptor[K, V], scope: Scope): MapState[K, V] =
-    new HeapBytesMapStore(scope, byteCache, desc.kc, desc.vc)
+    new HeapMapStore(scope, byteCache, desc.kc)
 
   override def value[T](desc: StateDescriptor.ValueStateDescriptor[T], scope: Scope): ValueState[T] =
-    new HeapBytesValueStore[T](scope, byteCache, desc.codec)
+    new HeapValueStore[T](scope, byteCache)
 }
 
-object HeapBytesStore {
+object HeapStore {
   def apply() = new HeapBytesStore()
-  class HeapBytesMapStore[K, V](scope: Scope, cache: Cache[String, ByteBuffer], kc: KeyCodec[K], vc: Codec[V])
-      extends MapState[K, V] {
+  class HeapMapStore[K, V](scope: Scope, cache: Cache[String, Any], kc: KeyCodec[K]) extends MapState[K, V] {
     override def get(key: K): IO[Option[V]] = IO {
       val kstr = s"${Scope.write(scope)}/${kc.write(key)}"
-      cache.getIfPresent(kstr).map(bb => vc.read(bb.array()))
+      cache.getIfPresent(kstr).map(_.asInstanceOf[V])
     }
 
     override def put(key: K, value: V): IO[Unit] = IO {
       val kstr = s"${Scope.write(scope)}/${kc.write(key)}"
-      cache.put(kstr, ByteBuffer.wrap(vc.write(value)))
+      cache.put(kstr, value)
     }
 
     override def delete(key: K): IO[Unit] = IO {
@@ -38,17 +36,18 @@ object HeapBytesStore {
     }
   }
 
-  class HeapBytesValueStore[T](scope: Scope, cache: Cache[String, ByteBuffer], c: Codec[T]) extends ValueState[T] {
+  class HeapValueStore[T](scope: Scope, cache: Cache[String, Any]) extends ValueState[T] {
     override def get(): IO[Option[T]] = IO {
-      cache.getIfPresent(Scope.write(scope)).map(bb => c.read(bb.array()))
+      cache.getIfPresent(Scope.write(scope)).map(_.asInstanceOf[T])
     }
 
     override def put(value: T): IO[Unit] = IO {
-      cache.put(Scope.write(scope), ByteBuffer.wrap(c.write(value)))
+      cache.put(Scope.write(scope), value)
     }
 
     override def delete(): IO[Unit] = IO {
       cache.invalidate(Scope.write(scope))
     }
   }
+
 }

@@ -23,7 +23,7 @@ class RankServiceTest extends AnyFlatSpec with Matchers with ServiceRouteTest {
   it should "fail on broken events" in {
     val request = RankRequest(
       id = RequestId("p"),
-      items = NonEmptyList.one(RankItem(ItemId("p1"), 1.0)),
+      items = NonEmptyList.one(RankItem(ItemId(""), 1.0)),
       metadata = TestMetadata()
     )
     val response = Try(post(RankService.route, request, "/rank"))

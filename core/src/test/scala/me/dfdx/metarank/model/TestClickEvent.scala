@@ -8,7 +8,7 @@ object TestClickEvent {
     item = item,
     context = Context(Some("foo"), None),
     metadata = Metadata(
-      timestamp = Timestamp(0),
+      timestamp = Timestamp(1L),
       user = UserId("u1"),
       session = SessionId("s1"),
       ua = None,

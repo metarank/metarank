@@ -10,3 +10,4 @@ ingest/project
 ingest/target
 api/project
 api/target
+.bsp

@@ -7,4 +7,8 @@ package object codec {
     override def read(in: Array[Byte]): String     = new String(in, StandardCharsets.UTF_8)
     override def write(value: String): Array[Byte] = value.getBytes(StandardCharsets.UTF_8)
   }
+
+  implicit val stringKeyCodec = new KeyCodec[String] {
+    override def write(value: String): String = value
+  }
 }

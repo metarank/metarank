@@ -22,25 +22,20 @@ case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
 }
 
 object Config {
-  case class FeaturespaceConfig(name: String, events: List[EventConfig], features: List[FeatureConfig])
+  case class FeaturespaceConfig(
+      name: String,
+      features: List[FeatureConfig],
+      aggregations: List[AggregationConfig]
+  )
   case class CoreConfig(listen: ListenConfig, store: StoreConfig)
   case class ListenConfig(hostname: String, port: Int)
 
-  case class EventType(value: String)
-  case class EventConfig(`type`: EventType)
   case class WindowConfig(from: Int, length: Int) {
     val to = from + length
   }
 
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
-
-  implicit val eventTypeCodec = Codec.from(
-    decodeA = Decoder.decodeString
-      .map(EventType.apply)
-      .ensure(_.value.nonEmpty, "interaction type cannot be empty"),
-    encodeA = Encoder.instance[EventType](tpe => Encoder.encodeString(tpe.value))
-  )
 
   implicit val fieldFormatCodec = deriveCodec[FieldFormatConfig]
   implicit val fieldCodec       = deriveCodec[FieldConfig]
@@ -54,7 +49,6 @@ object Config {
 
   import FeatureConfig._
 
-  implicit val eventConfigCodec        = deriveCodec[EventConfig]
   implicit val listenConfigCodec       = deriveCodec[ListenConfig]
   implicit val coreConfigCodec         = deriveCodec[CoreConfig]
   implicit val featurespaceConfigCodec = deriveCodec[FeaturespaceConfig]

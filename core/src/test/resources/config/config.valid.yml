@@ -8,7 +8,7 @@ featurespace:
   name: demo
   aggregations:
     - type: count
-      days_back: 30
+      days-back: 30
   features:
     - type: count
       windows:

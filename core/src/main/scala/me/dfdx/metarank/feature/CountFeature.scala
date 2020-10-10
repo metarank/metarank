@@ -21,6 +21,9 @@ case class CountFeature(counts: CountAggregation, conf: CountFeatureConfig) exte
   private def values(scope: Scope) = for {
     count <- counts.store.value(counts.reservoir, scope).get().map(_.getOrElse(counts.reservoir.default))
   } yield {
-    conf.windows.map(w => count.sum(w.from, w.length).toFloat).toList
+    val s   = scope
+    val res = conf.windows.map(w => count.sum(w.from, w.length).toFloat).toList
+    val br  = 1
+    res
   }
 }

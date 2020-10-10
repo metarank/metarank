@@ -6,5 +6,4 @@ import scala.annotation.tailrec
 
 object Nel {
   def apply[T](value: T) = NonEmptyList.one(value)
-
 }

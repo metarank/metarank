@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "io.circe"             %% "circe-parser"         % circeVersion,
   "com.github.pathikrit" %% "better-files"         % "3.9.1",
   "com.github.scopt"     %% "scopt"                % "4.0.0-RC2",
-  "com.github.blemale"   %% "scaffeine"            % "4.0.1",
+  "com.github.blemale"   %% "scaffeine"            % "4.0.2",
   "com.github.fppt"       % "jedis-mock"           % "0.1.16"         % "test",
   "redis.clients"         % "jedis"                % "3.3.0"
 )

@@ -13,7 +13,7 @@ import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
 
 import scala.concurrent.ExecutionContext
 
-class RedisStore(fs: Featurespace, endpoint: String, port: Int)(implicit ec: ExecutionContext) extends Store {
+case class RedisStore(fs: Featurespace, endpoint: String, port: Int) extends Store {
   lazy val pool   = new JedisPool(endpoint, port)
   lazy val client = Resource[IO, Jedis](IO(pool.getResource).map(jedis => jedis -> IO(jedis.close())))
 

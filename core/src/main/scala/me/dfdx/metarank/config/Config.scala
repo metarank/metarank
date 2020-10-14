@@ -25,10 +25,11 @@ case class Config(core: CoreConfig, featurespace: List[FeaturespaceConfig]) {
 object Config {
   case class FeaturespaceConfig(
       id: Featurespace,
+      store: StoreConfig,
       features: List[FeatureConfig],
-      aggregations: List[AggregationConfig]
+      aggregations: NonEmptyList[AggregationConfig]
   )
-  case class CoreConfig(listen: ListenConfig, store: StoreConfig)
+  case class CoreConfig(listen: ListenConfig)
   case class ListenConfig(hostname: String, port: Int)
 
   case class WindowConfig(from: Int, length: Int) {

@@ -5,8 +5,9 @@ import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser._
 import me.dfdx.metarank.config.Config.{CoreConfig, FeaturespaceConfig}
+import me.dfdx.metarank.model.Featurespace
 
-case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
+case class Config(core: CoreConfig, featurespace: List[FeaturespaceConfig]) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
     val iface = cmd.hostname.getOrElse(core.listen.hostname)
     val port  = cmd.port.getOrElse(core.listen.port)
@@ -23,7 +24,7 @@ case class Config(core: CoreConfig, featurespace: FeaturespaceConfig) {
 
 object Config {
   case class FeaturespaceConfig(
-      name: String,
+      id: Featurespace,
       features: List[FeatureConfig],
       aggregations: List[AggregationConfig]
   )
@@ -37,6 +38,11 @@ object Config {
   case class FieldConfig(name: String, format: FieldFormatConfig)
   case class FieldFormatConfig(`type`: String, repeated: Boolean, required: Boolean)
 
+  implicit val featurespaceNameConfig = Codec.from(
+    decodeA =
+      Decoder.decodeString.map(Featurespace.apply).ensure(_.name.nonEmpty, "featurespace id should not be empty"),
+    encodeA = Encoder.encodeString.contramap[Featurespace](_.name)
+  )
   implicit val fieldFormatCodec = deriveCodec[FieldFormatConfig]
   implicit val fieldCodec       = deriveCodec[FieldConfig]
 

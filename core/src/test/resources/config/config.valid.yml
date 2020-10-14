@@ -5,45 +5,45 @@ core:
   store:
     type: memory # memory, redis, null
 featurespace:
-  name: demo
-  aggregations:
-    - type: count
-      days-back: 30
-  features:
-    - type: count
-      windows:
-      - { from: 1, length: 7 }
-      - { from: 1, length: 14 }
-      - { from: 1, length: 28 }
-  schema:
-    fields:
-      - name: category
-        format:
-          type: category
-          repeated: true
-          required: true
-      - name: title
-        format:
-          type: text
-          repeated: false
-          required: true
-      - name: price
-        format:
-          type: numeric
-          repeated: false
-          required: true
-      - name: availability
-        format:
-          type: boolean
-          repeated: false
-          required: true
-      - name: colors
-        format:
-          type: string
-          repeated: true
-          required: true
-      - name: sizes
-        format:
-          type: numeric
-          repeated: true
-          required: true
+  - id: demo
+    aggregations:
+      - type: count
+        days-back: 30
+    features:
+      - type: count
+        windows:
+        - { from: 1, length: 7 }
+        - { from: 1, length: 14 }
+        - { from: 1, length: 28 }
+    schema:
+      fields:
+        - name: category
+          format:
+            type: category
+            repeated: true
+            required: true
+        - name: title
+          format:
+            type: text
+            repeated: false
+            required: true
+        - name: price
+          format:
+            type: numeric
+            repeated: false
+            required: true
+        - name: availability
+          format:
+            type: boolean
+            repeated: false
+            required: true
+        - name: colors
+          format:
+            type: string
+            repeated: true
+            required: true
+        - name: sizes
+          format:
+            type: numeric
+            repeated: true
+            required: true

@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 trait RestIOApp extends IOApp {
   def executor: ExecutionContext
   def serviceName: String
-  def services: HttpRoutes[IO]
+  def services(config: Config): HttpRoutes[IO]
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
@@ -32,7 +32,7 @@ trait RestIOApp extends IOApp {
     }
 
   def serveRequests(config: Config): IO[ExitCode] = {
-    val httpApp = Router("/" -> services).orNotFound
+    val httpApp = Router("/" -> services(config)).orNotFound
     BlazeServerBuilder[IO](executor)
       .bindHttp(config.core.listen.port, config.core.listen.hostname)
       .withHttpApp(httpApp)

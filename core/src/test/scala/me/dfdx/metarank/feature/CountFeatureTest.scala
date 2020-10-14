@@ -4,14 +4,14 @@ import me.dfdx.metarank.aggregation.CountAggregation
 import me.dfdx.metarank.aggregation.Scope.{ClickType, GlobalScope}
 import me.dfdx.metarank.config.Config.WindowConfig
 import me.dfdx.metarank.config.FeatureConfig.CountFeatureConfig
-import me.dfdx.metarank.model.{ItemId, Nel, TestClickEvent, TestRankEvent, Timestamp}
+import me.dfdx.metarank.model.{Featurespace, ItemId, Nel, TestClickEvent, TestRankEvent, Timestamp}
 import me.dfdx.metarank.store.{HeapBytesStore, HeapStore}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class CountFeatureTest extends AnyFlatSpec with Matchers {
   it should "extract counts" in {
-    val store = new HeapStore()
+    val store = new HeapStore(Featurespace("p1"))
     val event = TestClickEvent(ItemId("p1"))
     val rank  = TestRankEvent(ItemId("p1"))
     val agg   = CountAggregation(store, 100)

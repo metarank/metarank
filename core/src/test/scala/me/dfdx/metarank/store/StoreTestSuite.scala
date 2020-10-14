@@ -2,13 +2,14 @@ package me.dfdx.metarank.store
 
 import me.dfdx.metarank.aggregation.Scope.{ClickType, GlobalScope}
 import me.dfdx.metarank.aggregation.{CircularReservoir, CountAggregation}
-import me.dfdx.metarank.model.Timestamp
+import me.dfdx.metarank.model.{Featurespace, Timestamp}
 import me.dfdx.metarank.store.state.StateDescriptor.{MapStateDescriptor, ValueStateDescriptor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 trait StoreTestSuite extends AnyFlatSpec with Matchers {
-  def store: Store
+  lazy val store: Store = makeStore(Featurespace("default"))
+  def makeStore(fs: Featurespace): Store
 
   val scope      = GlobalScope(ClickType)
   val valueState = ValueStateDescriptor[CircularReservoir]("count", CircularReservoir(10))
@@ -60,6 +61,15 @@ trait StoreTestSuite extends AnyFlatSpec with Matchers {
     store.kv(mapState, scope).delete("foo2").unsafeRunSync()
     val read2 = store.kv(mapState, scope).get("foo2").unsafeRunSync()
     read2.isDefined shouldBe false
+  }
+
+  it should "not clash between multiple featurespaces" in {
+    val str = ValueStateDescriptor[String]("count", "empty")
+    val a   = makeStore(Featurespace("one"))
+    a.value(str, scope).put("foo").unsafeRunSync()
+    a.value(str, scope).get().unsafeRunSync() shouldBe Some("foo")
+    val b = makeStore(Featurespace("second"))
+    b.value(str, scope).get().unsafeRunSync() shouldBe None
   }
 
 }

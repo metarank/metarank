@@ -9,8 +9,8 @@ class ConfigLoadingTest extends AnyFlatSpec with Matchers {
   it should "load valid config" in {
     val yaml   = Resource.my.getAsString("/config/config.valid.yml")
     val result = Config.load(yaml)
-    result.isRight shouldBe true
-    result.map(_.featurespace.name) shouldBe Right("demo")
+    val br     = 1
+    result.map(_.featurespace.map(_.id.name)) shouldBe Right(List("demo"))
   }
 
   it should "fail on config with no keyspaces" in {

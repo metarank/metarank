@@ -1,5 +1,7 @@
 package me.dfdx.metarank.store
 
+import me.dfdx.metarank.model.Featurespace
+
 class HeapBytesStoreTest extends StoreTestSuite {
-  override lazy val store = new HeapBytesStore()
+  override def makeStore(fs: Featurespace): Store = new HeapBytesStore(fs)
 }

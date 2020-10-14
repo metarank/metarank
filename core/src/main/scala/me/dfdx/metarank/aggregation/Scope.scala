@@ -2,7 +2,7 @@ package me.dfdx.metarank.aggregation
 
 import me.dfdx.metarank.aggregation.Scope.EventType
 import me.dfdx.metarank.model.Event.RankEvent
-import me.dfdx.metarank.model.{Context, ItemId}
+import me.dfdx.metarank.model.{Context, Featurespace, ItemId}
 
 sealed trait Scope {
   def tpe: EventType
@@ -21,17 +21,17 @@ object Scope {
 
   // probably we need a proper typeclass here
   // but this one is shorter :)
-  def write(scope: Scope): String = {
+  def write(fs: Featurespace, scope: Scope): String = {
     val tpe = write(scope.tpe)
     scope match {
       case GlobalScope(_) =>
-        s"/g:$tpe"
+        s"$fs/g:$tpe"
       case ContextScope(_, ctx) =>
-        s"/ctx:$tpe:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
+        s"$fs/ctx:$tpe:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
       case ItemScope(_, item) =>
-        s"/item:$tpe:${item.id}"
+        s"$fs/item:$tpe:${item.id}"
       case ItemContextScope(_, item, ctx) =>
-        s"/itemctx:$tpe:${item.id}:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
+        s"$fs/itemctx:$tpe:${item.id}:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
     }
   }
 

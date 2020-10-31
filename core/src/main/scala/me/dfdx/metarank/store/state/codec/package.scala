@@ -1,11 +1,11 @@
 package me.dfdx.metarank.store.state
 
-import java.nio.charset.StandardCharsets
+import java.io.{DataInput, DataOutput}
 
 package object codec {
   implicit val stringCodec = new Codec[String] {
-    override def read(in: Array[Byte]): String     = new String(in, StandardCharsets.UTF_8)
-    override def write(value: String): Array[Byte] = value.getBytes(StandardCharsets.UTF_8)
+    override def read(in: DataInput): String                 = in.readUTF()
+    override def write(value: String, out: DataOutput): Unit = out.writeUTF(value)
   }
 
   implicit val stringKeyCodec = new KeyCodec[String] {

@@ -3,14 +3,14 @@ name := "metarank"
 version := "0.1"
 
 // blocked on xgboost, which is blocked on spark/flink for 2.13
-scalaVersion := "2.12.12"
+scalaVersion := "2.13.3"
 
 lazy val sharedSettings = Seq(
   organization := "me.dfdx",
   logBuffered in Test := false,
-  resolvers += "XGBoost4J Release Repo" at "https://s3-us-west-2.amazonaws.com/xgboost-maven-repo/release/",
-  scalaVersion := "2.12.12",
-  scalacOptions ++= Seq("-Ypartial-unification", "-Xfatal-warnings")
+  //resolvers += "XGBoost4J Release Repo" at "https://s3-us-west-2.amazonaws.com/xgboost-maven-repo/release/",
+  scalaVersion := "2.13.3",
+  scalacOptions ++= Seq("-feature", "-deprecation")
 )
 
 lazy val core = (project in file("core"))

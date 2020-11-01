@@ -1,17 +1,16 @@
 package me.dfdx.metarank.store
 
+import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import scala.collection.JavaConverters._
 import cats.effect.{IO, Resource}
+import com.google.common.io.ByteStreams
 import me.dfdx.metarank.aggregation.Scope
 import me.dfdx.metarank.model.Featurespace
 import me.dfdx.metarank.store.RedisStore.{RedisMapStore, RedisValueStore}
 import me.dfdx.metarank.store.state.codec.{Codec, KeyCodec}
 import me.dfdx.metarank.store.state.{MapState, StateDescriptor, ValueState}
 import redis.clients.jedis.{Jedis, JedisPool, JedisPoolConfig}
-
-import scala.concurrent.ExecutionContext
 
 case class RedisStore(fs: Featurespace, endpoint: String, port: Int) extends Store {
   lazy val pool   = new JedisPool(endpoint, port)
@@ -29,7 +28,7 @@ object RedisStore {
       extends ValueState[T] {
     override def get(): IO[Option[T]] = {
       client.use(jedis =>
-        IO(Option(jedis.get(Scope.write(fs, scope).getBytes(StandardCharsets.UTF_8))).map(codec.read))
+        IO(Option(jedis.get(Scope.write(fs, scope).getBytes(StandardCharsets.UTF_8))).map(codec.read(_)))
       )
     }
 
@@ -50,7 +49,7 @@ object RedisStore {
               Scope.write(fs, scope).getBytes(StandardCharsets.UTF_8),
               kc.write(key).getBytes(StandardCharsets.UTF_8)
             )
-          ).map(vc.read)
+          ).map(vc.read(_))
         )
       )
     }
@@ -76,5 +75,14 @@ object RedisStore {
         )
       )
 
+  }
+
+  implicit class CodecToByteBuffer[T](self: Codec[T]) {
+    def read(buffer: Array[Byte]): T = self.read(ByteStreams.newDataInput(buffer))
+    def write(value: T): Array[Byte] = {
+      val stream = ByteStreams.newDataOutput()
+      self.write(value, stream)
+      stream.toByteArray
+    }
   }
 }

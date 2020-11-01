@@ -6,4 +6,9 @@ trait KeyCodec[T] {
   def write(value: T): String
 }
 
-object KeyCodec {}
+object KeyCodec {
+  implicit val stringKeyCodec = new KeyCodec[String] {
+    override def write(value: String): String = value
+  }
+
+}

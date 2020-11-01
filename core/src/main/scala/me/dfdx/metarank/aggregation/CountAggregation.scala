@@ -7,8 +7,7 @@ import me.dfdx.metarank.model.{Event, Nel, Timestamp}
 import me.dfdx.metarank.store.Store
 import me.dfdx.metarank.store.state.StateDescriptor.ValueStateDescriptor
 
-/**
-  * A global counter of events. It counts searches, clicks and purchases in the following scopes:
+/** A global counter of events. It counts searches, clicks and purchases in the following scopes:
   * - searches: globally and per scope
   * - clicks: globally, per scope, per scope+item and per item
   * - conversions: globally, per scope, per scope+item and per item
@@ -27,7 +26,7 @@ case class CountAggregation(store: Store, windowSize: Int) extends Aggregation {
   }
 
   def increment(scopes: List[Scope], ts: Timestamp): IO[Unit] = {
-    scopes.map(increment(_, ts)).sequence.map(_ => Unit)
+    scopes.map(increment(_, ts)).sequence.map(_ => ())
   }
 
   def increment(scope: Scope, ts: Timestamp): IO[Unit] = {

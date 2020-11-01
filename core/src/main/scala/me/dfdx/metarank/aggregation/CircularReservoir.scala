@@ -59,8 +59,7 @@ object CircularReservoir {
     new CircularReservoir(Timestamp(0), 0, windowSizeDays, Vector.fill(windowSizeDays)(0))
 
   implicit val ctReaderWriter = new Codec[CircularReservoir] {
-    override def read(bytes: Array[Byte]): CircularReservoir = {
-      val in        = new DataInputStream(new ByteArrayInputStream(bytes))
+    override def read(in: DataInput): CircularReservoir = {
       val updatedAt = Timestamp(in.readLong())
       val lastDay   = in.readInt()
       val size      = in.readInt()
@@ -68,14 +67,11 @@ object CircularReservoir {
       new CircularReservoir(updatedAt, lastDay, size, values.toVector)
     }
 
-    override def write(value: CircularReservoir): Array[Byte] = {
-      val buffer = new ByteArrayOutputStream()
-      val out    = new DataOutputStream(buffer)
+    override def write(value: CircularReservoir, out: DataOutput): Unit = {
       out.writeLong(value.updatedAt.value)
       out.writeInt(value.lastDay)
       out.writeInt(value.size)
       value.buffer.foreach(out.writeInt)
-      buffer.toByteArray
     }
   }
 }

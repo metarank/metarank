@@ -9,7 +9,7 @@ import me.dfdx.metarank.store.Store
 import cats.implicits._
 
 case class Aggregations(aggs: NonEmptyList[Aggregation]) {
-  def onEvent(event: Event): IO[Unit] = aggs.map(_.onEvent(event)).sequence.map(_ => Unit)
+  def onEvent(event: Event): IO[Unit] = aggs.map(_.onEvent(event)).sequence.map(_ => ())
 }
 
 object Aggregations {

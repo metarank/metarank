@@ -9,6 +9,7 @@ featurespace:
     aggregations:
       - type: count
         days-back: 30
+      - type: item-metadata
     features:
       - type: count
         windows:

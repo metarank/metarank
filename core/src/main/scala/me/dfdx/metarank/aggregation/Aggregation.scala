@@ -10,7 +10,8 @@ trait Aggregation {
 }
 
 object Aggregation {
-  def fromConfig(store: Store, agg: AggregationConfig) = agg match {
+  def fromConfig(store: Store, agg: AggregationConfig): Aggregation = agg match {
     case AggregationConfig.CountAggregationConfig(daysBack) => CountAggregation(store, daysBack)
+    case AggregationConfig.ItemMetadataAggregationConfig()  => ItemMetadataAggregation(store)
   }
 }

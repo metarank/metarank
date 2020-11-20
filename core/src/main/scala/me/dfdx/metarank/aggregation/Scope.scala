@@ -13,6 +13,7 @@ object Scope {
   case object RankType       extends EventType
   case object ClickType      extends EventType
   case object ConversionType extends EventType
+  case object ItemType       extends EventType
 
   case class GlobalScope(tpe: EventType)                                  extends Scope
   case class ContextScope(tpe: EventType, ctx: Context)                   extends Scope
@@ -39,5 +40,6 @@ object Scope {
     case RankType       => "rank"
     case ClickType      => "click"
     case ConversionType => "conv"
+    case ItemType       => "item"
   }
 }

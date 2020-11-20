@@ -14,6 +14,6 @@ class ItemMetadataAggregationTest extends AnyFlatSpec with Matchers {
     val agg   = ItemMetadataAggregation(store)
     agg.onEvent(event).unsafeRunSync()
     val value = store.kv(agg.feed, GlobalScope(ItemType)).get(ItemId("p1")).unsafeRunSync()
-    value shouldBe Some(ItemMetadata(event.fields.toList))
+    value shouldBe Some(ItemMetadata(event.fields))
   }
 }

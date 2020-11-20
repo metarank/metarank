@@ -3,6 +3,7 @@ package me.dfdx.metarank.model
 import cats.data.NonEmptyList
 import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor}
 import io.circe.generic.semiauto._
+import me.dfdx.metarank.store.state.codec.Codec
 
 import scala.annotation.tailrec
 

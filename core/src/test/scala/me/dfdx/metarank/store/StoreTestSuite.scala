@@ -12,8 +12,8 @@ trait StoreTestSuite extends AnyFlatSpec with Matchers {
   def makeStore(fs: Featurespace): Store
 
   val scope      = GlobalScope(ClickType)
-  val valueState = ValueStateDescriptor[CircularReservoir]("count", CircularReservoir(10))
-  val mapState   = MapStateDescriptor[String, String]("whatever", "empty")
+  val valueState = ValueStateDescriptor[CircularReservoir]("count")
+  val mapState   = MapStateDescriptor[String, String]("whatever")
   val state      = CircularReservoir(10).increment(Timestamp.day(1)).increment(Timestamp.day(2))
 
   "value state" should "miss non-existing items" in {
@@ -64,7 +64,7 @@ trait StoreTestSuite extends AnyFlatSpec with Matchers {
   }
 
   it should "not clash between multiple featurespaces" in {
-    val str = ValueStateDescriptor[String]("count", "empty")
+    val str = ValueStateDescriptor[String]("count")
     val a   = makeStore(Featurespace("one"))
     a.value(str, scope).put("foo").unsafeRunSync()
     a.value(str, scope).get().unsafeRunSync() shouldBe Some("foo")

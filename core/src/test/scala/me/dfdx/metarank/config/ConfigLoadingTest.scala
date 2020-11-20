@@ -1,13 +1,16 @@
 package me.dfdx.metarank.config
 
 import better.files.Resource
+import me.dfdx.metarank.aggregation.Aggregation
 import me.dfdx.metarank.config.Config.{ConfigSyntaxError, YamlDecodingError}
+import me.dfdx.metarank.model.Featurespace
+import me.dfdx.metarank.store.HeapStore
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class ConfigLoadingTest extends AnyFlatSpec with Matchers {
-  it should "load valid config" in {
-    val yaml   = Resource.my.getAsString("/config/config.valid.yml")
+  lazy val yaml = Resource.my.getAsString("/config/config.valid.yml")
+  it should "parse valid config" in {
     val result = Config.load(yaml)
     val br     = 1
     result.map(_.featurespace.map(_.id.name)) shouldBe Right(List("demo"))

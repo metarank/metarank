@@ -5,7 +5,7 @@ import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser._
 import me.dfdx.metarank.config.Config.{CoreConfig, FeaturespaceConfig}
-import me.dfdx.metarank.model.Featurespace
+import me.dfdx.metarank.model.{Featurespace, Language}
 
 case class Config(core: CoreConfig, featurespace: List[FeaturespaceConfig]) {
   def withCommandLineOverrides(cmd: CommandLineConfig): Config = {
@@ -25,6 +25,7 @@ case class Config(core: CoreConfig, featurespace: List[FeaturespaceConfig]) {
 object Config {
   case class FeaturespaceConfig(
       id: Featurespace,
+      language: Language,
       store: StoreConfig,
       features: List[FeatureConfig],
       aggregations: NonEmptyList[AggregationConfig]
@@ -55,6 +56,10 @@ object Config {
   )
 
   import FeatureConfig._
+  implicit val languageCodec = Codec.from(
+    decodeA = Decoder.decodeString.emapTry(code => Language.fromCode(code).toTry),
+    encodeA = Encoder.encodeString.contramap[Language](_.code)
+  )
 
   implicit val listenConfigCodec       = deriveCodec[ListenConfig]
   implicit val coreConfigCodec         = deriveCodec[CoreConfig]

@@ -3,7 +3,7 @@ package me.dfdx.metarank.aggregation
 import cats.data.NonEmptyList
 import cats.effect.IO
 import me.dfdx.metarank.aggregation.ItemMetadataAggregation.ItemMetadata
-import me.dfdx.metarank.aggregation.Scope.{ClickType, GlobalScope, ItemType}
+import me.dfdx.metarank.aggregation.Scope.{ClickType, GlobalScope, ItemType, RankType}
 import me.dfdx.metarank.model.Event.ItemMetadataEvent
 import me.dfdx.metarank.model.{Event, Field, ItemId}
 import me.dfdx.metarank.store.Store
@@ -19,7 +19,7 @@ case class ItemMetadataAggregation(store: Store) extends Aggregation {
     event match {
       case meta: ItemMetadataEvent =>
         for {
-          _ <- store.kv(feed, GlobalScope(ItemType)).put(meta.item, ItemMetadata(meta.fields))
+          _ <- store.kv(feed, GlobalScope(RankType)).put(meta.item, ItemMetadata(meta.fields))
         } yield {}
     }
   }

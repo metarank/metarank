@@ -13,11 +13,14 @@ object FeatureConfig {
     val maxDate = windows.map(w => w.from + w.length).reduceLeft(_ + _)
   }
 
+  case class QueryMatchFeatureConfig(field: String) extends FeatureConfig
+
   implicit val conf = Configuration.default
     .withDiscriminator("type")
     .withKebabCaseMemberNames
-    .copy(transformConstructorNames = { case "CountFeatureConfig" =>
-      "count"
+    .copy(transformConstructorNames = {
+      case "CountFeatureConfig"      => "count"
+      case "QueryMatchFeatureConfig" => "field_match"
     })
 
   implicit val featureConfigCodec: Codec[FeatureConfig] = deriveConfiguredCodec[FeatureConfig]

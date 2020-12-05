@@ -13,7 +13,7 @@ class CountFeatureTest extends AnyFlatSpec with Matchers {
   it should "extract counts" in {
     val store = new HeapStore(Featurespace("p1"))
     val event = TestClickEvent(ItemId("p1"))
-    val rank  = TestRankEvent(ItemId("p1"))
+    val rank  = TestRankEvent(ItemId("p1"), "fox")
     val agg   = CountAggregation(store, 100)
     agg.onEvent(event).unsafeRunSync()
     agg.onEvent(event.copy(metadata = event.metadata.copy(timestamp = Timestamp.day(1)))).unsafeRunSync()
@@ -22,6 +22,6 @@ class CountFeatureTest extends AnyFlatSpec with Matchers {
     val result = CountFeature(agg, CountFeatureConfig(Nel(WindowConfig(1, 10))))
       .values(rank, rank.items.head)
       .unsafeRunSync()
-    result shouldBe List(3.0f, 3.0f, 0f, 0f) // the last one is not counted as we exclude current day
+    result shouldBe List(3.0f, 0.0f, 0f, 0f) // the last one is not counted as we exclude current day
   }
 }

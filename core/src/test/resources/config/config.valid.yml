@@ -4,6 +4,7 @@ core:
     port: 8080
 featurespace:
   - id: demo
+    language: en
     store:
       type: heap
     aggregations:
@@ -16,6 +17,8 @@ featurespace:
         - { from: 1, length: 7 }
         - { from: 1, length: 14 }
         - { from: 1, length: 28 }
+      - type: field_match
+        field: title
     schema:
       fields:
         - name: category

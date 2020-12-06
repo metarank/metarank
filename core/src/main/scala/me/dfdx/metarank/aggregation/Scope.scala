@@ -26,13 +26,13 @@ object Scope {
     val tpe = write(scope.tpe)
     scope match {
       case GlobalScope(_) =>
-        s"$fs/g:$tpe"
+        s"${fs.name}/g:$tpe"
       case ContextScope(_, ctx) =>
-        s"$fs/ctx:$tpe:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
+        s"${fs.name}/ctx:$tpe:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
       case ItemScope(_, item) =>
-        s"$fs/item:$tpe:${item.id}"
+        s"${fs.name}/item:$tpe:${item.id}"
       case ItemContextScope(_, item, ctx) =>
-        s"$fs/itemctx:$tpe:${item.id}:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
+        s"${fs.name}/itemctx:$tpe:${item.id}:tag=${ctx.tag.getOrElse("")},q=${ctx.query.getOrElse("")}"
     }
   }
 

@@ -33,7 +33,7 @@ class IngestServiceTest extends AnyFlatSpec with Matchers with ServiceRouteTest 
   }
 
   it should "push rank update" in {
-    val rank = TestRankEvent(ItemId("p1"))
+    val rank = TestRankEvent(ItemId("p1"), "fox")
     post(ingest.route, rank, "/dev/ingest/rank").map(_.status.code) shouldBe Some(200)
   }
 

@@ -15,7 +15,7 @@ case class Aggregations(aggs: NonEmptyList[Aggregation]) {
 object Aggregations {
   def fromConfig(fs: FeaturespaceConfig): Aggregations = {
     val store = Store.fromConfig(fs.store, fs.id)
-    val aggs  = fs.aggregations.map(Aggregation.fromConfig(store, _))
+    val aggs  = fs.aggregations.map(Aggregation.fromConfig(store, _, fs.schema))
     new Aggregations(aggs)
   }
 }

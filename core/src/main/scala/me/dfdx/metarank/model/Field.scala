@@ -3,20 +3,33 @@ package me.dfdx.metarank.model
 import cats.data.NonEmptyList
 import io.circe.{ACursor, Decoder, DecodingFailure, Encoder, HCursor}
 import io.circe.generic.semiauto._
+import me.dfdx.metarank.config.Config.FieldType
+import me.dfdx.metarank.config.Config.FieldType.{BooleanType, NumericType, StringType}
 import me.dfdx.metarank.store.state.codec.Codec
 
 import scala.annotation.tailrec
 
 sealed trait Field {
   def name: String
+  def tpe: FieldType
 }
 
 object Field {
-  case class StringField(name: String, value: String)                    extends Field
-  case class StringListField(name: String, value: NonEmptyList[String])  extends Field
-  case class NumericField(name: String, value: Double)                   extends Field
-  case class NumericListField(name: String, value: NonEmptyList[Double]) extends Field
-  case class BooleanField(name: String, value: Boolean)                  extends Field
+  case class StringField(name: String, value: String) extends Field {
+    override val tpe = StringType
+  }
+  case class StringListField(name: String, value: NonEmptyList[String]) extends Field {
+    override val tpe = StringType
+  }
+  case class NumericField(name: String, value: Double) extends Field {
+    override val tpe = NumericType
+  }
+  case class NumericListField(name: String, value: NonEmptyList[Double]) extends Field {
+    override val tpe = NumericType
+  }
+  case class BooleanField(name: String, value: Boolean) extends Field {
+    override val tpe = BooleanType
+  }
 
   implicit val stringEncoder = deriveEncoder[StringField]
   implicit val stringDecoder = deriveDecoder[StringField]

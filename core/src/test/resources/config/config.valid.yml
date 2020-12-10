@@ -21,14 +21,9 @@ featurespace:
         field: title
     schema:
       fields:
-        - name: category
-          format:
-            type: category
-            repeated: true
-            required: true
         - name: title
           format:
-            type: text
+            type: string
             repeated: false
             required: true
         - name: price

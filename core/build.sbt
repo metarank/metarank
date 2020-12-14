@@ -22,7 +22,7 @@ libraryDependencies ++= Seq(
   "redis.clients"         % "jedis"                % "3.4.0",
   "com.propensive"       %% "magnolia"             % "0.17.0",
   "org.scala-lang"        % "scala-reflect"        % scalaVersion.value,
-  "com.google.guava"      % "guava"                % "30.0-jre",
+  "com.google.guava"      % "guava"                % "30.1-jre",
   "org.apache.lucene"     % "lucene-core"          % luceneVersion,
   "org.apache.lucene"     % "lucene-analyzers-icu" % luceneVersion
 )

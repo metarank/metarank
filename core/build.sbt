@@ -3,7 +3,7 @@ name := "core"
 import Deps._
 
 libraryDependencies ++= Seq(
-  "org.typelevel"        %% "cats-effect"          % "2.3.1",
+  "org.typelevel"        %% "cats-effect"          % "2.3.3",
   "io.chrisdavenport"    %% "log4cats-core"        % log4catsVersion,
   "io.chrisdavenport"    %% "log4cats-slf4j"       % log4catsVersion,
   "org.scalatest"        %% "scalatest"            % scalatestVersion % Test,
@@ -16,10 +16,10 @@ libraryDependencies ++= Seq(
   "io.circe"             %% "circe-generic-extras" % circeVersion,
   "io.circe"             %% "circe-parser"         % circeVersion,
   "com.github.pathikrit" %% "better-files"         % "3.9.1",
-  "com.github.scopt"     %% "scopt"                % "4.0.0",
+  "com.github.scopt"     %% "scopt"                % "4.0.1",
   "com.github.blemale"   %% "scaffeine"            % "4.0.2",
   "com.github.fppt"       % "jedis-mock"           % "0.1.16"         % Test,
-  "redis.clients"         % "jedis"                % "3.4.1",
+  "redis.clients"         % "jedis"                % "3.5.1",
   "com.propensive"       %% "magnolia"             % "0.17.0",
   "org.scala-lang"        % "scala-reflect"        % scalaVersion.value,
   "com.google.guava"      % "guava"                % "30.1-jre",

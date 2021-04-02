@@ -6,7 +6,7 @@ object Deps {
   lazy val scalatestVersion = "3.2.7"
   lazy val circeVersion     = "0.13.0"
   lazy val circeYamlVersion = "0.13.1"
-  lazy val fs2Version       = "2.5.3"
+  lazy val fs2Version       = "2.5.4"
   lazy val luceneVersion    = "8.8.1"
 
   val httpsDeps = Seq(

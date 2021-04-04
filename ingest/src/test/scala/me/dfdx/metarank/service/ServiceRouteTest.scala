@@ -2,9 +2,9 @@ package me.dfdx.metarank.service
 
 import cats.effect.IO
 import io.circe.Encoder
-import me.dfdx.metarank.services.IngestService
 import org.http4s.{HttpRoutes, Method, Request, Uri}
 import io.circe.syntax._
+import cats.effect.unsafe.implicits.global
 
 trait ServiceRouteTest {
   def get(route: HttpRoutes[IO], path: String) = {

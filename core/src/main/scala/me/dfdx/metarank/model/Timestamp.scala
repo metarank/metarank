@@ -5,8 +5,7 @@ import me.dfdx.metarank.model.Timestamp.MILLIS_IN_DAY
 
 import scala.util.Try
 
-/**
-  * A wrapper on number of milliseconds from 1970-01-01
+/** A wrapper on number of milliseconds from 1970-01-01
   * @param value
   */
 case class Timestamp(value: Long) extends AnyVal {
@@ -20,7 +19,7 @@ object Timestamp {
       .emapTry(str => Try(str.toLong))
       .map(Timestamp.apply)
       .ensure(_.value > 0L, "timestamp cannot be negative")
-      .ensure(!_.value.isNaN, "timestamp cannot be NaN"),
+      .ensure(!_.value.toFloat.isNaN, "timestamp cannot be NaN"),
     encodeA = Encoder.instance[Timestamp](ts => Encoder.encodeString(ts.value.toString))
   )
   def day(n: Int) = new Timestamp(n * MILLIS_IN_DAY)

@@ -1,13 +1,12 @@
 import sbt._
 
 object Deps {
-  lazy val log4catsVersion  = "1.2.0"
-  lazy val http4sVersion    = "0.21.20"
-  lazy val scalatestVersion = "3.2.6"
-
+  lazy val http4sVersion    = "1.0.0-M20"
+  lazy val log4catsVersion  = "2.0.1"
+  lazy val scalatestVersion = "3.2.7"
   lazy val circeVersion     = "0.13.0"
   lazy val circeYamlVersion = "0.13.1"
-  lazy val fs2Version       = "2.5.0"
+  lazy val fs2Version       = "3.0.1"
   lazy val luceneVersion    = "8.8.1"
 
   val httpsDeps = Seq(

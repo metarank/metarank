@@ -17,7 +17,7 @@ class LanguageConfigTest extends AnyFlatSpec with Matchers {
 
   it should "fail on unsupported lang" in {
     val yaml = "wtf"
-    parse("wtf").flatMap(_.as[Language]).map(_.code) should matchPattern { case Left(DecodingFailure(_)) =>
+    parse("wtf").flatMap(_.as[Language]).map(_.code) should matchPattern { case Left(DecodingFailure(_, _)) =>
     }
   }
 }

@@ -6,6 +6,7 @@ import me.dfdx.metarank.model.{Featurespace, Timestamp}
 import me.dfdx.metarank.store.state.StateDescriptor.{MapStateDescriptor, ValueStateDescriptor}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import cats.effect.unsafe.implicits.global
 
 trait StoreTestSuite extends AnyFlatSpec with Matchers {
   lazy val store: Store = makeStore(Featurespace("default"))

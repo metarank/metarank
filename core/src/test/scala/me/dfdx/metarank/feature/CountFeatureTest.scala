@@ -8,6 +8,7 @@ import me.dfdx.metarank.model.{Featurespace, ItemId, Nel, TestClickEvent, TestRa
 import me.dfdx.metarank.store.{HeapBytesStore, HeapStore}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import cats.effect.unsafe.implicits.global
 
 class CountFeatureTest extends AnyFlatSpec with Matchers {
   it should "extract counts" in {

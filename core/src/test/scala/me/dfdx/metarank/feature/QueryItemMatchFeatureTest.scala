@@ -9,6 +9,7 @@ import me.dfdx.metarank.model.{Featurespace, ItemId, Language, Nel, TestItemMeta
 import me.dfdx.metarank.store.HeapStore
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import cats.effect.unsafe.implicits.global
 
 class QueryItemMatchFeatureTest extends AnyFlatSpec with Matchers {
   it should "count matches over existing products" in {

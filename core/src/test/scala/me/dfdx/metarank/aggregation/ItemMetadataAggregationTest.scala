@@ -8,7 +8,7 @@ import me.dfdx.metarank.model.{Featurespace, ItemId, Nel, TestClickEvent, TestIt
 import me.dfdx.metarank.store.HeapStore
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
+import cats.effect.unsafe.implicits.global
 import scala.util.Try
 
 class ItemMetadataAggregationTest extends AnyFlatSpec with Matchers {

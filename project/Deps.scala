@@ -7,7 +7,7 @@ object Deps {
   lazy val circeVersion     = "0.13.0"
   lazy val circeYamlVersion = "0.13.1"
   lazy val fs2Version       = "3.0.1"
-  lazy val luceneVersion    = "8.8.1"
+  lazy val luceneVersion    = "8.8.2"
 
   val httpsDeps = Seq(
     "org.http4s" %% "http4s-dsl"          % http4sVersion,

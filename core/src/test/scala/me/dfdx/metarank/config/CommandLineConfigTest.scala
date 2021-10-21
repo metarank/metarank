@@ -25,15 +25,13 @@ class CommandLineConfigTest extends AnyFlatSpec with Matchers {
   }
 
   it should "fail on wrong port" in {
-    CommandLineConfig.parse(List("-p", "123456")) should matchPattern {
-      case Left(CommandLineParsingError(_)) =>
+    CommandLineConfig.parse(List("-p", "123456")) should matchPattern { case Left(CommandLineParsingError(_)) =>
     }
   }
 
   it should "fail on missing config" in {
     val conf = File("/tmp/" + Random.nextInt().toString)
-    CommandLineConfig.parse(List("-c", conf.toString())) should matchPattern {
-      case Left(CommandLineParsingError(_)) =>
+    CommandLineConfig.parse(List("-c", conf.toString())) should matchPattern { case Left(CommandLineParsingError(_)) =>
     }
   }
 }

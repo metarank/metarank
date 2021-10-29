@@ -24,7 +24,7 @@ trait RestIOApp extends IOApp {
       cmdline <- parseCommandLine(args)
       _       <- logger.info(s"Loading config from ${cmdline.config}")
       config  <- loadConfig(cmdline.config)
-      //features <- IO { FeatureRegistry.fromConfig(config.featurespace) }
+      // features <- IO { FeatureRegistry.fromConfig(config.featurespace) }
       _    <- logger.info(s"Starting Metarank $serviceName")
       exit <- serveRequests(config)
     } yield {

@@ -10,7 +10,7 @@ lazy val sharedSettings = Seq(
   Test / logBuffered := false,
   //resolvers += "XGBoost4J Release Repo" at "https://s3-us-west-2.amazonaws.com/xgboost-maven-repo/release/",
   scalaVersion := "2.12.15",
-  scalacOptions ++= Seq("-feature", "-deprecation")
+  scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification")
 )
 
 lazy val core = (project in file("core"))

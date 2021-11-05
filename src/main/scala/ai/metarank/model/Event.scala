@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.findify.featury.model.Timestamp
 import io.circe.generic.semiauto._
 
@@ -44,19 +44,19 @@ object Event {
 
   case class ItemRelevancy(id: ItemId, relevancy: Double)
 
-  implicit val relevancyDecoder: Decoder[ItemRelevancy]      = deriveDecoder
-  implicit val metadataDecoder: Decoder[MetadataEvent]       = deriveDecoder
-  implicit val impressionDecoder: Decoder[ImpressionEvent]   = deriveDecoder
-  implicit val interactionDecoder: Decoder[InteractionEvent] = deriveDecoder
+  implicit val relevancyCodec: Codec[ItemRelevancy]      = deriveCodec
+  implicit val metadataCodec: Codec[MetadataEvent]       = deriveCodec
+  implicit val impressionCodec: Codec[ImpressionEvent]   = deriveCodec
+  implicit val interactionCodec: Codec[InteractionEvent] = deriveCodec
 
   implicit val eventDecoder: Decoder[Event] = Decoder.instance(c =>
-    interactionDecoder.apply(c) match {
+    interactionCodec.apply(c) match {
       case Right(value) => Right(value)
       case Left(interactionError) =>
-        impressionDecoder.apply(c) match {
+        impressionCodec.apply(c) match {
           case Right(value) => Right(value)
           case Left(impressionError) =>
-            metadataDecoder.apply(c) match {
+            metadataCodec.apply(c) match {
               case Right(value) => Right(value)
               case Left(metadataError) =>
                 Left(
@@ -69,4 +69,11 @@ object Event {
         }
     }
   )
+
+  implicit val eventEncoder: Encoder[Event] = Encoder.instance {
+    case e: MetadataEvent    => metadataCodec.apply(e)
+    case e: ImpressionEvent  => impressionCodec.apply(e)
+    case e: InteractionEvent => interactionCodec.apply(e)
+  }
+
 }

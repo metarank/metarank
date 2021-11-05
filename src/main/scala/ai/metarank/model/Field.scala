@@ -1,6 +1,7 @@
 package ai.metarank.model
 
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.generic.semiauto._
 
 sealed trait Field {
   def name: String
@@ -12,7 +13,8 @@ object Field {
   case class NumberField(name: String, value: Double)           extends Field
   case class StringListField(name: String, value: List[String]) extends Field
   case class NumberListField(name: String, value: List[Double]) extends Field
-  implicit val decoder: Decoder[Field] = Decoder.instance(c =>
+
+  implicit val fieldDecoder: Decoder[Field] = Decoder.instance(c =>
     for {
       name <- c.downField("name").as[String]
       fieldJson <- c.downField("value").focus match {
@@ -37,4 +39,18 @@ object Field {
       field
     }
   )
+
+  implicit val stringEncoder: Encoder[StringField]         = deriveEncoder
+  implicit val boolEncoder: Encoder[BooleanField]          = deriveEncoder
+  implicit val numEncoder: Encoder[NumberField]            = deriveEncoder
+  implicit val stringListEncoder: Encoder[StringListField] = deriveEncoder
+  implicit val numListEncoder: Encoder[NumberListField]    = deriveEncoder
+
+  implicit val fieldEncoder: Encoder[Field] = Encoder.instance {
+    case f: StringField     => stringEncoder.apply(f)
+    case f: BooleanField    => boolEncoder.apply(f)
+    case f: NumberField     => numEncoder.apply(f)
+    case f: StringListField => stringListEncoder.apply(f)
+    case f: NumberListField => numListEncoder.apply(f)
+  }
 }

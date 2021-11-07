@@ -9,8 +9,8 @@ import org.scalacheck.Gen
 
 object EventGen {
 
-  val genUser      = Gen.alphaStr.map(UserId.apply)
-  val genSession   = Gen.alphaStr.map(SessionId.apply)
+  val genUser      = Gen.listOfN(8, Gen.alphaChar).map(c => UserId(c.mkString))
+  val genSession   = Gen.listOfN(8, Gen.alphaChar).map(c => SessionId(c.mkString))
   val genId        = Gen.uuid.map(uuid => EventId(uuid.toString))
   val genItem      = Gen.posNum[Int].map(i => ItemId("p" + i))
   val genTimestamp = Gen.chooseNum[Int](0, 60 * 60 * 1000).map(offset => Timestamp(System.currentTimeMillis() + offset))
@@ -21,25 +21,31 @@ object EventGen {
     ItemRelevancy(id, score)
   }
 
-  def fieldGen(fields: Map[String, FieldSchema]): Gen[Field] = {
+  def fieldGen(fields: Map[String, FieldSchema]): Gen[Option[Field]] = {
     for {
       fieldName <- Gen.oneOf(fields.keys)
       field <- fields.get(fieldName) match {
-        case Some(FieldSchema.BooleanFieldSchema(name, _)) => Gen.oneOf(true, false).map(b => BooleanField(name, b))
-        case Some(FieldSchema.NumberFieldSchema(name, _))  => Gen.chooseNum(0, 100).map(i => NumberField(name, i))
-        case Some(FieldSchema.StringFieldSchema(name, _))  => Gen.alphaStr.map(s => StringField(name, s))
-        case _                                             => ???
+        case Some(FieldSchema.BooleanFieldSchema(name, required)) =>
+          reqOption(Gen.oneOf(true, false).map(b => BooleanField(name, b)), required)
+        case Some(FieldSchema.NumberFieldSchema(name, required)) =>
+          reqOption(Gen.chooseNum(0, 100).map(i => NumberField(name, i)), required)
+        case Some(FieldSchema.StringFieldSchema(name, required)) =>
+          reqOption(Gen.alphaStr.map(s => StringField(name, s)), required)
+        case _ => Gen.const(None)
       }
     } yield {
       field
     }
   }
 
+  def reqOption[T](gen: Gen[T], required: Boolean): Gen[Option[T]] =
+    if (required) gen.map(Some.apply) else Gen.option(gen)
+
   def metadataGen(fields: Map[String, FieldSchema]) = for {
     id     <- genId
     item   <- genItem
     ts     <- genTimestamp
-    fields <- Gen.listOfN(3, fieldGen(fields))
+    fields <- Gen.listOfN(10, fieldGen(fields)).map(_.flatten.distinct)
   } yield {
     MetadataEvent(id, item, ts, fields)
   }
@@ -47,10 +53,10 @@ object EventGen {
   def impressionGen(fields: Map[String, FieldSchema]) = for {
     id      <- genId
     ts      <- genTimestamp
-    fields  <- Gen.listOfN(3, fieldGen(fields))
+    fields  <- Gen.listOfN(3, fieldGen(fields)).map(_.flatten.distinct)
     user    <- genUser
     session <- genSession
-    items   <- Gen.listOfN(3, itemRelGen)
+    items   <- Gen.listOfN(10, itemRelGen)
   } yield {
     ImpressionEvent(id, ts, user, session, fields, items)
   }
@@ -60,7 +66,7 @@ object EventGen {
     item    <- genItem
     ts      <- genTimestamp
     impr    <- genId
-    fields  <- Gen.listOfN(3, fieldGen(fields))
+    fields  <- Gen.listOfN(10, fieldGen(fields)).map(_.flatten.distinct)
     user    <- genUser
     session <- genSession
     tpe     <- Gen.oneOf("click", "purchase")

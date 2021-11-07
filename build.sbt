@@ -39,6 +39,5 @@ libraryDependencies ++= Seq(
   "org.apache.flink"     %% "flink-statebackend-rocksdb" % flinkVersion,
   "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
   "org.apache.flink"     %% "flink-runtime-web"          % flinkVersion,
-  "org.apache.flink"     %% "flink-streaming-scala"      % flinkVersion,
-  "org.apache.flink"     %% "flink-test-utils"           % flinkVersion     % "test"
+  "org.apache.flink"     %% "flink-streaming-scala"      % flinkVersion
 )

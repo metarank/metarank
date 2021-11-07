@@ -48,7 +48,7 @@ object FileEventSource {
   case class EventReader(stream: FSDataInputStream) extends StreamFormat.Reader[Event] {
     override def read(): Event = {
       val line = readLine(stream)
-      if (line != null) decode[Event](line).toOption.orNull else null
+      if (line != null) decode[Event](line).right.get else null
     }
 
     override def close(): Unit = stream.close()

@@ -68,10 +68,14 @@ object HttpEventSource {
         decode[Event](bytes) match {
           case Left(_) =>
             decode[List[Event]](bytes) match {
-              case Left(ex)     => logger.warn("cannot decode json", ex)
-              case Right(value) => queue.addAll(value.asJavaCollection)
+              case Left(ex) => logger.warn("cannot decode json", ex)
+              case Right(value) =>
+                logger.info(s"accepted request for $value")
+                queue.addAll(value.asJavaCollection)
             }
-          case Right(value) => queue.add(value)
+          case Right(value) =>
+            logger.info(s"accepted request for $value")
+            queue.add(value)
         }
       }
     }

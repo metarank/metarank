@@ -5,7 +5,6 @@ import ai.metarank.config.{Config, IngestConfig}
 import ai.metarank.ingest.source.{FileEventSource, HttpEventSource}
 import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.core.execution.JobClient
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.api.scala._
 

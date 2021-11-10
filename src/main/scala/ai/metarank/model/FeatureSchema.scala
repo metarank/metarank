@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import cats.data.NonEmptyList
 import io.circe.{Codec, Decoder}
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto._
@@ -35,6 +36,7 @@ object FeatureSchema {
       name: String,
       field: String,
       source: String,
+      values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema

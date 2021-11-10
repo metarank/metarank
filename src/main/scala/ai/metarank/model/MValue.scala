@@ -10,7 +10,5 @@ object MValue {
     override def dim: Int = 1
   }
 
-  case class VectorValue(name: String, values: Array[Double]) extends MValue {
-    override def dim: Int = values.length
-  }
+  case class VectorValue(name: String, values: Array[Double], dim: Int) extends MValue
 }

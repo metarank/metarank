@@ -1,18 +1,19 @@
 package ai.metarank.feature
 
-import ai.metarank.model.{Event, MValue}
 import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.NumberFeatureSchema
-import ai.metarank.model.Field.NumberField
+import ai.metarank.model.FeatureSchema.BooleanFeatureSchema
+import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.MValue.SingleValue
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
+import ai.metarank.model.{Event, MValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
+import io.findify.featury.model.Key.{FeatureName, Scope}
 import io.findify.featury.model.Write.Put
-import shapeless.syntax.typeable._
-import scala.concurrent.duration._
+import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SBoolean, SDouble, ScalarValue}
 
-case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
+import scala.concurrent.duration._
+import shapeless.syntax.typeable._
+
+case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -24,14 +25,14 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {
-    meta        <- event.cast[MetadataEvent]
-    field       <- meta.fields.find(_.name == schema.field)
-    numberField <- field.cast[NumberField]
+    meta       <- event.cast[MetadataEvent]
+    field      <- meta.fields.find(_.name == schema.field)
+    fieldValue <- field.cast[BooleanField]
   } yield {
     Put(
       Key(conf, tenant(event), meta.item.value),
       meta.timestamp,
-      SDouble(numberField.value)
+      SBoolean(fieldValue.value)
     )
   }
 
@@ -40,8 +41,8 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
 
   override def value(request: Event.ImpressionEvent, state: Map[Key, FeatureValue], id: String): MValue =
     state.get(Key(conf, tenant(request), id)) match {
-      case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
-      case _                                       => SingleValue(schema.name, 0.0)
+      case Some(ScalarValue(_, _, SBoolean(value))) => SingleValue(schema.name, if (value) 1 else 0)
+      case _                                        => SingleValue(schema.name, 0.0)
     }
 
 }

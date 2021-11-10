@@ -2,6 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.model.FeatureSchema
 import ai.metarank.model.FeatureSchema.{BooleanFeatureSchema, NumberFeatureSchema, StringFeatureSchema, durationDecoder}
+import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -22,8 +23,8 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode config for string" in {
-    decodeYaml("name: price\ntype: string\nfield: price\nsource: item") shouldBe Right(
-      StringFeatureSchema("price", "price", "item")
+    decodeYaml("name: price\ntype: string\nfield: price\nsource: item\nvalues: [\"foo\"]") shouldBe Right(
+      StringFeatureSchema("price", "price", "item", NonEmptyList.one("foo"))
     )
   }
 

@@ -4,6 +4,10 @@ name := "metarank"
 
 version := "0.2-M1"
 
+resolvers ++= Seq(
+  ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
+)
+
 // blocked on xgboost, which is blocked on spark/flink for 2.13
 
 organization := "me.dfdx"
@@ -34,7 +38,8 @@ libraryDependencies ++= Seq(
   "com.google.guava"                  % "guava"                      % "30.1.1-jre",
   "org.apache.lucene"                 % "lucene-core"                % luceneVersion,
   "org.apache.lucene"                 % "lucene-analyzers-icu"       % luceneVersion,
-  "io.findify"                       %% "featury-flink"              % "0.2.1",
+  "io.findify"                       %% "featury-flink"              % featuryVersion,
+  "io.findify"                       %% "featury-redis"              % featuryVersion,
   "org.apache.flink"                 %% "flink-scala"                % flinkVersion,
   "org.apache.flink"                 %% "flink-statebackend-rocksdb" % flinkVersion,
   "org.apache.flink"                  % "flink-connector-files"      % flinkVersion,

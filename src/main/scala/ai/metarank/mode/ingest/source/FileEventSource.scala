@@ -1,7 +1,7 @@
-package ai.metarank.ingest.source
+package ai.metarank.mode.ingest.source
 
 import ai.metarank.config.IngestConfig.FileIngestConfig
-import ai.metarank.ingest.source.FileEventSource.EventStreamFormat
+import FileEventSource.EventStreamFormat
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.configuration.Configuration
@@ -13,15 +13,18 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import io.circe.parser._
 
 import java.io.{ByteArrayOutputStream, InputStream}
+import ai.metarank.util.DataStreamOps._
 
-case class FileEventSource(conf: FileIngestConfig)(implicit val ti: TypeInformation[Event]) extends EventSource {
-  override def source(env: StreamExecutionEnvironment): DataStream[Event] =
-    env.fromSource(
-      source =
-        FileSource.forRecordStreamFormat(EventStreamFormat(), new Path(conf.path)).processStaticFileSet().build(),
-      watermarkStrategy = EventWatermarkStrategy(),
-      sourceName = "events-source"
-    )
+case class FileEventSource(conf: FileIngestConfig) extends EventSource {
+  override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
+    env
+      .fromSource(
+        source =
+          FileSource.forRecordStreamFormat(EventStreamFormat(), new Path(conf.path)).processStaticFileSet().build(),
+        watermarkStrategy = EventWatermarkStrategy(),
+        sourceName = "events-source"
+      )
+      .id("file-source")
 }
 
 object FileEventSource {

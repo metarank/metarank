@@ -1,6 +1,6 @@
-package ai.metarank.ingest.source
+package ai.metarank.mode.ingest.source
 
-import ai.metarank.ingest.source.EventWatermarkStrategy.EventTimeAssigner
+import EventWatermarkStrategy.EventTimeAssigner
 import ai.metarank.model.Event
 import org.apache.flink.api.common.eventtime.{
   BoundedOutOfOrdernessWatermarks,

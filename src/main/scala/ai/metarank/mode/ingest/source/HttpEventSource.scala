@@ -1,7 +1,7 @@
-package ai.metarank.ingest.source
+package ai.metarank.mode.ingest.source
 
 import ai.metarank.config.IngestConfig.APIIngestConfig
-import ai.metarank.ingest.source.HttpEventSource.RestSource
+import HttpEventSource.RestSource
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -17,10 +17,11 @@ import io.circe.parser._
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.collection.JavaConverters._
+import ai.metarank.util.DataStreamOps._
 
-case class HttpEventSource(conf: APIIngestConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
-  override def source(env: StreamExecutionEnvironment): DataStream[Event] = {
-    env.addSource(new RestSource(conf))
+case class HttpEventSource(conf: APIIngestConfig) extends EventSource {
+  override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] = {
+    env.addSource(new RestSource(conf)).id("http-source")
   }
 }
 

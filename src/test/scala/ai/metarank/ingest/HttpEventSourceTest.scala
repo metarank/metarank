@@ -1,7 +1,7 @@
 package ai.metarank.ingest
 
 import ai.metarank.config.IngestConfig.{APIIngestConfig, FileIngestConfig}
-import ai.metarank.ingest.source.{FileEventSource, HttpEventSource}
+import ai.metarank.mode.ingest.source.HttpEventSource
 import ai.metarank.model.Event
 import ai.metarank.util.{EventGen, FlinkTest, TestSchemaConfig}
 import better.files.File
@@ -39,7 +39,7 @@ class HttpEventSourceTest
     env.enableCheckpointing(1000)
 
     HttpEventSource(APIIngestConfig(8080))
-      .source(env)
+      .eventStream(env)
       .sinkTo(
         FileSink
           .forRowFormat[Event](

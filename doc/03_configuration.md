@@ -5,6 +5,9 @@ Metarank YAML config file contains three main sections:
 * Event schema definition: which field and their types are expected to be included in incoming events
 * Feature extractors: how features are computed on top of incoming events
 * event source: where to read input events from
+* store: where to persist computed feature values 
+
+
 ```yaml
 api:
   port: 8080
@@ -24,7 +27,11 @@ feature:
     type: number
     source: price
 ingest:
-  file:
+  file: /home/user/events.jsonl
+store:
+  type: redis
+  host: localhost
+  port: 6379
 ```
 
 ## Service configuration

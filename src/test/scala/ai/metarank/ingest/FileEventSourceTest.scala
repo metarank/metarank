@@ -1,7 +1,7 @@
 package ai.metarank.ingest
 
 import ai.metarank.config.IngestConfig.FileIngestConfig
-import ai.metarank.ingest.source.FileEventSource
+import ai.metarank.mode.ingest.source.FileEventSource
 import ai.metarank.util.{EventGen, FlinkTest, TestSchemaConfig}
 import better.files.File
 import org.scalacheck.Gen
@@ -24,7 +24,7 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest with 
         outFile.write(json)
         outFile.size should be > 1L
         val result = FileEventSource(FileIngestConfig(outDir.toString()))
-          .source(env)
+          .eventStream(env)
           .executeAndCollect(2000)
         result should contain theSameElementsAs events
       }

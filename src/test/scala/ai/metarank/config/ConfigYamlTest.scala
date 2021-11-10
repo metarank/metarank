@@ -31,7 +31,10 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         |    source: item
         |ingest:
         |  type: file
-        |  path: file:///foo/bar""".stripMargin
+        |  path: file:///foo/bar
+        |store:
+        |  type: redis
+        |  host:""".stripMargin
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(

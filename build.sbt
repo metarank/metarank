@@ -31,7 +31,7 @@ libraryDependencies ++= Seq(
   "com.github.pathikrit"             %% "better-files"               % "3.9.1",
   "com.github.scopt"                 %% "scopt"                      % "4.0.1",
   "com.github.blemale"               %% "scaffeine"                  % "5.1.1",
-  "com.github.fppt"                   % "jedis-mock"                 % "0.1.22"         % Test,
+  "com.github.fppt"                   % "jedis-mock"                 % "0.1.23"         % Test,
   "redis.clients"                     % "jedis"                      % "3.7.0",
   "com.propensive"                   %% "magnolia"                   % "0.17.0",
   "org.scala-lang"                    % "scala-reflect"              % scalaVersion.value,

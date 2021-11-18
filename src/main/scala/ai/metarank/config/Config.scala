@@ -14,7 +14,7 @@ case class Config(
     schema: SchemaConfig,
     feature: List[FeatureSchema],
     ingest: IngestConfig,
-    store: StoreConfig
+    store: ValueStoreConfig
 )
 
 object Config extends Logging {

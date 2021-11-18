@@ -14,7 +14,14 @@ So each feature extractor has full access to complete view of the click chain. T
 extractors take this view as an input and emit feature values in the following order:
 * item: uses only item metadata as a source
 * session: session-specific values
-* interaction: 
+* interaction: ones from interaction events
+
+## Configuration
+
+All the feature extractors have a set of shared fields:
+1. name: required, feature name, should be unique across the whole config.
+2. refresh: optional, how frequently this feature should be updated. By default - in realtime.
+3. ttl: optional, how long should this feature store it's value. By default - 3 months.
 
 ## Feature types
 
@@ -39,9 +46,10 @@ Session:
 * session_count: number of total sessions tracked for this customer
 * interacted_with: for the current item, does this visitor had an interaction with other item with the same field?
 * interaction_count: always increasing counter of interaction events
-* 
+
 Impression:
 * items_count: number of items in the impression
+* relevancy: use a supplied per-product relevancy from the rerank request
 
 Interaction features:
 * window_event_count: sliding window count of interaction events
@@ -61,7 +69,8 @@ Config example for a price field taken from item metadata events:
 ```yaml
 - name: price
   type: number
-  source: price
+  field: price
+  source: item
 ```
 
 ### boolean
@@ -70,7 +79,8 @@ Maps a boolean value to a numerical value, so true = 1, and false = 0. Example:
 ```yaml
 - name: availability
   type: boolean
-  source: availability
+  field: availability
+  source: item
 ```
 
 ### string
@@ -80,7 +90,8 @@ One-hot encoded mapping of string into a set of numbers. Example:
 - name: color
   type: string
   values: [red, green, blue]
-  source: color
+  field: color
+  source: item
 ```
 One-hot encoder with also add an extra value "other" at the end to catch all values not listed in the config. So for 
 the color example above:
@@ -98,7 +109,8 @@ predefined min and max values and log transformation:
     type: minmax
     min: 0
     max: 100   
-  source: price
+  field: price
+  source: item
 ```
 
 Supported methods:
@@ -124,7 +136,8 @@ Example config for an `estimate_histogram`:
     pool_size: 100 // for a pool size of 100
     sample_rate: 10 // we sample every 10th event in the pool 
     bucket_count: 5 // so value will be mapped to 0-20-40-60-80-100 percentiles
-  source: price
+  field: price
+  source: item
 ```
 
 ### word_count
@@ -133,7 +146,8 @@ Counts number of words in a string field. Uses whitespace-based tokenization. Ex
 ```yaml
 - name: title_words
   type: word_count
-  source: title
+  field: title
+  source: item
 ```
 
 ### list_size
@@ -141,7 +155,8 @@ Counts number of items in a string or numerical list. Example:
 ```yaml
 - name: toggled_filters_count
   type: list_size
-  source: filters
+  field: filters
+  source: item
 ```
 
 ### time_diff
@@ -150,7 +165,8 @@ seconds passed from 1970-01-01 00:00:00 in UTC timezone. Example:
 ```yaml
 - name: age
   type: list_size
-  source: created_at
+  field: created_at
+  source: item
 ```
 
 ## Session

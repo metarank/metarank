@@ -4,11 +4,13 @@ Metarank YAML config file contains three main sections:
 * Service configuration
 * Event schema definition: which field and their types are expected to be included in incoming events
 * Feature extractors: how features are computed on top of incoming events
+* event source: where to read input events from
+* store: where to persist computed feature values 
+
 
 ```yaml
-service:
-  api:
-    port: 8080
+api:
+  port: 8080
 schema:
   metadata:
     - name: price
@@ -16,18 +18,47 @@ schema:
       required: true
   impression:
     - name: query
-      type: text
+      type: string
   interaction:
     - name: type 
       type: string
 feature:
   - name: price
-    type: scalarNumber
+    type: number
+    source: price
+ingest:
+  file: /home/user/events.jsonl
+store:
+  type: redis
+  host: localhost
+  port: 6379
 ```
 
 ## Service configuration
 
 TODO
+
+## Ingest configuration
+
+Supported input formats:
+* file: newline-separated jsonl-encoded events from a directory
+* api: RESTful endpoint so you can post your events there
+* kafka: coming soon
+
+File config example:
+```yaml
+ingest:
+  type: file
+  path: file:///home/work/input
+```
+
+API Config example:
+```yaml
+ingest:
+  type: api
+  port: 8081
+```
+
 
 ## Event schema definition
 
@@ -36,8 +67,11 @@ the following types of fields:
 1. string: a regular UTF-8 string
 2. number: a double-precision floating-point format
 3. boolean: true or false
-4. list<string>: a sequence of strings
-5. list<number>: a sequence of numbers
+4. list\<string\>: a sequence of strings
+5. list\<number\>: a sequence of numbers
+6. IP Address
+7. User-Agent
+8. Referer
 
 So YAML snipped defining a field is defined in the following way:
 ```yaml

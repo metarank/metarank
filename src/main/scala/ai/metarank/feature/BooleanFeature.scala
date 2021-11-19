@@ -17,7 +17,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.source),
+    scope = Scope(schema.source.asString),
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)

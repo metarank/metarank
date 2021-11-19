@@ -1,18 +1,19 @@
 package ai.metarank.feature
 
-import ai.metarank.model.{Event, MValue}
 import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.NumberFeatureSchema
-import ai.metarank.model.Field.NumberField
-import ai.metarank.model.MValue.SingleValue
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
+import ai.metarank.model.FeatureSchema.WordCountSchema
+import ai.metarank.model.Field.StringField
+import ai.metarank.model.{Event, MValue}
+import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
+import io.findify.featury.model.Key.{FeatureName, Scope}
 import io.findify.featury.model.Write.Put
-import shapeless.syntax.typeable._
-import scala.concurrent.duration._
+import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SString, ScalarValue}
 
-case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
+import scala.concurrent.duration._
+import shapeless.syntax.typeable._
+
+case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -24,14 +25,14 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {
-    meta        <- event.cast[MetadataEvent]
-    field       <- meta.fields.find(_.name == schema.field)
-    numberField <- field.cast[NumberField]
+    meta       <- event.cast[MetadataEvent]
+    field      <- meta.fields.find(_.name == schema.field)
+    fieldValue <- field.cast[StringField]
   } yield {
     Put(
       Key(conf, tenant(event), meta.item.value),
       meta.timestamp,
-      SDouble(numberField.value)
+      SDouble(tokenCount(fieldValue.value))
     )
   }
 
@@ -41,7 +42,11 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
   override def value(request: Event.ImpressionEvent, state: Map[Key, FeatureValue], id: String): MValue =
     state.get(Key(conf, tenant(request), id)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
-      case _                                       => SingleValue(schema.name, 0.0)
+      case _                                       => SingleValue(schema.name, 0)
     }
 
+  val whitespacePattern = "\\s+".r
+  def tokenCount(string: String): Int = {
+    whitespacePattern.split(string).length
+  }
 }

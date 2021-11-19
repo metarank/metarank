@@ -19,7 +19,7 @@ object FeatureSchema {
   case class NumberFeatureSchema(
       name: String,
       field: String,
-      source: String,
+      source: FeatureSource,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
@@ -27,7 +27,7 @@ object FeatureSchema {
   case class BooleanFeatureSchema(
       name: String,
       field: String,
-      source: String,
+      source: FeatureSource,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
@@ -35,8 +35,16 @@ object FeatureSchema {
   case class StringFeatureSchema(
       name: String,
       field: String,
-      source: String,
+      source: FeatureSource,
       values: NonEmptyList[String],
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema
+
+  case class WordCountSchema(
+      name: String,
+      field: String,
+      source: FeatureSource,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
@@ -54,6 +62,7 @@ object FeatureSchema {
       case "NumberFeatureSchema"  => "number"
       case "BooleanFeatureSchema" => "boolean"
       case "StringFeatureSchema"  => "string"
+      case "WordCountSchema"      => "word_count"
     })
 
   implicit val featureSchemaDecoder: Decoder[FeatureSchema] = deriveConfiguredDecoder[FeatureSchema]

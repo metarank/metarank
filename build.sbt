@@ -13,7 +13,7 @@ resolvers ++= Seq(
 organization := "me.dfdx"
 Test / logBuffered := false
 scalaVersion := "2.12.15"
-scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification")
+scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification", "-Xfatal-warnings")
 
 libraryDependencies ++= Seq(
   "org.typelevel"                    %% "cats-effect"                % "3.2.9",

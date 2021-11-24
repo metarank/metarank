@@ -1,7 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.config.Config.SchemaConfig
-import ai.metarank.model.Event.{ImpressionEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField}
 import ai.metarank.model.{Event, EventId, Field, FieldSchema, ItemId, SessionId, UserId}
 import io.findify.featury.model.Timestamp
@@ -58,7 +57,7 @@ object EventGen {
     session <- genSession
     items   <- Gen.listOfN(10, itemRelGen)
   } yield {
-    ImpressionEvent(id, ts, user, session, fields, items)
+    RankingEvent(id, ts, user, session, fields, items)
   }
 
   def interactionGen(fields: Map[String, FieldSchema]) = for {

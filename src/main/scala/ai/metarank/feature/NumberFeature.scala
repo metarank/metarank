@@ -35,10 +35,10 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
     )
   }
 
-  override def keys(request: Event.ImpressionEvent): Traversable[Key] =
+  override def keys(request: Event.RankingEvent): Traversable[Key] =
     request.items.map(item => Key(conf, tenant(request), item.id.value))
 
-  override def value(request: Event.ImpressionEvent, state: Map[Key, FeatureValue], id: String): MValue =
+  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: String): MValue =
     state.get(Key(conf, tenant(request), id)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0.0)

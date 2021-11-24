@@ -1,6 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{ImpressionEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model._
 import better.files.File
@@ -92,7 +92,7 @@ object RanklensDatasetGenerator {
     val actions: List[Event] = ranklens.actions.flatMap(t => {
       val id = EventId(UUID.randomUUID().toString)
       val impression = List(
-        ImpressionEvent(
+        RankingEvent(
           id = id,
           timestamp = Timestamp(t.ts),
           user = UserId(t.user),
@@ -110,7 +110,7 @@ object RanklensDatasetGenerator {
           session = SessionId(t.user),
           fields = Nil,
           item = ItemId(item.toString),
-          impression = id,
+          ranking = id,
           `type` = "click",
           tenant = Some("1")
         )

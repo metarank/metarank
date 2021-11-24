@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.model.Event.MetadataEvent
 import ai.metarank.model.FeatureSchema.BooleanFeatureSchema
 import ai.metarank.model.Field.{BooleanField, NumberField}
+import ai.metarank.model.FieldSchema.BooleanFieldSchema
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.{Event, MValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
@@ -23,6 +24,10 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
     ttl = schema.ttl.getOrElse(90.days)
   )
   override def states: List[FeatureConfig] = List(conf)
+
+  override def fields = List(
+    BooleanFieldSchema(schema.field, source = schema.source)
+  )
 
   override def writes(event: Event): Iterable[Put] = for {
     meta       <- event.cast[MetadataEvent]

@@ -2,10 +2,10 @@ package ai.metarank.feature
 
 import ai.metarank.model.FeatureSchema
 import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema}
-import ai.metarank.model.FeatureSource.Item
+import ai.metarank.model.FeatureSource.Metadata
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.util.{TestImpressionEvent, TestMetadataEvent}
+import ai.metarank.util.{TestRankingEvent, TestMetadataEvent}
 import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.Key.Tenant
@@ -20,15 +20,15 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     NumberFeatureSchema(
       name = "popularity",
       field = "popularity",
-      source = Item
+      source = Metadata
     )
   )
 
   it should "decode schema" in {
-    parse("name: price\ntype: number\nfield: price\nsource: item\nrefresh: 1m").flatMap(
+    parse("name: price\ntype: number\nfield: price\nsource: metadata\nrefresh: 1m").flatMap(
       _.as[FeatureSchema]
     ) shouldBe Right(
-      NumberFeatureSchema("price", "price", Item, Some(1.minute))
+      NumberFeatureSchema("price", "price", Metadata, Some(1.minute))
     )
   }
 
@@ -43,7 +43,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
   it should "compute value" in {
     val key = Key(feature.states.head, Tenant("default"), "p1")
     val result = feature.value(
-      request = TestImpressionEvent(List("p1")),
+      request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
       id = "p1"
     )

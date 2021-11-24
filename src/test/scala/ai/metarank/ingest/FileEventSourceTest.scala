@@ -1,8 +1,9 @@
 package ai.metarank.ingest
 
 import ai.metarank.config.IngestConfig.FileIngestConfig
+import ai.metarank.feature.FeatureMapping
 import ai.metarank.mode.ingest.source.FileEventSource
-import ai.metarank.util.{EventGen, FlinkTest, TestSchemaConfig}
+import ai.metarank.util.{EventGen, FlinkTest, TestConfig}
 import better.files.File
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
@@ -16,7 +17,7 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest with 
   override implicit val generatorDrivenConfig = PropertyCheckConfiguration(minSuccessful = 3)
 
   it should "read random stream of events" in {
-    forAll(Gen.listOfN(1000, EventGen.eventGen(TestSchemaConfig()))) { events =>
+    forAll(Gen.listOfN(1000, EventGen.eventGen(FeatureMapping.fromFeatureSchema(TestConfig().feature)))) { events =>
       {
         val outDir  = File.newTemporaryDirectory("events_").deleteOnExit()
         val outFile = outDir.createChild("events.jsonl").deleteOnExit()

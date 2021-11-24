@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.model.Event.MetadataEvent
 import ai.metarank.model.FeatureSchema.StringFeatureSchema
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
+import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, MValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
@@ -25,6 +26,8 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
     ttl = schema.ttl.getOrElse(90.days)
   )
   override def states: List[FeatureConfig] = List(conf)
+
+  override def fields = List(StringFieldSchema(schema.field, schema.source))
 
   override def writes(event: Event): Iterable[Put] = for {
     meta  <- event.cast[MetadataEvent]

@@ -1,9 +1,10 @@
 package ai.metarank.ingest
 
 import ai.metarank.config.IngestConfig.{APIIngestConfig, FileIngestConfig}
+import ai.metarank.feature.FeatureMapping
 import ai.metarank.mode.ingest.source.HttpEventSource
 import ai.metarank.model.Event
-import ai.metarank.util.{EventGen, FlinkTest, TestSchemaConfig}
+import ai.metarank.util.{EventGen, FlinkTest, TestConfig}
 import better.files.File
 import org.apache.flink.api.common.serialization.Encoder
 import org.scalacheck.Gen
@@ -61,7 +62,7 @@ class HttpEventSourceTest
   }
 
   it should "read random stream of events" in {
-    forAll(Gen.listOfN(10000, EventGen.eventGen(TestSchemaConfig()))) { events =>
+    forAll(Gen.listOfN(10000, EventGen.eventGen(FeatureMapping.fromFeatureSchema(TestConfig().feature)))) { events =>
       {
         val http = HttpClients.createDefault()
         for {

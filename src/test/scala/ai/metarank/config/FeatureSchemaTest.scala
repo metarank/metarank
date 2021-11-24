@@ -3,7 +3,7 @@ package ai.metarank.config
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.FeatureSchema
 import ai.metarank.model.FeatureSchema.{BooleanFeatureSchema, NumberFeatureSchema, StringFeatureSchema, durationDecoder}
-import ai.metarank.model.FeatureSource.{Interaction, Item}
+import ai.metarank.model.FeatureSource.{Interaction, Metadata}
 import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,26 +13,26 @@ import scala.concurrent.duration.{FiniteDuration, _}
 
 class FeatureSchemaTest extends AnyFlatSpec with Matchers {
   it should "decode config for number" in {
-    decodeYaml("name: price\ntype: number\nfield: price\nsource: item") shouldBe Right(
-      NumberFeatureSchema("price", "price", Item)
+    decodeYaml("name: price\ntype: number\nfield: price\nsource: metadata") shouldBe Right(
+      NumberFeatureSchema("price", "price", Metadata)
     )
   }
 
   it should "decode config for number with refresh" in {
-    decodeYaml("name: price\ntype: number\nfield: price\nsource: item\nrefresh: 1m") shouldBe Right(
-      NumberFeatureSchema("price", "price", Item, Some(1.minute))
+    decodeYaml("name: price\ntype: number\nfield: price\nsource: metadata\nrefresh: 1m") shouldBe Right(
+      NumberFeatureSchema("price", "price", Metadata, Some(1.minute))
     )
   }
 
   it should "decode config for string" in {
-    decodeYaml("name: price\ntype: string\nfield: price\nsource: item\nvalues: [\"foo\"]") shouldBe Right(
-      StringFeatureSchema("price", "price", Item, NonEmptyList.one("foo"))
+    decodeYaml("name: price\ntype: string\nfield: price\nsource: metadata\nvalues: [\"foo\"]") shouldBe Right(
+      StringFeatureSchema("price", "price", Metadata, NonEmptyList.one("foo"))
     )
   }
 
   it should "decode config for boolean" in {
-    decodeYaml("name: price\ntype: boolean\nfield: price\nsource: item") shouldBe Right(
-      BooleanFeatureSchema("price", "price", Item)
+    decodeYaml("name: price\ntype: boolean\nfield: price\nsource: metadata") shouldBe Right(
+      BooleanFeatureSchema("price", "price", Metadata)
     )
   }
 

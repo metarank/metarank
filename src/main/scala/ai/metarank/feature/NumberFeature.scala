@@ -1,15 +1,17 @@
 package ai.metarank.feature
 
-import ai.metarank.model.{Event, MValue}
+import ai.metarank.model.{Event, FieldSchema, MValue}
 import ai.metarank.model.Event.MetadataEvent
 import ai.metarank.model.FeatureSchema.NumberFeatureSchema
 import ai.metarank.model.Field.NumberField
+import ai.metarank.model.FieldSchema.NumberFieldSchema
 import ai.metarank.model.MValue.SingleValue
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
 import shapeless.syntax.typeable._
+
 import scala.concurrent.duration._
 
 case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
@@ -21,6 +23,9 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
+
+  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.field, schema.source))
+
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {

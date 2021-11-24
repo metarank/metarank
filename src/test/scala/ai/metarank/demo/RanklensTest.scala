@@ -3,9 +3,9 @@ package ai.metarank.demo
 import ai.metarank.demo.RanklensTest.{CTJoin, Clickthrough}
 import ai.metarank.feature.{FeatureMapping, WordCountFeature}
 import ai.metarank.model.{Event, ItemId, UserId}
-import ai.metarank.model.Event.{ImpressionEvent, InteractionEvent}
+import ai.metarank.model.Event.{ImpressionEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema, WordCountSchema}
-import ai.metarank.model.FeatureSource.Item
+import ai.metarank.model.FeatureSource.Metadata
 import ai.metarank.util.FlinkTest
 import better.files.Resource
 import cats.data.NonEmptyList
@@ -25,16 +25,16 @@ import scala.io.Source
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   val features = List(
-    NumberFeatureSchema("popularity", "popularity", Item),
-    NumberFeatureSchema("vote_avg", "vote_avg", Item),
-    NumberFeatureSchema("vote_cnt", "vote_cnt", Item),
-    NumberFeatureSchema("budget", "budget", Item),
-    NumberFeatureSchema("release_date", "release_date", Item),
-    WordCountSchema("title_length", "title", Item),
+    NumberFeatureSchema("popularity", "popularity", Metadata),
+    NumberFeatureSchema("vote_avg", "vote_avg", Metadata),
+    NumberFeatureSchema("vote_cnt", "vote_cnt", Metadata),
+    NumberFeatureSchema("budget", "budget", Metadata),
+    NumberFeatureSchema("release_date", "release_date", Metadata),
+    WordCountSchema("title_length", "title", Metadata),
     StringFeatureSchema(
       "genre",
       "genres",
-      Item,
+      Metadata,
       NonEmptyList.of(
         "drama",
         "comedy",
@@ -70,8 +70,8 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         }
       )
       .toList
-    val impressions = events.collect { case i: ImpressionEvent => i }
-    val clicks      = events.collect { case c: InteractionEvent => c }.groupBy(_.impression)
+    val impressions = events.collect { case i: RankingEvent => i }
+    val clicks      = events.collect { case c: InteractionEvent => c }.groupBy(_.ranking)
     val ctsList = for {
       imp   <- impressions
       click <- clicks.get(imp.id)
@@ -111,7 +111,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
 
 object RanklensTest {
   case class Clickthrough(
-      impression: ImpressionEvent,
+      impression: RankingEvent,
       clicks: List[InteractionEvent],
       features: List[FeatureValue] = Nil
   )
@@ -119,7 +119,7 @@ object RanklensTest {
     override def by(left: Clickthrough): Key.Tenant = Tenant("default")
 
     override def tags(left: Clickthrough): List[Key.Tag] =
-      left.impression.items.map(id => Tag(Scope(Item.asString), id.id.value))
+      left.impression.items.map(id => Tag(Scope(Metadata.asString), id.id.value))
 
     override def join(left: Clickthrough, values: List[FeatureValue]): Clickthrough =
       left.copy(features = left.features ++ values)

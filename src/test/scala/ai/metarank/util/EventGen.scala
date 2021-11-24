@@ -1,8 +1,10 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.feature.FeatureMapping
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
+import ai.metarank.model.FeatureSource.{Impression, Interaction}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField}
-import ai.metarank.model.{Event, EventId, Field, FieldSchema, ItemId, SessionId, UserId}
+import ai.metarank.model.{Event, EventId, FeatureSource, Field, FieldSchema, ItemId, SessionId, UserId}
 import io.findify.featury.model.Timestamp
 import org.scalacheck.Gen
 
@@ -24,11 +26,11 @@ object EventGen {
     for {
       fieldName <- Gen.oneOf(fields.keys)
       field <- fields.get(fieldName) match {
-        case Some(FieldSchema.BooleanFieldSchema(name, required)) =>
+        case Some(FieldSchema.BooleanFieldSchema(name, source, required)) =>
           reqOption(Gen.oneOf(true, false).map(b => BooleanField(name, b)), required)
-        case Some(FieldSchema.NumberFieldSchema(name, required)) =>
+        case Some(FieldSchema.NumberFieldSchema(name, source, required)) =>
           reqOption(Gen.chooseNum(0, 100).map(i => NumberField(name, i)), required)
-        case Some(FieldSchema.StringFieldSchema(name, required)) =>
+        case Some(FieldSchema.StringFieldSchema(name, source, required)) =>
           reqOption(Gen.alphaStr.map(s => StringField(name, s)), required)
         case _ => Gen.const(None)
       }
@@ -49,7 +51,7 @@ object EventGen {
     MetadataEvent(id, item, ts, fields)
   }
 
-  def impressionGen(fields: Map[String, FieldSchema]) = for {
+  def rankingGen(fields: Map[String, FieldSchema]) = for {
     id      <- genId
     ts      <- genTimestamp
     fields  <- Gen.listOfN(3, fieldGen(fields)).map(_.flatten.distinct)
@@ -73,10 +75,12 @@ object EventGen {
     InteractionEvent(id, item, ts, impr, user, session, tpe, fields)
   }
 
-  def eventGen(schema: SchemaConfig) = Gen.oneOf[Event](
-    metadataGen(schema.metadata.asMap),
-    impressionGen(schema.impression.asMap),
-    interactionGen(schema.interaction.asMap)
+  def eventGen(mapping: FeatureMapping) = Gen.oneOf[Event](
+    metadataGen(mapping.fields.filter(_.source == FeatureSource.Metadata).map(x => x.name -> x).toMap),
+    rankingGen(mapping.fields.filter(_.source == FeatureSource.Ranking).map(x => x.name -> x).toMap),
+    interactionGen(
+      mapping.fields.collect { case f @ FieldSchema(_, _, Interaction(_)) => f }.map(x => x.name -> x).toMap
+    )
   )
 
   implicit class SchemaMapOps(self: List[FieldSchema]) {

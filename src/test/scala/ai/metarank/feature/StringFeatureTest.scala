@@ -2,11 +2,11 @@ package ai.metarank.feature
 
 import ai.metarank.model.Event.MetadataEvent
 import ai.metarank.model.FeatureSchema.StringFeatureSchema
-import ai.metarank.model.FeatureSource.Item
+import ai.metarank.model.FeatureSource.Metadata
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.MValue
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.util.{TestImpressionEvent, TestMetadataEvent}
+import ai.metarank.util.{TestRankingEvent, TestMetadataEvent}
 import cats.data.NonEmptyList
 import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Tenant}
@@ -19,7 +19,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     StringFeatureSchema(
       name = "color",
       field = "color",
-      source = Item,
+      source = Metadata,
       values = NonEmptyList.of("red", "green", "blue")
     )
   )
@@ -35,7 +35,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
   it should "compute value" in {
     val key = Key(feature.states.head, Tenant("default"), "p1")
     val result = feature.value(
-      request = TestImpressionEvent(List("p1")),
+      request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
       id = "p1"
     )

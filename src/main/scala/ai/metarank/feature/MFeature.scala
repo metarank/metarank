@@ -1,12 +1,13 @@
 package ai.metarank.feature
 
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.{Event, FeatureSchema, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FieldSchema, MValue}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{Feature, FeatureConfig, FeatureValue, Key, State, Write}
 
 trait MFeature {
   def dim: Int
+  def fields: List[FieldSchema]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
   def writes(event: Event): Traversable[Write]

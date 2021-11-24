@@ -1,6 +1,5 @@
 package ai.metarank.util
 
-import ai.metarank.config.Config.SchemaConfig
 import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField}
 import ai.metarank.model.{Event, EventId, Field, FieldSchema, ItemId, SessionId, UserId}

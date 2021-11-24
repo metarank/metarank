@@ -18,26 +18,22 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.source.asString),
+    scope = Scope(schema.scope.value),
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.field, schema.source))
+  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.source.field, schema.source))
 
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {
-    meta        <- event.cast[MetadataEvent]
-    field       <- meta.fields.find(_.name == schema.field)
+    key         <- keyOf(event)
+    field       <- event.fields.find(_.name == schema.source.field)
     numberField <- field.cast[NumberField]
   } yield {
-    Put(
-      Key(conf, tenant(event), meta.item.value),
-      meta.timestamp,
-      SDouble(numberField.value)
-    )
+    Put(key, event.timestamp, SDouble(numberField.value))
   }
 
   override def keys(request: Event.RankingEvent): Traversable[Key] =

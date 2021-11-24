@@ -3,7 +3,6 @@
 Metarank expects to receive a predefined set of events, describing visitor activity and item metadata:
 1. Metadata events. They describe what should be known about items.
 2. Ranking events. What was presented to the visitor.
-3. Optional impression events, what visitor actually seen.
 4. Interaction events. What visitor did with the ranking.
 
 ## Event format
@@ -70,33 +69,6 @@ When you show a listing of items to the visitor, Metarank needs to know what was
 * fields: the same rules as for metadata events, a set of extra fields describing the listing
 * items: which particular items were displayed to the visitor.
 * items.relevancy: a score which was used to rank these items. For example, it can be BM25/tfidf score coming from ElasticSearch
-
-## Impression events
-
-In a case if you can explicitly signal which particular items from the ranking were examined, you can emit impression 
-events, which resemble ranking events, but with minor differences in schema.
-
-```json
-{
-  "event": "impression",
-  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
-  "timestamp": "1599391467000",// required
-  "user": "user1",// required
-  "session": "session1",// required
-  "ranking": "81f46c34-a4bb-469c-8708-f8127cd67d27",
-  "fields": [
-      {"name": "query", "value": "jeans"},
-      {"name": "source", "value": "search"}
-  ],
-  "items": [
-    {"id": "product3", "relevancy":  2.0},
-    {"id": "product1", "relevancy":  1.0},
-    {"id": "product2", "relevancy":  0.5} 
-  ]
-}
-```
-
-There is an extra "ranking" field marking the orinal event id for the ranking event.
 
 ## Interaction events
 

@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.model.FeatureSchema
+import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, WordCountSchema}
-import ai.metarank.model.FeatureSource.Metadata
+import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.FieldName.Metadata
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestRankingEvent, TestMetadataEvent}
+import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.{Key, SDouble, SString, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.Tenant
@@ -17,15 +18,15 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
   val feature = WordCountFeature(
     WordCountSchema(
       name = "title_words",
-      field = "title",
-      source = Metadata
+      scope = ItemScope,
+      source = FieldName(Metadata, "title")
     )
   )
 
   it should "decode schema" in {
-    val conf    = "name: title_words\ntype: word_count\nfield: title\nsource: metadata"
+    val conf    = "name: title_words\ntype: word_count\nscope: item\nsource: metadata.title"
     val decoded = parse(conf).flatMap(_.as[FeatureSchema])
-    decoded shouldBe Right(WordCountSchema("title_words", "title", Metadata))
+    decoded shouldBe Right(WordCountSchema("title_words", FieldName(Metadata, "title"), ItemScope))
   }
 
   it should "extract field" in {

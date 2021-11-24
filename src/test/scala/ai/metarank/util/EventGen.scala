@@ -2,9 +2,9 @@ package ai.metarank.util
 
 import ai.metarank.feature.FeatureMapping
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
-import ai.metarank.model.FeatureSource.{Impression, Interaction}
+import ai.metarank.model.FieldName.{Impression, Interaction}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField}
-import ai.metarank.model.{Event, EventId, FeatureSource, Field, FieldSchema, ItemId, SessionId, UserId}
+import ai.metarank.model.{Event, EventId, FieldName, Field, FieldSchema, ItemId, SessionId, UserId}
 import io.findify.featury.model.Timestamp
 import org.scalacheck.Gen
 
@@ -76,10 +76,13 @@ object EventGen {
   }
 
   def eventGen(mapping: FeatureMapping) = Gen.oneOf[Event](
-    metadataGen(mapping.fields.filter(_.source == FeatureSource.Metadata).map(x => x.name -> x).toMap),
-    rankingGen(mapping.fields.filter(_.source == FeatureSource.Ranking).map(x => x.name -> x).toMap),
+    metadataGen(mapping.fields.filter(_.source.event == FieldName.Metadata).map(x => x.name -> x).toMap),
+    rankingGen(mapping.fields.filter(_.source.event == FieldName.Ranking).map(x => x.name -> x).toMap),
     interactionGen(
-      mapping.fields.collect { case f @ FieldSchema(_, _, Interaction(_)) => f }.map(x => x.name -> x).toMap
+      mapping.fields
+        .collect { case f @ FieldSchema(_, _, FieldName(Interaction(_), _)) => f }
+        .map(x => x.name -> x)
+        .toMap
     )
   )
 

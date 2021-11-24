@@ -22,6 +22,11 @@ object Event {
       tenant: Option[String] = None
   ) extends Event
 
+  sealed trait FeedbackEvent extends Event {
+    def user: UserId
+    def session: SessionId
+  }
+
   case class RankingEvent(
       id: EventId,
       timestamp: Timestamp,
@@ -30,18 +35,7 @@ object Event {
       fields: List[Field],
       items: List[ItemRelevancy],
       tenant: Option[String] = None
-  ) extends Event
-
-  case class ImpressionEvent(
-      id: EventId,
-      timestamp: Timestamp,
-      ranking: EventId,
-      user: UserId,
-      session: SessionId,
-      fields: List[Field],
-      items: List[ItemRelevancy],
-      tenant: Option[String] = None
-  ) extends Event
+  ) extends FeedbackEvent
 
   case class InteractionEvent(
       id: EventId,
@@ -53,14 +47,13 @@ object Event {
       `type`: String,
       fields: List[Field],
       tenant: Option[String] = None
-  ) extends Event
+  ) extends FeedbackEvent
 
   case class ItemRelevancy(id: ItemId, relevancy: Double)
 
   implicit val relevancyCodec: Codec[ItemRelevancy]      = deriveCodec
   implicit val metadataCodec: Codec[MetadataEvent]       = deriveCodec
   implicit val rankingCodec: Codec[RankingEvent]         = deriveCodec
-  implicit val impressionCodec: Codec[ImpressionEvent]   = deriveCodec
   implicit val interactionCodec: Codec[InteractionEvent] = deriveCodec
 
   implicit val conf = Configuration.default
@@ -69,7 +62,6 @@ object Event {
     .copy(transformConstructorNames = {
       case "MetadataEvent"    => "metadata"
       case "RankingEvent"     => "ranking"
-      case "ImpressionEvent"  => "impression"
       case "InteractionEvent" => "interaction"
     })
 

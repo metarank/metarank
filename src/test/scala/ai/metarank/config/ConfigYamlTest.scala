@@ -1,7 +1,9 @@
 package ai.metarank.config
 
 import ai.metarank.model.FeatureSchema.NumberFeatureSchema
-import ai.metarank.model.FeatureSource.Metadata
+import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.FieldName
+import ai.metarank.model.FieldName.Metadata
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -12,12 +14,12 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
       """feature:
         |  - name: price
         |    type: number
-        |    field: price
-        |    source: metadata""".stripMargin
+        |    scope: item
+        |    source: metadata.price""".stripMargin
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
-        feature = List(NumberFeatureSchema("price", "price", Metadata))
+        feature = List(NumberFeatureSchema("price", FieldName(Metadata, "price"), ItemScope))
       )
     )
   }

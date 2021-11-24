@@ -4,7 +4,7 @@ import ai.metarank.config.IngestConfig.{APIIngestConfig, FileIngestConfig}
 import ai.metarank.feature.FeatureMapping
 import ai.metarank.mode.ingest.source.HttpEventSource
 import ai.metarank.model.Event
-import ai.metarank.util.{EventGen, FlinkTest, TestConfig}
+import ai.metarank.util.{EventGen, FlinkTest, RanklensEvents, TestConfig}
 import better.files.File
 import org.apache.flink.api.common.serialization.Encoder
 import org.scalacheck.Gen
@@ -23,23 +23,17 @@ import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.io.entity.{EntityUtils, StringEntity}
 
 import java.io.OutputStream
+import scala.util.Random
 
-class HttpEventSourceTest
-    extends AnyFlatSpec
-    with Matchers
-    with FlinkTest
-    with ScalaCheckPropertyChecks
-    with Checkers
-    with BeforeAndAfterAll {
-  override implicit val generatorDrivenConfig = PropertyCheckConfiguration(minSuccessful = 1)
+class HttpEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest with BeforeAndAfterAll {
 
   var client: JobClient = _
   lazy val outDir       = File.newTemporaryDirectory("events_").deleteOnExit()
-
+  lazy val port         = Random.nextInt(60000) + 1024
   override def beforeAll() = {
     env.enableCheckpointing(1000)
 
-    HttpEventSource(APIIngestConfig(8080))
+    HttpEventSource(APIIngestConfig(port))
       .eventStream(env)
       .sinkTo(
         FileSink
@@ -62,21 +56,19 @@ class HttpEventSourceTest
   }
 
   it should "read random stream of events" in {
-    forAll(Gen.listOfN(10000, EventGen.eventGen(FeatureMapping.fromFeatureSchema(TestConfig().feature)))) { events =>
-      {
-        val http = HttpClients.createDefault()
-        for {
-          event <- events.grouped(100)
-        } {
-          val request = new HttpPost("http://localhost:8080/")
-          request.setEntity(new StringEntity(event.asJson.noSpaces, ContentType.APPLICATION_JSON))
-          val response = http.execute(request)
-          val reply    = EntityUtils.consume(response.getEntity)
-          println(s"got ${response.getCode}")
-        }
-        client.triggerSavepoint("/tmp")
-        outDir.listRecursively.filter(_.isRegularFile).map(_.size).sum should be > 1000000L
-      }
+    val events = RanklensEvents(10000)
+
+    val http = HttpClients.createDefault()
+    for {
+      event <- events.grouped(100)
+    } {
+      val request = new HttpPost(s"http://localhost:$port/")
+      request.setEntity(new StringEntity(event.asJson.noSpaces, ContentType.APPLICATION_JSON))
+      val response = http.execute(request)
+      val reply    = EntityUtils.consume(response.getEntity)
+      println(s"got ${response.getCode}")
     }
+    client.triggerSavepoint("/tmp")
+    outDir.listRecursively.filter(_.isRegularFile).map(_.size).sum should be > 10000L
   }
 }

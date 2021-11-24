@@ -13,29 +13,30 @@ sealed trait FeatureSchema {
   def name: String
   def refresh: Option[FiniteDuration]
   def ttl: Option[FiniteDuration]
+  def scope: FeatureScope
 }
 
 object FeatureSchema {
   case class NumberFeatureSchema(
       name: String,
-      field: String,
-      source: FeatureSource,
+      source: FieldName,
+      scope: FeatureScope,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
   case class BooleanFeatureSchema(
       name: String,
-      field: String,
-      source: FeatureSource,
+      source: FieldName,
+      scope: FeatureScope,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
   case class StringFeatureSchema(
       name: String,
-      field: String,
-      source: FeatureSource,
+      source: FieldName,
+      scope: FeatureScope,
       values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
@@ -43,8 +44,8 @@ object FeatureSchema {
 
   case class WordCountSchema(
       name: String,
-      field: String,
-      source: FeatureSource,
+      source: FieldName,
+      scope: FeatureScope,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema

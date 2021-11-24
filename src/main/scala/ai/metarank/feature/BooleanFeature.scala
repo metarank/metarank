@@ -18,7 +18,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.source.asString),
+    scope = Scope(schema.scope.value),
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
@@ -26,19 +26,15 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
   override def states: List[FeatureConfig] = List(conf)
 
   override def fields = List(
-    BooleanFieldSchema(schema.field, source = schema.source)
+    BooleanFieldSchema(schema.source.field, source = schema.source)
   )
 
   override def writes(event: Event): Iterable[Put] = for {
-    meta       <- event.cast[MetadataEvent]
-    field      <- meta.fields.find(_.name == schema.field)
+    key        <- keyOf(event)
+    field      <- event.fields.find(_.name == schema.source.field)
     fieldValue <- field.cast[BooleanField]
   } yield {
-    Put(
-      Key(conf, tenant(event), meta.item.value),
-      meta.timestamp,
-      SBoolean(fieldValue.value)
-    )
+    Put(key, event.timestamp, SBoolean(fieldValue.value))
   }
 
   override def keys(request: Event.RankingEvent): Traversable[Key] =

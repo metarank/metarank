@@ -1,6 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{ImpressionEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{ItemRelevancy, RankingEvent}
 import ai.metarank.model.{EventId, ItemId, SessionId, UserId}
 import io.findify.featury.model.Timestamp
 

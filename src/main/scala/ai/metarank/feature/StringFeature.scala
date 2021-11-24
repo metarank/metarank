@@ -20,29 +20,25 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
   override def dim: Int = schema.values.size
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.source.asString),
+    scope = Scope(schema.scope.value),
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.field, schema.source))
+  override def fields = List(StringFieldSchema(schema.source.field, schema.source))
 
   override def writes(event: Event): Iterable[Put] = for {
-    meta  <- event.cast[MetadataEvent]
-    field <- meta.fields.find(_.name == schema.field)
+    key   <- keyOf(event)
+    field <- event.fields.find(_.name == schema.source.field)
     fieldValue <- field match {
       case StringField(_, value)     => Some(SStringList(List(value)))
       case StringListField(_, value) => Some(SStringList(value))
       case _                         => None
     }
   } yield {
-    Put(
-      Key(conf, tenant(event), meta.item.value),
-      meta.timestamp,
-      fieldValue
-    )
+    Put(key, event.timestamp, fieldValue)
   }
 
   override def keys(request: Event.RankingEvent): Traversable[Key] =

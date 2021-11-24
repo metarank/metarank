@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.model.FeatureSchema
+import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema}
-import ai.metarank.model.FeatureSource.Metadata
+import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.FieldName.{Interaction, Metadata}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.util.{TestRankingEvent, TestMetadataEvent}
+import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
 import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.Key.Tenant
@@ -13,27 +14,44 @@ import io.findify.featury.model.{Key, SDouble, SString, ScalarValue, Timestamp}
 import io.findify.featury.model.Write.Put
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.concurrent.duration._
 
 class NumberFeatureTest extends AnyFlatSpec with Matchers {
   val feature = NumberFeature(
     NumberFeatureSchema(
       name = "popularity",
-      field = "popularity",
-      source = Metadata
+      source = FieldName(Metadata, "popularity"),
+      scope = ItemScope
     )
   )
 
   it should "decode schema" in {
-    parse("name: price\ntype: number\nfield: price\nsource: metadata\nrefresh: 1m").flatMap(
+    parse("name: price\ntype: number\nscope: item\nsource: metadata.price\nrefresh: 1m").flatMap(
       _.as[FeatureSchema]
     ) shouldBe Right(
-      NumberFeatureSchema("price", "price", Metadata, Some(1.minute))
+      NumberFeatureSchema("price", FieldName(Metadata, "price"), ItemScope, Some(1.minute))
     )
   }
 
-  it should "extract color field" in {
+  it should "extract field from metadata" in {
     val event  = TestMetadataEvent("p1", List(NumberField("popularity", 100)))
+    val result = feature.writes(event)
+    result shouldBe List(
+      Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
+    )
+  }
+
+  it should "extract field from interaction" in {
+    val feature = NumberFeature(
+      NumberFeatureSchema(
+        name = "popularity",
+        source = FieldName(Interaction("click"), "popularity"),
+        scope = ItemScope
+      )
+    )
+
+    val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
     val result = feature.writes(event)
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))

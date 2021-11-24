@@ -2,11 +2,12 @@ package ai.metarank.feature
 
 import ai.metarank.model.Event.MetadataEvent
 import ai.metarank.model.FeatureSchema.StringFeatureSchema
-import ai.metarank.model.FeatureSource.Metadata
+import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.FieldName.Metadata
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.MValue
+import ai.metarank.model.{FieldName, MValue}
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.util.{TestRankingEvent, TestMetadataEvent}
+import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
 import cats.data.NonEmptyList
 import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Tenant}
@@ -18,8 +19,8 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
   val feature = StringFeature(
     StringFeatureSchema(
       name = "color",
-      field = "color",
-      source = Metadata,
+      source = FieldName(Metadata, "color"),
+      scope = ItemScope,
       values = NonEmptyList.of("red", "green", "blue")
     )
   )

@@ -10,7 +10,7 @@ import scala.io.Source
 object RanklensEvents {
   def apply(count: Int = Int.MaxValue) = {
     Source
-      .fromInputStream(new GZIPInputStream(Resource.my.getAsStream("/ranklens/events.jsonl.gz")))
+      .fromInputStream(new GZIPInputStream(Resource.my.getAsStream("/ranklens/events/events.jsonl.gz")))
       .getLines()
       .map(line =>
         decode[Event](line) match {

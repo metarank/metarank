@@ -23,7 +23,7 @@ object Config extends Logging {
     yaml     <- IO.fromEither(parseYaml(contents))
     decoded  <- IO.fromEither(yaml.as[Config])
     _        <- IO(logger.info(s"loaded config file from $path"))
-    _        <- IO(logger.info(s"features: ${decoded.feature.size}"))
+    _        <- IO(logger.info(s"features: ${decoded.feature.map(_.name)}"))
   } yield {
     decoded
   }

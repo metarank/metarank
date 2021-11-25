@@ -1,16 +1,17 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.StringFeatureSchema
+import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import cats.data.NonEmptyList
+import io.circe.Decoder
+import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SString, SStringList, ScalarValue}
-import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
@@ -63,4 +64,18 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
     result
   }
 
+}
+
+object StringFeature {
+  import ai.metarank.util.DurationJson._
+  case class StringFeatureSchema(
+      name: String,
+      source: FieldName,
+      scope: FeatureScope,
+      values: NonEmptyList[String],
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema
+
+  implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = deriveDecoder
 }

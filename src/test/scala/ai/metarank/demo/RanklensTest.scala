@@ -4,7 +4,6 @@ import ai.metarank.demo.RanklensTest.{CTJoin, Clickthrough}
 import ai.metarank.feature.{FeatureMapping, WordCountFeature}
 import ai.metarank.model.{Event, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
-import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema, WordCountSchema}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.Metadata
 import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, RanklensEvents}
@@ -17,7 +16,12 @@ import io.findify.featury.model.{FeatureValue, Key, Schema, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.scala._
 import ai.metarank.util.DataStreamOps._
+
 import scala.concurrent.duration._
+import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.feature.WordCountFeature.WordCountSchema
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   val features = List(

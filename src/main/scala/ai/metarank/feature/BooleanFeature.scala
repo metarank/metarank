@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.BooleanFeatureSchema
+import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.FieldSchema.BooleanFieldSchema
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import io.circe.Decoder
+import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
@@ -46,4 +47,17 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
       case _                                        => SingleValue(schema.name, 0.0)
     }
 
+}
+
+object BooleanFeature {
+  import ai.metarank.util.DurationJson._
+  case class BooleanFeatureSchema(
+      name: String,
+      source: FieldName,
+      scope: FeatureScope,
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema
+
+  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = deriveDecoder
 }

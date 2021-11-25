@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.model.{Event, FieldSchema, MValue}
-import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.NumberFeatureSchema
+import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, MValue}
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.FieldSchema.NumberFieldSchema
 import ai.metarank.model.MValue.SingleValue
+import io.circe.Decoder
+import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
@@ -45,4 +46,17 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
       case _                                       => SingleValue(schema.name, 0.0)
     }
 
+}
+
+object NumberFeature {
+  import ai.metarank.util.DurationJson._
+  case class NumberFeatureSchema(
+      name: String,
+      source: FieldName,
+      scope: FeatureScope,
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema
+
+  implicit val nfDecoder: Decoder[NumberFeatureSchema] = deriveDecoder
 }

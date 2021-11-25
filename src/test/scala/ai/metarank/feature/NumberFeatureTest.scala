@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
+import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.{FeatureSchema, FieldName}
-import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.{Interaction, Metadata}
 import ai.metarank.model.Field.{NumberField, StringField}

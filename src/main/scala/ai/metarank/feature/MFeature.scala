@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, MetadataEvent, RankingEvent}
-import ai.metarank.model.FeatureScope.{GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.FeatureScope.{TenantScope, ItemScope, SessionScope, UserScope}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, MValue}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 import io.findify.featury.model.{Feature, FeatureConfig, FeatureValue, Key, State, Write}
@@ -16,7 +16,7 @@ trait MFeature {
   def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: String): MValue
 
   def keyOf(event: Event): Option[Key] = (schema.scope, event) match {
-    case (GlobalScope, _)                 => Some(keyOf(GlobalScope.value, "global", schema.name, event.tenant))
+    case (TenantScope, _)                 => Some(keyOf(TenantScope.value, event.tenant, schema.name, event.tenant))
     case (UserScope, e: FeedbackEvent)    => Some(keyOf(UserScope.value, e.user.value, schema.name, event.tenant))
     case (SessionScope, e: FeedbackEvent) => Some(keyOf(SessionScope.value, e.session.value, schema.name, event.tenant))
     case (ItemScope, e: InteractionEvent) => Some(keyOf(ItemScope.value, e.item.value, schema.name, event.tenant))

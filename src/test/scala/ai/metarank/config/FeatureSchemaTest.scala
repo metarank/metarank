@@ -1,8 +1,10 @@
 package ai.metarank.config
 
+import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.{FeatureSchema, FieldName}
-import ai.metarank.model.FeatureSchema.{BooleanFeatureSchema, NumberFeatureSchema, StringFeatureSchema, durationDecoder}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.{Interaction, Metadata}
 import cats.data.NonEmptyList
@@ -41,13 +43,6 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
     decodeYaml("name: price\ntype: boolean\nscope: item\nsource: interaction:click.foo") shouldBe Right(
       BooleanFeatureSchema("price", FieldName(Interaction("click"), "foo"), ItemScope)
     )
-  }
-
-  it should "decode durations" in {
-    parse("1d").flatMap(_.as[FiniteDuration]) shouldBe Right(1.day)
-    parse("1s").flatMap(_.as[FiniteDuration]) shouldBe Right(1.second)
-    parse("1m").flatMap(_.as[FiniteDuration]) shouldBe Right(1.minute)
-    parse("1h").flatMap(_.as[FiniteDuration]) shouldBe Right(1.hour)
   }
 
   def decodeYaml(yaml: String) = parse(yaml).flatMap(_.as[FeatureSchema])

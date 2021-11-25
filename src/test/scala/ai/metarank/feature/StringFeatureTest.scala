@@ -1,7 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.StringFeatureSchema
+import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.Metadata
 import ai.metarank.model.Field.StringField

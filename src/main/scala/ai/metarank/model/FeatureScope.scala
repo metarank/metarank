@@ -9,7 +9,7 @@ sealed trait FeatureScope {
 }
 
 object FeatureScope {
-  case object GlobalScope  extends FeatureScope { val value = "global"  }
+  case object TenantScope  extends FeatureScope { val value = "tenant"  }
   case object ItemScope    extends FeatureScope { val value = "item"    }
   case object UserScope    extends FeatureScope { val value = "user"    }
   case object SessionScope extends FeatureScope { val value = "session" }
@@ -17,9 +17,9 @@ object FeatureScope {
   implicit val scopeEncoder: Encoder[FeatureScope] = Encoder.encodeString.contramap(_.value)
 
   implicit val scopeDecoder: Decoder[FeatureScope] = Decoder.decodeString.emapTry {
-    case "global"  => Success(GlobalScope)
-    case "item"    => Success(ItemScope)
-    case "user"    => Success(UserScope)
-    case "session" => Success(SessionScope)
+    case TenantScope.value  => Success(TenantScope)
+    case ItemScope.value    => Success(ItemScope)
+    case UserScope.value    => Success(UserScope)
+    case SessionScope.value => Success(SessionScope)
   }
 }

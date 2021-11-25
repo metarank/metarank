@@ -1,6 +1,9 @@
 package ai.metarank.feature
 
-import ai.metarank.model.FeatureSchema.{BooleanFeatureSchema, NumberFeatureSchema, StringFeatureSchema, WordCountSchema}
+import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.{FeatureSchema, FieldSchema}
 
 case class FeatureMapping(features: List[MFeature], fields: List[FieldSchema])

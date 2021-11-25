@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.MetadataEvent
-import ai.metarank.model.FeatureSchema.WordCountSchema
+import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldSchema.StringFieldSchema
-import ai.metarank.model.{Event, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
+import io.circe.Decoder
+import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
@@ -47,4 +48,17 @@ case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   def tokenCount(string: String): Int = {
     whitespacePattern.split(string).length
   }
+}
+
+object WordCountFeature {
+  import ai.metarank.util.DurationJson._
+  case class WordCountSchema(
+      name: String,
+      source: FieldName,
+      scope: FeatureScope,
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema
+
+  implicit val wcSchema: Decoder[WordCountSchema] = deriveDecoder
 }

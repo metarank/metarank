@@ -10,9 +10,11 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: hseeberger/scala-sbt:11.0.10_1.4.7_2.13.5
+    container: hseeberger/scala-sbt:11.0.13_1.5.5_2.13.7
 
     steps:
+    - name: install git-lfs
+      run: apt install git-lfs
     - uses: actions/checkout@v2
       with:
         lfs: 'true'

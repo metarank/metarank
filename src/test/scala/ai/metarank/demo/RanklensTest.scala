@@ -15,6 +15,7 @@ import io.findify.featury.model.{FeatureValue, Key, Schema, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.scala._
 import ai.metarank.util.DataStreamOps._
+import org.apache.flink.api.scala.extensions._
 
 import scala.concurrent.duration._
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
@@ -24,6 +25,7 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Clickthrough.CTJoin
+import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   val features = List(
@@ -76,18 +78,11 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
 
     val source = env.fromCollection(events).watermark(_.timestamp.ts)
     val impres = source
-      .flatMap(e =>
-        e match {
-          case f: FeedbackEvent => Some(f)
-          case _                => None
-        }
-      )
-      .keyBy(e =>
-        e match {
-          case int: InteractionEvent => int.ranking
-          case rank: RankingEvent    => rank.id
-        }
-      )
+      .collect { case f: FeedbackEvent => f }
+      .keyingBy {
+        case int: InteractionEvent => int.ranking
+        case rank: RankingEvent    => rank.id
+      }
       .process(new ImpressionInjectFunction("impression", 30.minutes))
 
     val merged = source.union(impres)

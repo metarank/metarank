@@ -8,19 +8,15 @@ import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.Metadata
 import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, RanklensEvents}
-import better.files.Resource
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.parser._
 import io.findify.featury.flink.{Featury, Join}
 import io.findify.featury.model.Key.{Scope, Tag, Tenant}
 import io.findify.featury.model.{FeatureValue, Key, Schema, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.api.scala._
 import ai.metarank.util.DataStreamOps._
-
 import scala.concurrent.duration._
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
@@ -54,10 +50,10 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       )
     )
   )
-  val mapping       = FeatureMapping.fromFeatureSchema(features)
-  val featurySchema = Schema(mapping.features.flatMap(_.states))
 
   it should "accept events" in {
+    val mapping       = FeatureMapping.fromFeatureSchema(features)
+    val featurySchema = Schema(mapping.features.flatMap(_.states))
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
 
     val events      = RanklensEvents()

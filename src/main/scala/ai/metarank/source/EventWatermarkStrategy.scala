@@ -1,4 +1,4 @@
-package ai.metarank.mode.ingest.source
+package ai.metarank.source
 
 import EventWatermarkStrategy.EventTimeAssigner
 import ai.metarank.model.Event

@@ -2,8 +2,8 @@ package ai.metarank
 
 import ai.metarank.config.IngestConfig.{APIIngestConfig, FileIngestConfig}
 import ai.metarank.config.{CmdLine, Config}
-import ai.metarank.mode.ingest.IngestMain
-import ai.metarank.mode.ingest.source.HttpEventSource
+import ai.metarank.mode.train.Train
+import ai.metarank.source.HttpEventSource
 import cats.effect.{ExitCode, IO, IOApp}
 
 //object Main extends IOApp {

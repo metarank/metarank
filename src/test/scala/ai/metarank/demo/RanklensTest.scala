@@ -10,15 +10,12 @@ import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.featury.flink.{Featury, Join}
-import io.findify.featury.model.Key.{Scope, Tag, Tenant}
 import io.findify.featury.model.{FeatureValue, Key, Schema, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 import ai.metarank.util.DataStreamOps._
-import org.apache.flink.api.scala.extensions._
-
+import scala.language.higherKinds
 import scala.concurrent.duration._
-import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema

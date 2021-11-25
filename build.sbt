@@ -51,5 +51,6 @@ libraryDependencies ++= Seq(
   "org.http4s"                       %% "http4s-blaze-client"        % http4sVersion,
   "org.http4s"                       %% "http4s-circe"               % http4sVersion,
   "org.apache.httpcomponents.core5"   % "httpcore5"                  % "5.1.2",
-  "org.apache.httpcomponents.client5" % "httpclient5"                % "5.1.2"
+  "org.apache.httpcomponents.client5" % "httpclient5"                % "5.1.2",
+  "io.findify"                       %% "flink-adt"                  % "0.4.4"
 )

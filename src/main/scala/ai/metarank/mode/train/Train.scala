@@ -11,9 +11,9 @@ import io.findify.featury.flink.Featury
 import io.findify.featury.model.Schema
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
-
+import scala.language.higherKinds
 import scala.concurrent.duration._
 
 object Train extends IOApp {

@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldSchema.StringFieldSchema
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -38,8 +38,8 @@ case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   override def keys(request: Event.RankingEvent): Traversable[Key] =
     request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: String): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id)) match {
+  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: ItemId): MValue =
+    state.get(Key(conf, Tenant(request.tenant), id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0)
     }

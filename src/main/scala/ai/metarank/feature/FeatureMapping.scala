@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.{FeatureSchema, FieldSchema}
@@ -15,6 +16,7 @@ object FeatureMapping {
       case c: StringFeatureSchema  => StringFeature(c)
       case c: BooleanFeatureSchema => BooleanFeature(c)
       case c: WordCountSchema      => WordCountFeature(c)
+      case c: RateFeatureSchema    => RateFeature(c)
     }
     new FeatureMapping(
       features = features,

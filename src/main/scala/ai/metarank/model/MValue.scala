@@ -10,4 +10,8 @@ object MValue {
   }
 
   case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue
+
+  object VectorValue {
+    def empty(names: List[String], dim: Int) = VectorValue(names, new Array[Double](dim), dim)
+  }
 }

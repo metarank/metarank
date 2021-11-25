@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.model.{FeatureSchema, FieldName}
+import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.{Interaction, Metadata}
 import ai.metarank.model.Field.{NumberField, StringField}
@@ -63,7 +63,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
-      id = "p1"
+      id = ItemId("p1")
     )
     result shouldBe SingleValue("popularity", 100.0)
   }

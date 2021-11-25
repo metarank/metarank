@@ -4,7 +4,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -45,8 +45,8 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
   override def keys(request: Event.RankingEvent): Traversable[Key] =
     request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: String): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id)) match {
+  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: ItemId): MValue =
+    state.get(Key(conf, Tenant(request.tenant), id.value)) match {
       case Some(ScalarValue(_, _, SStringList(value))) => VectorValue(names, oneHotEncode(value), dim)
       case _                                           => VectorValue(names, oneHotEncode(Nil), dim)
     }

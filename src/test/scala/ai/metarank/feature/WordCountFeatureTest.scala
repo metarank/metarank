@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.model.{FeatureSchema, FieldName}
+import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.Metadata
 import ai.metarank.model.Field.StringField
@@ -40,7 +40,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(3))),
-      id = "p1"
+      id = ItemId("p1")
     )
     result shouldBe SingleValue("title_words", 3.0)
 

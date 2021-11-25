@@ -11,7 +11,7 @@ object TrainCmdline extends Logging {
   val parser = {
     import builder._
     OParser.sequence(
-      programName("Metarank bootstrap cli"),
+      programName("Train"),
       head("Metarank", "v0.x"),
       opt[String]("events")
         .text("full path to directory containing historical events, with file:// or s3:// prefix")

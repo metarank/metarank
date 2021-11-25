@@ -5,18 +5,21 @@ import ai.metarank.feature.FeatureMapping
 import ai.metarank.model.Event
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
-import ai.metarank.util.ImpressionInjectFunction
+import ai.metarank.util.{ImpressionInjectFunction, Logging}
 import cats.effect.{ExitCode, IO, IOApp}
-import io.findify.featury.flink.Featury
+import io.findify.featury.flink.util.Compress
+import io.findify.featury.flink.{FeatureProcessFunction, Featury}
 import io.findify.featury.model.Schema
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import io.findify.flinkadt.api._
+import org.apache.flink.core.fs.Path
 import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
+
 import scala.language.higherKinds
 import scala.concurrent.duration._
 
-object Train extends IOApp {
+object Train extends IOApp with Logging {
   import ai.metarank.util.DataStreamOps._
 
   override def run(args: List[String]): IO[ExitCode] = for {
@@ -44,5 +47,8 @@ object Train extends IOApp {
     val events  = raw.union(impressions)
     val writes  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-writes")
     val updates = Featury.process(writes, featurySchema, 20.seconds).id("process-writes")
+    val state   = updates.getSideOutput(FeatureProcessFunction.stateTag)
+    Featury.writeState(state, new Path(cmd.outDir + "/state"), Compress.ZstdCompression(3))
+    streamEnv.execute()
   }
 }

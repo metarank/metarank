@@ -1,0 +1,52 @@
+feature:
+  - name: popularity
+    type: number
+    scope: item
+    source: metadata.popularity
+
+  - name: vote_avg
+    type: number
+    scope: item
+    source: metadata.vote_avg
+
+  - name: vote_cnt
+    type: number
+    scope: item
+    source: metadata.vote_cnt
+
+  - name: budget
+    type: number
+    scope: item
+    source: metadata.budget
+
+  - name: release_date
+    type: number
+    scope: item
+    source: metadata.release_date
+
+  - name: title_length
+    type: word_count
+    source: metadata.title
+    scope: item
+
+  - name: genre
+    type: string
+    scope: item
+    source: metadata.genres
+    values: [drama, comedy, thriller, action]
+
+  - name: ctr
+    type: rate
+    top: click
+    bottom: impression
+    scope: item
+    bucket: 24h
+    periods: [7,14,30]
+
+  - name: liked_genre
+    type: interacted_with
+    interaction: click
+    field: metadata.genres
+    scope: session
+    count: 10
+    duration: 24h

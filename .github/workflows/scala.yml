@@ -14,6 +14,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        lfs: 'true'
     - uses: actions/cache@v2
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache

@@ -3,11 +3,11 @@ package ai.metarank.demo
 import ai.metarank.demo.RanklensTest.{CTJoin, Clickthrough}
 import ai.metarank.feature.{FeatureMapping, WordCountFeature}
 import ai.metarank.model.{Event, FieldName, ItemId, UserId}
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureSchema.{NumberFeatureSchema, StringFeatureSchema, WordCountSchema}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.Metadata
-import ai.metarank.util.{FlinkTest, RanklensEvents}
+import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, RanklensEvents}
 import better.files.Resource
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
@@ -20,6 +20,7 @@ import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.api.scala._
 import ai.metarank.util.DataStreamOps._
+
 import scala.concurrent.duration._
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
@@ -69,6 +70,23 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       Clickthrough(imp, click)
     }
 
+    val source = env.fromCollection(events)
+    val impres = source
+      .flatMap(e =>
+        e match {
+          case f: FeedbackEvent => Some(f)
+          case _                => None
+        }
+      )
+      .keyBy(e =>
+        e match {
+          case int: InteractionEvent => int.ranking
+          case rank: RankingEvent    => rank.id
+        }
+      )
+      .process(new ImpressionInjectFunction("examine", 30.minutes))
+
+    val merged = source.union(impres)
     val writes = env.fromCollection(events.flatMap(e => mapping.features.flatMap(_.writes(e)))).watermark(_.ts.ts)
 
     val updates = Featury.process(writes, featurySchema, 10.seconds)

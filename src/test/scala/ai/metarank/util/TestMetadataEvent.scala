@@ -12,6 +12,6 @@ object TestMetadataEvent {
     item = ItemId(id),
     timestamp = Timestamp.now,
     fields = fields,
-    tenant = Some("default")
+    tenant = "default"
   )
 }

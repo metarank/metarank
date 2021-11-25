@@ -10,7 +10,7 @@ sealed trait Event {
   def id: EventId
   def timestamp: Timestamp
   def fields: List[Field]
-  def tenant: Option[String]
+  def tenant: String
 }
 
 object Event {
@@ -19,7 +19,7 @@ object Event {
       item: ItemId,
       timestamp: Timestamp,
       fields: List[Field],
-      tenant: Option[String] = None
+      tenant: String
   ) extends Event
 
   sealed trait FeedbackEvent extends Event {
@@ -34,7 +34,7 @@ object Event {
       session: SessionId,
       fields: List[Field],
       items: List[ItemRelevancy],
-      tenant: Option[String] = None
+      tenant: String
   ) extends FeedbackEvent
 
   case class InteractionEvent(
@@ -46,7 +46,7 @@ object Event {
       session: SessionId,
       `type`: String,
       fields: List[Field],
-      tenant: Option[String] = None
+      tenant: String
   ) extends FeedbackEvent
 
   case class ItemRelevancy(id: ItemId, relevancy: Double)

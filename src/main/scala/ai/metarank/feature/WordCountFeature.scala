@@ -7,7 +7,7 @@ import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.{Event, MValue}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.{FeatureName, Scope}
+import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SString, ScalarValue}
 
@@ -35,10 +35,10 @@ case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   }
 
   override def keys(request: Event.RankingEvent): Traversable[Key] =
-    request.items.map(item => Key(conf, tenant(request), item.id.value))
+    request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
   override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: String): MValue =
-    state.get(Key(conf, tenant(request), id)) match {
+    state.get(Key(conf, Tenant(request.tenant), id)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0)
     }

@@ -14,6 +14,6 @@ object TestRankingEvent {
     session = SessionId("s1"),
     fields = Nil,
     items = items.map(item => ItemRelevancy(ItemId(item), 1.0)),
-    tenant = Some("default")
+    tenant = "default"
   )
 }

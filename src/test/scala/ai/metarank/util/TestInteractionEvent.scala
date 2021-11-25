@@ -16,6 +16,6 @@ object TestInteractionEvent {
     item = ItemId(item),
     ranking = EventId(parent),
     `type` = "click",
-    tenant = Some("default")
+    tenant = "default"
   )
 }

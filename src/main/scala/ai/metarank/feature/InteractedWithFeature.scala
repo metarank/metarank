@@ -45,7 +45,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends MFeature 
   // stores last interactions of customer
   val listConf = BoundedListConfig(
     scope = Scope(schema.scope.value),
-    name = FeatureName(schema.name + s"_last_${schema.interaction}s"),
+    name = FeatureName(schema.name + s"_last_${schema.interaction}"),
     count = schema.count.getOrElse(10),
     duration = schema.duration.getOrElse(24.hours),
     refresh = schema.refresh.getOrElse(0.seconds),

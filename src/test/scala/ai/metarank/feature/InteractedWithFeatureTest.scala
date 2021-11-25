@@ -69,7 +69,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
       feature.writes(TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"))
     val result = writes1.collect {
       case Append(
-            Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impressions"), Tenant("default")),
+            Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default")),
             value,
             _
           ) =>
@@ -81,12 +81,12 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   it should "load prekeys for last interactions" in {
     val values = feature.prekeys(TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1")))
     values shouldBe List(
-      Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impressions"), Tenant("default"))
+      Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
     )
   }
 
   it should "load keys for ranking" in {
-    val key = Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impressions"), Tenant("default"))
+    val key = Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
     val values = feature.keys(
       TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1")),
       Map(key -> BoundedListValue(key, Timestamp.now, List(TimeValue(Timestamp.now, SString("p4")))))
@@ -102,7 +102,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
     val itemKey2 = Key(Tag(Scope(ItemScope.value), "p2"), FeatureName("seen_color_field_color"), Tenant("default"))
     val itemKey3 = Key(Tag(Scope(ItemScope.value), "p3"), FeatureName("seen_color_field_color"), Tenant("default"))
     val sesKey =
-      Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impressions"), Tenant("default"))
+      Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
     val prestate = Map(
       sesKey -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("p1"))))
     )

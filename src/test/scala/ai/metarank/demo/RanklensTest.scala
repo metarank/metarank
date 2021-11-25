@@ -18,7 +18,9 @@ import ai.metarank.util.DataStreamOps._
 
 import scala.concurrent.duration._
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Clickthrough.CTJoin
@@ -52,7 +54,9 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         "history",
         "music"
       )
-    )
+    ),
+    RateFeatureSchema("ctr", "impression", "click", 24.hours, List(7, 30), ItemScope),
+    InteractedWithSchema("clicked_genre", "click", FieldName(Metadata, "genre"), SessionScope, Some(10), Some(24.hours))
   )
 
   it should "accept events" in {
@@ -70,7 +74,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       Clickthrough(imp, click)
     }
 
-    val source = env.fromCollection(events)
+    val source = env.fromCollection(events).watermark(_.timestamp.ts)
     val impres = source
       .flatMap(e =>
         e match {
@@ -84,7 +88,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
           case rank: RankingEvent    => rank.id
         }
       )
-      .process(new ImpressionInjectFunction("examine", 30.minutes))
+      .process(new ImpressionInjectFunction("impression", 30.minutes))
 
     val merged = source.union(impres)
     val writes = merged.flatMap(e => mapping.features.flatMap(_.writes(e)))
@@ -96,7 +100,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val joined =
       Featury
         .join[Clickthrough](updates, cts, CTJoin, featurySchema)
-        .filter(_.features.nonEmpty)
+        //.filter(_.features.exists(_.key.name.value.startsWith("clicked_genre")))
         .executeAndCollect(1000)
     joined.size should be > 0
   }

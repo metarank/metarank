@@ -1,4 +1,4 @@
-package ai.metarank.mode.ingest.source
+package ai.metarank.source
 
 import ai.metarank.config.IngestConfig.APIIngestConfig
 import HttpEventSource.RestSource

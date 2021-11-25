@@ -1,6 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{ImpressionEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model._
 import better.files.File
@@ -9,6 +9,10 @@ import io.circe.parser.decode
 import io.circe.{Codec, Decoder}
 import io.findify.featury.model.Timestamp
 import io.circe.syntax._
+import io.findify.featury.model.Key.Tenant
+
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.UUID
 import scala.concurrent.duration._
 
@@ -28,7 +32,7 @@ object RanklensDatasetGenerator {
       tmdbPopularity: Double,
       tmdbVoteCount: Long,
       tmdbVoteAverage: Double,
-      releaseDate: Long,
+      releaseDate: String,
       revenue: Double,
       runtime: Int,
       topActors: List[Cast],
@@ -38,7 +42,7 @@ object RanklensDatasetGenerator {
   )
   case class Cast(id: Int, name: String, gender: Int, popularity: Double)
   case class Genre(id: Int, name: String)
-  case class Task(ts: Long, id: Int, user: String, shown: List[Int], liked: List[Int])
+  case class Task(ts: String, id: Int, user: String, shown: List[Int], liked: List[Int])
 
   implicit val taskCodec: Codec[Task]   = deriveCodec
   implicit val genreCodec: Codec[Genre] = deriveCodec
@@ -53,15 +57,15 @@ object RanklensDatasetGenerator {
 
   private def parseJSONL[T: Decoder](file: File): List[T] = {
     file.lineIterator
-      .map(line => decode[T](line))
-      .foldLeft(List.empty[T])((acc, result) =>
-        result match {
+      .flatMap(line => {
+        decode[T](line) match {
           case Left(err) =>
             println(s"cannot parse: $err")
-            acc
-          case Right(value) => value +: acc
+            None
+          case Right(value) => Some(value)
         }
-      )
+      })
+      .toList
   }
 
   def main(args: Array[String]): Unit = {
@@ -83,36 +87,50 @@ object RanklensDatasetGenerator {
           NumberField("vote_avg", m.tmdbVoteAverage),
           NumberField("vote_cnt", m.tmdbVoteCount),
           NumberField("budget", m.budget),
+          NumberField(
+            "release_date",
+            LocalDate.parse(m.releaseDate, DateTimeFormatter.ISO_DATE).atTime(0, 0, 0).toEpochSecond(ZoneOffset.UTC)
+          ),
           StringListField("genres", m.genres.map(_.name.toLowerCase())),
           StringListField("tags", m.tags),
           StringListField("actors", m.topActors.map(_.name.toLowerCase))
-        )
+        ),
+        tenant = "default"
       )
     })
     val actions: List[Event] = ranklens.actions.flatMap(t => {
-      val id = EventId(UUID.randomUUID().toString)
+      val id        = EventId(UUID.randomUUID().toString)
+      val eventTime = LocalDateTime.parse(t.ts, DateTimeFormatter.ISO_DATE_TIME)
+      val ts = Timestamp.date(
+        eventTime.getYear,
+        eventTime.getMonth.getValue,
+        eventTime.getDayOfMonth,
+        eventTime.getHour,
+        eventTime.getMinute,
+        eventTime.getSecond
+      )
       val impression = List(
-        ImpressionEvent(
+        RankingEvent(
           id = id,
-          timestamp = Timestamp(t.ts),
+          timestamp = ts,
           user = UserId(t.user),
           session = SessionId(t.user),
           fields = Nil,
           items = t.shown.map(id => ItemRelevancy(ItemId(id.toString), 0)),
-          tenant = Some("1")
+          tenant = "default"
         )
       )
       val clicks = t.liked.map(item =>
         InteractionEvent(
           id = EventId(UUID.randomUUID().toString),
-          timestamp = Timestamp(t.ts).plus(1.second),
+          timestamp = ts.plus(5.second),
           user = UserId(t.user),
           session = SessionId(t.user),
           fields = Nil,
           item = ItemId(item.toString),
-          impression = id,
+          ranking = id,
           `type` = "click",
-          tenant = Some("1")
+          tenant = "default"
         )
       )
       impression ++ clicks

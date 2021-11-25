@@ -70,7 +70,7 @@ Config example for a price field taken from item metadata events:
 - name: price
   type: number
   field: price
-  source: item
+  source: item // one of item/impression/interaction:<type>
 ```
 
 ### boolean
@@ -80,7 +80,7 @@ Maps a boolean value to a numerical value, so true = 1, and false = 0. Example:
 - name: availability
   type: boolean
   field: availability
-  source: item
+  source: item // one of item/impression/interaction:<type>
 ```
 
 ### string
@@ -91,7 +91,7 @@ One-hot encoded mapping of string into a set of numbers. Example:
   type: string
   values: [red, green, blue]
   field: color
-  source: item
+  source: item // one of item/impression/interaction:<type>
 ```
 One-hot encoder with also add an extra value "other" at the end to catch all values not listed in the config. So for 
 the color example above:
@@ -99,6 +99,7 @@ the color example above:
 * features: `[color_red: 0, color_green: 1, color_blue: 0, color_other: 0]`
 
 ### relative_number
+
 
 More advanced feature type, which can scale numerical feature using different methods. Example config for a static scaling with 
 predefined min and max values and log transformation:
@@ -286,8 +287,9 @@ For the current item, does this visitor had an interaction with other item with 
 ```yaml
 - name: clicked_color
   type: interacted_with
-  impression: click
-  field: color
+  interaction: click
+  field: metadata.color
+  scope: user
 ```
 
 For this example, Metarank will track all color field values for all items visitor clicked. And intersect this set

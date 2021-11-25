@@ -1,4 +1,4 @@
-package ai.metarank.mode.ingest.source
+package ai.metarank.source
 
 import ai.metarank.config.IngestConfig.FileIngestConfig
 import FileEventSource.EventStreamFormat
@@ -15,12 +15,11 @@ import io.circe.parser._
 import java.io.{ByteArrayOutputStream, InputStream}
 import ai.metarank.util.DataStreamOps._
 
-case class FileEventSource(conf: FileIngestConfig) extends EventSource {
+case class FileEventSource(path: String) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
     env
       .fromSource(
-        source =
-          FileSource.forRecordStreamFormat(EventStreamFormat(), new Path(conf.path)).processStaticFileSet().build(),
+        source = FileSource.forRecordStreamFormat(EventStreamFormat(), new Path(path)).processStaticFileSet().build(),
         watermarkStrategy = EventWatermarkStrategy(),
         sourceName = "events-source"
       )

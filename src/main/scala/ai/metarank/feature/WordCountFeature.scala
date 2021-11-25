@@ -1,21 +1,21 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
-import ai.metarank.model.Field.NumberField
-import ai.metarank.model.FieldSchema.NumberFieldSchema
-import ai.metarank.model.MValue.SingleValue
+import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.model.Field.StringField
+import ai.metarank.model.FieldSchema.StringFieldSchema
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
-import shapeless.syntax.typeable._
+import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SString, ScalarValue}
 
 import scala.concurrent.duration._
+import shapeless.syntax.typeable._
 
-case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
+case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -24,17 +24,15 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-
-  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.source))
-
+  override def fields                      = List(StringFieldSchema(schema.source))
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {
-    key         <- keyOf(event)
-    field       <- event.fields.find(_.name == schema.source.field)
-    numberField <- field.cast[NumberField]
+    key        <- keyOf(event)
+    field      <- event.fields.find(_.name == schema.source.field)
+    fieldValue <- field.cast[StringField]
   } yield {
-    Put(key, event.timestamp, SDouble(numberField.value))
+    Put(key, event.timestamp, SDouble(tokenCount(fieldValue.value)))
   }
 
   override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
@@ -48,14 +46,18 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
   ): MValue =
     state.get(Key(conf, Tenant(request.tenant), id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
-      case _                                       => SingleValue(schema.name, 0.0)
+      case _                                       => SingleValue(schema.name, 0)
     }
 
+  val whitespacePattern = "\\s+".r
+  def tokenCount(string: String): Int = {
+    whitespacePattern.split(string).length
+  }
 }
 
-object NumberFeature {
+object WordCountFeature {
   import ai.metarank.util.DurationJson._
-  case class NumberFeatureSchema(
+  case class WordCountSchema(
       name: String,
       source: FieldName,
       scope: FeatureScope,
@@ -63,5 +65,5 @@ object NumberFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val nfDecoder: Decoder[NumberFeatureSchema] = deriveDecoder
+  implicit val wcSchema: Decoder[WordCountSchema] = deriveDecoder
 }

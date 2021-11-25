@@ -28,7 +28,7 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.source.field, schema.source))
+  override def fields = List(StringFieldSchema(schema.source))
 
   override def writes(event: Event): Iterable[Put] = for {
     key   <- keyOf(event)
@@ -42,10 +42,15 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
     Put(key, event.timestamp, fieldValue)
   }
 
-  override def keys(request: Event.RankingEvent): Traversable[Key] =
+  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
     request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: ItemId): MValue =
+  override def value(
+      request: Event.RankingEvent,
+      state: Map[Key, FeatureValue],
+      prestate: Map[Key, FeatureValue],
+      id: ItemId
+  ): MValue =
     state.get(Key(conf, Tenant(request.tenant), id.value)) match {
       case Some(ScalarValue(_, _, SStringList(value))) => VectorValue(names, oneHotEncode(value), dim)
       case _                                           => VectorValue(names, oneHotEncode(Nil), dim)

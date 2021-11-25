@@ -20,7 +20,7 @@ case class RateFeature(schema: RateFeatureSchema) extends MFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 
-  override def keys(request: Event.RankingEvent): Traversable[Key] = for {
+  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] = for {
     item    <- request.items
     feature <- List(top.name.value, bottom.name.value)
   } yield {
@@ -58,7 +58,12 @@ case class RateFeature(schema: RateFeatureSchema) extends MFeature {
     case _ => None
   }
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: ItemId): MValue = {
+  override def value(
+      request: Event.RankingEvent,
+      state: Map[Key, FeatureValue],
+      prestate: Map[Key, FeatureValue],
+      id: ItemId
+  ): MValue = {
     val result = for {
       topValue    <- state.get(keyOf(schema.scope, id, top.name, request.tenant))
       bottomValue <- state.get(keyOf(schema.scope, id, bottom.name, request.tenant))

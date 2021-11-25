@@ -287,8 +287,9 @@ For the current item, does this visitor had an interaction with other item with 
 ```yaml
 - name: clicked_color
   type: interacted_with
-  impression: click
-  field: color
+  interaction: click
+  field: metadata.color
+  scope: user
 ```
 
 For this example, Metarank will track all color field values for all items visitor clicked. And intersect this set

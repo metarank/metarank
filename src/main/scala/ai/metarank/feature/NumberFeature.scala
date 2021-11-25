@@ -25,7 +25,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.source.field, schema.source))
+  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.source))
 
   override def states: List[FeatureConfig] = List(conf)
 
@@ -37,10 +37,15 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
     Put(key, event.timestamp, SDouble(numberField.value))
   }
 
-  override def keys(request: Event.RankingEvent): Traversable[Key] =
+  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
     request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: ItemId): MValue =
+  override def value(
+      request: Event.RankingEvent,
+      state: Map[Key, FeatureValue],
+      prestate: Map[Key, FeatureValue],
+      id: ItemId
+  ): MValue =
     state.get(Key(conf, Tenant(request.tenant), id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0.0)

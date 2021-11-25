@@ -26,9 +26,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(
-    BooleanFieldSchema(schema.source.field, source = schema.source)
-  )
+  override def fields = List(BooleanFieldSchema(schema.source))
 
   override def writes(event: Event): Iterable[Put] = for {
     key        <- keyOf(event)
@@ -38,10 +36,15 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends MFeature {
     Put(key, event.timestamp, SBoolean(fieldValue.value))
   }
 
-  override def keys(request: Event.RankingEvent): Traversable[Key] =
+  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
     request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: ItemId): MValue =
+  override def value(
+      request: Event.RankingEvent,
+      state: Map[Key, FeatureValue],
+      prestate: Map[Key, FeatureValue],
+      id: ItemId
+  ): MValue =
     state.get(Key(conf, Tenant(request.tenant), id.value)) match {
       case Some(ScalarValue(_, _, SBoolean(value))) => SingleValue(schema.name, if (value) 1 else 0)
       case _                                        => SingleValue(schema.name, 0.0)

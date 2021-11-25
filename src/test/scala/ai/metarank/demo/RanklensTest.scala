@@ -1,10 +1,9 @@
 package ai.metarank.demo
 
-import ai.metarank.demo.RanklensTest.{CTJoin, Clickthrough}
 import ai.metarank.feature.{FeatureMapping, WordCountFeature}
-import ai.metarank.model.{Event, FieldName, ItemId, UserId}
+import ai.metarank.model.{Clickthrough, Event, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.FieldName.Metadata
 import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, RanklensEvents}
 import cats.data.NonEmptyList
@@ -22,6 +21,7 @@ import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.model.Clickthrough.CTJoin
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   val features = List(
@@ -99,22 +99,5 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         .filter(_.features.nonEmpty)
         .executeAndCollect(1000)
     joined.size should be > 0
-  }
-}
-
-object RanklensTest {
-  case class Clickthrough(
-      ranking: RankingEvent,
-      clicks: List[InteractionEvent],
-      features: List[FeatureValue] = Nil
-  )
-  case object CTJoin extends Join[Clickthrough] {
-    override def by(left: Clickthrough): Key.Tenant = Tenant("default")
-
-    override def tags(left: Clickthrough): List[Key.Tag] =
-      left.ranking.items.map(id => Tag(Scope(ItemScope.value), id.id.value))
-
-    override def join(left: Clickthrough, values: List[FeatureValue]): Clickthrough =
-      left.copy(features = left.features ++ values)
   }
 }

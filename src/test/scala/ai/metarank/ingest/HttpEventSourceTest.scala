@@ -4,7 +4,7 @@ import ai.metarank.config.IngestConfig.{APIIngestConfig, FileIngestConfig}
 import ai.metarank.feature.FeatureMapping
 import ai.metarank.mode.ingest.source.HttpEventSource
 import ai.metarank.model.Event
-import ai.metarank.util.{EventGen, FlinkTest, RanklensEvents, TestConfig}
+import ai.metarank.util.{FlinkTest, RanklensEvents, TestConfig}
 import better.files.File
 import org.apache.flink.api.common.serialization.Encoder
 import org.scalacheck.Gen

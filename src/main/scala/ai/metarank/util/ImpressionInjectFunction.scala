@@ -29,7 +29,7 @@ import scala.concurrent.duration.FiniteDuration
 class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
     ri: TypeInformation[RankingEvent],
     ii: TypeInformation[InteractionEvent]
-) extends KeyedProcessFunction[EventId, FeedbackEvent, InteractionEvent]
+) extends KeyedProcessFunction[EventId, FeedbackEvent, Event]
     with CheckpointedFunction {
 
   @transient var ranking: ValueState[RankingEvent]         = _
@@ -54,8 +54,8 @@ class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
 
   override def processElement(
       value: FeedbackEvent,
-      ctx: KeyedProcessFunction[EventId, FeedbackEvent, InteractionEvent]#Context,
-      out: Collector[InteractionEvent]
+      ctx: KeyedProcessFunction[EventId, FeedbackEvent, Event]#Context,
+      out: Collector[Event]
   ): Unit = value match {
     case i: InteractionEvent =>
       interactions.add(i)
@@ -66,8 +66,8 @@ class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
 
   override def onTimer(
       timestamp: Long,
-      ctx: KeyedProcessFunction[EventId, FeedbackEvent, InteractionEvent]#OnTimerContext,
-      out: Collector[InteractionEvent]
+      ctx: KeyedProcessFunction[EventId, FeedbackEvent, Event]#OnTimerContext,
+      out: Collector[Event]
   ): Unit = for {
     r      <- Option(ranking.value())
     clicks <- Option(interactions.get()).map(_.asScala.toList)

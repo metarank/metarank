@@ -87,11 +87,11 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       .process(new ImpressionInjectFunction("examine", 30.minutes))
 
     val merged = source.union(impres)
-    val writes = env.fromCollection(events.flatMap(e => mapping.features.flatMap(_.writes(e)))).watermark(_.ts.ts)
+    val writes = merged.flatMap(e => mapping.features.flatMap(_.writes(e)))
 
     val updates = Featury.process(writes, featurySchema, 10.seconds)
 
-    val cts = env.fromCollection(ctsList).watermark(_.impression.timestamp.ts)
+    val cts = env.fromCollection(ctsList).watermark(_.ranking.timestamp.ts)
 
     val joined =
       Featury
@@ -104,7 +104,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
 
 object RanklensTest {
   case class Clickthrough(
-      impression: RankingEvent,
+      ranking: RankingEvent,
       clicks: List[InteractionEvent],
       features: List[FeatureValue] = Nil
   )
@@ -112,7 +112,7 @@ object RanklensTest {
     override def by(left: Clickthrough): Key.Tenant = Tenant("default")
 
     override def tags(left: Clickthrough): List[Key.Tag] =
-      left.impression.items.map(id => Tag(Scope(ItemScope.value), id.id.value))
+      left.ranking.items.map(id => Tag(Scope(ItemScope.value), id.id.value))
 
     override def join(left: Clickthrough, values: List[FeatureValue]): Clickthrough =
       left.copy(features = left.features ++ values)

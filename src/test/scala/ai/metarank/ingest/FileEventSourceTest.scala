@@ -2,7 +2,7 @@ package ai.metarank.ingest
 
 import ai.metarank.config.IngestConfig.FileIngestConfig
 import ai.metarank.mode.ingest.source.FileEventSource
-import ai.metarank.util.{EventGen, FlinkTest, RanklensEvents, TestConfig}
+import ai.metarank.util.{FlinkTest, RanklensEvents}
 import better.files.File
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

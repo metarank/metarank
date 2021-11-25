@@ -22,6 +22,6 @@ class ImpressionInjectFunctionTest extends AnyFlatSpec with Matchers with FlinkT
       )
       .process(new ImpressionInjectFunction("examine", 30.minutes))
       .executeAndCollect(100)
-    result.map(_.item.value) shouldBe List("p1", "p2")
+    result.collect { case e: InteractionEvent => e.item.value } shouldBe List("p1", "p2")
   }
 }

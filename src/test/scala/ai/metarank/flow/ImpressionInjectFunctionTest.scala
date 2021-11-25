@@ -3,13 +3,16 @@ package ai.metarank.flow
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.{EventId, ItemId}
 import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, TestInteractionEvent, TestRankingEvent}
+import org.apache.flink.api.common.RuntimeExecutionMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flink.api.scala._
+
 import scala.concurrent.duration._
 
 class ImpressionInjectFunctionTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "emit impressions" in {
+    env.setRuntimeMode(RuntimeExecutionMode.BATCH)
     val result = env
       .fromCollection[FeedbackEvent](
         List(TestRankingEvent(List("p1", "p2", "p3")).copy(id = EventId("i1")), TestInteractionEvent("p2", "i1", Nil))

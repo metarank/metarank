@@ -12,6 +12,7 @@ resolvers ++= Seq(
 
 organization := "me.dfdx"
 Test / logBuffered := false
+Test / parallelExecution := false
 scalaVersion := "2.12.15"
 scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification", "-Xfatal-warnings")
 

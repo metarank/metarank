@@ -12,8 +12,9 @@ resolvers ++= Seq(
 
 organization := "me.dfdx"
 Test / logBuffered := false
+Test / parallelExecution := false
 scalaVersion := "2.12.15"
-scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification")
+scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification", "-Xfatal-warnings")
 
 libraryDependencies ++= Seq(
   "org.typelevel"                    %% "cats-effect"                % "3.2.9",
@@ -50,5 +51,6 @@ libraryDependencies ++= Seq(
   "org.http4s"                       %% "http4s-blaze-client"        % http4sVersion,
   "org.http4s"                       %% "http4s-circe"               % http4sVersion,
   "org.apache.httpcomponents.core5"   % "httpcore5"                  % "5.1.2",
-  "org.apache.httpcomponents.client5" % "httpclient5"                % "5.1.2"
+  "org.apache.httpcomponents.client5" % "httpclient5"                % "5.1.2",
+  "io.findify"                       %% "flink-adt"                  % "0.4.4"
 )

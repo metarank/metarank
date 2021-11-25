@@ -10,13 +10,17 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: hseeberger/scala-sbt:11.0.10_1.4.7_2.13.5
+    container: hseeberger/scala-sbt:11.0.13_1.5.5_2.13.7
 
     steps:
+    - name: install git-lfs
+      run: "apt update && apt install git-lfs"
     - uses: actions/checkout@v2
+      with:
+        lfs: 'true'
     - uses: actions/cache@v2
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
         key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
     - name: Run tests
-      run: sbt test
+      run: sbt -mem 2048 test

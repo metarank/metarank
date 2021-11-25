@@ -1,7 +1,6 @@
 package ai.metarank.model
 
 sealed trait MValue {
-  def name: String
   def dim: Int
 }
 
@@ -10,5 +9,9 @@ object MValue {
     override def dim: Int = 1
   }
 
-  case class VectorValue(name: String, values: Array[Double], dim: Int) extends MValue
+  case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue
+
+  object VectorValue {
+    def empty(names: List[String], dim: Int) = VectorValue(names, new Array[Double](dim), dim)
+  }
 }

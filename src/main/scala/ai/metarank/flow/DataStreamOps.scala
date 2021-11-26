@@ -1,6 +1,5 @@
-package ai.metarank.util
+package ai.metarank.flow
 
-import io.findify.featury.model.Write
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.DataStreamSink

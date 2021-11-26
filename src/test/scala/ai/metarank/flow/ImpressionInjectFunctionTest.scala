@@ -2,7 +2,7 @@ package ai.metarank.flow
 
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.{EventId, ItemId}
-import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, TestInteractionEvent, TestRankingEvent}
+import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

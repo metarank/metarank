@@ -8,7 +8,7 @@ import io.findify.featury.model.{FeatureValue, Key}
 
 case class Clickthrough(
     ranking: RankingEvent,
-    clicks: List[InteractionEvent],
+    interactions: List[InteractionEvent],
     features: List[FeatureValue] = Nil
 )
 

@@ -17,7 +17,7 @@ import io.circe.parser._
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import scala.collection.JavaConverters._
-import ai.metarank.util.DataStreamOps._
+import ai.metarank.flow.DataStreamOps._
 
 case class HttpEventSource(conf: APIIngestConfig) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] = {

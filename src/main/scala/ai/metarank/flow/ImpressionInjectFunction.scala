@@ -1,26 +1,14 @@
-package ai.metarank.util
+package ai.metarank.flow
 
-import ai.metarank.model.{Event, EventId, ItemId}
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, MetadataEvent, RankingEvent}
-import io.findify.featury.model.Key.Tenant
-import org.apache.flink.api.common.state.{
-  ListState,
-  ListStateDescriptor,
-  StateTtlConfig,
-  ValueState,
-  ValueStateDescriptor
-}
+import ai.metarank.mode.StateTtl
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
+import ai.metarank.model.{Event, EventId}
+import org.apache.flink.api.common.state.{ListState, ListStateDescriptor, ValueState, ValueStateDescriptor}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.runtime.state.{FunctionInitializationContext, FunctionSnapshotContext}
 import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
-import org.apache.flink.streaming.api.scala.DataStream
 import org.apache.flink.util.Collector
-import org.apache.flink.api.scala._
-import org.apache.flink.streaming.api.scala.function.ProcessWindowFunction
-import org.apache.flink.streaming.api.windowing.assigners.EventTimeSessionWindows
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow
 
 import java.util.UUID
 import scala.collection.JavaConverters._
@@ -36,17 +24,11 @@ class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
   @transient var interactions: ListState[InteractionEvent] = _
 
   override def initializeState(context: FunctionInitializationContext): Unit = {
-    val ttlconf = StateTtlConfig
-      .newBuilder(org.apache.flink.api.common.time.Time.seconds(ttl.toSeconds))
-      .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
-      .setStateVisibility(StateTtlConfig.StateVisibility.NeverReturnExpired)
-      .cleanupFullSnapshot()
-      .build()
     val rankDesc = new ValueStateDescriptor("ranking", ri)
-    rankDesc.enableTimeToLive(ttlconf)
+    rankDesc.enableTimeToLive(StateTtl(ttl))
     ranking = context.getKeyedStateStore.getState(rankDesc)
     val intDesc = new ListStateDescriptor("clicks", ii)
-    intDesc.enableTimeToLive(ttlconf)
+    intDesc.enableTimeToLive(StateTtl(ttl))
     interactions = context.getKeyedStateStore.getListState(intDesc)
   }
 

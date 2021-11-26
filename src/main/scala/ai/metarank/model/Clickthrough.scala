@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import io.findify.featury.flink.Join
@@ -9,10 +10,12 @@ import io.findify.featury.model.{FeatureValue, Key}
 case class Clickthrough(
     ranking: RankingEvent,
     interactions: List[InteractionEvent],
-    features: List[FeatureValue] = Nil
+    features: List[FeatureValue] = Nil,
+    values: List[ItemValues] = Nil
 )
 
 object Clickthrough {
+  case class ItemValues(id: ItemId, label: Double, values: List[MValue])
   case object CTJoin extends Join[Clickthrough] {
     override def by(left: Clickthrough): Key.Tenant = Tenant(left.ranking.tenant)
 

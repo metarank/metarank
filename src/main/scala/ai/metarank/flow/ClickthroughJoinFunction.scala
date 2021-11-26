@@ -13,7 +13,7 @@ import org.apache.flink.util.Collector
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
-class ClickthroughJoinFunction(ttl: FiniteDuration = 1.hour)(implicit ti: TypeInformation[Event])
+case class ClickthroughJoinFunction(ttl: FiniteDuration = 1.hour)(implicit ti: TypeInformation[Event])
     extends KeyedProcessFunction[EventId, FeedbackEvent, Clickthrough]
     with CheckpointedFunction {
 

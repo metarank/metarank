@@ -37,7 +37,6 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
-      prestate = Map.empty,
       id = ItemId("p1")
     )
     result should matchPattern {

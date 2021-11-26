@@ -40,11 +40,9 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(3))),
-      prestate = Map.empty,
       id = ItemId("p1")
     )
     result shouldBe SingleValue("title_words", 3.0)
-
   }
 
 }

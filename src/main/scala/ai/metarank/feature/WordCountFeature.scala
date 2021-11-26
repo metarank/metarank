@@ -41,7 +41,6 @@ case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      prestate: Map[Key, FeatureValue],
       id: ItemId
   ): MValue =
     state.get(Key(conf, Tenant(request.tenant), id.value)) match {

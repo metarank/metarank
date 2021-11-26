@@ -14,7 +14,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.FiniteDuration
 
-class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
+case class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
     ri: TypeInformation[RankingEvent],
     ii: TypeInformation[InteractionEvent]
 ) extends KeyedProcessFunction[EventId, FeedbackEvent, Event]

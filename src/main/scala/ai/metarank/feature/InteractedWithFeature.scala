@@ -78,7 +78,8 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends MFeature 
     } yield {
       keyOf(ItemScope, item.id, fieldConf.name, request.tenant)
     }
-    interacted ++ requested
+    val visitorKey = keyOf(request.user, request.session, listConf.name, request.tenant)
+    interacted ++ requested ++ visitorKey.toList
   }
 
   override def fields: List[FieldSchema] = List(StringFieldSchema(schema.field))
@@ -115,12 +116,11 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends MFeature 
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      prestate: Map[Key, FeatureValue],
       id: ItemId
   ): MValue = {
     val result = for {
       visitorKey      <- keyOf(request.user, request.session, listConf.name, request.tenant)
-      interactedValue <- prestate.get(visitorKey)
+      interactedValue <- state.get(visitorKey)
       interactedList  <- interactedValue.cast[BoundedListValue]
       itemFieldValue  <- state.get(keyOf(ItemScope, id, fieldConf.name, request.tenant)).flatMap(_.cast[ScalarValue])
     } yield {

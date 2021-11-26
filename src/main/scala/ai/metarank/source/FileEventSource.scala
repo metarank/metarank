@@ -13,7 +13,7 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import io.circe.parser._
 
 import java.io.{ByteArrayOutputStream, InputStream}
-import ai.metarank.util.DataStreamOps._
+import ai.metarank.flow.DataStreamOps._
 
 case class FileEventSource(path: String) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =

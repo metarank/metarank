@@ -2,10 +2,11 @@ package ai.metarank.mode.train
 
 import ai.metarank.config.Config
 import ai.metarank.feature.FeatureMapping
+import ai.metarank.flow.ImpressionInjectFunction
 import ai.metarank.model.Event
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
-import ai.metarank.util.{ImpressionInjectFunction, Logging}
+import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureProcessFunction, Featury}
@@ -20,7 +21,7 @@ import scala.language.higherKinds
 import scala.concurrent.duration._
 
 object Train extends IOApp with Logging {
-  import ai.metarank.util.DataStreamOps._
+  import ai.metarank.flow.DataStreamOps._
 
   override def run(args: List[String]): IO[ExitCode] = for {
     cmd    <- TrainCmdline.parse(args)

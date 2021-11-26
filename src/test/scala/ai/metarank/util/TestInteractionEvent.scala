@@ -7,7 +7,7 @@ import io.findify.featury.model.Timestamp
 import java.util.UUID
 
 object TestInteractionEvent {
-  def apply(item: String, parent: String, fields: List[Field]) = InteractionEvent(
+  def apply(item: String, parent: String, fields: List[Field] = Nil) = InteractionEvent(
     id = EventId(UUID.randomUUID().toString),
     timestamp = Timestamp.now,
     user = UserId("u1"),

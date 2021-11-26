@@ -5,7 +5,7 @@ import ai.metarank.model.{Clickthrough, Event, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.FieldName.Metadata
-import ai.metarank.util.{FlinkTest, ImpressionInjectFunction, RanklensEvents}
+import ai.metarank.util.{FlinkTest, RanklensEvents}
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,7 +13,8 @@ import io.findify.featury.flink.{Featury, Join}
 import io.findify.featury.model.{FeatureValue, Key, Schema, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import io.findify.flinkadt.api._
-import ai.metarank.util.DataStreamOps._
+import ai.metarank.flow.DataStreamOps._
+
 import scala.language.higherKinds
 import scala.concurrent.duration._
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
@@ -21,6 +22,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.flow.ImpressionInjectFunction
 import ai.metarank.model.Clickthrough.CTJoin
 import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
 
@@ -92,7 +94,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val joined =
       Featury
         .join[Clickthrough](updates, cts, CTJoin, featurySchema)
-        //.filter(_.features.exists(_.key.name.value.startsWith("clicked_genre")))
+        // .filter(_.features.exists(_.key.name.value.startsWith("clicked_genre")))
         .executeAndCollect(1000)
     joined.size should be > 0
   }

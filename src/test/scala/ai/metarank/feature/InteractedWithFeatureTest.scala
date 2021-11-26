@@ -103,33 +103,28 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
     val itemKey3 = Key(Tag(Scope(ItemScope.value), "p3"), FeatureName("seen_color_field_color"), Tenant("default"))
     val sesKey =
       Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
-    val prestate = Map(
-      sesKey -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("p1"))))
-    )
     val state = Map(
       itemKey1 -> ScalarValue(itemKey1, Timestamp.now, SString("red")),
       itemKey2 -> ScalarValue(itemKey2, Timestamp.now, SString("red")),
-      itemKey3 -> ScalarValue(itemKey3, Timestamp.now, SString("green"))
+      itemKey3 -> ScalarValue(itemKey3, Timestamp.now, SString("green")),
+      sesKey   -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("p1"))))
     )
     val request = TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1"))
     val values2 = feature.value(
       request = request,
       state = state,
-      prestate = prestate,
       ItemId("p2")
     )
     values2 shouldBe SingleValue("seen_color", 1)
     val values3 = feature.value(
       request = request,
       state = state,
-      prestate = prestate,
       ItemId("p3")
     )
     values3 shouldBe SingleValue("seen_color", 0)
     val values4 = feature.value(
       request = request,
       state = state,
-      prestate = prestate,
       ItemId("404")
     )
     values4 shouldBe SingleValue("seen_color", 0)

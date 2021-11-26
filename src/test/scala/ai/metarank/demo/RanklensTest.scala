@@ -1,5 +1,6 @@
 package ai.metarank.demo
 
+import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.{FeatureMapping, WordCountFeature}
 import ai.metarank.model.{Clickthrough, Event, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
@@ -22,8 +23,9 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.flow.ImpressionInjectFunction
+import ai.metarank.flow.{ClickthroughJoinFunction, DatasetSink, ImpressionInjectFunction}
 import ai.metarank.model.Clickthrough.CTJoin
+import better.files.File
 import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
@@ -60,42 +62,33 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     InteractedWithSchema("clicked_genre", "click", FieldName(Metadata, "genre"), SessionScope, Some(10), Some(24.hours))
   )
 
+  val inters = List(InteractionConfig("click", 1.0))
+
   it should "accept events" in {
-    val mapping       = FeatureMapping.fromFeatureSchema(features)
-    val featurySchema = Schema(mapping.features.flatMap(_.states))
+    val mapping = FeatureMapping.fromFeatureSchema(features, inters)
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
 
-    val events      = RanklensEvents()
-    val impressions = events.collect { case i: RankingEvent => i }
-    val clicks      = events.collect { case c: InteractionEvent => c }.groupBy(_.ranking)
-    val ctsList = for {
-      imp   <- impressions
-      click <- clicks.get(imp.id)
-    } yield {
-      Clickthrough(imp, click)
-    }
+    val events = RanklensEvents()
 
     val source = env.fromCollection(events).watermark(_.timestamp.ts)
-    val impres = source
+    val groupedFeedback = source
       .collect { case f: FeedbackEvent => f }
       .keyingBy {
-        case int: InteractionEvent => int.ranking
-        case rank: RankingEvent    => rank.id
+        case interaction: InteractionEvent => interaction.ranking
+        case ranking: RankingEvent         => ranking.id
       }
-      .process(new ImpressionInjectFunction("impression", 30.minutes))
+    val impressions   = groupedFeedback.process(ImpressionInjectFunction("impression", 30.minutes))
+    val clickthroughs = groupedFeedback.process(ClickthroughJoinFunction())
+    val merged        = source.union(impressions)
+    val writes        = merged.flatMap(e => mapping.features.flatMap(_.writes(e)))
 
-    val merged = source.union(impres)
-    val writes = merged.flatMap(e => mapping.features.flatMap(_.writes(e)))
+    val updates = Featury.process(writes, mapping.underlyingSchema, 10.seconds)
 
-    val updates = Featury.process(writes, featurySchema, 10.seconds)
-
-    val cts = env.fromCollection(ctsList).watermark(_.ranking.timestamp.ts)
-
-    val joined =
-      Featury
-        .join[Clickthrough](updates, cts, CTJoin, featurySchema)
-        // .filter(_.features.exists(_.key.name.value.startsWith("clicked_genre")))
-        .executeAndCollect(1000)
-    joined.size should be > 0
+    val joined   = Featury.join[Clickthrough](updates, clickthroughs, CTJoin, mapping.underlyingSchema)
+    val computed = joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions)))
+    val dir      = File.newTemporaryDirectory("csv_")
+    computed.sinkTo(DatasetSink(mapping, s"file://$dir"))
+    env.execute()
+    val br = 1
   }
 }

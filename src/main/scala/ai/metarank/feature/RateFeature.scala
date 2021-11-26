@@ -61,7 +61,6 @@ case class RateFeature(schema: RateFeatureSchema) extends MFeature {
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      prestate: Map[Key, FeatureValue],
       id: ItemId
   ): MValue = {
     val result = for {

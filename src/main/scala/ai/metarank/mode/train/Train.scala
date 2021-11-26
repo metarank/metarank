@@ -32,7 +32,7 @@ object Train extends IOApp with Logging {
   }
 
   def run(config: Config, cmd: TrainCmdline) = IO {
-    val mapping       = FeatureMapping.fromFeatureSchema(config.feature)
+    val mapping       = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
     val featurySchema = Schema(mapping.features.flatMap(_.states))
     val streamEnv     = StreamExecutionEnvironment.getExecutionEnvironment
     streamEnv.setParallelism(1)

@@ -1,4 +1,4 @@
-feature:
+features:
   - name: popularity
     type: number
     scope: item

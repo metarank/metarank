@@ -10,10 +10,10 @@ resolvers ++= Seq(
 
 // blocked on xgboost, which is blocked on spark/flink for 2.13
 
-organization := "me.dfdx"
-Test / logBuffered := false
+organization             := "me.dfdx"
+Test / logBuffered       := false
 Test / parallelExecution := false
-scalaVersion := "2.12.15"
+scalaVersion             := "2.12.15"
 scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification", "-Xfatal-warnings")
 
 libraryDependencies ++= Seq(
@@ -52,5 +52,6 @@ libraryDependencies ++= Seq(
   "org.http4s"                       %% "http4s-circe"               % http4sVersion,
   "org.apache.httpcomponents.core5"   % "httpcore5"                  % "5.1.2",
   "org.apache.httpcomponents.client5" % "httpclient5"                % "5.1.2",
-  "io.findify"                       %% "flink-adt"                  % "0.4.4"
+  "io.findify"                       %% "flink-adt"                  % "0.4.4",
+  "io.github.metarank"               %% "ltrlib"                     % "0.1.5"
 )

@@ -17,7 +17,6 @@ trait MFeature {
   def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      prestate: Map[Key, FeatureValue],
       id: ItemId
   ): MValue
 

@@ -18,10 +18,7 @@ scalacOptions ++= Seq(
   "-feature",
   "-deprecation",
   "-Ypartial-unification",
-  "-Xfatal-warnings",
-  "-Ywarn-unused:params",
-  "-Ywarn-unused:patvars",
-  "-Ywarn-dead-code"
+  "-Xfatal-warnings"
 )
 
 libraryDependencies ++= Seq(

@@ -1,18 +1,13 @@
 package ai.metarank.ingest
 
-import ai.metarank.config.IngestConfig.{APIIngestConfig, FileIngestConfig}
-import ai.metarank.feature.FeatureMapping
 import ai.metarank.model.Event
 import ai.metarank.source.HttpEventSource
 import ai.metarank.util.{FlinkTest, RanklensEvents, TestConfig}
 import better.files.File
 import org.apache.flink.api.common.serialization.Encoder
-import org.scalacheck.Gen
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
-import org.apache.flink.api.scala._
 import org.apache.flink.connector.file.sink.FileSink
 import org.apache.flink.core.fs.Path
 import io.circe.syntax._
@@ -22,9 +17,10 @@ import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.io.entity.{EntityUtils, StringEntity}
-
+import io.findify.flinkadt.api._
 import java.io.OutputStream
 import scala.util.Random
+import scala.language.higherKinds
 
 class HttpEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest with BeforeAndAfterAll {
 
@@ -34,7 +30,7 @@ class HttpEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest with 
   override def beforeAll() = {
     env.enableCheckpointing(1000)
     env.setRuntimeMode(RuntimeExecutionMode.AUTOMATIC)
-    HttpEventSource(APIIngestConfig(port))
+    HttpEventSource(port)
       .eventStream(env)
       .sinkTo(
         FileSink

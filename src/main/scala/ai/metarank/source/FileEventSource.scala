@@ -1,6 +1,5 @@
 package ai.metarank.source
 
-import ai.metarank.config.IngestConfig.FileIngestConfig
 import FileEventSource.EventStreamFormat
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation

@@ -59,7 +59,14 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       )
     ),
     RateFeatureSchema("ctr", "impression", "click", 24.hours, List(7, 30), ItemScope),
-    InteractedWithSchema("clicked_genre", "click", FieldName(Metadata, "genre"), SessionScope, Some(10), Some(24.hours))
+    InteractedWithSchema(
+      "clicked_genre",
+      "click",
+      FieldName(Metadata, "genres"),
+      SessionScope,
+      Some(10),
+      Some(24.hours)
+    )
   )
 
   val inters = List(InteractionConfig("click", 1.0))

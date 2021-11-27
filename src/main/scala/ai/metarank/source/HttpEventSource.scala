@@ -1,6 +1,5 @@
 package ai.metarank.source
 
-import ai.metarank.config.IngestConfig.APIIngestConfig
 import HttpEventSource.RestSource
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
@@ -19,14 +18,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import scala.collection.JavaConverters._
 import ai.metarank.flow.DataStreamOps._
 
-case class HttpEventSource(conf: APIIngestConfig) extends EventSource {
+case class HttpEventSource(port: Int) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] = {
-    env.addSource(new RestSource(conf)).id("http-source")
+    env.addSource(new RestSource(port)).id("http-source")
   }
 }
 
 object HttpEventSource {
-  class RestSource(conf: APIIngestConfig) extends RichSourceFunction[Event] with Logging {
+  class RestSource(port: Int) extends RichSourceFunction[Event] with Logging {
     var server: HttpServer                  = _
     var queue: ConcurrentLinkedQueue[Event] = _
     var shouldStopSignal                    = false
@@ -35,7 +34,7 @@ object HttpEventSource {
       queue = new ConcurrentLinkedQueue[Event]()
       server = ServerBootstrap
         .bootstrap()
-        .setListenerPort(conf.port)
+        .setListenerPort(port)
         .setExceptionListener(new ExceptionListener {
           override def onError(ex: Exception): Unit                             = ex.printStackTrace()
           override def onError(connection: HttpConnection, ex: Exception): Unit = ex.printStackTrace()
@@ -43,7 +42,7 @@ object HttpEventSource {
         .register("*", new RequestHandler(queue))
         .create()
       server.start()
-      logger.info(s"HTTP endpoint on port ${conf.port} is started")
+      logger.info(s"HTTP endpoint on port ${port} is started")
     }
     override def cancel(): Unit = {
       shouldStopSignal = true

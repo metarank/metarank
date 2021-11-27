@@ -1,6 +1,9 @@
 # Metarank
 
-[![CI Status](https://github.com/meta-rank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/meta-rank/metarank/actions)
+[![CI Status](https://github.com/meta-rank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/metarank/metarank/actions)
+[![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)
+![Last commit](https://img.shields.io/github/last-commit/metarank/metarank)
+![Last release](https://img.shields.io/github/release/metarank/metarank)
 
 Metarank is a toolbox for building personalized ranking systems. It can be used to re-rank 
 items in search results, recommendations and autocomplete suggestions by automating common

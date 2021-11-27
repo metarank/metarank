@@ -1,6 +1,5 @@
 package ai.metarank.ingest
 
-import ai.metarank.config.IngestConfig.FileIngestConfig
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import better.files.File

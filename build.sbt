@@ -14,7 +14,15 @@ organization             := "me.dfdx"
 Test / logBuffered       := false
 Test / parallelExecution := false
 scalaVersion             := "2.12.15"
-scalacOptions ++= Seq("-feature", "-deprecation", "-Ypartial-unification", "-Xfatal-warnings")
+scalacOptions ++= Seq(
+  "-feature",
+  "-deprecation",
+  "-Ypartial-unification",
+  "-Xfatal-warnings",
+  "-Ywarn-unused:params",
+  "-Ywarn-unused:patvars",
+  "-Ywarn-dead-code"
+)
 
 libraryDependencies ++= Seq(
   "org.typelevel"                    %% "cats-effect"                % "3.2.9",

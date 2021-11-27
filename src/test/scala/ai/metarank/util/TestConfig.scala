@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import ai.metarank.config.Config.InteractionConfig
-import ai.metarank.config.{Config, IngestConfig}
+import ai.metarank.config.Config
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName

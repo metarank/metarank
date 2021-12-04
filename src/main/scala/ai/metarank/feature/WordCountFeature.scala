@@ -1,5 +1,6 @@
 package ai.metarank.feature
 
+import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldSchema.StringFieldSchema
@@ -15,11 +16,11 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
 
-case class WordCountFeature(schema: WordCountSchema) extends MFeature {
+case class WordCountFeature(schema: WordCountSchema) extends StatelessFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.scope.value),
+    scope = schema.scope.scope,
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
@@ -34,9 +35,6 @@ case class WordCountFeature(schema: WordCountSchema) extends MFeature {
   } yield {
     Put(key, event.timestamp, SDouble(tokenCount(fieldValue.value)))
   }
-
-  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
-    request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
   override def value(
       request: Event.RankingEvent,

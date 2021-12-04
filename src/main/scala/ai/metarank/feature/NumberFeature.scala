@@ -1,5 +1,6 @@
 package ai.metarank.feature
 
+import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
 import ai.metarank.model.Field.NumberField
@@ -15,11 +16,11 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
-case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
+case class NumberFeature(schema: NumberFeatureSchema) extends StatelessFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.scope.value),
+    scope = schema.scope.scope,
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
@@ -36,9 +37,6 @@ case class NumberFeature(schema: NumberFeatureSchema) extends MFeature {
   } yield {
     Put(key, event.timestamp, SDouble(numberField.value))
   }
-
-  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
-    request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
   override def value(
       request: Event.RankingEvent,

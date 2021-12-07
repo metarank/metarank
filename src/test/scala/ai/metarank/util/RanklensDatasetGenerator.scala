@@ -16,8 +16,8 @@ import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.UUID
 import scala.concurrent.duration._
 
-/** Converter of Ranklens dataset (https://github.com/metarank/ranklens/)
-  * into metarank-compatible event schema with meta/impression/interaction events
+/** Converter of Ranklens dataset (https://github.com/metarank/ranklens/) into metarank-compatible event schema with
+  * meta/impression/interaction events
   */
 
 object RanklensDatasetGenerator {

@@ -1,25 +1,56 @@
 package ai.metarank.model
 
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, MetadataEvent, RankingEvent}
+import ai.metarank.model.FeatureScope.TenantScope.tags
 import io.circe.{Decoder, Encoder}
+import io.findify.featury.model.Key
+import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 
 import scala.util.Success
 
 sealed trait FeatureScope {
-  def value: String
+  def scope: Scope
+  def tags(event: Event): Traversable[Tag]
+  def keys(event: Event, feature: FeatureName): Traversable[Key] =
+    tags(event).map(tag => Key(tag, feature, Tenant(event.tenant)))
 }
 
 object FeatureScope {
-  case object TenantScope  extends FeatureScope { val value = "tenant"  }
-  case object ItemScope    extends FeatureScope { val value = "item"    }
-  case object UserScope    extends FeatureScope { val value = "user"    }
-  case object SessionScope extends FeatureScope { val value = "session" }
+  case object TenantScope extends FeatureScope {
+    val scope                                         = Scope("tenant")
+    override def tags(event: Event): Traversable[Tag] = Some(Tag(scope, event.tenant))
+  }
 
-  implicit val scopeEncoder: Encoder[FeatureScope] = Encoder.encodeString.contramap(_.value)
+  case object ItemScope extends FeatureScope {
+    val scope = Scope("item")
+
+    override def tags(event: Event): Traversable[Tag] = event match {
+      case e: RankingEvent     => e.items.map(item => Tag(scope, item.id.value))
+      case e: InteractionEvent => Some(Tag(scope, e.item.value))
+      case e: MetadataEvent    => Some(Tag(scope, e.item.value))
+    }
+  }
+  case object UserScope extends FeatureScope {
+    val scope = Scope("user")
+    override def tags(event: Event): Traversable[Tag] = event match {
+      case e: FeedbackEvent => Some(Tag(scope, e.user.value))
+      case _                => None
+    }
+  }
+  case object SessionScope extends FeatureScope {
+    val scope = Scope("session")
+    override def tags(event: Event): Traversable[Tag] = event match {
+      case e: FeedbackEvent => Some(Tag(scope, e.session.value))
+      case _                => None
+    }
+  }
+
+  implicit val scopeEncoder: Encoder[FeatureScope] = Encoder.encodeString.contramap(_.scope.name)
 
   implicit val scopeDecoder: Decoder[FeatureScope] = Decoder.decodeString.emapTry {
-    case TenantScope.value  => Success(TenantScope)
-    case ItemScope.value    => Success(ItemScope)
-    case UserScope.value    => Success(UserScope)
-    case SessionScope.value => Success(SessionScope)
+    case TenantScope.scope.name  => Success(TenantScope)
+    case ItemScope.scope.name    => Success(ItemScope)
+    case UserScope.scope.name    => Success(UserScope)
+    case SessionScope.scope.name => Success(SessionScope)
   }
 }

@@ -1,7 +1,7 @@
 package ai.metarank.flow
 
+import ai.metarank.FeatureMapping
 import ai.metarank.config.Config.InteractionConfig
-import ai.metarank.feature.FeatureMapping
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.FeatureScope.ItemScope

@@ -43,7 +43,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
 
     writes1.collect {
       case Put(
-            Key(Tag(Scope(ItemScope.value), "p1"), FeatureName("seen_color_field_color"), Tenant("default")),
+            Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
             _,
             SString(value)
           ) =>
@@ -56,7 +56,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
 
     writes1.collect {
       case Put(
-            Key(Tag(Scope(ItemScope.value), "p1"), FeatureName("seen_color_field_color"), Tenant("default")),
+            Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
             _,
             SStringList(value)
           ) =>
@@ -65,51 +65,37 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "emit bounded list appends" in {
+    val key = Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default"))
     val writes1 =
-      feature.writes(TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"))
+      feature.writes(
+        TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"),
+        Map(key -> ScalarValue(key, Timestamp.now, SString("red")))
+      )
     val result = writes1.collect {
       case Append(
-            Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default")),
+            Key(Tag(SessionScope.scope, "s1"), FeatureName("seen_color_last"), Tenant("default")),
             value,
             _
           ) =>
         value
     }
-    result shouldBe List(SString("p1"))
-  }
-
-  it should "load prekeys for last interactions" in {
-    val values = feature.prekeys(TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1")))
-    values shouldBe List(
-      Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
-    )
-  }
-
-  it should "load keys for ranking" in {
-    val key = Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
-    val values = feature.keys(
-      TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1")),
-      Map(key -> BoundedListValue(key, Timestamp.now, List(TimeValue(Timestamp.now, SString("p4")))))
-    )
-    val result = values.collect {
-      case Key(Tag(Scope(ItemScope.value), value), FeatureName("seen_color_field_color"), Tenant("default")) => value
-    }
-    result should contain theSameElementsAs List("p1", "p2", "p3", "p4")
+    result shouldBe List(SString("red"))
   }
 
   it should "compute values" in {
-    val itemKey1 = Key(Tag(Scope(ItemScope.value), "p1"), FeatureName("seen_color_field_color"), Tenant("default"))
-    val itemKey2 = Key(Tag(Scope(ItemScope.value), "p2"), FeatureName("seen_color_field_color"), Tenant("default"))
-    val itemKey3 = Key(Tag(Scope(ItemScope.value), "p3"), FeatureName("seen_color_field_color"), Tenant("default"))
+    val itemKey1 = Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default"))
+    val itemKey2 = Key(Tag(ItemScope.scope, "p2"), FeatureName("seen_color_field"), Tenant("default"))
+    val itemKey3 = Key(Tag(ItemScope.scope, "p3"), FeatureName("seen_color_field"), Tenant("default"))
     val sesKey =
-      Key(Tag(Scope(SessionScope.value), "s1"), FeatureName("seen_color_last_impression"), Tenant("default"))
+      Key(Tag(SessionScope.scope, "s1"), FeatureName("seen_color_last"), Tenant("default"))
     val state = Map(
       itemKey1 -> ScalarValue(itemKey1, Timestamp.now, SString("red")),
       itemKey2 -> ScalarValue(itemKey2, Timestamp.now, SString("red")),
       itemKey3 -> ScalarValue(itemKey3, Timestamp.now, SString("green")),
-      sesKey   -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("p1"))))
+      sesKey   -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("red"))))
     )
     val request = TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1"))
+
     val values2 = feature.value(
       request = request,
       state = state,

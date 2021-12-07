@@ -1,10 +1,15 @@
 package ai.metarank.mode.bootstrap
 
+import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
-import ai.metarank.feature.FeatureMapping
-import ai.metarank.flow.{ClickthroughJoinFunction, DatasetSink, ImpressionInjectFunction}
-import ai.metarank.model.Clickthrough.CTJoin
-import ai.metarank.model.{Clickthrough, Event}
+import ai.metarank.flow.{
+  ClickthroughJoin,
+  ClickthroughJoinFunction,
+  DatasetSink,
+  EventStateJoin,
+  ImpressionInjectFunction
+}
+import ai.metarank.model.{Clickthrough, Event, EventState}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
 import ai.metarank.util.Logging
@@ -29,6 +34,7 @@ import scala.concurrent.duration._
 object Bootstrap extends IOApp with Logging {
   import ai.metarank.flow.DataStreamOps._
   import org.apache.flink.DataSetOps._
+  import ai.metarank.mode.TypeInfos._
 
   case object StateKeySelector extends KeySelector[State, Key] { override def getKey(value: State): Key = value.key }
 
@@ -42,9 +48,8 @@ object Bootstrap extends IOApp with Logging {
 
   def run(config: Config, cmd: BootstrapCmdline) = IO {
     File(cmd.outDir).createDirectoryIfNotExists(createParents = true)
-    val mapping       = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
-    val featurySchema = Schema(mapping.features.flatMap(_.states))
-    val streamEnv     = StreamExecutionEnvironment.getExecutionEnvironment
+    val mapping   = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+    val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
     streamEnv.setParallelism(cmd.parallelism)
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
 
@@ -57,17 +62,26 @@ object Bootstrap extends IOApp with Logging {
         case int: InteractionEvent => int.ranking
         case rank: RankingEvent    => rank.id
       }
-    val impressions   = groupedFeedback.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
-    val clickthroughs = groupedFeedback.process(ClickthroughJoinFunction()).id("clickthroughs")
-    val events        = raw.union(impressions)
-    val writes        = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-writes")
-    val updates       = Featury.process(writes, featurySchema, 20.seconds).id("process-writes")
-    val state         = updates.getSideOutput(FeatureProcessFunction.stateTag)
+    val impressions      = groupedFeedback.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
+    val clickthroughs    = groupedFeedback.process(ClickthroughJoinFunction()).id("clickthroughs")
+    val events           = raw.union(impressions)
+    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-writes")
+    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-writes")
+
+    val eventsWithState =
+      Featury.join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
+    val statefulWrites  = eventsWithState.flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
+    val statefulUpdates = Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds)
+
+    val updates = statelessUpdates.union(statefulUpdates)
+
+    val state = updates.getSideOutput(FeatureProcessFunction.stateTag)
     Featury.writeState(state, new Path(s"${cmd.outDir}/state"), Compress.NoCompression).id("write-state")
     Featury
       .writeFeatures(updates, new Path(s"file://${cmd.outDir}/features"), Compress.NoCompression)
       .id("write-features")
-    val joined = Featury.join[Clickthrough](updates, clickthroughs, CTJoin, mapping.underlyingSchema).id("timejoin")
+    val joined =
+      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("timejoin")
     val computed =
       joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions))).id("values")
     computed.sinkTo(DatasetSink(mapping, s"file://${cmd.outDir}/dataset")).id("write-train")
@@ -80,7 +94,7 @@ object Bootstrap extends IOApp with Logging {
     val transform = OperatorTransformation
       .bootstrapWith(stateSource.toJava)
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.underlyingSchema))
+      .transform(new FeatureBootstrapFunction(mapping.schema))
 
     Savepoint
       .create(new EmbeddedRocksDBStateBackend(), 32)

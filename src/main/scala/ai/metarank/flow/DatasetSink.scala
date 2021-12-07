@@ -1,6 +1,6 @@
 package ai.metarank.flow
 
-import ai.metarank.feature.FeatureMapping
+import ai.metarank.FeatureMapping
 import ai.metarank.flow.DatasetSink.CSVEncoderFactory
 import ai.metarank.model.{Clickthrough, MValue}
 import io.github.metarank.ltrlib.model.{LabeledItem, Query}
@@ -9,6 +9,7 @@ import org.apache.flink.api.common.serialization.{BulkWriter, Encoder}
 import org.apache.flink.connector.file.sink.FileSink
 import org.apache.flink.core.fs.{FSDataOutputStream, Path}
 import org.apache.flink.streaming.api.functions.sink.filesystem.OutputFileConfig
+
 import java.nio.charset.StandardCharsets
 
 object DatasetSink {

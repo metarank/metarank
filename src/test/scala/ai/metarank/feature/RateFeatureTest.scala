@@ -43,15 +43,6 @@ class RateFeatureTest extends AnyFlatSpec with Matchers {
     feature.writes(dummy) shouldBe empty
   }
 
-  it should "pull keys" in {
-    feature.keys(TestRankingEvent(List("p1", "p2")), Map.empty) shouldBe List(
-      Key(Tag(Scope("item"), "p1"), FeatureName("ctr_click"), Tenant("default")),
-      Key(Tag(Scope("item"), "p1"), FeatureName("ctr_impression"), Tenant("default")),
-      Key(Tag(Scope("item"), "p2"), FeatureName("ctr_click"), Tenant("default")),
-      Key(Tag(Scope("item"), "p2"), FeatureName("ctr_impression"), Tenant("default"))
-    )
-  }
-
   it should "compute value" in {
     val k1 = Key(Tag(Scope("item"), "p1"), FeatureName("ctr_click"), Tenant("default"))
     val k2 = Key(Tag(Scope("item"), "p1"), FeatureName("ctr_impression"), Tenant("default"))

@@ -1,5 +1,6 @@
 package ai.metarank.feature
 
+import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldSchema.StringFieldSchema
@@ -15,13 +16,13 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 
 import scala.concurrent.duration._
 
-case class StringFeature(schema: StringFeatureSchema) extends MFeature {
+case class StringFeature(schema: StringFeatureSchema) extends StatelessFeature {
   val possibleValues    = schema.values.toList
   val names             = possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.values.size
 
   private val conf = ScalarConfig(
-    scope = Scope(schema.scope.value),
+    scope = schema.scope.scope,
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
@@ -41,9 +42,6 @@ case class StringFeature(schema: StringFeatureSchema) extends MFeature {
   } yield {
     Put(key, event.timestamp, fieldValue)
   }
-
-  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] =
-    request.items.map(item => Key(conf, Tenant(request.tenant), item.id.value))
 
   override def value(
       request: Event.RankingEvent,

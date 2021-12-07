@@ -1,5 +1,6 @@
 package ai.metarank.feature
 
+import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.FeatureScope.ItemScope
@@ -16,19 +17,12 @@ import shapeless.syntax.typeable._
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class RateFeature(schema: RateFeatureSchema) extends MFeature {
+case class RateFeature(schema: RateFeatureSchema) extends StatelessFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 
-  override def keys(request: Event.RankingEvent, prestate: Map[Key, FeatureValue]): Traversable[Key] = for {
-    item    <- request.items
-    feature <- List(top.name.value, bottom.name.value)
-  } yield {
-    keyOf(ItemScope.value, item.id.value, feature, request.tenant)
-  }
-
   val top = PeriodicCounterConfig(
-    scope = Scope(schema.scope.value),
+    scope = schema.scope.scope,
     name = FeatureName(s"${schema.name}_${schema.top}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
@@ -36,7 +30,7 @@ case class RateFeature(schema: RateFeatureSchema) extends MFeature {
     ttl = schema.ttl.getOrElse(90.days)
   )
   val bottom = PeriodicCounterConfig(
-    scope = Scope(schema.scope.value),
+    scope = schema.scope.scope,
     name = FeatureName(s"${schema.name}_${schema.bottom}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
@@ -50,10 +44,20 @@ case class RateFeature(schema: RateFeatureSchema) extends MFeature {
 
   override def writes(event: Event): Traversable[Write] = event match {
     case e: InteractionEvent if e.`type` == schema.top =>
-      Some(PeriodicIncrement(keyOf(schema.scope.value, e.item.value, top.name.value, event.tenant), event.timestamp, 1))
+      Some(
+        PeriodicIncrement(
+          keyOf(schema.scope.scope.name, e.item.value, top.name.value, event.tenant),
+          event.timestamp,
+          1
+        )
+      )
     case e: InteractionEvent if e.`type` == schema.bottom =>
       Some(
-        PeriodicIncrement(keyOf(schema.scope.value, e.item.value, bottom.name.value, event.tenant), event.timestamp, 1)
+        PeriodicIncrement(
+          keyOf(schema.scope.scope.name, e.item.value, bottom.name.value, event.tenant),
+          event.timestamp,
+          1
+        )
       )
     case _ => None
   }

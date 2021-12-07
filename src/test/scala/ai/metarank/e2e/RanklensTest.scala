@@ -1,7 +1,8 @@
-package ai.metarank.demo
+package ai.metarank.e2e
 
+import ai.metarank.FeatureMapping
 import ai.metarank.config.Config.InteractionConfig
-import ai.metarank.feature.{FeatureMapping, WordCountFeature}
+import ai.metarank.feature.WordCountFeature
 import ai.metarank.model.{Clickthrough, Event, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
@@ -11,7 +12,6 @@ import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.featury.flink.{Featury, Join}
-import io.findify.featury.model.{FeatureValue, Key, Schema, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import io.findify.flinkadt.api._
 import ai.metarank.flow.DataStreamOps._
@@ -23,12 +23,12 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.flow.{ClickthroughJoinFunction, DatasetSink, ImpressionInjectFunction}
-import ai.metarank.model.Clickthrough.CTJoin
+import ai.metarank.flow.{ClickthroughJoin, ClickthroughJoinFunction, DatasetSink, ImpressionInjectFunction}
 import better.files.File
 import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
+  import ai.metarank.mode.TypeInfos._
   val features = List(
     NumberFeatureSchema("popularity", FieldName(Metadata, "popularity"), ItemScope),
     NumberFeatureSchema("vote_avg", FieldName(Metadata, "vote_avg"), ItemScope),
@@ -89,9 +89,9 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val merged        = source.union(impressions)
     val writes        = merged.flatMap(e => mapping.features.flatMap(_.writes(e)))
 
-    val updates = Featury.process(writes, mapping.underlyingSchema, 10.seconds)
+    val updates = Featury.process(writes, mapping.schema, 10.seconds)
 
-    val joined   = Featury.join[Clickthrough](updates, clickthroughs, CTJoin, mapping.underlyingSchema)
+    val joined   = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema)
     val computed = joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions)))
     val dir      = File.newTemporaryDirectory("csv_")
     computed.sinkTo(DatasetSink(mapping, s"file://$dir"))

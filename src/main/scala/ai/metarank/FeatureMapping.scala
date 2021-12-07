@@ -57,10 +57,11 @@ object FeatureMapping {
     }
     val features: List[MetaFeature] = stateless ++ stateful
     val featurySchema               = Schema(features.flatMap(_.states))
-    val dataset = stateless.map {
+    val datasetFeatures = features.map {
       case f: MetaFeature if f.dim == 1 => SingularFeature(f.schema.name)
       case f: MetaFeature               => VectorFeature(f.schema.name, f.dim)
     }
+    val datasetDescriptor = DatasetDescriptor(datasetFeatures)
     new FeatureMapping(
       features = features,
       statefulFeatures = stateful,
@@ -68,7 +69,7 @@ object FeatureMapping {
       schema = featurySchema,
       statefulSchema = Schema(stateful.flatMap(_.states)),
       weights = interactions.map(int => int.name -> int.weight).toMap,
-      datasetDescriptor = DatasetDescriptor(dataset)
+      datasetDescriptor = datasetDescriptor
     )
   }
 

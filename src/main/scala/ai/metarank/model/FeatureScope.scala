@@ -16,6 +16,14 @@ sealed trait FeatureScope {
 }
 
 object FeatureScope {
+  def tags(event: Event): Traversable[Tag] = {
+    Traversable.concat(
+      TenantScope.tags(event),
+      ItemScope.tags(event),
+      UserScope.tags(event),
+      SessionScope.tags(event)
+    )
+  }
   case object TenantScope extends FeatureScope {
     val scope                                         = Scope("tenant")
     override def tags(event: Event): Traversable[Tag] = Some(Tag(scope, event.tenant))

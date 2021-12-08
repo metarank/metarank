@@ -21,19 +21,7 @@ object DatasetSink {
 
   case class CSVWriter(stream: FSDataOutputStream, mapping: FeatureMapping) extends BulkWriter[Clickthrough] {
     override def addElement(element: Clickthrough): Unit = {
-      val items = for {
-        item <- element.values
-      } yield {
-        LabeledItem(
-          label = item.label,
-          group = math.abs(element.ranking.id.value.hashCode),
-          values = item.values.flatMap {
-            case MValue.SingleValue(_, value)     => List(value)
-            case MValue.VectorValue(_, values, _) => values
-          }.toArray
-        )
-      }
-      val query = Query(mapping.datasetDescriptor, items)
+      val query = ClickthroughQuery(element.values, element.ranking.id.value, mapping.datasetDescriptor)
       val block = CSVOutputFormat.writeGroup(query).map(_.mkString(",")).mkString("", "\n", "\n")
       stream.write(block.getBytes(StandardCharsets.UTF_8))
     }

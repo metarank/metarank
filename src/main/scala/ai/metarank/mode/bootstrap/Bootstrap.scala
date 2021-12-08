@@ -63,7 +63,7 @@ object Bootstrap extends IOApp with Logging {
       .writeFeatures(updates, new Path(s"file://${cmd.outDir}/features"), Compress.NoCompression)
       .id("write-features")
     val computed = joinFeatures(updates, grouped, mapping)
-    computed.sinkTo(DatasetSink(mapping, s"file://${cmd.outDir}/dataset")).id("write-train")
+    computed.sinkTo(DatasetSink.json(mapping, s"file://${cmd.outDir}/dataset")).id("write-train")
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")

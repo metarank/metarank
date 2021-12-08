@@ -3,8 +3,9 @@ package ai.metarank.mode.inference.api
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.mode.inference.api.RankApi.ItemScore
+import ai.metarank.mode.inference.ranking.RankScorer
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.{FeatureScope, ItemId}
+import ai.metarank.model.{FeatureScope, ItemId, MValue}
 import cats.effect.IO
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
@@ -15,40 +16,42 @@ import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
 import io.findify.featury.model.api.ReadRequest
 import io.findify.featury.values.FeatureStore
-import io.github.metarank.ltrlib.booster.LightGBMBooster
 import org.http4s.circe._
 
-case class RankApi(mapping: FeatureMapping, store: FeatureStore, model: String) {
+case class RankApi(mapping: FeatureMapping, store: FeatureStore, scorer: RankScorer) {
   import RankApi._
-  val booster = LightGBMBooster(model)
 
-  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" =>
+  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" :? ExplainParamDecoder(explain) =>
     for {
       request  <- post.as[RankingEvent]
-      response <- rerank(request)
+      response <- rerank(request, explain.getOrElse(true))
       ok       <- Ok(response.asJson)
     } yield {
       ok
     }
   }
 
-  def rerank(request: RankingEvent) = for {
-    keys  <- IO { mapping.keys(request) }
-    state <- store.read(ReadRequest(keys.toList))
-    items <- IO { mapping.map(request, state.features) }
-    query <- IO { ClickthroughQuery(items, request.id.value, mapping.datasetDescriptor) }
-    values = Array(0.0) ++ query.values
-    scores <- IO { booster.predictMat(values, query.rows, query.columns + 1) }
-    result <- IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2)) }
+  def rerank(request: RankingEvent, explain: Boolean) = for {
+    keys   <- IO { mapping.keys(request) }
+    state  <- store.read(ReadRequest(keys.toList))
+    items  <- IO { mapping.map(request, state.features) }
+    query  <- IO { ClickthroughQuery(items, request.id.value, mapping.datasetDescriptor) }
+    scores <- IO { scorer.score(query) }
+    result <- explain match {
+      case true  => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
+      case false => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
+    }
   } yield {
-    result
+    result.sortBy(-_.score)
   }
 }
 
 object RankApi {
-  case class ItemScore(item: ItemId, score: Double)
+  case class ItemScore(item: ItemId, score: Double, features: List[MValue])
   implicit val itemScoreCodec: Codec[ItemScore] = deriveCodec
 
   implicit val requestDecoder: EntityDecoder[IO, RankingEvent]      = jsonOf
   implicit val itemScoreEncoder: EntityEncoder[IO, List[ItemScore]] = jsonEncoderOf
+
+  object ExplainParamDecoder extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
 }

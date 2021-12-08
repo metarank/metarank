@@ -60,3 +60,8 @@ libraryDependencies ++= Seq(
   "io.findify"                       %% "flink-adt"                  % "0.4.4",
   "io.github.metarank"               %% "ltrlib"                     % "0.1.5"
 )
+
+enablePlugins(DockerPlugin)
+enablePlugins(JavaServerAppPackaging)
+dockerExposedPorts ++= Seq(8080)
+dockerBaseImage := "openjdk:11"

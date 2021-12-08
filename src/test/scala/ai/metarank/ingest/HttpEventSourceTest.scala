@@ -29,6 +29,7 @@ class HttpEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest with 
   lazy val port         = Random.nextInt(60000) + 1024
   override def beforeAll() = {
     env.enableCheckpointing(1000)
+    env.fromCollection()
     env.setRuntimeMode(RuntimeExecutionMode.AUTOMATIC)
     HttpEventSource(port)
       .eventStream(env)

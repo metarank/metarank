@@ -3,6 +3,7 @@ package ai.metarank.mode.inference
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.mode.inference.api.{HealthApi, RankApi}
+import ai.metarank.mode.inference.ranking.LightGBMScorer
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s._
@@ -29,7 +30,8 @@ object Inference extends IOApp {
   def serve(cmd: InferenceCmdline, config: Config) = {
     val store   = RedisStore(RedisConfig(cmd.redisHost, cmd.redisPort, cmd.format))
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
-    val routes  = HealthApi.routes <+> RankApi(mapping, store, cmd.model.contentAsString).routes
+    val scorer  = LightGBMScorer(cmd.model.contentAsString)
+    val routes  = HealthApi.routes <+> RankApi(mapping, store, scorer).routes
     val httpApp = Router("/" -> routes).orNotFound
     BlazeServerBuilder[IO].bindHttp(cmd.port).withHttpApp(httpApp).serve.compile.drain.as(ExitCode.Success)
   }

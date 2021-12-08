@@ -34,6 +34,7 @@ import ai.metarank.flow.{
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.mode.bootstrap.Bootstrap.{joinFeatures, makeUpdates}
 import ai.metarank.mode.inference.api.RankApi
+import ai.metarank.mode.inference.ranking.LightGBMScorer
 import better.files.{File, Resource}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
@@ -106,7 +107,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     Featury.writeFeatures(updates, new Path(updatesDir.toString()), Compress.NoCompression)
     val computed = Bootstrap.joinFeatures(updates, grouped, mapping)
 
-    computed.sinkTo(DatasetSink(mapping, s"file://$dir"))
+    computed.sinkTo(DatasetSink.csv(mapping, s"file://$dir"))
     env.execute()
   }
 
@@ -116,8 +117,8 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       r
     }.head
     val model    = IOUtils.toString(Resource.my.getAsStream("/ranklens/ranklens.model"), StandardCharsets.UTF_8)
-    val ranker   = RankApi(mapping, store, model)
-    val response = ranker.rerank(event).unsafeRunSync()
+    val ranker   = RankApi(mapping, store, LightGBMScorer(model))
+    val response = ranker.rerank(event, false).unsafeRunSync()
     val br       = 1
   }
 }

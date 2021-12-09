@@ -1,6 +1,7 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.Config
 import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.e2e.RanklensTest.DiskStore
 import ai.metarank.feature.WordCountFeature
@@ -45,56 +46,15 @@ import io.findify.featury.model.{FeatureValue, Key}
 import io.findify.featury.values.FeatureStore
 import org.apache.commons.io.IOUtils
 import org.apache.flink.core.fs.Path
-import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
 
 import java.nio.charset.StandardCharsets
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
-  val features = List(
-    NumberFeatureSchema("popularity", FieldName(Metadata, "popularity"), ItemScope),
-    NumberFeatureSchema("vote_avg", FieldName(Metadata, "vote_avg"), ItemScope),
-    NumberFeatureSchema("vote_cnt", FieldName(Metadata, "vote_cnt"), ItemScope),
-    NumberFeatureSchema("budget", FieldName(Metadata, "budget"), ItemScope),
-    NumberFeatureSchema("release_date", FieldName(Metadata, "release_date"), ItemScope),
-    WordCountSchema("title_length", FieldName(Metadata, "title"), ItemScope),
-    StringFeatureSchema(
-      "genre",
-      FieldName(Metadata, "genres"),
-      ItemScope,
-      NonEmptyList.of(
-        "drama",
-        "comedy",
-        "thriller",
-        "action",
-        "adventure",
-        "romance",
-        "crime",
-        "science fiction",
-        "fantasy",
-        "family",
-        "horror",
-        "mystery",
-        "animation",
-        "history",
-        "music"
-      )
-    ),
-    RateFeatureSchema("ctr", "impression", "click", 24.hours, List(7, 30), ItemScope),
-    InteractedWithSchema(
-      "clicked_genre",
-      "click",
-      FieldName(Metadata, "genres"),
-      SessionScope,
-      Some(10),
-      Some(24.hours)
-    )
-  )
-
-  val inters          = List(InteractionConfig("click", 1.0))
-  lazy val dir        = File.newTemporaryDirectory("csv_")
+  val config   = Config.load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8)).unsafeRunSync()
+  lazy val dir = File.newTemporaryDirectory("csv_")
   lazy val updatesDir = File.newTemporaryDirectory("updates_")
-  val mapping         = FeatureMapping.fromFeatureSchema(features, inters)
+  val mapping         = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
 
   it should "accept events" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)

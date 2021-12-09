@@ -4,7 +4,7 @@ import io.github.metarank.ltrlib.model.Query
 
 case class LightGBMScorer(booster: LightGBMBooster) extends RankScorer {
   override def score(input: Query): Array[Double] = {
-    val features = Array[Double](input.rows * (input.columns + 1))
+    val features = new Array[Double](input.rows * (input.columns + 1))
     var pos      = 0
     for {
       rowIndex <- 0 until input.rows

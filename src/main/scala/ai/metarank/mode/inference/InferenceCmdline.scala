@@ -7,7 +7,15 @@ import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.StoreCodec.{JsonCodec, ProtobufCodec}
 import scopt.OParser
 
-case class InferenceCmdline(port: Int, model: File, config: File, redisHost: String, redisPort: Int, format: StoreCodec)
+case class InferenceCmdline(
+    port: Int,
+    model: File,
+    config: File,
+    redisHost: String,
+    redisPort: Int,
+    format: StoreCodec,
+    batchSize: Int
+)
 
 object InferenceCmdline extends Logging {
   val builder = OParser.builder[InferenceCmdline]
@@ -36,6 +44,10 @@ object InferenceCmdline extends Logging {
         .text("redis port, 6379 by default")
         .optional()
         .action((m, cmd) => cmd.copy(redisPort = m)),
+      opt[Int]("batch-size")
+        .text("redis batch size, default 10")
+        .optional()
+        .action((m, cmd) => cmd.copy(batchSize = m)),
       opt[String]("format")
         .text("state encoding format, protobuf/json")
         .required()
@@ -49,7 +61,7 @@ object InferenceCmdline extends Logging {
   }
 
   def parse(args: List[String]): IO[InferenceCmdline] = for {
-    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, null, null, "", 6379, null)))(
+    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, null, null, "", 6379, null, 10)))(
       new IllegalArgumentException("cannot parse cmdline")
     )
     _ <- IO(logger.info(s"Port: ${cmd.port}"))

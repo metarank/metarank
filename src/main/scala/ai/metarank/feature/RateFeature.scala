@@ -70,8 +70,8 @@ case class RateFeature(schema: RateFeatureSchema) extends StatelessFeature {
     val result = for {
       topValue    <- state.get(keyOf(schema.scope, id, top.name, request.tenant))
       bottomValue <- state.get(keyOf(schema.scope, id, bottom.name, request.tenant))
-      topNum      <- topValue.cast[PeriodicCounterValue]
-      bottomNum   <- bottomValue.cast[PeriodicCounterValue]
+      topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim
+      bottomNum   <- bottomValue.cast[PeriodicCounterValue] if (bottomNum.values.size == dim)
     } yield {
       val values = topNum.values.zip(bottomNum.values).map(x => x._1.value / x._2.value.toDouble).toArray
       VectorValue(names, values, dim)

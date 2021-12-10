@@ -63,4 +63,23 @@ class RateFeatureTest extends AnyFlatSpec with Matchers {
     val result2 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemId("p2"))
     result2.asInstanceOf[VectorValue].values.toList shouldBe List(0.0, 0.0)
   }
+
+  it should "not skew dimensions if values are broken" in {
+    val k1 = Key(Tag(Scope("item"), "p1"), FeatureName("ctr_click"), Tenant("default"))
+    val k2 = Key(Tag(Scope("item"), "p1"), FeatureName("ctr_impression"), Tenant("default"))
+    val state = Map(
+      k1 -> PeriodicCounterValue(
+        k1,
+        Timestamp.now,
+        List(PeriodicValue(Timestamp(0), Timestamp(0), 7, 10)) // must be two, but only one present
+      ),
+      k2 -> PeriodicCounterValue(
+        k2,
+        Timestamp.now,
+        List(PeriodicValue(Timestamp(0), Timestamp(0), 7, 50))
+      )
+    )
+    val result1 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemId("p1"))
+    result1.asInstanceOf[VectorValue].values.toList shouldBe List(0.0, 0.0)
+  }
 }

@@ -36,7 +36,22 @@ features:
     type: string
     scope: item
     source: metadata.genres
-    values: [drama, comedy, thriller, action]
+    values:
+      - drama
+      - comedy
+      - thriller
+      - action
+      - adventure
+      - romance
+      - crime
+      - science fiction
+      - fantasy
+      - family
+      - horror
+      - mystery
+      - animation
+      - history
+      - music
 
   - name: ctr
     type: rate
@@ -44,7 +59,7 @@ features:
     bottom: impression
     scope: item
     bucket: 24h
-    periods: [7,14,30]
+    periods: [7,30]
 
   - name: liked_genre
     type: interacted_with

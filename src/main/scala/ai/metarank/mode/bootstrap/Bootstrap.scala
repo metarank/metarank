@@ -9,7 +9,7 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
-import ai.metarank.model.{Clickthrough, Event, EventState}
+import ai.metarank.model.{Clickthrough, Event, EventId, EventState}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
 import ai.metarank.util.Logging
@@ -17,9 +17,9 @@ import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
-import io.findify.featury.model.{Key, Schema, State}
+import io.findify.featury.model.{FeatureValue, Key, Schema, State}
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import org.apache.flink.streaming.api.scala.{DataStream, KeyedStream, StreamExecutionEnvironment}
 import io.findify.flinkadt.api._
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.scala.ExecutionEnvironment
@@ -55,36 +55,15 @@ object Bootstrap extends IOApp with Logging {
 
     logger.info("starting historical data processing")
     val raw: DataStream[Event] = FileEventSource(cmd.eventPath).eventStream(streamEnv).id("load")
-    val groupedFeedback = raw
-      .collect { case f: FeedbackEvent => f }
-      .id("select-feedback")
-      .keyingBy {
-        case int: InteractionEvent => int.ranking
-        case rank: RankingEvent    => rank.id
-      }
-    val impressions      = groupedFeedback.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
-    val clickthroughs    = groupedFeedback.process(ClickthroughJoinFunction()).id("clickthroughs")
-    val events           = raw.union(impressions)
-    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-writes")
-    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-writes")
+    val grouped                = groupFeedback(raw)
+    val (state, updates)       = makeUpdates(raw, grouped, mapping)
 
-    val eventsWithState =
-      Featury.join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
-    val statefulWrites  = eventsWithState.flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
-    val statefulUpdates = Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds)
-
-    val updates = statelessUpdates.union(statefulUpdates)
-
-    val state = updates.getSideOutput(FeatureProcessFunction.stateTag)
     Featury.writeState(state, new Path(s"${cmd.outDir}/state"), Compress.NoCompression).id("write-state")
     Featury
       .writeFeatures(updates, new Path(s"file://${cmd.outDir}/features"), Compress.NoCompression)
       .id("write-features")
-    val joined =
-      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("timejoin")
-    val computed =
-      joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions))).id("values")
-    computed.sinkTo(DatasetSink(mapping, s"file://${cmd.outDir}/dataset")).id("write-train")
+    val computed = joinFeatures(updates, grouped, mapping)
+    computed.sinkTo(DatasetSink.json(mapping, s"file://${cmd.outDir}/dataset")).id("write-train")
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
@@ -103,5 +82,46 @@ object Bootstrap extends IOApp with Logging {
 
     batch.execute("savepoint")
     logger.info("done")
+  }
+
+  def groupFeedback(raw: DataStream[Event]) = {
+    raw
+      .collect { case f: FeedbackEvent => f }
+      .id("select-feedback")
+      .keyingBy {
+        case int: InteractionEvent => int.ranking
+        case rank: RankingEvent    => rank.id
+      }
+  }
+
+  def makeUpdates(raw: DataStream[Event], grouped: KeyedStream[FeedbackEvent, EventId], mapping: FeatureMapping) = {
+    val impressions      = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
+    val events           = raw.union(impressions)
+    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-writes")
+    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-writes")
+
+    val eventsWithState =
+      Featury.join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
+    val statefulWrites  = eventsWithState.flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
+    val statefulUpdates = Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds)
+
+    val state1  = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
+    val state2  = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
+    val state   = state1.union(state2)
+    val updates = statelessUpdates.union(statefulUpdates)
+    (state, updates)
+  }
+
+  def joinFeatures(
+      updates: DataStream[FeatureValue],
+      grouped: KeyedStream[FeedbackEvent, EventId],
+      mapping: FeatureMapping
+  ) = {
+    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id("clickthroughs")
+    val joined =
+      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("timejoin")
+    val computed =
+      joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions))).id("values")
+    computed
   }
 }

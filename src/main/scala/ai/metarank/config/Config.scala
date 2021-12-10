@@ -19,12 +19,18 @@ object Config extends Logging {
   implicit val intDecoder: Decoder[InteractionConfig] = deriveDecoder
   implicit val configDecoder: Decoder[Config]         = deriveDecoder
 
-  def load(path: String): IO[Config] = for {
-    contents <- IO(File(path).contentAsString)
-    yaml     <- IO.fromEither(parseYaml(contents))
-    decoded  <- IO.fromEither(yaml.as[Config])
+  def load(path: File): IO[Config] = for {
+    contents <- IO { path.contentAsString }
+    config   <- load(contents)
     _        <- IO(logger.info(s"loaded config file from $path"))
-    _        <- IO(logger.info(s"features: ${decoded.features.map(_.name)}"))
+  } yield {
+    config
+  }
+
+  def load(contents: String): IO[Config] = for {
+    yaml    <- IO.fromEither(parseYaml(contents))
+    decoded <- IO.fromEither(yaml.as[Config])
+    _       <- IO(logger.info(s"features: ${decoded.features.map(_.name)}"))
   } yield {
     decoded
   }

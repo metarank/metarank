@@ -12,5 +12,5 @@ case class Clickthrough(
 )
 
 object Clickthrough {
-  case class ItemValues(id: ItemId, label: Double, values: List[MValue])
+  case class ItemValues(id: ItemId, label: Double, values: List[MValue], score: Double = 0)
 }

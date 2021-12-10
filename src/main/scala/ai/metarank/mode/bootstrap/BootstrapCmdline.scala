@@ -1,10 +1,11 @@
 package ai.metarank.mode.bootstrap
 
 import ai.metarank.util.Logging
+import better.files.File
 import cats.effect.IO
 import scopt.OParser
 
-case class BootstrapCmdline(eventPath: String, outDir: String, config: String, parallelism: Int)
+case class BootstrapCmdline(eventPath: String, outDir: String, config: File, parallelism: Int)
 
 object BootstrapCmdline extends Logging {
   val builder = OParser.builder[BootstrapCmdline]
@@ -23,7 +24,7 @@ object BootstrapCmdline extends Logging {
         .action((m, cmd) => cmd.copy(outDir = m)),
       opt[String]("config")
         .text("config file")
-        .action((m, cmd) => cmd.copy(config = m)),
+        .action((m, cmd) => cmd.copy(config = File(m))),
       opt[Int]("parallelism")
         .text("parallelism for a bootstrap job")
         .action((v, cmd) => cmd.copy(parallelism = v))
@@ -31,7 +32,7 @@ object BootstrapCmdline extends Logging {
   }
 
   def parse(args: List[String]): IO[BootstrapCmdline] = for {
-    cmd <- IO.fromOption(OParser.parse(parser, args, BootstrapCmdline("", "", "", 1)))(
+    cmd <- IO.fromOption(OParser.parse(parser, args, BootstrapCmdline("", "", null, 1)))(
       new IllegalArgumentException("cannot parse cmdline")
     )
     _ <- IO(logger.info(s"Event path dir: ${cmd.eventPath}"))

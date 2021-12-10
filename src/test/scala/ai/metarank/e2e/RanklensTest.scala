@@ -1,9 +1,11 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.Config
 import ai.metarank.config.Config.InteractionConfig
+import ai.metarank.e2e.RanklensTest.DiskStore
 import ai.metarank.feature.WordCountFeature
-import ai.metarank.model.{Clickthrough, Event, FieldName, ItemId, UserId}
+import ai.metarank.model.{Clickthrough, Event, EventState, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.FieldName.Metadata
@@ -23,79 +25,91 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.flow.{ClickthroughJoin, ClickthroughJoinFunction, DatasetSink, ImpressionInjectFunction}
-import better.files.File
-import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
+import ai.metarank.flow.{
+  ClickthroughJoin,
+  ClickthroughJoinFunction,
+  DatasetSink,
+  EventStateJoin,
+  ImpressionInjectFunction
+}
+import ai.metarank.mode.bootstrap.Bootstrap
+import ai.metarank.mode.bootstrap.Bootstrap.{joinFeatures, makeUpdates}
+import ai.metarank.mode.inference.api.RankApi
+import ai.metarank.mode.inference.ranking.LightGBMScorer
+import better.files.{File, Resource}
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import io.findify.featury.flink.format.BulkCodec
+import io.findify.featury.flink.util.Compress
+import io.findify.featury.model.api.{ReadRequest, ReadResponse}
+import io.findify.featury.model.{FeatureValue, Key}
+import io.findify.featury.values.FeatureStore
+import org.apache.commons.io.IOUtils
+import org.apache.flink.core.fs.Path
+
+import java.nio.charset.StandardCharsets
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
-  val features = List(
-    NumberFeatureSchema("popularity", FieldName(Metadata, "popularity"), ItemScope),
-    NumberFeatureSchema("vote_avg", FieldName(Metadata, "vote_avg"), ItemScope),
-    NumberFeatureSchema("vote_cnt", FieldName(Metadata, "vote_cnt"), ItemScope),
-    NumberFeatureSchema("budget", FieldName(Metadata, "budget"), ItemScope),
-    NumberFeatureSchema("release_date", FieldName(Metadata, "release_date"), ItemScope),
-    WordCountSchema("title_length", FieldName(Metadata, "title"), ItemScope),
-    StringFeatureSchema(
-      "genre",
-      FieldName(Metadata, "genres"),
-      ItemScope,
-      NonEmptyList.of(
-        "drama",
-        "comedy",
-        "thriller",
-        "action",
-        "adventure",
-        "romance",
-        "crime",
-        "science fiction",
-        "fantasy",
-        "family",
-        "horror",
-        "mystery",
-        "animation",
-        "history",
-        "music"
-      )
-    ),
-    RateFeatureSchema("ctr", "impression", "click", 24.hours, List(7, 30), ItemScope),
-    InteractedWithSchema(
-      "clicked_genre",
-      "click",
-      FieldName(Metadata, "genres"),
-      SessionScope,
-      Some(10),
-      Some(24.hours)
-    )
-  )
-
-  val inters = List(InteractionConfig("click", 1.0))
+  val config   = Config.load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8)).unsafeRunSync()
+  lazy val dir = File.newTemporaryDirectory("csv_")
+  lazy val updatesDir = File.newTemporaryDirectory("updates_")
+  val mapping         = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
 
   it should "accept events" in {
-    val mapping = FeatureMapping.fromFeatureSchema(features, inters)
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
 
     val events = RanklensEvents()
 
-    val source = env.fromCollection(events).watermark(_.timestamp.ts)
-    val groupedFeedback = source
-      .collect { case f: FeedbackEvent => f }
-      .keyingBy {
-        case interaction: InteractionEvent => interaction.ranking
-        case ranking: RankingEvent         => ranking.id
-      }
-    val impressions   = groupedFeedback.process(ImpressionInjectFunction("impression", 30.minutes))
-    val clickthroughs = groupedFeedback.process(ClickthroughJoinFunction())
-    val merged        = source.union(impressions)
-    val writes        = merged.flatMap(e => mapping.features.flatMap(_.writes(e)))
+    val source  = env.fromCollection(events).watermark(_.timestamp.ts)
+    val grouped = Bootstrap.groupFeedback(source)
+    val updates = Bootstrap.makeUpdates(source, grouped, mapping)._2
+    Featury.writeFeatures(updates, new Path(updatesDir.toString()), Compress.NoCompression)
+    val computed = Bootstrap.joinFeatures(updates, grouped, mapping)
 
-    val updates = Featury.process(writes, mapping.schema, 10.seconds)
-
-    val joined   = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema)
-    val computed = joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions)))
-    val dir      = File.newTemporaryDirectory("csv_")
-    computed.sinkTo(DatasetSink(mapping, s"file://$dir"))
+    computed.sinkTo(DatasetSink.csv(mapping, s"file://$dir"))
     env.execute()
-    val br = 1
+  }
+
+  it should "rerank things" in {
+    val store = DiskStore(updatesDir)
+    val event = RanklensEvents().collect { case r: RankingEvent =>
+      r
+    }.head
+    val model    = IOUtils.toString(Resource.my.getAsStream("/ranklens/ranklens.model"), StandardCharsets.UTF_8)
+    val ranker   = RankApi(mapping, store, LightGBMScorer(model))
+    val response = ranker.rerank(event, false).unsafeRunSync()
+    val br       = 1
+  }
+}
+
+object RanklensTest {
+  case class DiskStore(map: Map[Key, FeatureValue]) extends FeatureStore {
+    override def read(request: ReadRequest): IO[ReadResponse] = IO {
+      val values = for {
+        key   <- request.keys
+        value <- map.get(key)
+      } yield {
+        value
+      }
+      ReadResponse(values)
+    }
+
+    override def write(batch: List[FeatureValue]): IO[Unit] = ???
+
+    override def close(): IO[Unit] = IO.unit
+  }
+
+  object DiskStore {
+    def apply(path: File): DiskStore = {
+      val values = for {
+        file <- path.listRecursively.filter(_.extension(includeDot = false).contains("pb"))
+        stream = file.newFileInputStream
+        value <- Iterator.continually(BulkCodec.featureValueProtobufCodec.read(stream)).takeWhile(_.isDefined).flatten
+      } yield {
+        value.key -> value
+      }
+      DiskStore(values.toMap)
+    }
   }
 }

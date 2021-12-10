@@ -2,13 +2,11 @@ package ai.metarank.mode.inference.api
 
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
-import ai.metarank.mode.inference.api.RankApi.ItemScore
+import ai.metarank.mode.inference.RankResponse
+import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
 import ai.metarank.mode.inference.ranking.RankScorer
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.{FeatureScope, ItemId, MValue}
 import cats.effect.IO
-import io.circe.Codec
-import io.circe.generic.semiauto.deriveCodec
 import org.http4s.HttpRoutes
 import org.http4s._
 import org.http4s.dsl.io._
@@ -24,7 +22,7 @@ case class RankApi(mapping: FeatureMapping, store: FeatureStore, scorer: RankSco
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" :? ExplainParamDecoder(explain) =>
     for {
       request  <- post.as[RankingEvent]
-      response <- rerank(request, explain.getOrElse(true))
+      response <- rerank(request, explain.getOrElse(false))
       ok       <- Ok(response.asJson)
     } yield {
       ok
@@ -42,16 +40,14 @@ case class RankApi(mapping: FeatureMapping, store: FeatureStore, scorer: RankSco
       case false => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
     }
   } yield {
-    result.sortBy(-_.score)
+    RankResponse(state = StateValues(state.features), items = result.sortBy(-_.score))
   }
 }
 
 object RankApi {
-  case class ItemScore(item: ItemId, score: Double, features: List[MValue])
-  implicit val itemScoreCodec: Codec[ItemScore] = deriveCodec
 
-  implicit val requestDecoder: EntityDecoder[IO, RankingEvent]      = jsonOf
-  implicit val itemScoreEncoder: EntityEncoder[IO, List[ItemScore]] = jsonEncoderOf
+  implicit val requestDecoder: EntityDecoder[IO, RankingEvent]   = jsonOf
+  implicit val itemScoreEncoder: EntityEncoder[IO, RankResponse] = jsonEncoderOf
 
   object ExplainParamDecoder extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
 }

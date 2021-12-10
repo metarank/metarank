@@ -14,11 +14,16 @@ class RankApiTest extends AnyFlatSpec with Matchers {
 
   it should "respond with the same data reranked" in {
     val response = service.rerank(TestRankingEvent(List("p1", "p2", "p3")), explain = false).unsafeRunSync()
-    response.map(_.item.value) shouldBe List("p1", "p3", "p2")
+    response.items.map(_.item.value) shouldBe List("p1", "p3", "p2")
   }
 
   it should "emit feature values" in {
     val response = service.rerank(TestRankingEvent(List("p1", "p2", "p3")), explain = true).unsafeRunSync()
-    response.forall(_.features.size == 5) shouldBe true
+    response.items.forall(_.features.size == 5) shouldBe true
+  }
+
+  it should "emit state" in {
+    val response = service.rerank(TestRankingEvent(List("p1", "p2", "p3")), explain = true).unsafeRunSync()
+    response.state.session.size shouldBe 1
   }
 }

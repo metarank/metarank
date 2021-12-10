@@ -45,7 +45,7 @@ object InferenceCmdline extends Logging {
         .optional()
         .action((m, cmd) => cmd.copy(redisPort = m)),
       opt[Int]("batch-size")
-        .text("redis batch size, default 10")
+        .text("redis batch size, default 1")
         .optional()
         .action((m, cmd) => cmd.copy(batchSize = m)),
       opt[String]("format")
@@ -61,7 +61,7 @@ object InferenceCmdline extends Logging {
   }
 
   def parse(args: List[String]): IO[InferenceCmdline] = for {
-    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, null, null, "", 6379, null, 10)))(
+    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, null, null, "", 6379, null, 1)))(
       new IllegalArgumentException("cannot parse cmdline")
     )
     _ <- IO(logger.info(s"Port: ${cmd.port}"))

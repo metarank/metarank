@@ -8,6 +8,7 @@
     </appender>
 
     <logger name="org.apache.flink" level="WARN"/>
+    <logger name="io.findify.featury" level="ERROR"/>
     <root level="error">
         <appender-ref ref="STDOUT"/>
     </root>

@@ -31,7 +31,7 @@ class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
       )
     )
     val dir = File.newTemporaryDirectory("csv_")
-    env.fromCollection(List(ct)).sinkTo(DatasetSink(mapping, s"file://$dir"))
+    env.fromCollection(List(ct)).sinkTo(DatasetSink.csv(mapping, s"file://$dir"))
     env.execute()
     val csv = dir.listRecursively.filter(_.name.endsWith(".csv")).toList.headOption.map(_.contentAsString)
     val expected = """label,group,budget

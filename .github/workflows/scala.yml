@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: install git-lfs
-      run: "apt update && apt install git-lfs"
+      run: "apt update && apt install git-lfs libgomp1"
     - uses: actions/checkout@v2
       with:
         lfs: 'true'

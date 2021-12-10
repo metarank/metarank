@@ -11,8 +11,9 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{FeatureSchema, FieldSchema}
-import io.findify.featury.model.{FeatureValue, Schema}
+import ai.metarank.model.{FeatureSchema, FeatureScope, FieldSchema}
+import io.findify.featury.model.Key.Tenant
+import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
 
@@ -40,6 +41,14 @@ case class FeatureMapping(
     }
 
   }
+
+  def keys(ranking: RankingEvent): Traversable[Key] = for {
+    tag           <- FeatureScope.tags(ranking)
+    scopeFeatures <- schema.scopeNameCache.get(tag.scope).toTraversable
+    featureName   <- scopeFeatures
+  } yield {
+    Key(tag, featureName, Tenant(ranking.tenant))
+  }
 }
 
 object FeatureMapping {
@@ -50,7 +59,6 @@ object FeatureMapping {
       case c: BooleanFeatureSchema => BooleanFeature(c)
       case c: WordCountSchema      => WordCountFeature(c)
       case c: RateFeatureSchema    => RateFeature(c)
-
     }
     val stateful = schema.collect { case c: InteractedWithSchema =>
       InteractedWithFeature(c)

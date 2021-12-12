@@ -56,7 +56,7 @@ libraryDependencies ++= Seq(
   "org.http4s"           %% "http4s-blaze-client"        % http4sVersion,
   "org.http4s"           %% "http4s-circe"               % http4sVersion,
   "io.findify"           %% "flink-adt"                  % "0.4.4",
-  "io.github.metarank"   %% "ltrlib"                     % "0.1.5"
+  "io.github.metarank"   %% "ltrlib"                     % "0.1.6.1"
 )
 
 enablePlugins(DockerPlugin)

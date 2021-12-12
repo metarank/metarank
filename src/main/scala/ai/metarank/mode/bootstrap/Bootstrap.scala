@@ -105,9 +105,12 @@ object Bootstrap extends IOApp with Logging {
     val statefulWrites  = eventsWithState.flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
     val statefulUpdates = Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds)
 
-    val state1  = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
-    val state2  = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
-    val state   = state1.union(state2)
+    val state1 = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
+    val state2 = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
+    val state = state1
+      .union(state2)
+      .keyBy(_.key)
+      .reduce((a, b) => if (a.ts.isAfter(b.ts)) a else b) // use only last state version
     val updates = statelessUpdates.union(statefulUpdates)
     (state, updates)
   }

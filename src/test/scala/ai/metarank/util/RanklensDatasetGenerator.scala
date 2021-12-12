@@ -81,19 +81,24 @@ object RanklensDatasetGenerator {
         id = EventId(UUID.randomUUID().toString),
         item = ItemId(m.id.toString),
         timestamp = time0,
-        fields = List(
-          StringField("title", m.title),
-          NumberField("popularity", m.tmdbPopularity),
-          NumberField("vote_avg", m.tmdbVoteAverage),
-          NumberField("vote_cnt", m.tmdbVoteCount),
-          NumberField("budget", m.budget),
-          NumberField(
-            "release_date",
-            LocalDate.parse(m.releaseDate, DateTimeFormatter.ISO_DATE).atTime(0, 0, 0).toEpochSecond(ZoneOffset.UTC)
+        fields = List.concat(
+          List(
+            StringField("title", m.title),
+            NumberField("popularity", m.tmdbPopularity),
+            NumberField("vote_avg", m.tmdbVoteAverage),
+            NumberField("vote_cnt", m.tmdbVoteCount),
+            NumberField("budget", m.budget),
+            NumberField("runtime", m.runtime),
+            NumberField(
+              "release_date",
+              LocalDate.parse(m.releaseDate, DateTimeFormatter.ISO_DATE).atTime(0, 0, 0).toEpochSecond(ZoneOffset.UTC)
+            ),
+            StringListField("genres", m.genres.map(_.name.toLowerCase())),
+            StringListField("tags", m.tags),
+            StringListField("actors", m.topActors.map(_.name.toLowerCase))
           ),
-          StringListField("genres", m.genres.map(_.name.toLowerCase())),
-          StringListField("tags", m.tags),
-          StringListField("actors", m.topActors.map(_.name.toLowerCase))
+          m.director.map(d => StringField("director", d.name.toLowerCase())),
+          m.writer.map(w => StringField("writer", w.name.toLowerCase()))
         ),
         tenant = "default"
       )

@@ -20,7 +20,7 @@ import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunctio
 import io.findify.featury.model.{FeatureValue, Key, Schema, State}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.streaming.api.scala.{DataStream, KeyedStream, StreamExecutionEnvironment}
-import io.findify.flinkadt.api._
+import org.apache.flink.api.scala._
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend
@@ -70,14 +70,21 @@ object Bootstrap extends IOApp with Logging {
     val batch = ExecutionEnvironment.getExecutionEnvironment
     batch.setParallelism(cmd.parallelism)
     val stateSource = Featury.readState(batch, new Path(s"${cmd.outDir}/state"), Compress.NoCompression)
-    val transform = OperatorTransformation
+
+    val transformStateless = OperatorTransformation
       .bootstrapWith(stateSource.toJava)
-      .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.schema))
+      .keyBy(StateKeySelector, createTypeInformation[Key])
+      .transform(new FeatureBootstrapFunction(mapping.statelessSchema))
+
+    val transformStateful = OperatorTransformation
+      .bootstrapWith(stateSource.toJava)
+      .keyBy(StateKeySelector, createTypeInformation[Key])
+      .transform(new FeatureBootstrapFunction(mapping.statefulSchema))
 
     Savepoint
       .create(new EmbeddedRocksDBStateBackend(), 32)
-      .withOperator("feature-process", transform)
+      .withOperator("process-stateless-writes", transformStateless)
+      .withOperator("process-stateful-writes", transformStateful)
       .write(s"${cmd.outDir}/savepoint")
 
     batch.execute("savepoint")
@@ -97,20 +104,26 @@ object Bootstrap extends IOApp with Logging {
   def makeUpdates(raw: DataStream[Event], grouped: KeyedStream[FeedbackEvent, EventId], mapping: FeatureMapping) = {
     val impressions      = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
     val events           = raw.union(impressions)
-    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-writes")
-    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-writes")
+    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-stateless-writes")
+    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-stateless-writes")
 
     val eventsWithState =
-      Featury.join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
-    val statefulWrites  = eventsWithState.flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
-    val statefulUpdates = Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds)
+      Featury
+        .join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
+        .id("join-state")
+    val statefulWrites = eventsWithState
+      .flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
+      .id("expand-stateful-writes")
+    val statefulUpdates =
+      Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds).id("process-stateful-writes")
 
     val state1 = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
     val state2 = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
     val state = state1
       .union(state2)
       .keyBy(_.key)
-      .reduce((a, b) => if (a.ts.isAfter(b.ts)) a else b) // use only last state version
+      .reduce((a, b) => if (a.ts.isAfter(b.ts)) a else b)
+      .id("select-last-state") // use only last state version
     val updates = statelessUpdates.union(statefulUpdates)
     (state, updates)
   }

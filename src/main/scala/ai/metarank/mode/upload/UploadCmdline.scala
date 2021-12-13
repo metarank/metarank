@@ -16,7 +16,7 @@ object UploadCmdline extends Logging {
     OParser.sequence(
       programName("Upload"),
       head("Metarank", "v0.x"),
-      opt[String]("state-dir")
+      opt[String]("features-dir")
         .text("path to /features directory after the bootstrap, like file:///tmp/data or s3://bucket/dir")
         .required()
         .action((m, cmd) => cmd.copy(dir = m)),

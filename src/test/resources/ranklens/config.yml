@@ -27,6 +27,11 @@ features:
     scope: item
     source: metadata.release_date
 
+  - name: runtime
+    type: number
+    scope: item
+    source: metadata.runtime
+
   - name: title_length
     type: word_count
     source: metadata.title
@@ -65,6 +70,30 @@ features:
     type: interacted_with
     interaction: click
     field: metadata.genres
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: liked_actors
+    type: interacted_with
+    interaction: click
+    field: metadata.actors
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: liked_tags
+    type: interacted_with
+    interaction: click
+    field: metadata.tags
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: liked_director
+    type: interacted_with
+    interaction: click
+    field: metadata.director
     scope: session
     count: 10
     duration: 24h

@@ -39,7 +39,6 @@ libraryDependencies ++= Seq(
   "com.github.blemale"   %% "scaffeine"                  % "5.1.1",
   "com.github.fppt"       % "jedis-mock"                 % "0.1.23"         % Test,
   "redis.clients"         % "jedis"                      % "3.7.1",
-  "com.propensive"       %% "magnolia"                   % "0.17.0",
   "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
   "com.google.guava"      % "guava"                      % "30.1.1-jre",
   "org.apache.lucene"     % "lucene-core"                % luceneVersion,
@@ -51,15 +50,27 @@ libraryDependencies ++= Seq(
   "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
   "org.apache.flink"     %% "flink-runtime-web"          % flinkVersion,
   "org.apache.flink"     %% "flink-streaming-scala"      % flinkVersion,
-  "org.http4s"           %% "http4s-dsl"                 % http4sVersion,
-  "org.http4s"           %% "http4s-blaze-server"        % http4sVersion,
-  "org.http4s"           %% "http4s-blaze-client"        % http4sVersion,
-  "org.http4s"           %% "http4s-circe"               % http4sVersion,
-  "io.findify"           %% "flink-adt"                  % "0.4.4",
-  "io.github.metarank"   %% "ltrlib"                     % "0.1.6.1"
+  "org.apache.flink"     %% "flink-test-utils"           % flinkVersion excludeAll (
+    ExclusionRule("org.apache.curator"),
+    ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
+  ),
+  "org.http4s"         %% "http4s-dsl"          % http4sVersion,
+  "org.http4s"         %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s"         %% "http4s-blaze-client" % http4sVersion,
+  "org.http4s"         %% "http4s-circe"        % http4sVersion,
+  "io.findify"         %% "flink-adt"           % "0.4.5",
+  "io.github.metarank" %% "ltrlib"              % "0.1.6.1"
 )
 
 enablePlugins(DockerPlugin)
 enablePlugins(JavaServerAppPackaging)
 dockerExposedPorts ++= Seq(8080)
 dockerBaseImage := "openjdk:11"
+
+ThisBuild / assemblyMergeStrategy := {
+  case PathList("module-info.class")         => MergeStrategy.discard
+  case x if x.endsWith("/module-info.class") => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+    oldStrategy(x)
+}

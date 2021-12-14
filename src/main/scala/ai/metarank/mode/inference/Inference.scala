@@ -17,7 +17,7 @@ import cats.implicits._
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
-import io.findify.flinkadt.api._
+import org.apache.flink.api.scala._
 
 object Inference extends IOApp {
   import ai.metarank.mode.TypeInfos._
@@ -27,10 +27,14 @@ object Inference extends IOApp {
       cmd     <- InferenceCmdline.parse(args)
       config  <- Config.load(cmd.config)
       mapping <- IO { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
-      result <- FeedbackFlow
-        .resource(dir.toString(), mapping, cmd)
-        .use(_ => {
-          serve(cmd, config, dir)
+      result <- FlinkMinicluster
+        .resource()
+        .use(cluster => {
+          FeedbackFlow
+            .resource(cluster, dir.toString(), mapping, cmd)
+            .use(_ => {
+              serve(cmd, config, dir)
+            })
         })
     } yield {
       result
@@ -44,6 +48,6 @@ object Inference extends IOApp {
     val routes =
       HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(new LocalDirWriter(dir)).routes
     val httpApp = Router("/" -> routes).orNotFound
-    BlazeServerBuilder[IO].bindHttp(cmd.port).withHttpApp(httpApp).serve.compile.drain.as(ExitCode.Success)
+    BlazeServerBuilder[IO].bindHttp(cmd.port, cmd.host).withHttpApp(httpApp).serve.compile.drain.as(ExitCode.Success)
   }
 }

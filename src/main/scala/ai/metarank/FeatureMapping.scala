@@ -23,6 +23,7 @@ case class FeatureMapping(
     fields: List[FieldSchema],
     schema: Schema,
     statefulSchema: Schema,
+    statelessSchema: Schema,
     weights: Map[String, Double],
     datasetDescriptor: DatasetDescriptor
 ) {
@@ -76,6 +77,7 @@ object FeatureMapping {
       fields = stateless.flatMap(_.fields),
       schema = featurySchema,
       statefulSchema = Schema(stateful.flatMap(_.states)),
+      statelessSchema = Schema(stateless.flatMap(_.states)),
       weights = interactions.map(int => int.name -> int.weight).toMap,
       datasetDescriptor = datasetDescriptor
     )

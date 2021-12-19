@@ -15,7 +15,6 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings
 import org.apache.flink.streaming.util.TestStreamEnvironment
-import org.apache.flink.test.util.MiniClusterWithClientResource
 
 object FeedbackFlow extends Logging {
   import ai.metarank.flow.DataStreamOps._

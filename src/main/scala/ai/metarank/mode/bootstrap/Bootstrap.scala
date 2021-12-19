@@ -15,12 +15,15 @@ import ai.metarank.source.{EventSource, FileEventSource}
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
+import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
+import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
+import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema, State}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.streaming.api.scala.{DataStream, KeyedStream, StreamExecutionEnvironment}
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend
@@ -37,6 +40,9 @@ object Bootstrap extends IOApp with Logging {
   import ai.metarank.mode.TypeInfos._
 
   case object StateKeySelector extends KeySelector[State, Key] { override def getKey(value: State): Key = value.key }
+  case object FeatureValueKeySelector extends KeySelector[FeatureValue, Tenant] {
+    override def getKey(value: FeatureValue): Tenant = value.key.tenant
+  }
 
   override def run(args: List[String]): IO[ExitCode] = for {
     cmd    <- BootstrapCmdline.parse(args)
@@ -71,20 +77,38 @@ object Bootstrap extends IOApp with Logging {
     batch.setParallelism(cmd.parallelism)
     val stateSource = Featury.readState(batch, new Path(s"${cmd.outDir}/state"), Compress.NoCompression)
 
+    val valuesPath = s"file://${cmd.outDir}/features"
+    val valuesSource = batch
+      .readFile(
+        new BulkInputFormat[FeatureValue](
+          path = new Path(valuesPath),
+          codec = BulkCodec.featureValueProtobufCodec,
+          compress = Compress.NoCompression
+        ),
+        valuesPath
+      )
+      .toJava
+
+    val transformStateJoin = OperatorTransformation
+      .bootstrapWith(valuesSource)
+      .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
+      .transform(new FeatureJoinBootstrapFunction())
+
     val transformStateless = OperatorTransformation
       .bootstrapWith(stateSource.toJava)
-      .keyBy(StateKeySelector, createTypeInformation[Key])
+      .keyBy(StateKeySelector, deriveTypeInformation[Key])
       .transform(new FeatureBootstrapFunction(mapping.statelessSchema))
 
     val transformStateful = OperatorTransformation
       .bootstrapWith(stateSource.toJava)
-      .keyBy(StateKeySelector, createTypeInformation[Key])
+      .keyBy(StateKeySelector, deriveTypeInformation[Key])
       .transform(new FeatureBootstrapFunction(mapping.statefulSchema))
 
     Savepoint
       .create(new EmbeddedRocksDBStateBackend(), 32)
       .withOperator("process-stateless-writes", transformStateless)
       .withOperator("process-stateful-writes", transformStateful)
+      .withOperator("join-state", transformStateJoin)
       .write(s"${cmd.outDir}/savepoint")
 
     batch.execute("savepoint")

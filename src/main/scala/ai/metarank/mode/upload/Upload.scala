@@ -9,7 +9,7 @@ import io.findify.featury.flink.util.Compress
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.apache.flink.core.fs.Path
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import scala.language.higherKinds
 

@@ -41,8 +41,6 @@ libraryDependencies ++= Seq(
   "redis.clients"         % "jedis"                      % "3.7.1",
   "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
   "com.google.guava"      % "guava"                      % "30.1.1-jre",
-  "org.apache.lucene"     % "lucene-core"                % luceneVersion,
-  "org.apache.lucene"     % "lucene-analyzers-icu"       % luceneVersion,
   "io.findify"           %% "featury-flink"              % featuryVersion,
   "io.findify"           %% "featury-redis"              % featuryVersion,
   "org.apache.flink"     %% "flink-scala"                % flinkVersion,

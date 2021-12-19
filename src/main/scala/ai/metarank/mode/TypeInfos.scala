@@ -5,17 +5,17 @@ import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import io.findify.featury.model.{FeatureValue, Key, Scalar, State, Write}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import scala.language.higherKinds
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 
 object TypeInfos {
-  implicit lazy val stateInfo: TypeInformation[State]                  = createTypeInformation[State]
-  implicit lazy val rankInfo: TypeInformation[RankingEvent]            = createTypeInformation[RankingEvent]
-  implicit lazy val interactionInfo: TypeInformation[InteractionEvent] = createTypeInformation[InteractionEvent]
-  implicit lazy val feedbackInfo: TypeInformation[FeedbackEvent]       = createTypeInformation[FeedbackEvent]
-  implicit lazy val eventInfo: TypeInformation[Event]                  = createTypeInformation[Event]
-  implicit lazy val clickthroughInfo: TypeInformation[Clickthrough]    = createTypeInformation[Clickthrough]
-  implicit lazy val writeInfo: TypeInformation[Write]                  = createTypeInformation[Write]
-  implicit lazy val keyInfo: TypeInformation[Key]                      = createTypeInformation[Key]
-  implicit lazy val featureValueInfo: TypeInformation[FeatureValue]    = createTypeInformation[FeatureValue]
-  implicit lazy val scalarInfo: TypeInformation[Scalar]                = createTypeInformation[Scalar]
+  implicit lazy val stateInfo: TypeInformation[State]                  = deriveTypeInformation[State]
+  implicit lazy val rankInfo: TypeInformation[RankingEvent]            = deriveTypeInformation[RankingEvent]
+  implicit lazy val interactionInfo: TypeInformation[InteractionEvent] = deriveTypeInformation[InteractionEvent]
+  implicit lazy val feedbackInfo: TypeInformation[FeedbackEvent]       = deriveTypeInformation[FeedbackEvent]
+  implicit lazy val eventInfo: TypeInformation[Event]                  = deriveTypeInformation[Event]
+  implicit lazy val clickthroughInfo: TypeInformation[Clickthrough]    = deriveTypeInformation[Clickthrough]
+  implicit lazy val writeInfo: TypeInformation[Write]                  = deriveTypeInformation[Write]
+  implicit lazy val keyInfo: TypeInformation[Key]                      = deriveTypeInformation[Key]
+  implicit lazy val featureValueInfo: TypeInformation[FeatureValue]    = deriveTypeInformation[FeatureValue]
+  implicit lazy val scalarInfo: TypeInformation[Scalar]                = deriveTypeInformation[Scalar]
 }

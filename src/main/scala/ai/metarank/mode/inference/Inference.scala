@@ -17,7 +17,7 @@ import cats.implicits._
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 
 object Inference extends IOApp {
   import ai.metarank.mode.TypeInfos._

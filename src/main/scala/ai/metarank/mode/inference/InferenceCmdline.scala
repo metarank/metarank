@@ -71,7 +71,7 @@ object InferenceCmdline extends Logging {
   }
 
   def parse(args: List[String]): IO[InferenceCmdline] = for {
-    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, "::", null, null, "", 6379, null, 1, "")))(
+    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, "::", null, null, "", 6379, null, 0, "")))(
       new IllegalArgumentException("cannot parse cmdline")
     )
     _ <- IO(logger.info(s"Port: ${cmd.port}"))

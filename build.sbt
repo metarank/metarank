@@ -22,7 +22,7 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.typelevel"        %% "cats-effect"                % "3.3.0",
+  "org.typelevel"        %% "cats-effect"                % "3.3.1",
   "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
   "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
   "org.scalatest"        %% "scalatest"                  % scalatestVersion % Test,

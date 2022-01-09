@@ -25,7 +25,7 @@ Here's a high level overview of [Metarank](https://www.metarank.ai/) integration
 * send real-time events to a running instance of [Metarank](https://www.metarank.ai/)
 * use pre-trained model to personalize your listings in real-time
 
-### High-level Metarank feature overview
+### High-level Metarank features overview
 
 * Built-in feature store to compute features used for online and offline training
 * YAML configuration to define the structure of your data and features that can include:
@@ -39,17 +39,28 @@ Here's a high level overview of [Metarank](https://www.metarank.ai/) integration
 * Local mode to run [Metarank](https://www.metarank.ai/) locally without deploying to a cluster
 * Cloud native: deploy [Metarank](https://www.metarank.ai/) to Kubernetes or AWS
 
+## Who should be using Metarank?
+
+[Metarank](https://www.metarank.ai/) is industry-agnostic and can be used in any place of your application where some content is displayed. 
+[Metarank](https://www.metarank.ai/) will suit teams that are only starting to introduce Machine Learning and those that already have discovery teams that work on personalization and recommendations.
+For experienced teams, [Metarank](https://www.metarank.ai/) will simplify their Learn-To-Rank stack for data collection, backtesting and model serving. 
+
+### Why do you need personalization?
+
+Machine Learning now is not just a tool for geeks and scientists - it solves real business problems, be it anti-fraud systems in the banks or recommendation widgets in your favourite online store.
+Content personalization can open new opportunities for your business in improving sales and customer satisfaction by providing relevant items to each user. 
+
 ## In-depth Docs
 
-* [Introduction](doc/01_intro.md) to the Metarank
 * [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
 * [Configuration](doc/03_configuration.md) walkthrough
+* [API overview](doc/xx_api_schema.md)
 * [Contribution guide](doc/xx_development.md)
 * [License](LICENSE)
 
 Current state
 =====
-Metarank is an Alpha: it's early days of development. It is well-covered with tests and runs in production several systems serving real traffic, although we don't recommend yet to run it without developer support.
+[Metarank](https://www.metarank.ai/) is an Alpha: it's early days of development. It is well-covered with tests and runs in production several systems serving real traffic, although we don't recommend yet to run it without developer support.
 
 Licence
 =====

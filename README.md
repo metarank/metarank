@@ -5,24 +5,41 @@
 ![Last commit](https://img.shields.io/github/last-commit/metarank/metarank)
 ![Last release](https://img.shields.io/github/release/metarank/metarank)
 
-Metarank is a toolbox for building personalized ranking systems. It can be used to re-rank 
-items in search results, recommendations and autocomplete suggestions by automating common
-data processing tasks in Learn-To-Rank applications.
+[Metarank](https://www.metarank.ai/) (or METAdata RANKer) is a low-code Machine Learning personalization tool that can be used to build personalized ranking systems.
+You can use [Metarank](https://www.metarank.ai/) to personalize product listings, articles, recommendations, and search results in order to your boost sales. 
+It automates the most common data processing tasks in Learn-To-Rank applications.
 
-## Purpose
+## Why Metarank?
 
-* Collect a stream of item, search and interaction events using REST API 
-or Kafka connector.
-* Compute a wide variety of default feature values:
-    * Multiple time windows: so each feature can be updated over 1-2-4-8-n day periods.
-    * Scoping: for example, item CTR for a specific query.
-    * Absolute and relative values: can track percentage of clicks per item over the
-    total number of clicks.
-* Store all ranking-related state using pluggable database connectors: PostgreSQL, RocksDB, Cassandra.
-* Export XGBoost/LightGBM/RankNet-compatible libsvm/csv training data files.
-* Serve pre-trained LTR ML models.
+Building personalized ranking systems is not an easy task even for a team of experienced data scientists and it can take months to setup data pipelines, storages and model training.
+[Metarank](https://www.metarank.ai/) automates the most common tasks that are required to add personalization to your product listings, articles and any other type of content.
+Instead of months, it will take days or even a few hours to create and deploy a personalized model to get benefit from personalization and concentrate on improving the model.
 
-## Docs
+You don't even need to have Machine Learning experts in the team to integrate [Metarank](https://www.metarank.ai/) with your application!
+
+Here's a high level overview of [Metarank](https://www.metarank.ai/) integration:
+
+* define your features with simple YAML configuration file
+* send historical events and metadata via a JSON API
+* run [Metarank](https://www.metarank.ai/) to train the model
+* send real-time events to a running instance of [Metarank](https://www.metarank.ai/)
+* use pre-trained model to personalize your listings in real-time
+
+### High-level Metarank feature overview
+
+* Built-in feature store to compute features used for online and offline training
+* YAML configuration to define the structure of your data and features that can include:
+    * simple scalar features (e.g. number of clicks)
+    * scoped features (e.g. item CTR for a specific query)
+    * relative features (e.g. percentage of clicks per item over the total number of clicks)
+    * user-specific features (e.g. user agent parser, geoip)
+* REST API or Kafka connector to receive events and metadata updates
+* Offline and online (real-time personalization) operation modes
+* Explain mode to understand how final ranking is computed
+* Local mode to run [Metarank](https://www.metarank.ai/) locally without deploying to a cluster
+* Cloud native: deploy [Metarank](https://www.metarank.ai/) to Kubernetes or AWS
+
+## In-depth Docs
 
 * [Introduction](doc/01_intro.md) to the Metarank
 * [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
@@ -32,21 +49,7 @@ or Kafka connector.
 
 Current state
 =====
-Metarank is currently in the phase of active development and not supposed for production usage yet.
-Check the issue tracker and milestones for progress.
-
-Roadmap
-=====
-* **v0.1-M1**: 
-    * Ingestion event schema and API: json-only.
-    * Static schema definition in config file.
-    * Storage interface: RocksDB implementation.
-    * Feature interface: scoping and windowing support.
-* **v0.1-M2**:
-    * Batch jsonl ingestion API.
-    * A way to store feature intermediate data in DB.
-    * Relative feature support.
-* **v0.1-M3**: todo
+Metarank is an Alpha: it's early days of development. It is well-covered with tests and runs in production several systems serving real traffic, although we don't recommend yet to run it without developer support.
 
 Licence
 =====

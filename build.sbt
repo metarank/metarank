@@ -13,7 +13,7 @@ resolvers ++= Seq(
 organization             := "me.dfdx"
 Test / logBuffered       := false
 Test / parallelExecution := false
-scalaVersion             := "2.12.15"
+scalaVersion             := "2.13.8"
 scalacOptions ++= Seq(
   "-feature",
   "-deprecation",

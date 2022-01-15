@@ -50,6 +50,10 @@ For experienced teams, [Metarank](https://www.metarank.ai/) will simplify their 
 Machine Learning now is not just a tool for geeks and scientists - it solves real business problems, be it anti-fraud systems in the banks or recommendation widgets in your favourite online store.
 Content personalization can open new opportunities for your business in improving sales and customer satisfaction by providing relevant items to each user. 
 
+## Demo 
+
+We have a built a [Demo](https://demo.metarank.ai) which showcases how you can use [Metarank](https://metarank.ai) in the wild. The [Demo](https://demo.metarank.ai) utilizes [Ranklens](https://github.com/metarank/ranklens) dataset that we have built using [Toloka](https://toloka.ai/) service to gather user interactions. Application code can be found [here](https://github.com/metarank/demo) and you can see how easy it is to query [Metarank](https://metarank.ai) installation to get real-time personalization. 
+
 ## In-depth Docs
 
 * [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.

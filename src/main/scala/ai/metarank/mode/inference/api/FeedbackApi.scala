@@ -8,12 +8,13 @@ import org.http4s._
 import org.http4s.dsl.io._
 import io.circe.syntax._
 import org.http4s.circe._
+import cats.implicits._
 
 case class FeedbackApi(writer: LocalDirWriter) {
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "feedback" =>
     for {
       events <- post.as[Event].map(e => List(e)).handleErrorWith(_ => post.as[List[Event]])
-      _      <- IO { events.foreach(writer.write) }
+      _      <- events.map(writer.write).sequence
       ok     <- Ok("")
     } yield {
       ok

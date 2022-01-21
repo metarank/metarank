@@ -6,6 +6,7 @@ import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.mode.inference.ranking.LightGBMScorer
 import ai.metarank.source.LocalDirSource.LocalDirWriter
 import better.files.File
+import cats.effect.kernel.Ref
 import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s._
 import org.http4s.server._
@@ -45,9 +46,19 @@ object Inference extends IOApp {
     val store   = RedisStore(RedisConfig(cmd.redisHost, cmd.redisPort, cmd.format))
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
     val scorer  = LightGBMScorer(cmd.model.contentAsString)
-    val routes =
-      HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(new LocalDirWriter(dir)).routes
-    val httpApp = Router("/" -> routes).orNotFound
-    BlazeServerBuilder[IO].bindHttp(cmd.port, cmd.host).withHttpApp(httpApp).serve.compile.drain.as(ExitCode.Success)
+    LocalDirWriter
+      .create(dir)
+      .use(writer => {
+        val routes =
+          HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(writer).routes
+        val httpApp = Router("/" -> routes).orNotFound
+        BlazeServerBuilder[IO]
+          .bindHttp(cmd.port, cmd.host)
+          .withHttpApp(httpApp)
+          .serve
+          .compile
+          .drain
+          .as(ExitCode.Success)
+      })
   }
 }

@@ -4,6 +4,9 @@ import ai.metarank.model.{Event, Field}
 import ai.metarank.model.Event.{InteractionEvent, MetadataEvent, RankingEvent}
 import ai.metarank.util.Logging
 import better.files.File
+import cats.effect
+import cats.effect.kernel.Resource
+import cats.effect.{IO, Ref}
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import io.circe.parser._
 import io.circe.syntax._
@@ -22,8 +25,9 @@ case class LocalDirSource(path: String, limit: Long = Long.MaxValue) extends Sou
           val json = file.contentAsString
           decode[Event](json) match {
             case Left(value) =>
-              logger.error(s"cannot decode JSON message: $json", value)
-              throw value
+              logger.error(s"cannot decode JSON message: '$json'", value)
+              value.printStackTrace()
+              file.delete()
             case Right(decoded) if count < limit =>
               if (logger.isDebugEnabled) {
                 val eventString = decoded match {
@@ -65,11 +69,17 @@ case class LocalDirSource(path: String, limit: Long = Long.MaxValue) extends Sou
 }
 
 object LocalDirSource {
-  class LocalDirWriter(dir: File) {
-    var count = 0
-    def write(event: Event) = {
-      dir.createChild(count.toString).write(event.asJson.noSpacesSortKeys)
-      count += 1
+  case class LocalDirWriter(dir: File, count: Ref[IO, Int]) {
+    def write(event: Event): IO[Unit] = {
+      for {
+        next <- count.getAndUpdate(_ + 1)
+        _    <- IO { dir.createChild(next.toString).write(event.asJson.noSpacesSortKeys) }
+      } yield {}
     }
+  }
+
+  object LocalDirWriter {
+    def create(dir: File): Resource[IO, LocalDirWriter] =
+      effect.Resource.make(Ref.of[IO, Int](0).map(ref => new LocalDirWriter(dir, ref)))(w => IO { w.dir.delete() })
   }
 }

@@ -13,7 +13,7 @@ import org.http4s.dsl.io._
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
 import org.http4s.circe._
-import cats.implicits._
+import cats.syntax.all._
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder

@@ -63,7 +63,9 @@ found [here](https://github.com/metarank/demo) and you can see how easy it is to
 You can see how easy it is to define features and can previiew the pre-built model based 
 on the [Ranklens](https://github.com/metarank/ranklens) dataset.
 
-Tutorial on settting up a local version of demo [is available here](doc/tutorial_ranklens.md).
+### Tutorial
+
+You can check out our [tutorial](doc/tutorial_ranklens.md) and play with Metarank locally!
 
 ## In-depth Docs
 

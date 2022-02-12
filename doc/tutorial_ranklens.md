@@ -7,12 +7,12 @@ This tutorial reproduces the system running on [demo.metarank.ai](https://demo.m
 
 ### Prerequisites
 
-You need to have a JVM 11+ installed on your machine, and the Metarank 
-[release jar file](https://github.com/metarank/metarank/releases) downloaded.
+- [JVM 11+](https://www.oracle.com/java/technologies/downloads/) installed on your local machine
+- a running [Redis](https://redis.io/download) instance
+- latest [release jar file](https://github.com/metarank/metarank/releases) of Metarank
 
-For the data used, we have a repackaged copy of the ranklens dataset in the github repo 
-[available here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events). The only difference
-with the original dataset is that we converted it into a metarank-compatible data model with 
+For the data input, we are using a repackaged copy of the ranklens dataset [available here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events). 
+The only difference with the original dataset is that we have converted it to a metarank-compatible data model with 
 metadata/interaction/impression [event format](./xx_event_schema.md).
 
 ### Configuration
@@ -121,9 +121,15 @@ features:
     duration: 24h
 ```
 
-### Bootstrapping
+### 1. Data Bootstraping
 
-Given `events.json.gz` and `config.yml` are available, then you can run the bootstrap job:
+The bootstrap job will process your incoming events based on a config file and produce a couple of output parts:
+1. `dataset` - backend-agnostic numerical feature values for all the clickhroughs in the dataset
+2. `features` - snapshot of the latest feature values, which should be used in the inference phase later
+3. `savepoint` - an Apache Flink savepoint to seamlessly continue processing online events after the bootstrap job
+
+Run the following command with Metarank CLI and provide the `events.json.gz` and `config.yml` files locations as it's parameters:
+
 ```shell
 java -cp metarank.jar ai.metarank.mode.bootstrap.Bootstrap \
   --events <dir with events.json.gz> \
@@ -131,51 +137,48 @@ java -cp metarank.jar ai.metarank.mode.bootstrap.Bootstrap \
   --config <path to config.yml>
 ```
 
-The bootstrap job will process your incoming events based on a config file and produce a couple of output parts:
-1. `dataset` - backend-agnostic numerical feature values for all the clickhroughs in the dataset.
-2. `features` - snapshot of latest feature values, which should be used in the inference phase later.
-3. `savepoint` - an Apache Flink savepoint to continue seamlessly processing online events after the bootstrap.
 
-### Training model
 
-When you completed the bootstrapping, you can try training the model:
+### 2. Training the Machine Learning model
+
+When the Bootstrap job is finished, you can train the model using the `config.yml` and the output of the Bootstrap job. 
+The Training job will parse the input data, do the actual training and produce the model file:
+
 ```shell
 java -cp metarank.jar ai.metarank.mode.train.Train \
-  --input <output directory>/dataset \
+  --input <bootstrap output directory>/dataset \
   --config <path to config.yml> \
   --model-type lambdamart-lightgbm \
   --model-file <output model file> 
 ```
 
-It will parse the internal representation of the training data and do the actual training. You will get a model file at the end.
+### 3. Upload
 
-### Upload
+Metarank is using Redis for inference (real-time data processing for online personalization), so you need to load 
+the current versions of feature values there after the Bootstrap job. Use your Redis instance url as the `host` parameter:
 
-As we're using Redis for the inference, you need to load the current versions of feature values there after the bootstrap.
-To do it, you need to run:
 ```shell
 java -cp metarank.jar ai.metarank.mode.upload.Upload \
-  --features-dir <output directory>/features \
+  --features-dir <bootstrap output directory>/features \
   --host localhost \
   --format json
 ```
 
-Which will upload the latest version of feature values to the Redis server on localhost in json format.
+### 4. Inference
 
-### Inference
-
-And the last step, to start accepting visitor feedback via REST api on `http://<ip>:8080/feedback` and reranking
-requests on `http://<ip>:8080/rank`, do the following:
+Run Metarank REST API service to process feedback events and re-rank in real-time. 
+By default Metarank will be available on `localhost:8080` and you can send feedback events to `http://<ip>:8080/feedback` 
+and get personalized ranking from `http://<ip>:8080/rank`. 
 ```shell
 java -cp metarank.jar  ai.metarank.mode.inference.Inference \
   --config <path to config.yml>\
   --model <model file>\
   --redis-host localhost\
   --format json\
-  --savepoint-dir <output directory>/savepoint
+  --savepoint-dir <bootstrap output directory>/savepoint
 ```
 
-### Playing with it
+## Playing with it
 
-So you can send your feedback events to the `/feedback` endpoint, and then send reranking requests to the `/rank` one.
-After each feedback events the ranking should change a little.
+You can check out how we use the Metarank REST API in our [Node.js demo application](https://github.com/metarank/demo). 
+Each feedback event will influence the ranking results, so the more you use the service, the better ranking you will get.

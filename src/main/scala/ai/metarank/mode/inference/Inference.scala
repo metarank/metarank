@@ -7,7 +7,7 @@ import ai.metarank.mode.inference.ranking.LightGBMScorer
 import ai.metarank.source.LocalDirSource.LocalDirWriter
 import better.files.File
 import cats.effect.kernel.Ref
-import cats.effect.{ExitCode, IO,Resource, IOApp}
+import cats.effect.{ExitCode, IO, Resource, IOApp}
 import org.http4s._
 import org.http4s.server._
 import org.http4s.dsl.io._
@@ -28,18 +28,18 @@ object Inference extends IOApp {
       cmd     <- InferenceCmdline.parse(args)
       config  <- Config.load(cmd.config)
       mapping <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
-      result <- cluster(dir,config,mapping,cmd).use {_.serve.compile.drain.as(ExitCode.Success) }
+      result  <- cluster(dir, config, mapping, cmd).use { _.serve.compile.drain.as(ExitCode.Success) }
     } yield result
   }
 
-  def cluster(dir:File,config:Config,mapping:FeatureMapping,cmd:InferenceCmdline) = {
+  def cluster(dir: File, config: Config, mapping: FeatureMapping, cmd: InferenceCmdline) = {
     for {
       cluster <- FlinkMinicluster
         .resource()
-       _ <- FeedbackFlow
-            .resource(cluster, dir.toString(), mapping, cmd)
-      s <- server(cmd,config,dir)
-    }  yield s
+      _ <- FeedbackFlow
+        .resource(cluster, dir.toString(), mapping, cmd)
+      s <- server(cmd, config, dir)
+    } yield s
   }
 
   def server(cmd: InferenceCmdline, config: Config, dir: File) = {
@@ -47,13 +47,13 @@ object Inference extends IOApp {
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
     val scorer  = LightGBMScorer(cmd.model.contentAsString)
     for {
-     writer <- LocalDirWriter
-      .create(dir)
+      writer <- LocalDirWriter
+        .create(dir)
       routes =
-          HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(writer).routes
+        HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(writer).routes
       httpApp = Router("/" -> routes).orNotFound
     } yield BlazeServerBuilder[IO]
-          .bindHttp(cmd.port, cmd.host)
-          .withHttpApp(httpApp)
+      .bindHttp(cmd.port, cmd.host)
+      .withHttpApp(httpApp)
   }
 }

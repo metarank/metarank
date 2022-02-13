@@ -52,9 +52,20 @@ Content personalization can open new opportunities for your business in improvin
 
 ## Demo 
 
-We have a built a [Demo](https://demo.metarank.ai) which showcases how you can use [Metarank](https://metarank.ai) in the wild. The [Demo](https://demo.metarank.ai) utilizes [Ranklens](https://github.com/metarank/ranklens) dataset that we have built using [Toloka](https://toloka.ai/) service to gather user interactions. Application code can be found [here](https://github.com/metarank/demo) and you can see how easy it is to query [Metarank](https://metarank.ai) installation to get real-time personalization. 
+We have a built a [Demo](https://demo.metarank.ai) which showcases how you can use [Metarank](https://metarank.ai) in the wild. 
+The [Demo](https://demo.metarank.ai) utilizes [Ranklens](https://github.com/metarank/ranklens) dataset that we have built 
+using [Toloka](https://toloka.ai/) service to gather user interactions. Application code can be 
+found [here](https://github.com/metarank/demo) and you can see how easy it is to query
+[Metarank](https://metarank.ai) installation to get real-time personalization. 
 
-[Metarank](https://metarank.ai) configuration of the demo application is available [here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens). You can see how easy it is to define features and can previiew the pre-built model based on the [Ranklens](https://github.com/metarank/ranklens) dataset.
+[Metarank](https://metarank.ai) configuration of the demo application is available
+[here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens). 
+You can see how easy it is to define features and can previiew the pre-built model based 
+on the [Ranklens](https://github.com/metarank/ranklens) dataset.
+
+### Tutorial
+
+You can check out our [tutorial](doc/tutorial_ranklens.md) and play with Metarank locally!
 
 ## In-depth Docs
 

@@ -1,14 +1,12 @@
 <h1 align="center">
     <a style="text-decoration: none" href="https://www.metarank.ai">
       <img width="120" src="https://raw.githubusercontent.com/metarank/metarank/master/doc/img/logo.svg" />
-      <p align="center">Metarank - Personalization as a service</p>
+      <p align="center">Metarank: personalization as a service</p>
     </a>
 </h1>
 <h2 align="center">
   <a href="https://metarank.ai">Website</a> | <a href="https://github.com/metarank/metarank/tree/master/doc">Documentation</a> | <a href="https://metarank.ai/slack">Community Slack</a>
 </h2>
-
-# Metarank
 
 [![CI Status](https://github.com/metarank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/metarank/metarank/actions)
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)

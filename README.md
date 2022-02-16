@@ -1,13 +1,23 @@
+<h1 align="center">
+    <a style="text-decoration: none" href="https://www.metarank.ai">
+      <img width="120" src="https://raw.githubusercontent.com/metarank/metarank/master/doc/img/logo.svg" />
+      <p align="center">Metarank - Personalization as a service</p>
+    </a>
+</h1>
+<h2 align="center">
+  <a href="https://metarank.ai">Website</a> | <a href="https://github.com/metarank/metarank/tree/master/doc">Documentation</a> | <a href="https://metarank.ai/slack">Community Slack</a>
+</h2>
+
 # Metarank
 
 [![CI Status](https://github.com/metarank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/metarank/metarank/actions)
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Last commit](https://img.shields.io/github/last-commit/metarank/metarank)
 ![Last release](https://img.shields.io/github/release/metarank/metarank)
+[![Join our slack](https://img.shields.io/badge/Slack-join%20the%20community-blue?logo=slack&style=social)](https://metarank.ai/slack)
 
-[Metarank](https://www.metarank.ai/) (or METAdata RANKer) is a low-code Machine Learning personalization tool that can be used to build personalized ranking systems.
-You can use [Metarank](https://www.metarank.ai/) to personalize product listings, articles, recommendations, and search results in order to your boost sales. 
-It automates the most common data processing tasks in Learn-To-Rank applications.
+[Metarank](https://www.metarank.ai/) (or METAdata RANKer) makes it easy to personalize any listing: recommendations, articles, and search results.
+Developers make one reranking API call, and Metarank takes care about ML feature updates, model training, and improving target goal like CTR/conversion.
 
 ## Why Metarank?
 

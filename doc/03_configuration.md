@@ -1,11 +1,11 @@
 # Configuration
 
-Metarank YAML config file contains three main sections:
+Metarank YAML config file contains the following sections:
 * Service configuration
-* Event schema definition: which field and their types are expected to be included in incoming events
+* Event schema definition: which fields and their types are expected to be included in incoming events
 * Feature extractors: how features are computed on top of incoming events
-* event source: where to read input events from
-* store: where to persist computed feature values 
+* Event source: where to read input events from
+* Store: where to persist computed feature values 
 
 
 ```yaml
@@ -71,13 +71,13 @@ the following types of fields:
 5. list\<number\>: a sequence of numbers
 6. IP Address
 7. User-Agent
-8. Referer
+8. Referrer
 
-So YAML snipped defining a field is defined in the following way:
+So YAML snippet for a field is defined in the following way:
 ```yaml
 - name: <name of field>
   type: <one of field types>
-  required: <boolean> // this field is optional, all fields are not required by default
+  required: <boolean> // this field is optional, all fields are optional by default
 ```
 
 So having the item metadata event example from [event schema doc](xx_event_schema.md):
@@ -94,7 +94,7 @@ So having the item metadata event example from [event schema doc](xx_event_schem
 }
 ```
 
-We need the following config to make Metarank accept it:
+We need the following config for Metarank to accept it:
 
 ```yaml
 schema:
@@ -115,16 +115,16 @@ schema:
 
 ## Feature extractor configuration
 
-In the next section the way to map fields into ML features should be defined. 
+Feature extractor configuration defines the way fields are mapped to features.
 
 Metarank supports a wide set of feature extractors with some shared properties:
 * each feature extractor can be scoped by user, session and item
-* the computed feature can be updated either in real-time, or with periodically
+* the computed feature can be updated either in real-time, or with a certain period
 
-Feature extractors have a couple of shared fields, and in general, configured in the following way:
+Feature extractors have a couple of shared fields, and in general, are configured in the following way:
 ```yaml
 - name: price // name of the feature
-  type: scalar_number
+  type: scalar_number // feature type
   refresh: 1h // how frequently this feature should be updated
   source:
     <where to take source data>

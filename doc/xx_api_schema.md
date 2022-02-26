@@ -48,7 +48,7 @@ Ranking endpoint does the real work of personalizing items that are passed to it
 
 - `id`: a request identifier later used to join impression and interaction events. This will be the same value that you will pass to feedback endpoint for impression and ranking events.
 - `user`: unique visitor identifier.
-- `session`: session identified, a single visitor may have multiple sessions.
+- `session`: session identifier, a single visitor may have multiple sessions.
 - `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](xx_event_schema.md).
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from metadata event.

@@ -103,7 +103,14 @@ features:
     interaction: click
     scope: session
 
-  - name: item_click_count
+  - name: global_item_click_count
     type: interaction_count
     interaction: click
     scope: item
+
+  - name: day_item_click_count
+    type: window_count
+    interaction: click
+    scope: item
+    bucket: 24h
+    periods: [7,30]

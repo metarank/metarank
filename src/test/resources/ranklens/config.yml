@@ -97,3 +97,13 @@ features:
     scope: session
     count: 10
     duration: 24h
+
+  - name: visitor_click_count
+    type: interaction_count
+    interaction: click
+    scope: session
+
+  - name: item_click_count
+    type: interaction_count
+    interaction: click
+    scope: item

@@ -18,13 +18,15 @@ sealed trait MetaFeature {
       id: ItemId
   ): MValue
 
-  def keyOf(event: Event): Option[Key] = (schema.scope, event) match {
-    case (TenantScope, _)              => Some(keyOf(TenantScope.scope.name, event.tenant, schema.name, event.tenant))
-    case (UserScope, e: FeedbackEvent) => Some(keyOf(UserScope.scope.name, e.user.value, schema.name, event.tenant))
+  def keyOf(event: Event, item: Option[ItemId] = None): Option[Key] = (schema.scope, event) match {
+    case (TenantScope, _) => Some(keyOf(TenantScope.scope.name, event.tenant, schema.name, event.tenant))
+    case (UserScope, e: FeedbackEvent) =>
+      Some(keyOf(UserScope.scope.name, e.user.value, schema.name, event.tenant))
     case (SessionScope, e: FeedbackEvent) =>
       Some(keyOf(SessionScope.scope.name, e.session.value, schema.name, event.tenant))
-    case (ItemScope, e: InteractionEvent) => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, event.tenant))
-    case (ItemScope, e: MetadataEvent)    => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, event.tenant))
+    case (ItemScope, e: InteractionEvent) => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
+    case (ItemScope, e: MetadataEvent)    => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
+    case (ItemScope, e: RankingEvent)     => item.map(i => keyOf(ItemScope.scope.name, i.value, schema.name, e.tenant))
     case _                                => None
   }
 

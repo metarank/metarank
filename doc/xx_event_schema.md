@@ -3,7 +3,7 @@
 Metarank expects to receive a predefined set of events, describing visitor activity and item metadata:
 1. Metadata events. They describe what should be known about items.
 2. Ranking events. What was presented to the visitor.
-4. Interaction events. What visitor did with the ranking.
+4. Interaction events. What visitor did with the ranking (clicks, likes, purchases).
 
 ## Event format
 
@@ -15,34 +15,55 @@ in some future version. Each event has a couple of shared required fields:
 
 There is also a shared optional "tenant" field for multi-tenancy cases.
 
-## Item metadata events
+### `fields` parameter
 
-An example item metadata event is in the block below. It describes a typical product in a ecommerce store.
+`fields` parameter is used in all events, however it is **optional** for ranking and interaction events. 
+You provide some additional contexnt, like search query, selected filters, shipping data that can be used as features of your personalization model.
+
 ```json
-{
-  "event": "metadata",
-  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
-  "item": "product1", // required
-  "timestamp": "1599391467000", // required
-  "fields": [
-    {"name": "title", "value": "Nice jeans"},
-    {"name": "price", "value": 25.0},
-    {"name": "color", "value": ["blue", "black"]},
-    {"name": "availability", "value": true}
-  ]
-}
+"fields": [
+  {"name": "title", "value": "You favourite cat"}
+]
 ```
 
-`fields` field is an optional array of name-value tuples, where value can be any of the following types:
+`fields.name`: name of the field.
+`fields.value`: can be any of the following types:
 * boolean
 * string
 * number
 * list of strings
-* list of numbers
+* list of numbersr 
 
-## Ranking events
+## Item metadata event
 
-When you show a listing of items to the visitor, Metarank needs to know what was displayed and in which ordering:
+Metadata event is used to provide Metarank with updates of your content items (new items added, updates of values for existing items). 
+You don't need to pass all values that your items have, only the ones that you might use as your personalization model features.
+
+### Event format
+```json
+{
+  "event": "metadata",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000", // required
+  "item": "item1", // required
+  "fields": [
+    {"name": "title", "value": "You favourite cat"},
+    {"name": "color", "value": ["white", "black"]},
+    {"name": "is_cute", "value": true}
+  ]
+}
+```
+- `id`: event id. This field is not yet used, but the value must be provided at the moment.
+- `item`: id of the content item.
+- `fields`: an array of content item properties.
+
+
+## Ranking event
+
+Ranking event is used to indicate what items and in waht order are shown to a visitor. 
+This information is used by personalization algorithms to understand which items are relevant for the visitor.
+
+### Event format
 
 ```json
 {
@@ -52,48 +73,54 @@ When you show a listing of items to the visitor, Metarank needs to know what was
   "user": "user1",// required
   "session": "session1",// required
   "fields": [
-      {"name": "query", "value": "jeans"},
+      {"name": "query", "value": "cat"},
       {"name": "source", "value": "search"}
   ],
   "items": [
-    {"id": "product3", "relevancy":  2.0},
-    {"id": "product1", "relevancy":  1.0},
-    {"id": "product2", "relevancy":  0.5} 
+    {"id": "item3", "relevancy":  2.0},
+    {"id": "item1", "relevancy":  1.0},
+    {"id": "item2", "relevancy":  0.5} 
   ]
 }
 ```
 
-* id: a request identifier later used to join impression and interaction events
-* user: an unique visitor identifier
-* session: a single visitor may have multiple sessions.
-* fields: the same rules as for metadata events, a set of extra fields describing the listing
-* items: which particular items were displayed to the visitor.
-* items.relevancy: a score which was used to rank these items. For example, it can be BM25/tfidf score coming from ElasticSearch
+- `id`: a request identifier later used to join impression and interaction events. Should match the value that is sent to [ranking API](xx_api_schema.md).
+- `user`: unique visitor identifier.
+- `session`: session identifier, a single visitor may have multiple sessions.
+- `fields`: an optional array of extra fields that you can use in your model, as described above.
+- `items`: which particular items were displayed to the visitor.
+- `items.id`: id of the content item. Should match the `item` property from metadata event.
+- `items.relevancy`: a score which was used to rank these items. You can use relevancy score returned by Metarank, or other score that your system generated. If your system doesn't return any relevancy score, just use `1` as a value.
 
-## Interaction events
+## Interaction event
 
-When visitor interacts with a ranking, you need to supply the following event:
+Interaction event identifies what actions the visitor performed on the items displayed. 
+Some of the example of such events are: click, like, purchase.
+The `type` field must match the `name` provided in the [Configuration](03_configuration.md).
+
+### Event format
 
 ```json
 {
   "event": "interaction",
   "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",// required
-  "impression": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "impression": "81f46c34-a4bb-469c-8708-f8127cd67d27", //required
   "timestamp": "1599391467000",// required
   "user": "user1",// required
   "session": "session1",// required
   "type": "purchase",// required
-  "item": "product1",// required
+  "item": "item1",// required
   "fields": [
-    {"name": "count", "value": 2},
+    {"name": "count", "value": 1},
     {"name": "shipping", "value": "DHL"}
   ],
 }
 ```
 
-Apart from common id/timestamp/user/session fields, there are two other required ones:
-* impression_id: an identifier of the parent impression event
-* type: which type of interaction it was, so you can distinguish between clicks and purchases later
-* item: which item was interacted with. If there were many interactions (like when customer bought multiple things at once),
-   then you need to emit multiple events for each item.
-* fields: a set of extra bits of information about the interaction.
+- `id`: a request identifier.
+- `impression`: an identifier of the parent raning event event
+- `user`: unique visitor identifier.
+- `session`: session identifier, a single visitor may have multiple sessions.
+- `type`: internal name of the event.
+- `item`: id of the content item. Should match the `item` property from metadata event.
+- `fields`: an optional array of extra fields that you can use in your model, as described above.

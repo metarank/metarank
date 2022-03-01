@@ -97,3 +97,20 @@ features:
     scope: session
     count: 10
     duration: 24h
+
+  - name: visitor_click_count
+    type: interaction_count
+    interaction: click
+    scope: session
+
+  - name: global_item_click_count
+    type: interaction_count
+    interaction: click
+    scope: item
+
+  - name: day_item_click_count
+    type: window_count
+    interaction: click
+    scope: item
+    bucket: 24h
+    periods: [7,30]

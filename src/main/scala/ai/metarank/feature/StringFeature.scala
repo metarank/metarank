@@ -47,11 +47,18 @@ case class StringFeature(schema: StringFeatureSchema) extends StatelessFeature {
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
       id: ItemId
-  ): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id.value)) match {
+  ): MValue = {
+    val result = for {
+      key   <- keyOf(request, Some(id))
+      value <- state.get(key)
+    } yield {
+      value
+    }
+    result match {
       case Some(ScalarValue(_, _, SStringList(value))) => VectorValue(names, oneHotEncode(value), dim)
       case _                                           => VectorValue(names, oneHotEncode(Nil), dim)
     }
+  }
 
   def oneHotEncode(values: Seq[String]): Array[Double] = {
     val result = new Array[Double](dim)

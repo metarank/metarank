@@ -11,6 +11,8 @@ sealed trait Event {
   def timestamp: Timestamp
   def fields: List[Field]
   def tenant: String
+
+  lazy val fieldsMap = fields.map(f => f.name -> f).toMap
 }
 
 object Event {
@@ -20,7 +22,7 @@ object Event {
       timestamp: Timestamp,
       fields: List[Field],
       tenant: String
-  ) extends Event
+  ) extends Event {}
 
   sealed trait FeedbackEvent extends Event {
     def user: UserId

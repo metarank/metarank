@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.MetaFeature.StatelessFeature
-import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.feature.StringFeature.{StringFeatureSchema}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.util.OneHotEncoder
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -55,22 +56,10 @@ case class StringFeature(schema: StringFeatureSchema) extends StatelessFeature {
       value
     }
     result match {
-      case Some(ScalarValue(_, _, SStringList(value))) => VectorValue(names, oneHotEncode(value), dim)
-      case _                                           => VectorValue(names, oneHotEncode(Nil), dim)
+      case Some(ScalarValue(_, _, SStringList(value))) =>
+        VectorValue(names, OneHotEncoder.fromValues(value, possibleValues, dim), dim)
+      case _ => VectorValue(names, OneHotEncoder.fromValues(Nil, possibleValues, dim), dim)
     }
-  }
-
-  def oneHotEncode(values: Seq[String]): Array[Double] = {
-    val result = new Array[Double](dim)
-    for {
-      value <- values
-    } {
-      val index = possibleValues.indexOf(value)
-      if (index >= 0) {
-        result(index) = 1.0
-      }
-    }
-    result
   }
 
 }
@@ -87,4 +76,5 @@ object StringFeature {
   ) extends FeatureSchema
 
   implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = deriveDecoder
+
 }

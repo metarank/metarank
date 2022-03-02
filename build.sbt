@@ -52,12 +52,13 @@ libraryDependencies ++= Seq(
     ExclusionRule("org.apache.curator"),
     ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
   ),
-  "org.http4s"         %% "http4s-dsl"          % http4sVersion,
-  "org.http4s"         %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s"         %% "http4s-blaze-client" % http4sVersion,
-  "org.http4s"         %% "http4s-circe"        % http4sVersion,
-  "io.findify"         %% "flink-adt"           % "0.4.5",
-  "io.github.metarank" %% "ltrlib"              % "0.1.6.1"
+  "org.http4s"          %% "http4s-dsl"          % http4sVersion,
+  "org.http4s"          %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s"          %% "http4s-blaze-client" % http4sVersion,
+  "org.http4s"          %% "http4s-circe"        % http4sVersion,
+  "io.findify"          %% "flink-adt"           % "0.4.5",
+  "io.github.metarank"  %% "ltrlib"              % "0.1.6.1",
+  "com.github.ua-parser" % "uap-java"            % "1.5.2"
 )
 
 enablePlugins(DockerPlugin)

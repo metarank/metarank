@@ -33,6 +33,7 @@ case class FeatureMapping(
       interactions: List[InteractionEvent] = Nil
   ): List[ItemValues] = {
     val state = source.map(fv => fv.key -> fv).toMap
+
     for {
       item <- ranking.items
     } yield {

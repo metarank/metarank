@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{FieldName, ItemId, SessionId}
@@ -99,19 +100,19 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
     val values2 = feature.value(
       request = request,
       state = state,
-      ItemId("p2")
+      ItemRelevancy(ItemId("p2"))
     )
     values2 shouldBe SingleValue("seen_color", 1)
     val values3 = feature.value(
       request = request,
       state = state,
-      ItemId("p3")
+      ItemRelevancy(ItemId("p3"))
     )
     values3 shouldBe SingleValue("seen_color", 0)
     val values4 = feature.value(
       request = request,
       state = state,
-      ItemId("404")
+      ItemRelevancy(ItemId("404"))
     )
     values4 shouldBe SingleValue("seen_color", 0)
   }

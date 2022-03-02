@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.FieldSchema.NumberFieldSchema
@@ -41,9 +42,9 @@ case class NumberFeature(schema: NumberFeatureSchema) extends StatelessFeature {
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id.value)) match {
+    state.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0.0)
     }

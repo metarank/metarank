@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, MetadataEvent, RankingEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, ItemId, MValue}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
@@ -15,7 +15,7 @@ sealed trait MetaFeature {
   def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue
 
   def keyOf(event: Event, item: Option[ItemId] = None): Option[Key] = (schema.scope, event) match {

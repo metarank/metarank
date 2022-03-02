@@ -5,7 +5,9 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
+import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import io.circe.{Codec, Decoder, DecodingFailure}
@@ -33,6 +35,8 @@ object FeatureSchema {
         case "interacted_with"   => implicitly[Decoder[InteractedWithSchema]].apply(c)
         case "interaction_count" => implicitly[Decoder[InteractionCountSchema]].apply(c)
         case "window_count"      => implicitly[Decoder[WindowCountSchema]].apply(c)
+        case "ua"                => implicitly[Decoder[UserAgentSchema]].apply(c)
+        case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {

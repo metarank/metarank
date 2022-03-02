@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName.{Interaction, Metadata}
 import ai.metarank.model.Field.StringField
@@ -37,7 +38,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
-      id = ItemId("p1")
+      id = ItemRelevancy(ItemId("p1"))
     )
     result should matchPattern {
       case VectorValue(List("color_red", "color_green", "color_blue"), values, 3) if values.toList == List(0, 1, 0) =>
@@ -61,7 +62,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     val value = feature.value(
       request = TestRankingEvent(List("p1")).copy(session = SessionId("s1")),
       state = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("b")))),
-      id = ItemId("p1")
+      id = ItemRelevancy(ItemId("p1"))
     )
     value should matchPattern {
       case VectorValue(List("country_a", "country_b", "country_c"), values, 3) if values.toList == List(0, 1, 0) =>

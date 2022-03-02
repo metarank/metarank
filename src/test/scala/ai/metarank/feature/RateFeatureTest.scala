@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FieldName.Metadata
@@ -58,9 +59,9 @@ class RateFeatureTest extends AnyFlatSpec with Matchers {
         List(PeriodicValue(Timestamp(0), Timestamp(0), 7, 50), PeriodicValue(Timestamp(0), Timestamp(0), 14, 500))
       )
     )
-    val result1 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemId("p1"))
+    val result1 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemRelevancy(ItemId("p1")))
     result1.asInstanceOf[VectorValue].values.toList shouldBe List(0.2, 0.2)
-    val result2 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemId("p2"))
+    val result2 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemRelevancy(ItemId("p2")))
     result2.asInstanceOf[VectorValue].values.toList shouldBe List(0.0, 0.0)
   }
 
@@ -79,7 +80,7 @@ class RateFeatureTest extends AnyFlatSpec with Matchers {
         List(PeriodicValue(Timestamp(0), Timestamp(0), 7, 50))
       )
     )
-    val result1 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemId("p1"))
+    val result1 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemRelevancy(ItemId("p1")))
     result1.asInstanceOf[VectorValue].values.toList shouldBe List(0.0, 0.0)
   }
 }

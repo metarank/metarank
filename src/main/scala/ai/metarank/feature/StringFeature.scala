@@ -1,7 +1,8 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.MetaFeature.StatelessFeature
-import ai.metarank.feature.StringFeature.{StringFeatureSchema}
+import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
@@ -47,10 +48,10 @@ case class StringFeature(schema: StringFeatureSchema) extends StatelessFeature {
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue = {
     val result = for {
-      key   <- keyOf(request, Some(id))
+      key   <- keyOf(request, Some(id.id))
       value <- state.get(key)
     } yield {
       value

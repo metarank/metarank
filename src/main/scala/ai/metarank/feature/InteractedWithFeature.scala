@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.MetaFeature.StatefulFeature
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, MetadataEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.SingleValue
@@ -105,13 +105,13 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends StatefulF
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue = {
     val result = for {
       visitorKey      <- schema.scope.keys(request, listConf.name).headOption
       interactedValue <- state.get(visitorKey)
       interactedList  <- interactedValue.cast[BoundedListValue]
-      itemKey = Key(Tag(ItemScope.scope, id.value), fieldConf.name, Tenant(request.tenant))
+      itemKey = Key(Tag(ItemScope.scope, id.id.value), fieldConf.name, Tenant(request.tenant))
       itemFieldValue <- state.get(itemKey).flatMap(_.cast[ScalarValue])
     } yield {
       val interactedValues = interactedList.values.map(_.value).collect { case SString(value) => value }

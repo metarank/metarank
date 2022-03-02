@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.FieldSchema.BooleanFieldSchema
 import ai.metarank.model.MValue.SingleValue
@@ -40,9 +41,9 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends StatelessFeature
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id.value)) match {
+    state.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
       case Some(ScalarValue(_, _, SBoolean(value))) => SingleValue(schema.name, if (value) 1 else 0)
       case _                                        => SingleValue(schema.name, 0.0)
     }

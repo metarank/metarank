@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.ItemId
 import ai.metarank.model.MValue.VectorValue
@@ -45,7 +46,7 @@ class WindowCountFeatureTest extends AnyFlatSpec with Matchers {
     val value = feature.value(
       request = TestRankingEvent(List("p1")),
       state = Map(key -> PeriodicCounterValue(key, now, List(PeriodicValue(now.minus(24.hours), now, 1, 1)))),
-      id = ItemId("p1")
+      id = ItemRelevancy(ItemId("p1"))
     )
     value should matchPattern {
       case VectorValue("cnt_1" :: Nil, values, 1) if values.toList == List(1.0) =>

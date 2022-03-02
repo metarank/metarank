@@ -38,7 +38,7 @@ case class FeatureMapping(
       item <- ranking.items
     } yield {
       val weight = interactions.find(_.item == item.id).map(e => weights.getOrElse(e.`type`, 1.0)).getOrElse(0.0)
-      val values = features.map(_.value(ranking, state, item.id))
+      val values = features.map(_.value(ranking, state, item))
       ItemValues(item.id, weight, values)
     }
 

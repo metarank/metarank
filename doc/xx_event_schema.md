@@ -90,7 +90,8 @@ This information is used by personalization algorithms to understand which items
 - `fields`: an optional array of extra fields that you can use in your model, as described above.
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from metadata event.
-- `items.relevancy`: a score which was used to rank these items. You can use relevancy score returned by Metarank, or other score that your system generated. If your system doesn't return any relevancy score, just use `1` as a value.
+- `items.relevancy`: a score which was used to rank these items. You can use relevancy score returned by Metarank, 
+or other score that your system generated. The value is optional and can be undefined.
 
 ## Interaction event
 

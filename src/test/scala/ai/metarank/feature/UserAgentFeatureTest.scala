@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.PlatformField
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, ItemId, SessionId}
@@ -49,7 +50,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         timestamp = now
       ),
       state = Map.empty, // (key -> ScalarValue(key, now, SString("desktop"))),
-      id = ItemId("p1")
+      id = ItemRelevancy(ItemId("p1"))
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)
@@ -65,7 +66,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         timestamp = now
       ),
       state = Map(k -> ScalarValue(k, now, SString("desktop"))),
-      id = ItemId("p1")
+      id = ItemRelevancy(ItemId("p1"))
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)

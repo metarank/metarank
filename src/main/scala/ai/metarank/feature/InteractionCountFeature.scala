@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
@@ -43,10 +44,10 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends State
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue = {
     val result = for {
-      key   <- keyOf(request, Some(id))
+      key   <- keyOf(request, Some(id.id))
       value <- state.get(key)
     } yield {
       value

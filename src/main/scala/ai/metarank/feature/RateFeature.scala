@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.model.Event.InteractionEvent
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
@@ -65,11 +65,11 @@ case class RateFeature(schema: RateFeatureSchema) extends StatelessFeature {
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue = {
     val result = for {
-      topValue    <- state.get(keyOf(schema.scope, id, top.name, request.tenant))
-      bottomValue <- state.get(keyOf(schema.scope, id, bottom.name, request.tenant))
+      topValue    <- state.get(keyOf(schema.scope, id.id, top.name, request.tenant))
+      bottomValue <- state.get(keyOf(schema.scope, id.id, bottom.name, request.tenant))
       topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim
       bottomNum   <- bottomValue.cast[PeriodicCounterValue] if (bottomNum.values.size == dim)
     } yield {

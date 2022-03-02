@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.MetaFeature.StatelessFeature
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
-import ai.metarank.model.Event.InteractionEvent
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, ItemId, MValue}
 import io.circe.Decoder
@@ -47,10 +47,10 @@ case class WindowCountFeature(schema: WindowCountSchema) extends StatelessFeatur
   override def value(
       request: Event.RankingEvent,
       state: Map[Key, FeatureValue],
-      id: ItemId
+      id: ItemRelevancy
   ): MValue = {
     val result = for {
-      value    <- state.get(keyOf(schema.scope, id, conf.name, request.tenant))
+      value    <- state.get(keyOf(schema.scope, id.id, conf.name, request.tenant))
       valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim
     } yield {
       VectorValue(names, valueNum.values.map(_.value.toDouble).toArray, dim)

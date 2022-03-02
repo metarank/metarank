@@ -51,7 +51,10 @@ object Event {
       tenant: String
   ) extends FeedbackEvent
 
-  case class ItemRelevancy(id: ItemId, relevancy: Double)
+  case class ItemRelevancy(id: ItemId, relevancy: Option[Double] = None)
+  object ItemRelevancy {
+    def apply(id: ItemId, relevancy: Double) = new ItemRelevancy(id, Some(relevancy))
+  }
 
   implicit val relevancyCodec: Codec[ItemRelevancy]      = deriveCodec
   implicit val metadataCodec: Codec[MetadataEvent]       = deriveCodec

@@ -24,12 +24,12 @@ Interaction counter is configured in a following way:
   ttl: 90d // optional, how long should we store this field if there were no updates
 ```
 
-Refresh field can be useful for counters when you don't want to update the value used for inference super frequently
+Refresh field can be useful for counters when you don't want to update the value used for inference frequently
 and want to limit the write throughput to feature store.
 
 ## Windowed counter
 
-Windowed counter has the same semantics as interaction one, but is configured in a different way:
+Windowed counter has the same semantics as the interaction one, but is configured in a different way:
 ```yaml
 - name: clicks
   type: window_count
@@ -56,3 +56,19 @@ like 10 minutes.
 
 There is also a way to combine multiple windowed counters into a (rate)[./rate.md] to make streaming computation of CTR/Conversion rates
 easier.
+
+## Rate
+
+`rate` feature extractor is useful to calculate things like conversion rate, click through rate and other values where you need to divide one interaction counter by another.
+You can configure it in the following way:
+```yaml
+  - name: ctr
+    type: rate
+    // name of the feature extractor used as a dividend
+    top: click
+    // name of the feature extractor that is used as a divider
+    bottom: impression
+    scope: item
+    bucket: 24h
+    periods: [7,30]
+```

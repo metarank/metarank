@@ -1,9 +1,11 @@
-# User-Agent field extractor
+# User session feature extractors
+
+## User-Agent field extractor
 
 A typical HTTP User-Agent field has quite a lot of embedded meta information, which can be useful for ranking:
-* is it mobile or desktop? Mobile visitors behave differently compared to desktop ones: they scroll less and
-  get distracted quickier. 
-* iOS or Android? Assuming that on average Apple devices are more expensive and Android ones, it may be also 
+* is it mobile or desktop? Mobile visitors behave differently compared to desktop ones as they scroll less and
+  get distracted quicker. 
+* iOS or Android? Assuming that on average Apple devices are more expensive than Android ones, it can also 
   provide more insights on visitor goals.
 * Stock browser or something custom?
 * How old is the OS? On Android, an ancient version of OS can mean an old and unsupported device, so it can be also
@@ -19,8 +21,9 @@ Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
 ```
 
 There is a large collaborative effort to build a database of typical UA patterns, (UA-Parser)[https://github.com/ua-parser],
-which is used to extract all the possible metadata from these strings. To map this to actual ML features, there is a 
-predefined set of mappers:
+which is used to extract all the possible metadata from these strings. 
+
+To map this to actual ML features, there is a predefined set of mappers:
 * platform: mobile, desktop, tablet
 * os: ios, android, windows, linux, macos, chrome os
 
@@ -48,3 +51,21 @@ To configure the extractor, use this YAML snippet:
   // optional, how long should we remember this field
   ttl: 90d
 ```
+
+## Interacted with
+
+For the current item, did this visitor have an interaction with other item with the same field.
+
+Example:
+```yaml
+- name: clicked_color
+  type: interacted_with
+  // type of the interaction event (interaction.type field)
+  interaction: click
+  field: metadata.color
+
+  // session/user
+  scope: user
+```
+
+For this example, Metarank will track all color field values for all items visitor clicked and intersect this set with per-item field values in the ranking.

@@ -1,4 +1,6 @@
-# Relevancy
+# Relevvancy feature extractors
+
+## Ranking
 
 While implementing Learn-to-Rank systems, Metarank is designed to be a satellite secondary reranking system. It 
 assumes that there exists another service which generates candidates for the reranking process:
@@ -38,3 +40,12 @@ To use this information, you should configure the corresponding extractor:
 ```
 
 There are no options to configure, as relevancy is taken only from ranking events and never stored separately.
+
+## Items count
+
+Counts the number of items from the ranking event:
+
+```yaml
+- name: displayed_items
+  type: items_count
+```

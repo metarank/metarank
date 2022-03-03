@@ -1,12 +1,12 @@
-## Scalar features
+# Scalar feature extractors
 
-The most typical use case of mapping data from incoming events to ML features is to use them as is without any transformations.
+The most typical use case of mapping data from incoming events to ML features is to use them as is, without any transformations.
 Metarank has a set of basic extractors to simplify the process even more:
-* boolean: take a true/false field and map it to 1 and 0
-* number: take a number and use it as is
-* string: do a one-hot encoding of low-cardinality string contents of the field
+* `boolean`: take a true/false field and map it to 1 and 0
+* `number`: take a number and use it as is
+* `string`: do a one-hot encoding of low-cardinality string contents of the field
 
-### Boolean and numerical extractors
+## Boolean and numerical extractors
 
 Consider this type of incoming event, emitted by your backend system when a product goes in stock, or it's price changes:
 ```json
@@ -22,7 +22,7 @@ Consider this type of incoming event, emitted by your backend system when a prod
 }
 ```
 
-We can add the following extractor, so it will use the availability data in ranking:
+We can add the following extractor, so it will use the availability data for the ranking:
 ```yaml
 - name: availability
   type: boolean
@@ -42,7 +42,7 @@ An example for ranking events:
   "user": "user1",
   "session": "session1",
   "fields": [
-      {"name": "saw_banner", "value": true}
+      {"name": "banner_examined", "value": true}
   ],
   "items": [
     {"id": "product3", "relevancy":  2.0},
@@ -51,17 +51,18 @@ An example for ranking events:
   ]
 }
 ```
-So you can extract this `saw_banner` value using this config:
+
+So you can extract this `banner_examined` value using the following config:
 ```yaml
-- name: availability
+- name: banner_examined
   type: boolean
-  field: ranking.availability
+  field: ranking.banner_examined
 ```
 
 Extracting fields from interaction events is not possible, as at the moment of ranking request happening, there
 are no interactions happened yet, they will happen in the future.
 
-### String extractors
+## String extractors
 
 With string values there is no easy way to map them into a finite set of ML features. But in a case when
 the string has low cardinality (so there is a finite and low number of possible values), we can do a

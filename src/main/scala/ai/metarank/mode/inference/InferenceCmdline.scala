@@ -12,11 +12,12 @@ case class InferenceCmdline(
     host: String,
     model: File,
     config: File,
-    redisHost: String,
+    redisHost: Option[String],
     redisPort: Int,
     format: StoreCodec,
     batchSize: Int,
-    savepoint: String
+    savepoint: String,
+    embeddedRedis: Option[String]
 )
 
 object InferenceCmdline extends Logging {
@@ -48,8 +49,8 @@ object InferenceCmdline extends Logging {
         .action((m, cmd) => cmd.copy(config = File(m))),
       opt[String]("redis-host")
         .text("redis host")
-        .required()
-        .action((m, cmd) => cmd.copy(redisHost = m)),
+        .optional()
+        .action((m, cmd) => cmd.copy(redisHost = Some(m))),
       opt[Int]("redis-port")
         .text("redis port, 6379 by default")
         .optional()
@@ -58,6 +59,12 @@ object InferenceCmdline extends Logging {
         .text("redis batch size, default 1")
         .optional()
         .action((m, cmd) => cmd.copy(batchSize = m)),
+      opt[String]("embedded-redis-features-dir")
+        .text(
+          "path to /features directory after the bootstrap for embedded redis, like file:///tmp/data or s3://bucket/dir"
+        )
+        .optional()
+        .action((m, cmd) => cmd.copy(embeddedRedis = Some(m))),
       opt[String]("format")
         .text("state encoding format, protobuf/json")
         .required()
@@ -71,7 +78,9 @@ object InferenceCmdline extends Logging {
   }
 
   def parse(args: List[String]): IO[InferenceCmdline] = for {
-    cmd <- IO.fromOption(OParser.parse(parser, args, InferenceCmdline(8080, "::", null, null, "", 6379, null, 0, "")))(
+    cmd <- IO.fromOption(
+      OParser.parse(parser, args, InferenceCmdline(8080, "::", null, null, None, 6379, null, 0, "", None))
+    )(
       new IllegalArgumentException("cannot parse cmdline")
     )
     _ <- IO(logger.info(s"Port: ${cmd.port}"))

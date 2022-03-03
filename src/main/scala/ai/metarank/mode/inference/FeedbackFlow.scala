@@ -18,7 +18,13 @@ import org.apache.flink.streaming.util.TestStreamEnvironment
 
 object FeedbackFlow extends Logging {
   import ai.metarank.flow.DataStreamOps._
-  def resource(cluster: FlinkMinicluster, path: String, mapping: FeatureMapping, cmd: InferenceCmdline)(implicit
+  def resource(
+      cluster: FlinkMinicluster,
+      path: String,
+      mapping: FeatureMapping,
+      cmd: InferenceCmdline,
+      redisHost: String
+  )(implicit
       eti: TypeInformation[Event],
       valti: TypeInformation[FeatureValue],
       intti: TypeInformation[Int]
@@ -31,7 +37,7 @@ object FeedbackFlow extends Logging {
         val (_, updates) = Bootstrap.makeUpdates(source, grouped, mapping)
         updates
           .addSink(
-            FeatureStoreSink(RedisStore(RedisConfig(cmd.redisHost, cmd.redisPort, cmd.format)), cmd.batchSize)
+            FeatureStoreSink(RedisStore(RedisConfig(redisHost, cmd.redisPort, cmd.format)), cmd.batchSize)
           )
           .id("write-redis")
         val graph = env.getStreamGraph.getJobGraph

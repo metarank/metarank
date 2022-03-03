@@ -34,23 +34,21 @@ object Inference extends IOApp {
 
   def cluster(dir: File, config: Config, mapping: FeatureMapping, cmd: InferenceCmdline) = {
     for {
-      cluster <- FlinkMinicluster
-        .resource()
-      _ <- FeedbackFlow
-        .resource(cluster, dir.toString(), mapping, cmd)
-      s <- server(cmd, config, dir)
+      cluster <- FlinkMinicluster.resource()
+      redis   <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
+      _       <- Resource.eval(redis.upload)
+      _       <- FeedbackFlow.resource(cluster, dir.toString(), mapping, cmd, redis.host)
+      s       <- server(cmd, config, dir, redis.host)
     } yield s
   }
 
-  def server(cmd: InferenceCmdline, config: Config, dir: File) = {
-    val store   = RedisStore(RedisConfig(cmd.redisHost, cmd.redisPort, cmd.format))
+  def server(cmd: InferenceCmdline, config: Config, dir: File, redisHost: String) = {
+    val store   = RedisStore(RedisConfig(redisHost, cmd.redisPort, cmd.format))
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
     val scorer  = LightGBMScorer(cmd.model.contentAsString)
     for {
-      writer <- LocalDirWriter
-        .create(dir)
-      routes =
-        HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(writer).routes
+      writer <- LocalDirWriter.create(dir)
+      routes  = HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(writer).routes
       httpApp = Router("/" -> routes).orNotFound
     } yield BlazeServerBuilder[IO]
       .bindHttp(cmd.port, cmd.host)

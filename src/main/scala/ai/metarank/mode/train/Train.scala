@@ -3,6 +3,7 @@ package ai.metarank.mode.train
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.mode.train.TrainCmdline.ModelType
+import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import io.circe.parser._
@@ -14,7 +15,7 @@ import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 import java.nio.charset.StandardCharsets
 import scala.util.Random
 
-object Train extends IOApp {
+object Train extends IOApp with Logging {
   import ai.metarank.flow.DatasetSink.queryCodec
   override def run(args: List[String]): IO[ExitCode] = for {
     cmd     <- TrainCmdline.parse(args)
@@ -24,6 +25,7 @@ object Train extends IOApp {
   } yield {
     val (train, test) = split(data, cmd.split)
     cmd.output.write(trainModel(train, test, cmd.booster, cmd.iterations))
+    logger.info(s"model written to ${cmd.output}")
     ExitCode.Success
   }
 

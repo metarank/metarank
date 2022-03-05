@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
@@ -13,7 +13,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, Scal
 
 import scala.concurrent.duration.FiniteDuration
 
-case class RelevancyFeature(schema: RelevancySchema) extends StatelessFeature {
+case class RelevancyFeature(schema: RelevancySchema) extends ItemStatelessFeature {
   override def dim: Int = 1
 
   override def fields: List[FieldSchema] = Nil

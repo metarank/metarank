@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.MetaFeature.StatefulFeature
+import ai.metarank.feature.BaseFeature.StatefulFeature
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.FieldSchema.StringFieldSchema

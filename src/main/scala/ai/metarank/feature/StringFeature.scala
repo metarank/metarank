@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
@@ -18,7 +18,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 
 import scala.concurrent.duration._
 
-case class StringFeature(schema: StringFeatureSchema) extends StatelessFeature {
+case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeature {
   val possibleValues    = schema.values.toList
   val names             = possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.values.size

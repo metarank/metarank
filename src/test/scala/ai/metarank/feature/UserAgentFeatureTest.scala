@@ -28,20 +28,6 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
     )
   )
 
-  it should "extract value in offline event stream" in {
-    val writes = feature.writes(
-      TestRankingEvent(List("p1"))
-        .copy(
-          fields = List(StringField("ua", "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)")),
-          session = SessionId("s1"),
-          timestamp = now
-        )
-    )
-    writes shouldBe List(
-      Put(Key(Tag(SessionScope.scope, "s1"), FeatureName("ua_platform"), Tenant("default")), now, SString("desktop"))
-    )
-  }
-
   it should "compute value from ranking event" in {
     val value = feature.value(
       request = TestRankingEvent(List("p1")).copy(
@@ -49,8 +35,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         session = SessionId("s1"),
         timestamp = now
       ),
-      state = Map.empty, // (key -> ScalarValue(key, now, SString("desktop"))),
-      id = ItemRelevancy(ItemId("p1"))
+      state = Map.empty
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)
@@ -63,10 +48,10 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
     val value = feature.value(
       request = TestRankingEvent(List("p1")).copy(
         session = SessionId("s1"),
-        timestamp = now
+        timestamp = now,
+        fields = List(StringField("ua", "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"))
       ),
-      state = Map(k -> ScalarValue(k, now, SString("desktop"))),
-      id = ItemRelevancy(ItemId("p1"))
+      state = Map.empty
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)

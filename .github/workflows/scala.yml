@@ -13,9 +13,12 @@ jobs:
     strategy:
       matrix:
         platform: [ubuntu-20.04, macos-11, windows-2019]
-    container: hseeberger/scala-sbt:11.0.14.1_1.6.2_2.12.15
 
     steps:
+    - name: install libomp
+      run: brew install libomp
+      if: runner.os == 'macOS'
+
     - name: install git-lfs
       run: "apt update && apt install git-lfs libgomp1"
     - uses: actions/checkout@v2

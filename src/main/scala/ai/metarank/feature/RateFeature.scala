@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.ItemScope
@@ -17,7 +17,7 @@ import shapeless.syntax.typeable._
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class RateFeature(schema: RateFeatureSchema) extends StatelessFeature {
+case class RateFeature(schema: RateFeatureSchema) extends ItemStatelessFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 

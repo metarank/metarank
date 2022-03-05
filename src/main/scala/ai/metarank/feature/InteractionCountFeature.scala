@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldSchema.StringFieldSchema
@@ -19,7 +19,7 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
-case class InteractionCountFeature(schema: InteractionCountSchema) extends StatelessFeature with Logging {
+case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemStatelessFeature with Logging {
   override def dim: Int = 1
 
   private val conf = CounterConfig(

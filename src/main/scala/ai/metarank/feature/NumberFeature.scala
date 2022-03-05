@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
@@ -17,7 +17,7 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
-case class NumberFeature(schema: NumberFeatureSchema) extends StatelessFeature {
+case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(

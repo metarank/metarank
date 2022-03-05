@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.MValue.VectorValue
@@ -15,7 +15,7 @@ import shapeless.syntax.typeable.typeableOps
 
 import scala.concurrent.duration._
 
-case class WindowCountFeature(schema: WindowCountSchema) extends StatelessFeature {
+case class WindowCountFeature(schema: WindowCountSchema) extends ItemStatelessFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 

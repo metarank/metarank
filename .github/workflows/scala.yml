@@ -9,8 +9,11 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-    container: hseeberger/scala-sbt:11.0.13_1.5.5_2.13.7
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-20.04, macos-11, windows-2019]
+    container: hseeberger/scala-sbt:11.0.14.1_1.6.2_2.12.15
 
     steps:
     - name: install git-lfs

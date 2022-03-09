@@ -2,7 +2,7 @@ import Deps._
 
 name := "metarank"
 
-version := "0.2.0"
+version := "0.2.1"
 
 resolvers ++= Seq(
   ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")

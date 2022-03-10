@@ -5,7 +5,7 @@
     </a>
 </h1>
 <h2 align="center">
-  <a href="https://metarank.ai">Website</a> | <a href="https://metarank.ai/slack">Community Slack</a> | <a href="https://metarank.substack.com/subscribe">Blog</a> | <a href="https://demo.metarank.ai">Demo</a>
+  <a href="https://metarank.ai">Website</a> | <a href="https://metarank.ai/slack">Community Slack</a> | <a href="https://medium.com/metarank">Blog</a> | <a href="https://demo.metarank.ai">Demo</a>
 </h2>
 
 [![CI Status](https://github.com/metarank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/metarank/metarank/actions)

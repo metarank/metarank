@@ -66,10 +66,10 @@ object Bootstrap extends IOApp with Logging {
 
     Featury.writeState(state, new Path(s"${cmd.outDir}/state"), Compress.NoCompression).id("write-state")
     Featury
-      .writeFeatures(updates, new Path(s"file://${cmd.outDir}/features"), Compress.NoCompression)
+      .writeFeatures(updates, new Path(s"${cmd.outDir}/features"), Compress.NoCompression)
       .id("write-features")
     val computed = joinFeatures(updates, grouped, mapping)
-    computed.sinkTo(DatasetSink.json(mapping, s"file://${cmd.outDir}/dataset")).id("write-train")
+    computed.sinkTo(DatasetSink.json(mapping, s"${cmd.outDir}/dataset")).id("write-train")
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
@@ -77,7 +77,7 @@ object Bootstrap extends IOApp with Logging {
     batch.setParallelism(cmd.parallelism)
     val stateSource = Featury.readState(batch, new Path(s"${cmd.outDir}/state"), Compress.NoCompression)
 
-    val valuesPath = s"file://${cmd.outDir}/features"
+    val valuesPath = s"${cmd.outDir}/features"
     val valuesSource = batch
       .readFile(
         new BulkInputFormat[FeatureValue](

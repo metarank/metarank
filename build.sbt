@@ -22,13 +22,13 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.typelevel"        %% "cats-effect"                % "3.3.6",
+  "org.typelevel"        %% "cats-effect"                % "3.3.7",
   "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
   "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
   "org.scalatest"        %% "scalatest"                  % scalatestVersion % Test,
   "org.scalactic"        %% "scalactic"                  % scalatestVersion % Test,
   "org.scalatestplus"    %% "scalacheck-1-14"            % "3.2.2.0"        % Test,
-  "ch.qos.logback"        % "logback-classic"            % "1.2.10",
+  "ch.qos.logback"        % "logback-classic"            % "1.2.11",
   "io.circe"             %% "circe-yaml"                 % circeYamlVersion,
   "io.circe"             %% "circe-core"                 % circeVersion,
   "io.circe"             %% "circe-generic"              % circeVersion,

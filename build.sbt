@@ -64,8 +64,15 @@ libraryDependencies ++= Seq(
 
 enablePlugins(DockerPlugin)
 enablePlugins(JavaServerAppPackaging)
-dockerExposedPorts ++= Seq(8080)
-dockerBaseImage := "openjdk:11"
+
+Compile / mainClass             := Some("ai.metarank.Main")
+Compile / discoveredMainClasses := Seq()
+
+maintainer := "Metarank team"
+dockerExposedPorts ++= Seq(8080, 6123)
+dockerBaseImage      := "openjdk:11.0.14.1-jdk"
+dockerExposedVolumes := List("/data")
+dockerUsername       := Some("metarank")
 
 ThisBuild / assemblyMergeStrategy := {
   case PathList("module-info.class")         => MergeStrategy.discard

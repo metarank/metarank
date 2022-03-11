@@ -17,63 +17,6 @@ spec:
   type: ClusterIP
 ---
 apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: metarank-api
-  name: metarank-api
-spec:
-  replicas: 3
-  revisionHistoryLimit: 3
-  selector:
-    matchLabels:
-      app: metarank-api
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 0%
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: metarank-api
-    spec:
-      containers:
-        - env:
-            - name: ENV
-              value: prod
-          image: metarank/metarank:0.2.1
-          imagePullPolicy: IfNotPresent
-          livenessProbe:
-            httpGet:
-              httpHeaders:
-                - name: Accept
-                  value: application/json
-              path: /health
-              port: 8080
-              scheme: HTTP
-          name: api
-          ports:
-            - containerPort: 8080
-              name: api
-              protocol: TCP
-          readinessProbe:
-            httpGet:
-              httpHeaders:
-                - name: Accept
-                  value: application/json
-              path: /health
-              port: 8080
-              scheme: HTTP
-          resources:
-            limits:
-              memory: 800Mi
-            requests:
-              cpu: 33m
-              memory: 800Mi
-      restartPolicy: Always
----
-apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: metarank-api
@@ -98,43 +41,26 @@ spec:
           args:
             - inference
           env:
-  --savepoint-dir <value>  full path savepoint snapshot, the /savepoint dir after the bootstrap phase
-  --model <value>          full path to model file to serve
-  --format <value>         state encoding format, protobuf/json
-  --config <value>         config file with feature definition
-  --port <value>           HTTP port to bind to, default 8080
-  --interface <value>      network inferface to bind to, default is bind to everything
-  --redis-host <value>     redis host
-  --redis-port <value>     redis port, 6379 by default
-  --batch-size <value>     redis batch size, default 1
-  --embedded-redis-features-dir <value>
             - name: METARANK_SAVEPOINT_DIR
               value: "s3://<bucket>/<path>"
-            - name: MALLOC_CONF
-              value: "prof:true,lg_prof_interval:31,lg_prof_sample:17,prof_prefix:/tmp/jeprof"
+            - name: METARANK_MODEL
+              value: "s3://<bucket>/<path>"
+            - name: METARANK_CONFIG
+              value: "s3://<bucket>/<path>"
+            - name: METARANK_FORMAT
+              value: "json"
+            - name: METARANK_REDIS_HOST
+              value: "<redis hostname>"
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: flink-keys
+                  name: metarank-keys
                   key: aws-key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: flink-keys
+                  name: metarank-keys
                   key: aws-secret
           ports:
-            - containerPort: 6123
-              name: rpc
-            - containerPort: 6124
-              name: blob
-            - containerPort: 6125
-              name: query
-            - containerPort: 8081
-              name: ui
-            - containerPort: 6666
-              name: metrics
-            - containerPort: 9249
-              name: prometheus
-          volumeMounts:
-            - name: config
-              mountPath: /opt/flink/confmap/
+            - containerPort: 8080
+              name: api

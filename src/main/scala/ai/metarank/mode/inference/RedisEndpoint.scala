@@ -19,7 +19,7 @@ object RedisEndpoint {
   }
 
   case class EmbeddedRedis(host: String, service: RedisServer, dir: String) extends RedisEndpoint {
-    override def upload: IO[Unit] = Upload.run(UploadCmdline(host, 6379, JsonCodec, dir, 1024)).map(_ => {})
+    override def upload: IO[Unit] = Upload.run(UploadCmdline(host, 6379, JsonCodec, dir, 1024, 1)).map(_ => {})
     override def close: IO[Unit]  = IO { service.close() }
   }
 

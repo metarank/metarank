@@ -9,6 +9,7 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
+import ai.metarank.mode.FlinkS3Configuration
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
@@ -33,6 +34,7 @@ import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
 
 import scala.language.higherKinds
 import scala.concurrent.duration._
+import scala.collection.JavaConverters._
 
 object Bootstrap extends IOApp with Logging {
   import ai.metarank.flow.DataStreamOps._
@@ -45,7 +47,7 @@ object Bootstrap extends IOApp with Logging {
   }
 
   override def run(args: List[String]): IO[ExitCode] = for {
-    cmd    <- BootstrapCmdline.parse(args)
+    cmd    <- BootstrapCmdline.parse(args, System.getenv().asScala.toMap)
     config <- Config.load(cmd.config)
     _      <- run(config, cmd)
   } yield {
@@ -54,9 +56,9 @@ object Bootstrap extends IOApp with Logging {
 
   def run(config: Config, cmd: BootstrapCmdline) = IO {
     File(cmd.outDir).createDirectoryIfNotExists(createParents = true)
-    val mapping   = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
-    val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
-    streamEnv.setParallelism(cmd.parallelism)
+    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+    val streamEnv =
+      StreamExecutionEnvironment.createLocalEnvironment(cmd.parallelism, FlinkS3Configuration(System.getenv()))
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
 
     logger.info("starting historical data processing")

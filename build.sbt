@@ -2,7 +2,7 @@ import Deps._
 
 name := "metarank"
 
-version := "0.2.1"
+version := "0.2.1-M1"
 
 resolvers ++= Seq(
   ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
@@ -52,6 +52,7 @@ libraryDependencies ++= Seq(
     ExclusionRule("org.apache.curator"),
     ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
   ),
+  "org.apache.flink"     % "flink-s3-fs-hadoop"  % flinkVersion,
   "org.http4s"          %% "http4s-dsl"          % http4sVersion,
   "org.http4s"          %% "http4s-blaze-server" % http4sVersion,
   "org.http4s"          %% "http4s-blaze-client" % http4sVersion,

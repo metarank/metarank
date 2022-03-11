@@ -1,5 +1,6 @@
 package ai.metarank.mode.upload
 
+import ai.metarank.mode.FlinkS3Configuration
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.connector.redis.RedisStore
@@ -13,11 +14,12 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
+import scala.collection.JavaConverters._
 import scala.language.higherKinds
 
 object Upload extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = for {
-    cmd <- UploadCmdline.parse(args)
+    cmd <- UploadCmdline.parse(args, System.getenv().asScala.toMap)
     _   <- run(cmd)
   } yield {
     ExitCode.Success
@@ -28,7 +30,7 @@ object Upload extends IOApp with Logging {
   }
 
   def upload(dir: String, host: String, port: Int, format: StoreCodec, batchSize: Int) = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
+    val env = StreamExecutionEnvironment.createLocalEnvironment(1, FlinkS3Configuration(System.getenv()))
     val features = env.fromSource(
       Featury.readFeatures(new Path(dir), Compress.NoCompression),
       WatermarkStrategy.noWatermarks(),

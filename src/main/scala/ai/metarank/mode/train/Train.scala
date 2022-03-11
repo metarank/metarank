@@ -14,11 +14,12 @@ import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
+import scala.collection.JavaConverters._
 
 object Train extends IOApp with Logging {
   import ai.metarank.flow.DatasetSink.queryCodec
   override def run(args: List[String]): IO[ExitCode] = for {
-    cmd     <- TrainCmdline.parse(args)
+    cmd     <- TrainCmdline.parse(args, System.getenv().asScala.toMap)
     config  <- Config.load(cmd.config)
     mapping <- IO { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
     data    <- loadData(cmd.input, mapping.datasetDescriptor)

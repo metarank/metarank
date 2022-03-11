@@ -25,7 +25,7 @@ $ docker run metarank/metarank:0.2.1 help
 Metarank image exposes a `/data` volume to handle all the local IO. For example, you can pass the input training dataset
 from your local host using the docker's `-v` switch:
 ```shell
-docker -v /data:/home/user/input run metarank/metarank:0.2.1 train <opts>
+docker -v /data:/home/user/input run metarank/metarank:latest train <opts>
 ```
 
 ### Ports
@@ -36,5 +36,5 @@ The image exposes the following ports:
 
 To map these ports to your host, use the `-p` flag:
 ```shell
-docker -p 8080:8080 run metarank/metarank:0.2.1 inference <opts>
+docker -p 8080:8080 run metarank/metarank:latest inference <opts>
 ```

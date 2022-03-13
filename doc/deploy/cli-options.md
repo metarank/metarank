@@ -1,14 +1,16 @@
-# Metarank CLI tool options
+# Metarank CLI
 
-Metarank CLI tool has a set of command-line options to control its behavior. To run the main app, download the jar file
-and do the following:
+Metarank CLI has a set of command-line options to control its behavior. 
+
+To run the main app, download the [latest jar file](https://github.com/metarank/metarank/releases) and run the following command:
+
 ```shell
 $ java -jar metarank-assembly-x.x.x.jar
 
 15:35:35.252 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
 
 15:35:35.257 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
-15:35:35.258 INFO  ai.metarank.Main$ - Run 'metarank <command> for extra options. 
+15:35:35.258 INFO  ai.metarank.Main$ - Run 'metarank <command>' for extra options. 
 15:35:35.259 INFO  ai.metarank.Main$ - - bootstrap: import historical data
 15:35:35.261 INFO  ai.metarank.Main$ - - train: train the ranking ML model
 15:35:35.262 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
@@ -22,12 +24,17 @@ The command-line argument structure is:
 $ java -jar metarank-assembly-x.x.x.jar <command> <args>
 ```
 
-### Environment variables
+## Environment variables
 
-Arguments for metarank subcommands can be also supplied using environment variables.
-Variable name format is `METARANK_` prefix and uppercased option name. An example:
+You can use environment variables instead of passing CLI options. This can be useful for configuring Metarank deployment for different environments (local, staging, production).
+
+Environment variable naming format is `METARANK_` prefix and uppercased option name. 
+
+A few examples:
 * `--parallelism` becomes `METARANK_PARALLELISM`
 * `--savepoint-dir` becomes `METARANK_SAVEPOINT_DIR`
+
+## CLI Options
 
 ### Bootstrap
 

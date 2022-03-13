@@ -80,7 +80,8 @@ You can check out our [tutorial](doc/tutorial_ranklens.md) and play with Metaran
 * [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
 * [Configuration](doc/03_configuration.md) walkthrough
 * [API overview](doc/xx_api_schema.md)
-* [Running metarank in Docker](doc/docker.md)
+* [CLI Options](doc/deploy/cli-options.md)
+* [Running Metarank in Docker](doc/deploy/docker.md)
 * [Contribution guide](doc/xx_development.md)
 * [License](LICENSE)
 

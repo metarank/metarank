@@ -2,16 +2,16 @@
 
 Metarank official image is published in docker hub as [metarank/metarank](https://hub.docker.com/r/metarank/metarank/tags).
 
-### Running the docker image
+## Running the docker image
 
-All metarank sub-commands are wrapped into a single command-line API. To see the CLI options, run the docker container:
+All metarank sub-commands are wrapped into a single command-line API. To see the [CLI options](cli-options.md), run the docker container:
 ```shell
 $ docker run metarank/metarank:0.2.1 help
 
 12:35:48.228 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
 
 12:35:48.232 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
-12:35:48.232 INFO  ai.metarank.Main$ - Run 'metarank <command> for extra options. 
+12:35:48.232 INFO  ai.metarank.Main$ - Run 'metarank <command>' for extra options. 
 12:35:48.233 INFO  ai.metarank.Main$ - - bootstrap: import historical data
 12:35:48.234 INFO  ai.metarank.Main$ - - train: train the ranking ML model
 12:35:48.234 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
@@ -22,8 +22,8 @@ $ docker run metarank/metarank:0.2.1 help
 
 ### Resources
 
-Metarank image exposes a `/data` volume to handle all the local IO. For example, you can pass the input training dataset
-from your local host using the docker's `-v` switch:
+Metarank image exposes a `/data` volume to handle all the local IO. 
+For example, you can pass the input training dataset from your local host using the docker's `-v` switch:
 ```shell
 docker -v /data:/home/user/input run metarank/metarank:latest train <opts>
 ```

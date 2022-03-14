@@ -9,12 +9,16 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-    container: hseeberger/scala-sbt:11.0.13_1.5.5_2.13.7
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-20.04, macos-11]
 
     steps:
-    - name: install git-lfs
-      run: "apt update && apt install git-lfs libgomp1"
+    - name: install libomp
+      run: brew install libomp
+      if: runner.os == 'macOS'
+
     - uses: actions/checkout@v2
       with:
         lfs: 'true'
@@ -22,5 +26,10 @@ jobs:
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
         key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        distribution: 'adopt-hotspot'
+        java-version: '11'
     - name: Run tests
       run: sbt -mem 2048 test

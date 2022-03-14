@@ -67,7 +67,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     Featury.writeFeatures(updates, new Path(updatesDir.toString()), Compress.NoCompression)
     val computed = Bootstrap.joinFeatures(updates, grouped, mapping)
 
-    computed.sinkTo(DatasetSink.csv(mapping, s"file://$dir"))
+    computed.sinkTo(DatasetSink.csv(mapping, s"file:///$dir"))
     env.execute()
   }
 

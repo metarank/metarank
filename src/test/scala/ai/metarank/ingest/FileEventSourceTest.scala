@@ -19,7 +19,7 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
     val json    = events.map(_.asJson.noSpaces).mkString("\n")
     outFile.write(json)
     outFile.size should be > 1L
-    val result = FileEventSource(outDir.toString())
+    val result = FileEventSource("file:///" + outDir.toString())
       .eventStream(env)
       .executeAndCollect(2000)
     result should contain theSameElementsAs events

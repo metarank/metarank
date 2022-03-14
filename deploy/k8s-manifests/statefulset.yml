@@ -1,21 +1,3 @@
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: metarank-api
-  name: metarank-api
-spec:
-  ports:
-    - name: http-api
-      port: 8080
-      protocol: TCP
-      targetPort: 8080
-  selector:
-    app: metarank-api
-  sessionAffinity: None
-  type: ClusterIP
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -51,16 +33,20 @@ spec:
               value: "json"
             - name: METARANK_REDIS_HOST
               value: "<redis hostname>"
+            # if you're using a DO/GCP/MinIO S3 implementations
+            # uncomment the following
+            # - name: AWS_S3_ENDPOINT_URL
+            #   value: "<non-default S3 endpoint URL>"
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
                   name: metarank-keys
-                  key: aws-key
+                  key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: metarank-keys
-                  key: aws-secret
+                  key: AWS_SECRET_ACCESS_KEY
           ports:
             - containerPort: 8080
               name: api

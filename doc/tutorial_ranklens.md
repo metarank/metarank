@@ -128,7 +128,7 @@ The bootstrap job will process your incoming events based on a config file and p
 2. `features` - snapshot of the latest feature values, which should be used in the inference phase later
 3. `savepoint` - an Apache Flink savepoint to seamlessly continue processing online events after the bootstrap job
 
-Run the following command with Metarank CLI and provide the `events.json.gz` and `config.yml` files locations as it's parameters:
+Run the following command with Metarank CLI and provide the [`events.json.gz`](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events) and `config.yml` files locations as it's parameters:
 
 ```shell
 java -cp metarank.jar ai.metarank.mode.bootstrap.Bootstrap \

@@ -2,7 +2,7 @@ import Deps._
 
 name := "metarank"
 
-version := "0.2.1-M1"
+version := "0.2.3-M1"
 
 resolvers ++= Seq(
   ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
@@ -75,9 +75,30 @@ dockerBaseImage      := "openjdk:11.0.14.1-jdk"
 dockerExposedVolumes := List("/data")
 dockerUsername       := Some("metarank")
 
+/** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
+  * building. With this approach we have a custom MergeStrategy, which drops all files from flink-s3-fs-hadoop jar if
+  * there is a conflict (so probably there is a newer version of dependency in fat-jar classpath)
+  */
+lazy val flinkS3Conflicts = List(
+  "com/google/common",
+  "com/google/errorprone",
+  "com/google/j2objc",
+  "com/google/thirdparty",
+  "org/checkerframework",
+  "org/apache/commons/beanutils",
+  "org/apache/commons/collections",
+  "org/apache/commons/io",
+  "org/apache/commons/lang3",
+  "org/apache/commons/text",
+  "org/apache/commons/logging"
+)
+
+val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Conflicts)
+
 ThisBuild / assemblyMergeStrategy := {
-  case PathList("module-info.class")         => MergeStrategy.discard
-  case x if x.endsWith("/module-info.class") => MergeStrategy.discard
+  case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy
+  case PathList("module-info.class")                                => MergeStrategy.discard
+  case x if x.endsWith("/module-info.class")                        => MergeStrategy.discard
   case x =>
     val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
     oldStrategy(x)

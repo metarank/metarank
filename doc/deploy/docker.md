@@ -6,7 +6,7 @@ Metarank official image is published in docker hub as [metarank/metarank](https:
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI options](cli-options.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.2.1 help
+$ docker run metarank/metarank:0.2.2 help
 
 12:35:48.228 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
 

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: metarank-api
+spec:
+  selector:
+    matchLabels:
+      app: metarank-api
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: metarank-api
+    spec:
+      containers:
+        - name: api
+          image: metarank/metarank:0.2.1
+          resources:
+            limits:
+              memory: 600Mi
+            requests:
+              memory: 600Mi
+          args:
+            - inference
+          env:
+            - name: METARANK_SAVEPOINT_DIR
+              value: "s3://<bucket>/<path>"
+            - name: METARANK_MODEL
+              value: "s3://<bucket>/<path>"
+            - name: METARANK_CONFIG
+              value: "s3://<bucket>/<path>"
+            - name: METARANK_FORMAT
+              value: "json"
+            - name: METARANK_REDIS_HOST
+              value: "<redis hostname>"
+            # if you're using a DO/GCP/MinIO S3 implementations
+            # uncomment the following
+            # - name: AWS_S3_ENDPOINT_URL
+            #   value: "<non-default S3 endpoint URL>"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: metarank-keys
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: metarank-keys
+                  key: AWS_SECRET_ACCESS_KEY
+          ports:
+            - containerPort: 8080
+              name: api

@@ -3,7 +3,7 @@ package ai.metarank
 import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.MetaFeature.{StatefulFeature, StatelessFeature}
+import ai.metarank.feature.BaseFeature.{ItemFeature, ItemStatelessFeature, RankingStatelessFeature, StatefulFeature}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
@@ -18,7 +18,7 @@ import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
 
 case class FeatureMapping(
-    features: List[MetaFeature],
+    features: List[BaseFeature],
     statefulFeatures: List[StatefulFeature],
     fields: List[FieldSchema],
     schema: Schema,
@@ -34,14 +34,24 @@ case class FeatureMapping(
   ): List[ItemValues] = {
     val state = source.map(fv => fv.key -> fv).toMap
 
+    val itemFeatures: List[ItemFeature] = features.collect {
+      case feature: ItemStatelessFeature => feature
+      case feature: StatefulFeature      => feature
+    }
+
+    val rankingFeatures = features.collect { case feature: RankingStatelessFeature =>
+      feature
+    }
+
+    val rankingValues = rankingFeatures.map(_.value(ranking, state))
+
     for {
       item <- ranking.items
     } yield {
       val weight = interactions.find(_.item == item.id).map(e => weights.getOrElse(e.`type`, 1.0)).getOrElse(0.0)
-      val values = features.map(_.value(ranking, state, item))
-      ItemValues(item.id, weight, values)
+      val values = itemFeatures.map(_.value(ranking, state, item))
+      ItemValues(item.id, weight, rankingValues ++ values)
     }
-
   }
 
   def keys(ranking: RankingEvent): Traversable[Key] = for {
@@ -65,11 +75,11 @@ object FeatureMapping {
     val stateful = schema.collect { case c: InteractedWithSchema =>
       InteractedWithFeature(c)
     }
-    val features: List[MetaFeature] = stateless ++ stateful
+    val features: List[BaseFeature] = stateless ++ stateful
     val featurySchema               = Schema(features.flatMap(_.states))
     val datasetFeatures = features.map {
-      case f: MetaFeature if f.dim == 1 => SingularFeature(f.schema.name)
-      case f: MetaFeature               => VectorFeature(f.schema.name, f.dim)
+      case f: BaseFeature if f.dim == 1 => SingularFeature(f.schema.name)
+      case f: BaseFeature               => VectorFeature(f.schema.name, f.dim)
     }
     val datasetDescriptor = DatasetDescriptor(datasetFeatures)
     new FeatureMapping(

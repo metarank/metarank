@@ -2,7 +2,7 @@ import Deps._
 
 name := "metarank"
 
-version := "0.2.0"
+version := "0.2.1-M1"
 
 resolvers ++= Seq(
   ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
@@ -22,13 +22,13 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.typelevel"        %% "cats-effect"                % "3.3.6",
+  "org.typelevel"        %% "cats-effect"                % "3.3.7",
   "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
   "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
   "org.scalatest"        %% "scalatest"                  % scalatestVersion % Test,
   "org.scalactic"        %% "scalactic"                  % scalatestVersion % Test,
   "org.scalatestplus"    %% "scalacheck-1-14"            % "3.2.2.0"        % Test,
-  "ch.qos.logback"        % "logback-classic"            % "1.2.10",
+  "ch.qos.logback"        % "logback-classic"            % "1.2.11",
   "io.circe"             %% "circe-yaml"                 % circeYamlVersion,
   "io.circe"             %% "circe-core"                 % circeVersion,
   "io.circe"             %% "circe-generic"              % circeVersion,
@@ -52,6 +52,7 @@ libraryDependencies ++= Seq(
     ExclusionRule("org.apache.curator"),
     ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
   ),
+  "org.apache.flink"     % "flink-s3-fs-hadoop"  % flinkVersion,
   "org.http4s"          %% "http4s-dsl"          % http4sVersion,
   "org.http4s"          %% "http4s-blaze-server" % http4sVersion,
   "org.http4s"          %% "http4s-blaze-client" % http4sVersion,
@@ -64,8 +65,15 @@ libraryDependencies ++= Seq(
 
 enablePlugins(DockerPlugin)
 enablePlugins(JavaServerAppPackaging)
-dockerExposedPorts ++= Seq(8080)
-dockerBaseImage := "openjdk:11"
+
+Compile / mainClass             := Some("ai.metarank.Main")
+Compile / discoveredMainClasses := Seq()
+
+maintainer := "Metarank team"
+dockerExposedPorts ++= Seq(8080, 6123)
+dockerBaseImage      := "openjdk:11.0.14.1-jdk"
+dockerExposedVolumes := List("/data")
+dockerUsername       := Some("metarank")
 
 ThisBuild / assemblyMergeStrategy := {
   case PathList("module-info.class")         => MergeStrategy.discard

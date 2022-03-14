@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.FieldSchema.BooleanFieldSchema
@@ -17,7 +17,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SBoolean, SDo
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
 
-case class BooleanFeature(schema: BooleanFeatureSchema) extends StatelessFeature {
+case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemStatelessFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(

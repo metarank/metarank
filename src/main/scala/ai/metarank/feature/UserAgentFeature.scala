@@ -1,8 +1,8 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.{ItemStatelessFeature, RankingStatelessFeature}
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
-import ai.metarank.feature.ua.{OSField, PlatformField}
+import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
@@ -20,9 +20,8 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, SStr
 import ua_parser.{Client, Parser}
 
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
-case class UserAgentFeature(schema: UserAgentSchema) extends StatelessFeature {
+case class UserAgentFeature(schema: UserAgentSchema) extends RankingStatelessFeature {
   lazy val parser       = new Parser()
   val names             = schema.field.possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.field.dim
@@ -37,48 +36,22 @@ case class UserAgentFeature(schema: UserAgentSchema) extends StatelessFeature {
 
   override def fields = List(StringFieldSchema(schema.source))
 
-  override def writes(event: Event): Iterable[Put] = for {
-    key   <- keyOf(event)
-    field <- event.fields.find(_.name == schema.source.field)
-    fieldValue <- field match {
-      case StringField(_, value) => Some(SString(value))
-      case _                     => None
-    }
-    client = parser.parse(fieldValue.value)
-    encodedValue <- schema.field.value(client)
-  } yield {
-    Put(key, event.timestamp, SString(encodedValue))
-  }
+  override def writes(event: Event): Iterable[Put] = Nil
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      state: Map[Key, FeatureValue]
   ): MValue = {
-    val result = for {
-      key   <- keyOf(request, Some(id.id))
-      value <- state.get(key)
-    } yield {
-      value
-    }
-    result match {
-      case Some(ScalarValue(_, _, SString(value))) =>
-        // we cached the parsed UA in the past, no need to parse it
-        VectorValue(names, OneHotEncoder.fromValue(value, schema.field.possibleValues, dim), dim)
-      case None =>
-        request.fieldsMap.get(schema.source.field) match {
-          case Some(StringField(_, value)) =>
-            val client = parser.parse(value)
-            val field  = schema.field.value(client)
-            VectorValue(names, OneHotEncoder.fromValues(field, schema.field.possibleValues, dim), dim)
-          case _ =>
-            VectorValue(names, OneHotEncoder.empty(dim), dim)
+    request.fieldsMap.get(schema.source.field) match {
+      case Some(StringField(_, value)) =>
+        val client = parser.parse(value)
+        val field  = schema.field.value(client)
+        VectorValue(names, OneHotEncoder.fromValues(field, schema.field.possibleValues, dim), dim)
+      case _ =>
+        VectorValue(names, OneHotEncoder.empty(dim), dim)
 
-        }
-      case _ => VectorValue(names, OneHotEncoder.empty(dim), dim)
     }
   }
-
 }
 
 object UserAgentFeature {
@@ -103,6 +76,8 @@ object UserAgentFeature {
       case Left(value)       => Left(value)
       case Right("platform") => Right(PlatformField)
       case Right("os")       => Right(OSField)
+      case Right("browser")  => Right(BrowserField)
+      case Right("bot")      => Right(BotField)
       case Right(other)      => Left(DecodingFailure(s"UA field type $other is not yet supported", c.history))
     }
   )

@@ -26,6 +26,8 @@ which is used to extract all the possible metadata from these strings.
 To map this to actual ML features, there is a predefined set of mappers:
 * platform: mobile, desktop, tablet
 * os: ios, android, windows, linux, macos, chrome os
+* browser: safari, chrome, firefox, opera, ie, other
+* bot: is it a known crawler or not
 
 To configure the extractor, use this YAML snippet:
 ```yaml
@@ -36,7 +38,7 @@ To configure the extractor, use this YAML snippet:
   // can also be an interaction and depends on your data model
   source: "ranking.ua"
   
-  // options: platform, os
+  // options: platform, os, browser, bot
   field: "platform"
   
   // technically, parsed user agent fields are stored in a feature store,
@@ -68,4 +70,5 @@ Example:
   scope: user
 ```
 
-For this example, Metarank will track all color field values for all items visitor clicked and intersect this set with per-item field values in the ranking.
+For this example, Metarank will track all color field values for all items visitor clicked and intersect this set 
+with per-item field values in the ranking.

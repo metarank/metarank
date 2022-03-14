@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.MetaFeature.StatelessFeature
+import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.StringField
@@ -17,7 +17,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
 
-case class WordCountFeature(schema: WordCountSchema) extends StatelessFeature {
+case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeature {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(

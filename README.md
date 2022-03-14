@@ -5,7 +5,7 @@
     </a>
 </h1>
 <h2 align="center">
-  <a href="https://metarank.ai">Website</a> | <a href="https://metarank.ai/slack">Community Slack</a> | <a href="https://metarank.substack.com/subscribe">Blog</a> | <a href="https://demo.metarank.ai">Demo</a>
+  <a href="https://metarank.ai">Website</a> | <a href="https://metarank.ai/slack">Community Slack</a> | <a href="https://medium.com/metarank">Blog</a> | <a href="https://demo.metarank.ai">Demo</a>
 </h2>
 
 [![CI Status](https://github.com/metarank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/metarank/metarank/actions)
@@ -80,6 +80,8 @@ You can check out our [tutorial](doc/tutorial_ranklens.md) and play with Metaran
 * [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
 * [Configuration](doc/03_configuration.md) walkthrough
 * [API overview](doc/xx_api_schema.md)
+* [CLI Options](doc/deploy/cli-options.md)
+* [Running Metarank in Docker](doc/deploy/docker.md)
 * [Contribution guide](doc/xx_development.md)
 * [License](LICENSE)
 

@@ -6,17 +6,12 @@ import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, ItemI
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, Write}
 
-sealed trait MetaFeature {
+sealed trait BaseFeature {
   def dim: Int
   def fields: List[FieldSchema]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
   def writes(event: Event): Traversable[Write]
-  def value(
-      request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
-      id: ItemRelevancy
-  ): MValue
 
   def keyOf(event: Event, item: Option[ItemId] = None): Option[Key] = (schema.scope, event) match {
     case (TenantScope, _) => Some(keyOf(TenantScope.scope.name, event.tenant, schema.name, event.tenant))
@@ -40,10 +35,26 @@ sealed trait MetaFeature {
 
 }
 
-object MetaFeature {
-  trait StatelessFeature extends MetaFeature
+object BaseFeature {
 
-  trait StatefulFeature extends MetaFeature {
+  sealed trait ItemFeature extends BaseFeature {
+    def value(
+        request: Event.RankingEvent,
+        state: Map[Key, FeatureValue],
+        id: ItemRelevancy
+    ): MValue
+  }
+
+  trait RankingStatelessFeature extends BaseFeature {
+    def value(
+        request: Event.RankingEvent,
+        state: Map[Key, FeatureValue]
+    ): MValue
+  }
+
+  trait ItemStatelessFeature extends ItemFeature {}
+
+  trait StatefulFeature extends ItemFeature {
     def writes(event: Event, state: Map[Key, FeatureValue]): Traversable[Write]
   }
 }

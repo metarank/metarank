@@ -5,10 +5,12 @@ import ai.metarank.mode.train.TrainCmdline.{LambdaMARTLightGBM, LambdaMARTXGBoos
 import io.github.metarank.ltrlib.model.Feature.SingularFeature
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 import org.scalacheck.Gen
+import org.scalatest.Ignore
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
 
+@Ignore
 class TrainTest extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks with Checkers {
   val ROWS                                    = 10
   val COLS                                    = 10

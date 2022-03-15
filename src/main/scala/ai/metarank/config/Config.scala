@@ -27,11 +27,13 @@ object Config extends Logging {
     config
   }
 
-  def load(contents: String): IO[Config] = for {
-    yaml    <- IO.fromEither(parseYaml(contents))
-    decoded <- IO.fromEither(yaml.as[Config])
-    _       <- IO(logger.info(s"features: ${decoded.features.map(_.name)}"))
-  } yield {
-    decoded
+  def load(contents: String): IO[Config] = {
+    for {
+      yaml    <- IO.fromEither(parseYaml(contents))
+      decoded <- IO.fromEither(yaml.as[Config])
+      _       <- IO(logger.info(s"features: ${decoded.features.map(_.name)}"))
+    } yield {
+      decoded
+    }
   }
 }

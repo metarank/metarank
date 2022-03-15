@@ -44,7 +44,7 @@ object FileLoader {
   def makeURL(path: String): String = path match {
     case s3 @ s3Pattern(_, _)                 => s3
     case file @ filePattern(_)                => file
-    case absolute if absolute.startsWith("/") => "file://" + "absolute"
+    case absolute if absolute.startsWith("/") => "file://" + absolute
     case relative                             => "file://" + (File.currentWorkingDirectory / relative).toString
   }
 

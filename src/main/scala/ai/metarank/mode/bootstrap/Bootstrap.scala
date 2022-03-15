@@ -9,7 +9,7 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
-import ai.metarank.mode.FlinkS3Configuration
+import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
@@ -47,9 +47,15 @@ object Bootstrap extends IOApp with Logging {
   }
 
   override def run(args: List[String]): IO[ExitCode] = for {
-    cmd    <- BootstrapCmdline.parse(args, System.getenv().asScala.toMap)
-    config <- Config.load(cmd.config)
-    _      <- run(config, cmd)
+    env            <- IO { System.getenv().asScala.toMap }
+    cmd            <- BootstrapCmdline.parse(args, env)
+    _              <- IO { logger.info("Performing bootstap.") }
+    _              <- IO { logger.info(s"  events URL: ${cmd.eventPathUrl}") }
+    _              <- IO { logger.info(s"  output dir URL: ${cmd.outDirUrl}") }
+    _              <- IO { logger.info(s"  config: ${cmd.config}") }
+    configContents <- FileLoader.loadLocal(cmd.config, env)
+    config         <- Config.load(new String(configContents))
+    _              <- run(config, cmd)
   } yield {
     ExitCode.Success
   }

@@ -1,6 +1,7 @@
 interactions:
   - name: click
     weight: 1.0
+
 features:
   - name: popularity
     type: number

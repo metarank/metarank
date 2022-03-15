@@ -55,31 +55,31 @@ object Bootstrap extends IOApp with Logging {
   }
 
   def run(config: Config, cmd: BootstrapCmdline) = IO {
-    File(cmd.outDir).createDirectoryIfNotExists(createParents = true)
+    if (cmd.outDirUrl.startsWith("file://")) { File(cmd.outDir).createDirectoryIfNotExists(createParents = true) }
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
     val streamEnv =
       StreamExecutionEnvironment.createLocalEnvironment(cmd.parallelism, FlinkS3Configuration(System.getenv()))
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
 
     logger.info("starting historical data processing")
-    val raw: DataStream[Event] = FileEventSource(cmd.eventPath).eventStream(streamEnv).id("load")
+    val raw: DataStream[Event] = FileEventSource(cmd.eventPathUrl).eventStream(streamEnv).id("load")
     val grouped                = groupFeedback(raw)
     val (state, updates)       = makeUpdates(raw, grouped, mapping)
 
-    Featury.writeState(state, new Path(s"${cmd.outDir}/state"), Compress.NoCompression).id("write-state")
+    Featury.writeState(state, new Path(s"${cmd.outDirUrl}/state"), Compress.NoCompression).id("write-state")
     Featury
-      .writeFeatures(updates, new Path(s"${cmd.outDir}/features"), Compress.NoCompression)
+      .writeFeatures(updates, new Path(s"${cmd.outDirUrl}/features"), Compress.NoCompression)
       .id("write-features")
     val computed = joinFeatures(updates, grouped, mapping)
-    computed.sinkTo(DatasetSink.json(mapping, s"${cmd.outDir}/dataset")).id("write-train")
+    computed.sinkTo(DatasetSink.json(mapping, s"${cmd.outDirUrl}/dataset")).id("write-train")
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
     val batch = ExecutionEnvironment.getExecutionEnvironment
     batch.setParallelism(cmd.parallelism)
-    val stateSource = Featury.readState(batch, new Path(s"${cmd.outDir}/state"), Compress.NoCompression)
+    val stateSource = Featury.readState(batch, new Path(s"${cmd.outDirUrl}/state"), Compress.NoCompression)
 
-    val valuesPath = s"${cmd.outDir}/features"
+    val valuesPath = s"${cmd.outDirUrl}/features"
     val valuesSource = batch
       .readFile(
         new BulkInputFormat[FeatureValue](
@@ -111,7 +111,7 @@ object Bootstrap extends IOApp with Logging {
       .withOperator("process-stateless-writes", transformStateless)
       .withOperator("process-stateful-writes", transformStateful)
       .withOperator("join-state", transformStateJoin)
-      .write(s"${cmd.outDir}/savepoint")
+      .write(s"${cmd.outDirUrl}/savepoint")
 
     batch.execute("savepoint")
     logger.info("done")

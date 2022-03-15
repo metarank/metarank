@@ -32,10 +32,10 @@ object Inference extends IOApp {
     for {
       env          <- IO { System.getenv().asScala.toMap }
       cmd          <- InferenceCmdline.parse(args, env)
-      confContents <- FileLoader.load(cmd.config, env).map(new String(_))
+      confContents <- FileLoader.loadLocal(cmd.config, env).map(new String(_))
       config       <- Config.load(confContents)
       mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
-      model        <- FileLoader.load(cmd.model, env).map(new String(_))
+      model        <- FileLoader.loadLocal(cmd.model, env).map(new String(_))
       result       <- cluster(dir, config, mapping, cmd, model).use { _.serve.compile.drain.as(ExitCode.Success) }
     } yield result
   }

@@ -16,13 +16,11 @@ import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
 import org.http4s.circe._
 import cats.syntax.all._
+import fs2.concurrent.SignallingRef
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
 import io.findify.flinkadt.api._
-import org.apache.flink.configuration.Configuration
-
-import java.nio.charset.StandardCharsets
 import scala.collection.JavaConverters._
 
 object Inference extends IOApp {
@@ -36,7 +34,9 @@ object Inference extends IOApp {
       config       <- Config.load(confContents)
       mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
       model        <- FileLoader.loadLocal(cmd.model, env).map(new String(_))
-      result       <- cluster(dir, config, mapping, cmd, model).use { _.serve.compile.drain.as(ExitCode.Success) }
+      result <- cluster(dir, config, mapping, cmd, model).use {
+        _.serve.compile.drain.as(ExitCode.Success)
+      }
     } yield result
   }
 
@@ -47,7 +47,9 @@ object Inference extends IOApp {
       _       <- Resource.eval(redis.upload)
       _       <- FeedbackFlow.resource(cluster, dir.toString(), mapping, cmd, redis.host)
       s       <- server(cmd, config, dir, redis.host, model)
-    } yield s
+    } yield {
+      s
+    }
   }
 
   def server(cmd: InferenceCmdline, config: Config, dir: File, redisHost: String, model: String) = {
@@ -61,5 +63,6 @@ object Inference extends IOApp {
     } yield BlazeServerBuilder[IO]
       .bindHttp(cmd.port, cmd.host)
       .withHttpApp(httpApp)
+
   }
 }

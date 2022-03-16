@@ -31,7 +31,9 @@ jobs:
       with:
         distribution: 'adopt-hotspot'
         java-version: '11'
+
     - name: Run tests
       run: sbt -mem 3000 test assembly
+
     - name: Run e2e test
       run: ./run_e2e.sh target/scala-2.12/metarank.jar

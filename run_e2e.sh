@@ -23,4 +23,17 @@ java -jar $JAR inference \
   --model $TMPDIR/metarank.model \
   --embedded-redis-features-dir $TMPDIR/features \
   --format json \
-  --savepoint-dir $TMPDIR/savepoint
+  --savepoint-dir $TMPDIR/savepoint & echo $! > $TMPDIR/inference.pid
+
+PID=`cat $TMPDIR/inference.pid`
+
+echo "Waiting for http server with pid=$PID to come online..."
+
+while ! nc -z localhost 8080; do
+  sleep 5
+  echo "Trying to connect to :8080"
+done
+
+curl -v http://localhost:8080/health
+
+kill -TERM $PID

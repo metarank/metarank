@@ -103,3 +103,4 @@ ThisBuild / assemblyMergeStrategy := {
     val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
     oldStrategy(x)
 }
+assembly / assemblyJarName := "metarank.jar"

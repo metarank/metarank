@@ -1,6 +1,7 @@
 package ai.metarank.mode.inference
 
 import ai.metarank.FeatureMapping
+import ai.metarank.mode.AsyncFlinkJob
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.model.Event
 import ai.metarank.source.LocalDirSource
@@ -28,10 +29,9 @@ object FeedbackFlow extends Logging {
       eti: TypeInformation[Event],
       valti: TypeInformation[FeatureValue],
       intti: TypeInformation[Int]
-  ) =
-    Resource.make(IO.fromCompletableFuture {
-      IO {
-        val env          = new StreamExecutionEnvironment(new TestStreamEnvironment(cluster.cluster.getMiniCluster, 1))
+  ) = {
+    AsyncFlinkJob.execute(cluster, Some(cmd.savepoint)) { env =>
+      {
         val source       = env.addSource(new LocalDirSource(path)).id("local-source")
         val grouped      = Bootstrap.groupFeedback(source)
         val (_, updates) = Bootstrap.makeUpdates(source, grouped, mapping)
@@ -40,10 +40,7 @@ object FeedbackFlow extends Logging {
             FeatureStoreSink(RedisStore(RedisConfig(redisHost, cmd.redisPort, cmd.format)), cmd.batchSize)
           )
           .id("write-redis")
-        val graph = env.getStreamGraph.getJobGraph
-        graph.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(cmd.savepoint, false))
-        logger.info(s"submitted job ${graph} to local cluster")
-        cluster.client.submitJob(graph)
       }
-    })(job => IO.fromCompletableFuture(IO { cluster.client.cancel(job) }).map(_ => Unit))
+    }
+  }
 }

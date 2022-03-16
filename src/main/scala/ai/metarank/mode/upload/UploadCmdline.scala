@@ -1,5 +1,6 @@
 package ai.metarank.mode.upload
 
+import ai.metarank.mode.FileLoader
 import ai.metarank.mode.train.TrainCmdline
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -7,7 +8,9 @@ import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.StoreCodec.{JsonCodec, ProtobufCodec}
 import scopt.{OParser, OptionParser}
 
-case class UploadCmdline(host: String, port: Int, format: StoreCodec, dir: String, batchSize: Int, parallelism: Int)
+case class UploadCmdline(host: String, port: Int, format: StoreCodec, dir: String, batchSize: Int, parallelism: Int) {
+  lazy val dirUrl = FileLoader.makeURL(dir)
+}
 
 object UploadCmdline extends Logging {
 
@@ -15,7 +18,9 @@ object UploadCmdline extends Logging {
     val parser = new OptionParser[UploadCmdline]("Upload") {
       head("Metarank", "v0.x")
       opt[String]("features-dir")
-        .text("path to /features directory after the bootstrap, like file:///tmp/data or s3://bucket/dir")
+        .text(
+          "path to /features directory after the bootstrap (optionally with scheme file:///tmp/data or s3://bucket/dir"
+        )
         .required()
         .action((m, cmd) => cmd.copy(dir = m))
         .withFallback(() => env.getOrElse("METARANK_FEATURES_DIR", ""))

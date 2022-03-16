@@ -1,11 +1,15 @@
 package ai.metarank.mode.bootstrap
 
+import ai.metarank.mode.FileLoader
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.IO
 import scopt.{OParser, OptionParser}
 
-case class BootstrapCmdline(eventPath: String, outDir: String, config: File, parallelism: Int)
+case class BootstrapCmdline(eventPath: String, outDir: String, config: String, parallelism: Int) {
+  lazy val outDirUrl    = FileLoader.makeURL(outDir)
+  lazy val eventPathUrl = FileLoader.makeURL(eventPath)
+}
 
 object BootstrapCmdline extends Logging {
 
@@ -14,7 +18,7 @@ object BootstrapCmdline extends Logging {
       head("Metarank", "v0.x")
 
       opt[String]("events")
-        .text("full path to directory containing historical events, with file:// or s3:// prefix")
+        .text("full URL path to directory containing historical events (optionally with file:// or s3:// prefix)")
         .required()
         .action((m, cmd) => cmd.copy(eventPath = m))
         .withFallback(() => env.getOrElse("METARANK_EVENTS", ""))
@@ -24,7 +28,7 @@ object BootstrapCmdline extends Logging {
         }
 
       opt[String]("out")
-        .text("output directory")
+        .text("output directory, also")
         .required()
         .action((m, cmd) => cmd.copy(outDir = m))
         .withFallback(() => env.getOrElse("METARANK_OUT", ""))
@@ -36,7 +40,7 @@ object BootstrapCmdline extends Logging {
       opt[String]("config")
         .required()
         .text("config file")
-        .action((m, cmd) => cmd.copy(config = File(m)))
+        .action((m, cmd) => cmd.copy(config = m))
         .withFallback(() => env.getOrElse("METARANK_CONFIG", ""))
         .validate {
           case "" => Left("config is required")

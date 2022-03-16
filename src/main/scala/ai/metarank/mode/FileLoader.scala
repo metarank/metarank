@@ -11,7 +11,7 @@ import org.apache.commons.io.IOUtils
 object FileLoader {
   val s3Pattern   = "s3://([a-zA-Z0-9\\-_]+)/(.*)".r
   val filePattern = "file://(.*)".r
-  def load(path: String, env: Map[String, String]): IO[Array[Byte]] = path match {
+  def loadLocal(path: String, env: Map[String, String]): IO[Array[Byte]] = path match {
     case s3Pattern(bucket, prefix) =>
       for {
         key <- IO.fromOption(env.get("AWS_ACCESS_KEY_ID"))(
@@ -36,6 +36,16 @@ object FileLoader {
         client.shutdown()
         bytes
       }
-    case filePattern(local) => IO { File(local).byteArray }
+    case filePattern(local)             => IO { File(local).byteArray }
+    case other if other.startsWith("/") => IO { File(other).byteArray }
+    case other                          => IO { (File.currentWorkingDirectory / other).byteArray }
   }
+
+  def makeURL(path: String): String = path match {
+    case s3 @ s3Pattern(_, _)                 => s3
+    case file @ filePattern(_)                => file
+    case absolute if absolute.startsWith("/") => "file://" + absolute
+    case relative                             => "file://" + (File.currentWorkingDirectory / relative).toString
+  }
+
 }

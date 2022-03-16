@@ -32,6 +32,9 @@ jobs:
         distribution: 'adopt-hotspot'
         java-version: '11'
 
+    - name: Run formatting tests
+      run: sbt scalafmtCheck
+
     - name: Run tests
       run: sbt -mem 3000 test assembly
 

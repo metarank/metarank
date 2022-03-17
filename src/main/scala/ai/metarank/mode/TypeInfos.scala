@@ -2,8 +2,9 @@ package ai.metarank.mode
 
 import ai.metarank.model.{Clickthrough, Event}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
-import io.findify.featury.model.{FeatureValue, Key, Scalar, State, Write}
+import io.findify.featury.model.{FeatureValue, Key, Scalar, ScalarState, State, Write}
 import org.apache.flink.api.common.typeinfo.TypeInformation
+
 import scala.language.higherKinds
 import io.findify.flinkadt.api._
 

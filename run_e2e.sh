@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -euxo pipefail
+
 JAR=$1
 TMPDIR=`mktemp -d /tmp/ranklens-XXXXXX`
 

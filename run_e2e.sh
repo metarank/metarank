@@ -20,10 +20,17 @@ java -jar $JAR train \
 
 echo "Training done"
 
+java -jar $JAR upload \
+  --features-dir $TMPDIR/features \
+  --host localhost \
+  --format json
+
+echo "Upload done"
+
 java -jar $JAR inference \
   --config src/test/resources/ranklens/config.yml \
   --model $TMPDIR/metarank.model \
-  --embedded-redis-features-dir $TMPDIR/features \
+  --redis-host localhost \
   --format json \
   --savepoint-dir $TMPDIR/savepoint & echo $! > $TMPDIR/inference.pid
 

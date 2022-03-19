@@ -23,6 +23,7 @@ object Upload extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = for {
     cmd <- UploadCmdline.parse(args, System.getenv().asScala.toMap)
     _   <- run(cmd).use(_ => IO.unit)
+    _   <- IO { logger.info("Upload done") }
   } yield {
     ExitCode.Success
   }
@@ -47,16 +48,14 @@ object Upload extends IOApp with Logging {
 
   def blockUntilFinished(cluster: FlinkMinicluster, job: JobID): IO[Unit] = for {
     _ <- IO.sleep(1.second)
-    _ <- isFinished(cluster, job).flatMap {
-      case true => IO.unit
-      case false =>
-        IO { logger.warn("upload job not yet finished, waiting 1s more") } *> blockUntilFinished(cluster, job)
+    _ <- IO.fromCompletableFuture(IO { cluster.client.getJobStatus(job) }).flatMap {
+      case JobStatus.FINISHED => IO { logger.info(s"job $job is finished") }
+      case other =>
+        IO { logger.warn(s"upload job not yet finished (status=$other), waiting 1s more") } *> blockUntilFinished(
+          cluster,
+          job
+        )
     }
   } yield {}
 
-  def isFinished(cluster: FlinkMinicluster, job: JobID) = IO
-    .fromCompletableFuture(IO {
-      cluster.client.getJobStatus(job)
-    })
-    .map(_ == JobStatus.FINISHED)
 }

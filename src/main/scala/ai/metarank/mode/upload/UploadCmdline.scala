@@ -62,7 +62,7 @@ object UploadCmdline extends Logging {
         )
         .withFallback(() => env.getOrElse("METARANK_FORMAT", ""))
         .validate {
-          case ""                  => Left("redis host is required")
+          case ""                  => Left("state encoding format is required")
           case "json" | "protobuf" => Right({})
           case other               => Left(s"format $other is not supported")
         }

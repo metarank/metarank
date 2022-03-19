@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-
+    timeout-minutes: 20
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
@@ -37,6 +37,11 @@ jobs:
 
     - name: Run tests
       run: sbt -mem 3000 test assembly
+
+    - name: Start Redis
+      uses: shogo82148/actions-setup-redis@v1
+      with:
+        redis-version: 6
 
     - name: Run e2e test
       run: ./run_e2e.sh target/scala-2.12/metarank.jar

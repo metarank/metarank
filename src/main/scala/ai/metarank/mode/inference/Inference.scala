@@ -6,6 +6,7 @@ import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.mode.inference.ranking.LightGBMScorer
 import ai.metarank.source.LocalDirSource.LocalDirWriter
+import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.kernel.Ref
 import cats.effect.{ExitCode, IO, IOApp, Resource}
@@ -21,9 +22,10 @@ import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
 import io.findify.flinkadt.api._
+
 import scala.collection.JavaConverters._
 
-object Inference extends IOApp {
+object Inference extends IOApp with Logging {
   import ai.metarank.mode.TypeInfos._
   override def run(args: List[String]): IO[ExitCode] = {
     val dir = File.newTemporaryDirectory("events_queue_").deleteOnExit()
@@ -35,7 +37,7 @@ object Inference extends IOApp {
       mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
       model        <- FileLoader.loadLocal(cmd.model, env).map(new String(_))
       result <- cluster(dir, config, mapping, cmd, model).use {
-        _.serve.compile.drain.as(ExitCode.Success)
+        _.serve.compile.drain.as(ExitCode.Success).flatTap(_ => IO { logger.info("Metarank API closed") })
       }
     } yield result
   }

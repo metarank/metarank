@@ -5,9 +5,12 @@ import ai.metarank.mode.inference.FlinkMinicluster
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
+import org.apache.flink.api.common.JobStatus
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings
 import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.util.TestStreamEnvironment
+
+import java.util.concurrent.CompletableFuture
 
 object AsyncFlinkJob extends Logging {
   import ai.metarank.flow.DataStreamOps._
@@ -21,5 +24,15 @@ object AsyncFlinkJob extends Logging {
         logger.info(s"submitted job ${graph} to local cluster")
         cluster.client.submitJob(graph)
       }
-    })(job => IO.fromCompletableFuture(IO { cluster.client.cancel(job) }).map(_ => Unit))
+    })(job =>
+      eval { cluster.client.getJobStatus(job) }.flatMap {
+        case JobStatus.FINISHED => IO.unit
+        case other =>
+          eval(cluster.client.cancel(job)).map(_ => {}).handleErrorWith { case ex: Throwable =>
+            IO(logger.error(s"cannot terminate job $job with status $other", ex)) *> IO.unit
+          }
+      }
+    )
+
+  def eval[T](future: => CompletableFuture[T]): IO[T] = IO.fromCompletableFuture(IO { future })
 }

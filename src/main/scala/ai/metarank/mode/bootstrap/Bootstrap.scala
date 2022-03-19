@@ -120,7 +120,7 @@ object Bootstrap extends IOApp with Logging {
       .write(s"${cmd.outDirUrl}/savepoint")
 
     batch.execute("savepoint")
-    logger.info("done")
+    logger.info("Bootstrap done")
   }
 
   def groupFeedback(raw: DataStream[Event]) = {

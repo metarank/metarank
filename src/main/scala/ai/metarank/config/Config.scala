@@ -36,4 +36,15 @@ object Config extends Logging {
       decoded
     }
   }
+
+  def validateConfig(conf: Config): IO[Unit] = {
+    val dupes = conf.features.map(_.name).groupBy(identity).filter(_._2.size != 1).keys.toList
+    if (conf.features.isEmpty) {
+      IO.raiseError(new IllegalArgumentException("there should be at least one defined feature"))
+    } else if (dupes.nonEmpty) {
+      IO.raiseError(new IllegalArgumentException(s"each feature should have unique name, but $dupes are not"))
+    } else {
+      IO.unit
+    }
+  }
 }

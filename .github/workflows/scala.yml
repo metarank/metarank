@@ -39,7 +39,7 @@ jobs:
       run: sbt -mem 3000 test assembly
 
     - name: Start Redis
-      uses: supercharge/redis-github-action@1.4.0
+      uses: shogo82148/actions-setup-redis@v1
       with:
         redis-version: 6
 

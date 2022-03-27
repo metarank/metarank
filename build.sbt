@@ -1,4 +1,5 @@
 import Deps._
+import com.typesafe.sbt.packager.docker.{Cmd, DockerPermissionStrategy}
 
 name := "metarank"
 
@@ -70,9 +71,18 @@ Compile / discoveredMainClasses := Seq()
 
 maintainer := "Metarank team"
 dockerExposedPorts ++= Seq(8080, 6123)
-dockerBaseImage      := "openjdk:11.0.14.1-jdk"
-dockerExposedVolumes := List("/data")
-dockerUsername       := Some("metarank")
+dockerPermissionStrategy := DockerPermissionStrategy.None
+dockerBaseImage          := "openjdk:11.0.14.1-jdk"
+dockerExposedVolumes     := List("/data")
+
+dockerCommands := dockerCommands.value.flatMap {
+  case Cmd("USER", args @ _*) if args.contains("1001:0") =>
+    Seq(
+      Cmd("RUN", "apt-get update && apt-get -y install libgomp1"),
+      Cmd("USER", args: _*)
+    )
+  case cmd => Seq(cmd)
+}
 
 /** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
   * building. With this approach we have a custom MergeStrategy, which drops all files from flink-s3-fs-hadoop jar if

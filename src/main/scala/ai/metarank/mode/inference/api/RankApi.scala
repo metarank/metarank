@@ -2,11 +2,12 @@ package ai.metarank.mode.inference.api
 
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
-import ai.metarank.mode.inference.RankResponse
+import ai.metarank.mode.inference.{FeatureStoreResource, RankResponse}
 import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
 import ai.metarank.mode.inference.ranking.RankScorer
 import ai.metarank.model.Event.RankingEvent
-import cats.effect.IO
+import ai.metarank.util.Logging
+import cats.effect.{IO, Ref}
 import org.http4s.HttpRoutes
 import org.http4s._
 import org.http4s.dsl.io._
@@ -16,7 +17,11 @@ import io.findify.featury.model.api.ReadRequest
 import io.findify.featury.values.FeatureStore
 import org.http4s.circe._
 
-case class RankApi(mapping: FeatureMapping, store: FeatureStore, scorer: RankScorer) {
+case class RankApi(
+    mapping: FeatureMapping,
+    storeResourceRef: Ref[IO, FeatureStoreResource],
+    scorer: RankScorer
+) extends Logging {
   import RankApi._
 
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" :? ExplainParamDecoder(explain) =>
@@ -29,9 +34,20 @@ case class RankApi(mapping: FeatureMapping, store: FeatureStore, scorer: RankSco
     }
   }
 
-  def rerank(request: RankingEvent, explain: Boolean) = for {
-    keys   <- IO { mapping.keys(request) }
-    state  <- store.read(ReadRequest(keys.toList))
+  def rerank(request: RankingEvent, explain: Boolean): IO[RankResponse] = for {
+    keys          <- IO { mapping.keys(request) }
+    storeResource <- storeResourceRef.get
+    store         <- storeResource.storeRef.get
+    state <- store.read(ReadRequest(keys.toList)).handleErrorWith { case ex: Throwable =>
+      for {
+        _           <- IO { logger.warn("error from store, reconnecting", ex) }
+        reconnected <- storeResource.reconnect()
+        _           <- storeResourceRef.set(reconnected)
+        state2      <- store.read(ReadRequest(keys.toList))
+      } yield {
+        state2
+      }
+    }
     items  <- IO { mapping.map(request, state.features) }
     query  <- IO { ClickthroughQuery(items, request.id.value, mapping.datasetDescriptor) }
     scores <- IO { scorer.score(query) }
@@ -42,6 +58,7 @@ case class RankApi(mapping: FeatureMapping, store: FeatureStore, scorer: RankSco
   } yield {
     RankResponse(state = StateValues(state.features), items = result.sortBy(-_.score))
   }
+
 }
 
 object RankApi {

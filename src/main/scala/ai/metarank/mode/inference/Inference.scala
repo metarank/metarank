@@ -19,6 +19,7 @@ import org.http4s.circe._
 import cats.syntax.all._
 import fs2.concurrent.SignallingRef
 import io.findify.featury.connector.redis.RedisStore
+import io.findify.featury.values.FeatureStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
 import io.findify.flinkadt.api._
@@ -44,27 +45,21 @@ object Inference extends IOApp with Logging {
 
   def cluster(dir: File, config: Config, mapping: FeatureMapping, cmd: InferenceCmdline, model: String) = {
     for {
-      cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
-      redis   <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
-      _       <- Resource.eval(redis.upload)
-      _       <- FeedbackFlow.resource(cluster, dir.toString(), mapping, cmd, redis.host)
-      s       <- server(cmd, config, dir, redis.host, model)
-    } yield {
-      s
-    }
-  }
-
-  def server(cmd: InferenceCmdline, config: Config, dir: File, redisHost: String, model: String) = {
-    val store   = RedisStore(RedisConfig(redisHost, cmd.redisPort, cmd.format))
-    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
-    val scorer  = LightGBMScorer(model)
-    for {
+      cluster  <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
+      redis    <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
+      _        <- Resource.eval(redis.upload)
+      _        <- FeedbackFlow.resource(cluster, dir.toString(), mapping, cmd, redis.host)
+      store    <- FeatureStoreResource.make(() => RedisStore(RedisConfig(redis.host, cmd.redisPort, cmd.format)))
+      storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
+      mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+      scorer  = LightGBMScorer(model)
       writer <- LocalDirWriter.create(dir)
-      routes  = HealthApi.routes <+> RankApi(mapping, store, scorer).routes <+> FeedbackApi(writer).routes
+      routes  = HealthApi.routes <+> RankApi(mapping, storeRef, scorer).routes <+> FeedbackApi(writer).routes
       httpApp = Router("/" -> routes).orNotFound
-    } yield BlazeServerBuilder[IO]
-      .bindHttp(cmd.port, cmd.host)
-      .withHttpApp(httpApp)
-
+    } yield {
+      BlazeServerBuilder[IO]
+        .bindHttp(cmd.port, cmd.host)
+        .withHttpApp(httpApp)
+    }
   }
 }

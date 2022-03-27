@@ -40,10 +40,11 @@ case class RankApi(
     store         <- storeResource.storeRef.get
     state <- store.read(ReadRequest(keys.toList)).handleErrorWith { case ex: Throwable =>
       for {
-        _           <- IO { logger.warn("error from store, reconnecting", ex) }
-        reconnected <- storeResource.reconnect()
-        _           <- storeResourceRef.set(reconnected)
-        state2      <- store.read(ReadRequest(keys.toList))
+        _                <- IO { logger.warn("error from store, reconnecting", ex) }
+        reconnected      <- storeResource.reconnect()
+        _                <- storeResourceRef.set(reconnected)
+        reconnectedStore <- reconnected.storeRef.get
+        state2           <- reconnectedStore.read(ReadRequest(keys.toList))
       } yield {
         state2
       }

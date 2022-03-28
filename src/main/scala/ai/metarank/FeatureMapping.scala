@@ -4,9 +4,15 @@ import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.{ItemFeature, ItemStatelessFeature, RankingStatelessFeature, StatefulFeature}
+import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
+import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
+import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
+import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.feature.UserAgentFeature.UserAgentSchema
+import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
@@ -66,11 +72,17 @@ case class FeatureMapping(
 object FeatureMapping {
   def fromFeatureSchema(schema: List[FeatureSchema], interactions: List[InteractionConfig]) = {
     val stateless = schema.collect {
-      case c: NumberFeatureSchema  => NumberFeature(c)
-      case c: StringFeatureSchema  => StringFeature(c)
-      case c: BooleanFeatureSchema => BooleanFeature(c)
-      case c: WordCountSchema      => WordCountFeature(c)
-      case c: RateFeatureSchema    => RateFeature(c)
+      case c: NumberFeatureSchema    => NumberFeature(c)
+      case c: StringFeatureSchema    => StringFeature(c)
+      case c: BooleanFeatureSchema   => BooleanFeature(c)
+      case c: WordCountSchema        => WordCountFeature(c)
+      case c: RateFeatureSchema      => RateFeature(c)
+      case c: InteractionCountSchema => InteractionCountFeature(c)
+      case c: RelevancySchema        => RelevancyFeature(c)
+      case c: UserAgentSchema        => UserAgentFeature(c)
+      case c: WindowCountSchema      => WindowCountFeature(c)
+      case c: LocalDateTimeSchema    => LocalDateTimeFeature(c)
+      case c: ItemAgeSchema          => ItemAgeFeature(c)
     }
     val stateful = schema.collect { case c: InteractedWithSchema =>
       InteractedWithFeature(c)

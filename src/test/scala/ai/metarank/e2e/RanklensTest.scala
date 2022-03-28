@@ -37,6 +37,9 @@ import ai.metarank.mode.bootstrap.Bootstrap.{joinFeatures, makeUpdates}
 import ai.metarank.mode.inference.FeatureStoreResource
 import ai.metarank.mode.inference.api.RankApi
 import ai.metarank.mode.inference.ranking.LightGBMScorer
+import ai.metarank.mode.train.Train
+import ai.metarank.mode.train.Train.{logger, split, trainModel}
+import ai.metarank.mode.train.TrainCmdline.LambdaMARTLightGBM
 import better.files.{File, Resource}
 import cats.effect.{IO, Ref}
 import cats.effect.unsafe.implicits.global
@@ -53,7 +56,8 @@ import java.nio.charset.StandardCharsets
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
   val config   = Config.load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8)).unsafeRunSync()
-  lazy val dir = File.newTemporaryDirectory("csv_")
+  lazy val dir = File.newTemporaryDirectory("train_json_")
+  lazy val modelFile  = File.newTemporaryFile("model_")
   lazy val updatesDir = File.newTemporaryDirectory("updates_")
   val mapping         = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
 
@@ -68,8 +72,15 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     Featury.writeFeatures(updates, new Path(updatesDir.toString()), Compress.NoCompression)
     val computed = Bootstrap.joinFeatures(updates, grouped, mapping)
 
-    computed.sinkTo(DatasetSink.csv(mapping, s"file:///$dir"))
+    computed.sinkTo(DatasetSink.json(mapping, s"file:///$dir"))
     env.execute()
+  }
+
+  // fails, see https://github.com/metarank/metarank/issues/338
+  it should "train the model" ignore {
+    val dataset       = Train.loadData(dir, mapping.datasetDescriptor).unsafeRunSync()
+    val (train, test) = Train.split(dataset, 80)
+    modelFile.write(Train.trainModel(train, test, LambdaMARTLightGBM, 200))
   }
 
   it should "rerank things" in {

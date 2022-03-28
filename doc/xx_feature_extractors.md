@@ -55,3 +55,6 @@ All the feature extractors have a set of common fields:
 * [window_event_count](features/counters.md#windowed-counter): sliding window count of interaction events.
 * [rate](features/counters.md#rate): rate of interaction events of type A over interaction events of type B. Useful for CTR/CVR rates.
 * *[coming soon]* text_match: matches a field from ranking event over a field of item metadata.
+
+### Date and time
+* [time_of_day](features/datetime.md): map local visitor time into a 0..1 range to catch intra-day seasonality.

@@ -4,6 +4,7 @@ import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.{ItemFeature, ItemStatelessFeature, RankingStatelessFeature, StatefulFeature}
+import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
@@ -83,6 +84,7 @@ object FeatureMapping {
       case c: WindowCountSchema      => WindowCountFeature(c)
       case c: LocalDateTimeSchema    => LocalDateTimeFeature(c)
       case c: ItemAgeSchema          => ItemAgeFeature(c)
+      case c: FieldMatchSchema       => FieldMatchFeature(c)
     }
     val stateful = schema.collect { case c: InteractedWithSchema =>
       InteractedWithFeature(c)

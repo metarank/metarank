@@ -7,7 +7,7 @@ import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
-import ai.metarank.util.OneHotEncoder
+import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -18,7 +18,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 
 import scala.concurrent.duration._
 
-case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeature {
+case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeature with Logging {
   val possibleValues    = schema.values.toList
   val names             = possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.values.size
@@ -39,7 +39,9 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeatu
     fieldValue <- field match {
       case StringField(_, value)     => Some(SStringList(List(value)))
       case StringListField(_, value) => Some(SStringList(value))
-      case _                         => None
+      case other =>
+        logger.warn(s"field extractor ${schema.name} expects a string or string[], but got $other in event $event")
+        None
     }
   } yield {
     Put(key, event.timestamp, fieldValue)

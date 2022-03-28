@@ -8,7 +8,7 @@ You can use the `word_count` feature extractor to get the length of a string fie
 ```yaml
 - name: title_length
   type: word_count
-  field: metadata.title
+  field: metadata.title // must be a string
 ```
 
 ## Relative number

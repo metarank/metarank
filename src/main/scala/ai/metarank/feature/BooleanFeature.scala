@@ -7,6 +7,7 @@ import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.FieldSchema.BooleanFieldSchema
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
@@ -17,7 +18,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SBoolean, SDo
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
 
-case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemStatelessFeature {
+case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemStatelessFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -31,9 +32,14 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemStatelessFea
   override def fields = List(BooleanFieldSchema(schema.source))
 
   override def writes(event: Event): Iterable[Put] = for {
-    key        <- keyOf(event)
-    field      <- event.fields.find(_.name == schema.source.field)
-    fieldValue <- field.cast[BooleanField]
+    key   <- keyOf(event)
+    field <- event.fields.find(_.name == schema.source.field)
+    fieldValue <- field match {
+      case b: BooleanField => Some(b)
+      case other =>
+        logger.warn(s"field extractor ${schema.name} expects a boolean, but got $other in event $event")
+        None
+    }
   } yield {
     Put(key, event.timestamp, SBoolean(fieldValue.value))
   }

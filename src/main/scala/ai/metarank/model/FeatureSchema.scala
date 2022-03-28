@@ -3,6 +3,7 @@ package ai.metarank.model
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
+import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
@@ -10,7 +11,6 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.feature.time.TimeOfDayFeature.TimeOfDaySchema
 import io.circe.{Codec, Decoder, DecodingFailure}
 
 import scala.concurrent.duration.FiniteDuration
@@ -38,7 +38,7 @@ object FeatureSchema {
         case "window_count"      => implicitly[Decoder[WindowCountSchema]].apply(c)
         case "ua"                => implicitly[Decoder[UserAgentSchema]].apply(c)
         case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
-        case "time_of_day"       => implicitly[Decoder[TimeOfDaySchema]].apply(c)
+        case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {

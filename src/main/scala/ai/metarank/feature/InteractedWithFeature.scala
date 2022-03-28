@@ -70,7 +70,9 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends StatefulF
         value <- field match {
           case Field.StringField(_, value)      => Some(SString(value))
           case Field.StringListField(_, values) => Some(SStringList(values))
-          case _                                => None
+          case other =>
+            logger.warn(s"field extractor ${schema.name} expects a string or string[], but got $other in event $event")
+            None
         }
       } yield {
         Put(

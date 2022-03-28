@@ -51,7 +51,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeat
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.itemField.field)
     fieldValue <- field match {
-      case StringField(_, value) => Some(SStringList(List(value)))
+      case StringField(_, value) => Some(SString(value))
       case other =>
         logger.warn(s"field extractor ${schema.name} expects a string, but got $other in event $event")
         None
@@ -94,7 +94,6 @@ object FieldMatchFeature {
       rankingField: FieldName,
       itemField: FieldName,
       method: MatchMethod,
-      values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {

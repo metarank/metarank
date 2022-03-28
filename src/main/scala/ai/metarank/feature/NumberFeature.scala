@@ -7,6 +7,7 @@ import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSc
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.FieldSchema.NumberFieldSchema
 import ai.metarank.model.MValue.SingleValue
+import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
@@ -17,7 +18,7 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
-case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeature {
+case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -32,9 +33,14 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeatu
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {
-    key         <- keyOf(event)
-    field       <- event.fields.find(_.name == schema.source.field)
-    numberField <- field.cast[NumberField]
+    key   <- keyOf(event)
+    field <- event.fields.find(_.name == schema.source.field)
+    numberField <- field match {
+      case n: NumberField => Some(n)
+      case other =>
+        logger.warn(s"field extractor ${schema.name} expects a boolean, but got $other in event $event")
+        None
+    }
   } yield {
     Put(key, event.timestamp, SDouble(numberField.value))
   }

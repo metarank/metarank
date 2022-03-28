@@ -26,7 +26,7 @@ We can add the following extractor, so it will use the availability data for the
 ```yaml
 - name: availability
   type: boolean
-  field: metadata.availability
+  field: metadata.availability // must be a boolean
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
@@ -62,6 +62,21 @@ So you can extract this `banner_examined` value using the following config:
 Extracting fields from interaction events is not possible, as at the moment of ranking request happening, there
 are no interactions happened yet, they will happen in the future.
 
+## Numerical extractor
+
+With the same approach as for boolean extractor, you can pull a `price` field out of a metadata message into the
+explicit feature:
+
+```yaml
+- name: price
+  type: number
+  field: metadata.price // must be a number
+  refresh: 0s // optional, how frequently we should update the value, 0s by default
+  ttl: 90d // optional, how long should we store this field
+```
+
+So the last price will be present in the set of ML features uses in the ranking.
+
 ## String extractors
 
 With string values there is no easy way to map them into a finite set of ML features. But in a case when
@@ -75,7 +90,7 @@ it can be either mobile, desktop or tablet. So we can do the actual mapping in t
 - name: platform
   type: string
   values: [mobile, desktop, tablet]
-  field: ranking.platform
+  field: ranking.platform // must be either a string, or array of strings
 ```
 
 This snippet will emit the following ML feature group for a `platform: "mobile"` input:
@@ -88,3 +103,6 @@ toggle two instead of one bit in the resulting vector.
 
 As with number/boolean extractor, there is a limitation on extracting fields from interaction events: it is not possible, 
 as at the moment of ranking request happening, there are no interactions happened yet, they will happen in the future.
+
+## Number extractor
+

@@ -1,16 +1,19 @@
 package ai.metarank.mode
 
+import ai.metarank.mode.inference.FeatureStoreResource
 import ai.metarank.mode.inference.api.RankApi
 import ai.metarank.util.{RandomFeatureStore, RandomScorer, TestFeatureMapping, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.util.Random
 
 class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val random  = new Random(1)
   lazy val mapping = TestFeatureMapping()
-  lazy val service = RankApi(mapping, RandomFeatureStore(mapping), RandomScorer())
+  lazy val store   = FeatureStoreResource.unsafe(() => RandomFeatureStore(mapping)).unsafeRunSync()
+  lazy val service = RankApi(mapping, store, RandomScorer())
 
   it should "respond with the same data reranked" in {
     val response = service.rerank(TestRankingEvent(List("p1", "p2", "p3")), explain = false).unsafeRunSync()

@@ -7,6 +7,7 @@ import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
+import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
@@ -17,7 +18,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
 
-case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeature {
+case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -30,9 +31,14 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeatur
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {
-    key        <- keyOf(event)
-    field      <- event.fields.find(_.name == schema.source.field)
-    fieldValue <- field.cast[StringField]
+    key   <- keyOf(event)
+    field <- event.fields.find(_.name == schema.source.field)
+    fieldValue <- field match {
+      case s: StringField => Some(s)
+      case other =>
+        logger.warn(s"field extractor ${schema.name} expects a string, but got $other in event $event")
+        None
+    }
   } yield {
     Put(key, event.timestamp, SDouble(tokenCount(fieldValue.value)))
   }

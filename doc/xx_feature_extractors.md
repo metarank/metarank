@@ -35,10 +35,10 @@ All the feature extractors have a set of common fields:
 * [time_diff](features/generic.md#time-difference): difference in seconds between current timestamp and the numerical field value.
 
 ### User session feature extractors
-* [platform](/doc/features/user-session.md#user-agent-field-extractor): a one-hot encoded platform (mobile, desktop, tablet).
-* [os](features/user-session.md#user-agent-field-extractor): a one-hot encoded OS (ios, android, windows, linux, macos, chrome os).
+* [ua/platform](/doc/features/user-session.md#user-agent-field-extractor): a one-hot encoded platform (mobile, desktop, tablet).
+* [ua/os](features/user-session.md#user-agent-field-extractor): a one-hot encoded OS (ios, android, windows, linux, macos, chrome os).
+* [ua/browser](features/user-session.md#user-agent-field-extractor)* a one-hot encoded browser (chrome, firefox, safari, edge).
 * [interacted_with](features/user-session.md#interacted-with): for the current item, did this visitor have an interaction with other item with the same field.
-* *[coming soon]* ua_browser: a one-hot encoded browser (chrome, firefox, safari, edge).
 * *[coming soon]* ip_country: a GeoIP-based country.
 * *[coming soon]* ip_city: a GeoIP-based city.
 * *[coming soon]* ref_source: a source of traffic for this customer.

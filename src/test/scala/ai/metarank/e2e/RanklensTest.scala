@@ -34,10 +34,11 @@ import ai.metarank.flow.{
 }
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.mode.bootstrap.Bootstrap.{joinFeatures, makeUpdates}
+import ai.metarank.mode.inference.FeatureStoreResource
 import ai.metarank.mode.inference.api.RankApi
 import ai.metarank.mode.inference.ranking.LightGBMScorer
 import better.files.{File, Resource}
-import cats.effect.IO
+import cats.effect.{IO, Ref}
 import cats.effect.unsafe.implicits.global
 import io.findify.featury.flink.format.BulkCodec
 import io.findify.featury.flink.util.Compress
@@ -72,11 +73,11 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   }
 
   it should "rerank things" in {
-    val store = DiskStore(updatesDir)
     val event = RanklensEvents().collect { case r: RankingEvent =>
       r
     }.head
     val model    = IOUtils.toString(Resource.my.getAsStream("/ranklens/ranklens.model"), StandardCharsets.UTF_8)
+    val store    = FeatureStoreResource.unsafe(() => DiskStore(updatesDir)).unsafeRunSync()
     val ranker   = RankApi(mapping, store, LightGBMScorer(model))
     val response = ranker.rerank(event, false).unsafeRunSync()
     val br       = 1

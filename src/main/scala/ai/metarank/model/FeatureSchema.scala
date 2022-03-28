@@ -1,6 +1,7 @@
 package ai.metarank.model
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
@@ -41,6 +42,7 @@ object FeatureSchema {
         case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
         case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)
         case "item_age"          => implicitly[Decoder[ItemAgeSchema]].apply(c)
+        case "field_match"       => implicitly[Decoder[FieldMatchSchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {

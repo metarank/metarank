@@ -33,6 +33,7 @@ All the feature extractors have a set of common fields:
 * [relative_number](features/generic.md#relative-number): scales a numerical field to make it fit 0..1 range.
 * [list_size](features/generic.md#list-size): size of string or numerical list.
 * [time_diff](features/generic.md#time-difference): difference in seconds between current timestamp and the numerical field value.
+* [field_match](features/text.md): match ranking field over item fields.
 
 ### User session feature extractors
 * [ua/platform](/doc/features/user-session.md#user-agent-field-extractor): a one-hot encoded platform (mobile, desktop, tablet).

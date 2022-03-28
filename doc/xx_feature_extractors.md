@@ -57,4 +57,5 @@ All the feature extractors have a set of common fields:
 * *[coming soon]* text_match: matches a field from ranking event over a field of item metadata.
 
 ### Date and time
-* [time_of_day](features/datetime.md): map local visitor time into a 0..1 range to catch intra-day seasonality.
+* [local_time](features/datetime.md): map local visitor date-time to catch seasonality.
+* [item_age](features/datetime.md): how much time passed till item was updated?

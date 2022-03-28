@@ -17,7 +17,6 @@ import java.time.{Duration, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
 case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingStatelessFeature with Logging {
-  lazy val format                                  = DateTimeFormatter.ISO_DATE_TIME
   override def dim: Int                            = 1
   override def states: List[FeatureConfig]         = Nil
   override def fields                              = Nil
@@ -30,7 +29,7 @@ case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingStat
 
     request.fieldsMap.get(schema.source.field) match {
       case Some(StringField(_, value)) =>
-        Try(ZonedDateTime.parse(value, format)) match {
+        Try(ZonedDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME)) match {
           case Success(datetime) =>
             SingleValue(schema.name, schema.parse.map(datetime))
           case Failure(ex) =>

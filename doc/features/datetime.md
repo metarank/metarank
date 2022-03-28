@@ -12,7 +12,7 @@ catch a seasonality: maybe visitor behavior is different on morning and in eveni
   "user": "user1",
   "session": "session1",
   "fields": [
-      {"name": "localts", "value": "2011-12-03T10:15:30+01:00"}
+      {"name": "localts", "value": "2021-12-03T10:15:30+01:00"}
   ],
   "items": [
     {"id": "item3", "relevancy":  2.0},
@@ -42,3 +42,34 @@ Supported `parse` field values:
 * month_of_year: current month in 1..12 range
 * year: absolute current year value
 * second: current local timestamp in seconds from epoch start
+
+## item_age
+
+Sometimes it can be useful to know how fresh is the item in the ranking? Consider the following metadata event:
+```json
+{
+  "event": "metadata",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "item": "product1", 
+  "timestamp": "1599391467000",
+  "fields": [
+    {"name": "created_at", "value": "2021-12-03T10:15:30+01:00"}
+  ]
+}
+```
+
+It's possible to compute how much time passed from the `created_at` field value till now, with the following config
+snippet:
+
+```yaml
+- name: freshness
+  type: item_age
+  source: metadata.created_at // can only work with metadata event types
+  refresh: 0s // optional, how frequently we should update the value, 0s by default
+  ttl: 90d // optional, how long should we store this field
+```
+
+The `source` field should have any of the following types:
+* string, ISO8601 date+time, example: "2021-12-03T10:15:30+01:00"
+* number, unixtime (number of seconds from epoch start), example `1648483661`
+* string, unixtime as a string (so there will be no json number rounding), example: `"1648483661"`

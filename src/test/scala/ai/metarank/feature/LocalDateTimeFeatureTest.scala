@@ -18,6 +18,7 @@ import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.time.format.DateTimeFormatter
 import java.time.{ZoneId, ZonedDateTime}
 
 class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
@@ -69,7 +70,8 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
     lazy val feature = LocalDateTimeFeature(LocalDateTimeSchema("x", FieldName(Ranking, "localts"), mapper))
     val result =
       feature.value(
-        TestRankingEvent(List("p1")).copy(fields = List(StringField("localts", feature.format.format(ts)))),
+        TestRankingEvent(List("p1"))
+          .copy(fields = List(StringField("localts", DateTimeFormatter.ISO_DATE_TIME.format(ts)))),
         Map.empty
       )
     result match {

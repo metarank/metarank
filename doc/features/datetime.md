@@ -2,7 +2,7 @@
 
 ## local_time extractor
 
-This extractor is useful when you need to parse a local date-time, and get a time-of-day (or something similar) from there to 
+This extractor is useful when you need to parse a local date-time and get a time-of-day (or something similar) from there to 
 catch a seasonality: maybe visitor behavior is different on morning and in evening? Given the event:
 ```json
 {
@@ -37,11 +37,11 @@ This extractor requires a separate field and cannot use a global `timestamp` one
 about timezone.
 
 Supported `parse` field values:
-* time_of_day: local time in 0.0..23.99 range
-* day_of_month: day of current month in 1..31 range
-* month_of_year: current month in 1..12 range
-* year: absolute current year value
-* second: current local timestamp in seconds from epoch start
+* `time_of_day`: local time in 0.0..23.99 range
+* `day_of_month`: day of current month in 1..31 range
+* `month_of_year`: current month in 1..12 range
+* `year`: absolute current year value
+* `second`: current local timestamp in seconds from epoch start
 
 ## item_age
 
@@ -58,7 +58,7 @@ Sometimes it can be useful to know how fresh is the item in the ranking? Conside
 }
 ```
 
-It's possible to compute how much time passed from the `created_at` field value till now, with the following config
+It's possible to compute how much time has passed from the `created_at` field value till now, with the following config
 snippet:
 
 ```yaml
@@ -70,6 +70,6 @@ snippet:
 ```
 
 The `source` field should have any of the following types:
-* string, ISO8601 date+time, example: "2021-12-03T10:15:30+01:00"
-* number, unixtime (number of seconds from epoch start), example `1648483661`
-* string, unixtime as a string (so there will be no json number rounding), example: `"1648483661"`
+* `string`, ISO8601 date+time+timezone, example: "2021-12-03T10:15:30+01:00"
+* `number`, unixtime (number of seconds from epoch start), example `1648483661`
+* `string`, unixtime as a string (so there will be no json number rounding), example: `"1648483661"`

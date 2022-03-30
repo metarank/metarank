@@ -36,7 +36,7 @@ jobs:
       run: sbt scalafmtCheck
 
     - name: Run tests
-      run: sbt -mem 3000 test assembly
+      run: sbt -mem 3000 test assembly docker:publishLocal
 
     - name: Start Redis
       uses: shogo82148/actions-setup-redis@v1
@@ -45,3 +45,6 @@ jobs:
 
     - name: Run e2e test
       run: ./run_e2e.sh target/scala-2.12/metarank.jar
+
+    - name: Run docker 
+      run: docker run metarank/metarank:latest

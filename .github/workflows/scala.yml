@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: install libomp
-      run: brew install libomp docker
+      run: brew install libomp docker docker-machine
       if: runner.os == 'macOS'
 
     - uses: actions/checkout@v2

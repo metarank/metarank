@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 class RelevancyTest extends AnyFlatSpec with Matchers {
   it should "extract relevancy" in {
     val feature = RelevancyFeature(RelevancySchema("rel"))
-    val event = TestRankingEvent(Nil).copy(items =
+    val event = TestRankingEvent(List("p1", "p2")).copy(items =
       NonEmptyList.of(
         ItemRelevancy(ItemId("p1"), 1),
         ItemRelevancy(ItemId("p2"), 2)

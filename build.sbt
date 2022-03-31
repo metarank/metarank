@@ -37,7 +37,7 @@ libraryDependencies ++= Seq(
   "io.circe"             %% "circe-parser"               % circeVersion,
   "com.github.pathikrit" %% "better-files"               % "3.9.1",
   "com.github.scopt"     %% "scopt"                      % "4.0.1",
-  "redis.clients"         % "jedis"                      % "4.2.0",
+  "redis.clients"         % "jedis"                      % "4.2.1",
   "com.github.blemale"   %% "scaffeine"                  % "5.1.2",
   "com.github.fppt"       % "jedis-mock"                 % "1.0.1"          % Test,
   "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
@@ -71,9 +71,13 @@ Compile / discoveredMainClasses := Seq()
 
 maintainer := "Metarank team"
 dockerExposedPorts ++= Seq(8080, 6123)
-dockerPermissionStrategy := DockerPermissionStrategy.None
+dockerPermissionStrategy := DockerPermissionStrategy.Run
 dockerBaseImage          := "openjdk:11.0.14.1-jdk"
 dockerExposedVolumes     := List("/data")
+dockerAliases := List(
+  DockerAlias(None, Some("metarank"), "metarank", Some("latest")),
+  DockerAlias(None, Some("metarank"), "metarank", Some(version.value))
+)
 
 dockerCommands := dockerCommands.value.flatMap {
   case Cmd("USER", args @ _*) if args.contains("1001:0") =>

@@ -14,12 +14,16 @@ import io.circe.parser._
 import java.io.{ByteArrayOutputStream, InputStream}
 import ai.metarank.flow.DataStreamOps._
 import ai.metarank.util.Logging
+import org.apache.flink.connector.file.src.enumerate.NonSplittingRecursiveEnumerator
 
 case class FileEventSource(path: String) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
     env
       .fromSource(
-        source = FileSource.forRecordStreamFormat(EventStreamFormat(), new Path(path)).processStaticFileSet().build(),
+        source = FileSource
+          .forRecordStreamFormat(EventStreamFormat(), new Path(path))
+          .processStaticFileSet()
+          .build(),
         watermarkStrategy = EventWatermarkStrategy(),
         sourceName = "events-source"
       )
@@ -53,7 +57,7 @@ object FileEventSource {
       if (line != null) decode[Event](line) match {
         case Left(value) =>
           logger.error(s"cannot decode line ${line}", value)
-          throw new IllegalArgumentException("json decoding error")
+          throw new IllegalArgumentException(s"json decoding error '$value' on line '${line}'")
         case Right(value) =>
           value
       }

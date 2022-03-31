@@ -67,7 +67,7 @@ You can configure it in the following way:
     // name of the feature extractor used as a dividend
     top: click
     // name of the feature extractor that is used as a divider
-    bottom: impression
+    bottom: ranking
     scope: item
     bucket: 24h
     periods: [7,30]

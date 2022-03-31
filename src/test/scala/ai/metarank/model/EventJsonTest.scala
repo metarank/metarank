@@ -65,6 +65,23 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
       )
     )
   }
+  it should "decode metadata with empty fields" in {
+    val json = """{
+                 |  "event": "metadata",
+                 |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+                 |  "item": "product1",
+                 |  "timestamp": "1599391467000"
+                 |}""".stripMargin
+    decode[Event](json) shouldBe Right(
+      MetadataEvent(
+        id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
+        item = ItemId("product1"),
+        timestamp = Timestamp(1599391467000L),
+        fields = Nil,
+        tenant = "default"
+      )
+    )
+  }
 
   it should "decode ranking" in {
     val json = """{

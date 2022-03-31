@@ -20,7 +20,7 @@ object Event {
       id: EventId,
       item: ItemId,
       timestamp: Timestamp,
-      fields: List[Field],
+      fields: List[Field] = Nil,
       tenant: String = "default"
   ) extends Event {}
 
@@ -34,7 +34,7 @@ object Event {
       timestamp: Timestamp,
       user: UserId,
       session: SessionId,
-      fields: List[Field],
+      fields: List[Field] = Nil,
       items: List[ItemRelevancy],
       tenant: String = "default"
   ) extends FeedbackEvent
@@ -47,7 +47,7 @@ object Event {
       user: UserId,
       session: SessionId,
       `type`: String,
-      fields: List[Field],
+      fields: List[Field] = Nil,
       tenant: String = "default"
   ) extends FeedbackEvent
 

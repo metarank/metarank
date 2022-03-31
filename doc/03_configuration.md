@@ -62,7 +62,7 @@ ingest:
 
 ## Event schema definition
 
-In this section field types and names should be defined for metadata, impression and interaction events. Metarank supports
+In this section field types and names should be defined for metadata, ranking and interaction events. Metarank supports
 the following types of fields:
 1. string: a regular UTF-8 string
 2. number: a double-precision floating-point format

@@ -14,12 +14,16 @@ import io.circe.parser._
 import java.io.{ByteArrayOutputStream, InputStream}
 import ai.metarank.flow.DataStreamOps._
 import ai.metarank.util.Logging
+import org.apache.flink.connector.file.src.enumerate.NonSplittingRecursiveEnumerator
 
 case class FileEventSource(path: String) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
     env
       .fromSource(
-        source = FileSource.forRecordStreamFormat(EventStreamFormat(), new Path(path)).processStaticFileSet().build(),
+        source = FileSource
+          .forRecordStreamFormat(EventStreamFormat(), new Path(path))
+          .processStaticFileSet()
+          .build(),
         watermarkStrategy = EventWatermarkStrategy(),
         sourceName = "events-source"
       )

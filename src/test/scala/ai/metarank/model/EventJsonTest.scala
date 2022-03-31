@@ -14,7 +14,6 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
                  |  "item": "product1",
                  |  "timestamp": "1599391467000", 
-                 |  "tenant": "default",
                  |  "fields": [
                  |    {"name": "title", "value": "Nice jeans"},
                  |    {"name": "price", "value": 25.0},
@@ -37,6 +36,35 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
       )
     )
   }
+  it should "decode metadata with tenant" in {
+    val json = """{
+                 |  "event": "metadata",
+                 |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+                 |  "item": "product1",
+                 |  "timestamp": "1599391467000", 
+                 |  "fields": [
+                 |    {"name": "title", "value": "Nice jeans"},
+                 |    {"name": "price", "value": 25.0},
+                 |    {"name": "color", "value": ["blue", "black"]},
+                 |    {"name": "availability", "value": true}
+                 |  ],
+                 |  "tenant": "foo"
+                 |}""".stripMargin
+    decode[Event](json) shouldBe Right(
+      MetadataEvent(
+        id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
+        item = ItemId("product1"),
+        timestamp = Timestamp(1599391467000L),
+        fields = List(
+          StringField("title", "Nice jeans"),
+          NumberField("price", 25),
+          StringListField("color", List("blue", "black")),
+          BooleanField("availability", true)
+        ),
+        tenant = "foo"
+      )
+    )
+  }
 
   it should "decode ranking" in {
     val json = """{
@@ -45,7 +73,6 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |  "timestamp": "1599391467000",
                  |  "user": "user1",
                  |  "session": "session1",
-                 |  "tenant": "default",
                  |  "fields": [
                  |      {"name": "query", "value": "jeans"},
                  |      {"name": "source", "value": "search"}
@@ -85,7 +112,6 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |  "timestamp": "1599391467000",
                  |  "user": "user1",
                  |  "session": "session1",
-                 |  "tenant": "default",
                  |  "type": "purchase",
                  |  "item": "product1",
                  |  "fields": [

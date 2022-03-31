@@ -53,7 +53,7 @@ object FileEventSource {
       if (line != null) decode[Event](line) match {
         case Left(value) =>
           logger.error(s"cannot decode line ${line}", value)
-          throw new IllegalArgumentException("json decoding error")
+          throw new IllegalArgumentException(s"json decoding error '$value' on line '${line}'")
         case Right(value) =>
           value
       }

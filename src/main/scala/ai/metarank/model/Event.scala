@@ -21,7 +21,7 @@ object Event {
       item: ItemId,
       timestamp: Timestamp,
       fields: List[Field],
-      tenant: String
+      tenant: String = "default"
   ) extends Event {}
 
   sealed trait FeedbackEvent extends Event {
@@ -36,7 +36,7 @@ object Event {
       session: SessionId,
       fields: List[Field],
       items: List[ItemRelevancy],
-      tenant: String
+      tenant: String = "default"
   ) extends FeedbackEvent
 
   case class InteractionEvent(
@@ -48,7 +48,7 @@ object Event {
       session: SessionId,
       `type`: String,
       fields: List[Field],
-      tenant: String
+      tenant: String = "default"
   ) extends FeedbackEvent
 
   case class ItemRelevancy(id: ItemId, relevancy: Option[Double] = None)
@@ -56,11 +56,17 @@ object Event {
     def apply(id: ItemId, relevancy: Double) = new ItemRelevancy(id, Some(relevancy))
   }
 
-  implicit val relevancyCodec: Codec[ItemRelevancy]      = deriveCodec
-  implicit val metadataCodec: Codec[MetadataEvent]       = deriveCodec
-  implicit val rankingCodec: Codec[RankingEvent]         = deriveCodec
-  implicit val interactionCodec: Codec[InteractionEvent] = deriveCodec
+  object EventCodecs {
+    implicit val conf                                      = Configuration.default.withDefaults
+    implicit val relevancyCodec: Codec[ItemRelevancy]      = deriveCodec
+    implicit val metadataCodec: Codec[MetadataEvent]       = deriveConfiguredCodec
+    implicit val rankingCodec: Codec[RankingEvent]         = deriveConfiguredCodec
+    implicit val interactionCodec: Codec[InteractionEvent] = deriveConfiguredCodec
+  }
 
+  import EventCodecs.metadataCodec
+  import EventCodecs.rankingCodec
+  import EventCodecs.interactionCodec
   implicit val conf = Configuration.default
     .withDiscriminator("event")
     .withKebabCaseMemberNames

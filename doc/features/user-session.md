@@ -54,6 +54,8 @@ To configure the extractor, use this YAML snippet:
   ttl: 90d
 ```
 
+The UA field is taken from each ranking request, so it should be always present.
+
 ## Interacted with
 
 For the current item, did this visitor have an interaction with other item with the same field.

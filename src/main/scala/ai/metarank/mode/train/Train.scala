@@ -31,15 +31,30 @@ object Train extends IOApp with Logging {
     ExitCode.Success
   }
 
-  def loadData(path: File, desc: DatasetDescriptor) = IO {
-    val queries = for {
-      file  <- path.listRecursively().filter(_.extension(includeDot = false).contains("json"))
-      line  <- file.lineIterator(StandardCharsets.UTF_8)
-      query <- decode[Query](line).toOption
-    } yield {
-      query
-    }
-    Dataset(desc, queries.toList)
+  def loadData(path: File, desc: DatasetDescriptor) = {
+    for {
+      files <- IO { path.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
+      filesNel <- files match {
+        case Nil =>
+          IO.raiseError(
+            new Exception("zero training files found. maybe you forgot to run bootstrap? or dir is incorrect?")
+          )
+        case nel => IO(logger.info(s"found training dataset files: $files")) *> IO.pure(nel)
+      }
+      queries <- IO {
+        for {
+          file  <- filesNel
+          line  <- file.lineIterator(StandardCharsets.UTF_8)
+          query <- decode[Query](line).toOption
+        } yield {
+          query
+        }
+      }
+      queriesNel <- queries match {
+        case Nil => IO.raiseError(new Exception("loaded 0 valid queries"))
+        case nel => IO(s"loaded ${nel.size} queries") *> IO.pure(nel)
+      }
+    } yield { Dataset(desc, queriesNel) }
   }
 
   def split(dataset: Dataset, factor: Int) = {

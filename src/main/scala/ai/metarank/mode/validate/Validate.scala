@@ -5,6 +5,8 @@ import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 
 object Validate extends IOApp with Logging {
+  case class ValidationError(msg: String) extends Exception(msg)
+
   override def run(args: List[String]): IO[ExitCode] = {
     for {
       _ <- args match {
@@ -24,10 +26,16 @@ object Validate extends IOApp with Logging {
     logger.info("")
     logger.info("Possible options:")
     logger.info(" --config <path>       - Validate feature configuration file")
-    logger.info(" --data <path>         - Validate training dataset")
+    logger.info(" --data <path>         - Validate historical events dataset")
     logger.info(" --help                - This help")
   }
 
-  def checkConfig(cfg: File): IO[Unit] = ???
-  def checkData(ds: File): IO[Unit]    = ???
+  def checkConfig(cfg: File): IO[Unit] = ConfigValidator.check(cfg.contentAsString) match {
+    case CheckResult.SuccessfulCheck     => IO { logger.info("Config file is valid") }
+    case CheckResult.FailedCheck(reason) => IO.raiseError(ValidationError(reason))
+  }
+  def checkData(ds: File): IO[Unit] = EventFileValidator.check(ds) match {
+    case CheckResult.SuccessfulCheck     => IO { logger.info("Data file is valid") }
+    case CheckResult.FailedCheck(reason) => IO.raiseError(ValidationError(reason))
+  }
 }

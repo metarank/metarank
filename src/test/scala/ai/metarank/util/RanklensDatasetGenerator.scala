@@ -1,9 +1,10 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model._
 import better.files.File
+import cats.data.NonEmptyList
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.parser.decode
 import io.circe.{Codec, Decoder}
@@ -121,7 +122,7 @@ object RanklensDatasetGenerator {
           user = UserId(t.user),
           session = SessionId(t.user),
           fields = Nil,
-          items = t.shown.map(id => ItemRelevancy(ItemId(id.toString), 0)),
+          items = NonEmptyList.fromListUnsafe(t.shown).map(id => ItemRelevancy(ItemId(id.toString), 0)),
           tenant = "default"
         )
       )

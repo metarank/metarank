@@ -1,7 +1,8 @@
 package ai.metarank.model
 
-import ai.metarank.model.Event.{RankingEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
 import ai.metarank.model.Field.{BooleanField, NumberField, NumberListField, StringField, StringListField}
+import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.parser._
@@ -111,7 +112,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           StringField("query", "jeans"),
           StringField("source", "search")
         ),
-        items = List(
+        items = NonEmptyList.of(
           ItemRelevancy(ItemId("product3"), 2.0),
           ItemRelevancy(ItemId("product1"), 1.0),
           ItemRelevancy(ItemId("product2"), 0.5)

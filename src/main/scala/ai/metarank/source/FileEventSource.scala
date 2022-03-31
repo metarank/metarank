@@ -14,15 +14,38 @@ import io.circe.parser._
 import java.io.{ByteArrayOutputStream, InputStream}
 import ai.metarank.flow.DataStreamOps._
 import ai.metarank.util.Logging
+import org.apache.flink.connector.file.src.compression.StandardDeCompressors
 import org.apache.flink.connector.file.src.enumerate.NonSplittingRecursiveEnumerator
+import scala.collection.JavaConverters._
 
-case class FileEventSource(path: String) extends EventSource {
+case class FileEventSource(path: String) extends EventSource with Logging {
+  val compressedExts = StandardDeCompressors.getCommonSuffixes.asScala.toList.map(ext => s".$ext")
+  val commonExts     = List(".json", ".jsonl")
+
+  def selectFile(path: Path): Boolean = {
+    val fs    = path.getFileSystem
+    val isDir = fs.getFileStatus(path).isDir
+    if (isDir) {
+      logger.info(s"$path is directory, doing recursive listing.")
+      true
+    } else {
+      val name      = path.getName
+      val isMatched = (commonExts ++ compressedExts).exists(ext => name.endsWith(ext))
+      if (isMatched) {
+        logger.info(s"File $path is selected as event source")
+      } else {
+        logger.warn(s"File $path is NOT looking like an event source, skipping")
+      }
+      isMatched
+    }
+  }
   override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
     env
       .fromSource(
         source = FileSource
           .forRecordStreamFormat(EventStreamFormat(), new Path(path))
           .processStaticFileSet()
+          .setFileEnumerator(() => new NonSplittingRecursiveEnumerator(selectFile))
           .build(),
         watermarkStrategy = EventWatermarkStrategy(),
         sourceName = "events-source"

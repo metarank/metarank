@@ -53,7 +53,7 @@ case class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
   ): Unit = for {
     r      <- Option(ranking.value())
     clicks <- Option(interactions.get()).map(_.asScala.toList)
-    ranks = r.items.map(_.id).zipWithIndex.toMap
+    ranks = r.items.toList.map(_.id).zipWithIndex.toMap
     (maxClick, maxClickRank) <- clicks.flatMap(c => ranks.get(c.item).map(rank => c -> rank)).sortBy(-_._2).headOption
     item                     <- r.items.take(maxClickRank + 1)
   } {

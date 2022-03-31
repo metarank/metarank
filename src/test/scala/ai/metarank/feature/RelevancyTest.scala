@@ -5,6 +5,7 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.TestRankingEvent
+import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -12,7 +13,7 @@ class RelevancyTest extends AnyFlatSpec with Matchers {
   it should "extract relevancy" in {
     val feature = RelevancyFeature(RelevancySchema("rel"))
     val event = TestRankingEvent(Nil).copy(items =
-      List(
+      NonEmptyList.of(
         ItemRelevancy(ItemId("p1"), 1),
         ItemRelevancy(ItemId("p2"), 2)
       )

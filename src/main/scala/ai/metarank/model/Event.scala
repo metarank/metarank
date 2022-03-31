@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import cats.data.NonEmptyList
 import io.circe.generic.extras.Configuration
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.findify.featury.model.Timestamp
@@ -35,7 +36,7 @@ object Event {
       user: UserId,
       session: SessionId,
       fields: List[Field] = Nil,
-      items: List[ItemRelevancy],
+      items: NonEmptyList[ItemRelevancy],
       tenant: String = "default"
   ) extends FeedbackEvent
 

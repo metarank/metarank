@@ -27,7 +27,7 @@ class ClickthroughJoinFunctionTest extends AnyFlatSpec with Matchers with FlinkT
       .process(new ClickthroughJoinFunction())
       .executeAndCollect(10)
     result.map(_.ranking.id.value) shouldBe List("1")
-    result.flatMap(_.ranking.items.map(_.id.value)) shouldBe List("p1", "p2", "p3")
+    result.flatMap(_.ranking.items.toList.map(_.id.value)) shouldBe List("p1", "p2", "p3")
     result.flatMap(_.interactions.map(_.item.value)) shouldBe List("p2")
   }
 }

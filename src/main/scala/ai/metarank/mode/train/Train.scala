@@ -23,6 +23,7 @@ object Train extends IOApp with Logging {
     config  <- Config.load(cmd.config)
     mapping <- IO { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
     data    <- loadData(cmd.input, mapping.datasetDescriptor)
+    _       <- validate(data)
   } yield {
     val (train, test) = split(data, cmd.split)
     cmd.output.write(trainModel(train, test, cmd.booster, cmd.iterations))
@@ -55,4 +56,18 @@ object Train extends IOApp with Logging {
     val model = booster.fit()
     model.save()
   }
+
+  def validate(ds: Dataset): IO[Unit] = {
+    if (ds.desc.features.isEmpty) {
+      IO.raiseError(DatasetValidationError("No features configured"))
+    } else if (ds.desc.features.size == 1) {
+      IO.raiseError(DatasetValidationError("Only single ML feature defined"))
+    } else if (ds.groups.isEmpty) {
+      IO.raiseError(DatasetValidationError("No click-throughs loaded"))
+    } else {
+      IO.unit
+    }
+  }
+
+  case class DatasetValidationError(msg: String) extends Exception(msg)
 }

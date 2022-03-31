@@ -83,8 +83,10 @@ So YAML snippet for a field is defined in the following way:
 So having the item metadata event example from [event schema doc](xx_event_schema.md):
 ```json
 {
-  "id": "product1", 
-  "timestamp": "1599391467000", 
+  "event": "metadata",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000", // required
+  "item": "item1", // required
   "fields": [
     {"name": "title", "value": "Nice jeans"},
     {"name": "price", "value": 25.0},

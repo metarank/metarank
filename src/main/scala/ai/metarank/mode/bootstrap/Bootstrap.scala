@@ -95,6 +95,7 @@ object Bootstrap extends IOApp with Logging {
         ),
         valuesPath
       )
+      .name("read-features")
       .toJava
 
     val transformStateJoin = OperatorTransformation

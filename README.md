@@ -21,7 +21,7 @@ Metarank can run on-premises or in the cloud, making it easy to get state-of-the
 
 Building an in-house personalization solution takes around 6 months by an experienced team, and only large companies can afford it.
 
-With Metarank, you can get up and running with personalization in days instead of months and be in control of data privacy, optimization goals and how Metarank is integrated into the infrastructure with minimal vendor-lock.
+With Metarank, you can get up and running with personalization in *days instead of months* and be in control of **data privacy**, **optimization goals** and how Metarank is integrated into the infrastructure with **minimal vendor-lock**.
 
 ## Demo 
 

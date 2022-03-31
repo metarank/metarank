@@ -98,8 +98,8 @@ case class RankApi(
 }
 
 object RankApi {
-
-  implicit val requestDecoder: EntityDecoder[IO, RankingEvent]   = jsonOf
+  import ai.metarank.model.Event.EventCodecs._
+  implicit val requestDecoder: EntityDecoder[IO, RankingEvent]   = jsonOf[IO, RankingEvent]
   implicit val itemScoreEncoder: EntityEncoder[IO, RankResponse] = jsonEncoderOf
 
   object ExplainParamDecoder             extends OptionalQueryParamDecoderMatcher[Boolean]("explain")

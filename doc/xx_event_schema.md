@@ -84,7 +84,7 @@ This information is used by personalization algorithms to understand which items
 }
 ```
 
-- `id`: a request identifier later used to join impression and interaction events. Should match the value that is sent to [ranking API](xx_api_schema.md).
+- `id`: a request identifier later used to join ranking and interaction events. Should match the value that is sent to [ranking API](xx_api_schema.md).
 - `user`: unique visitor identifier.
 - `session`: session identifier, a single visitor may have multiple sessions.
 - `fields`: an optional array of extra fields that you can use in your model, as described above.
@@ -105,7 +105,7 @@ The `type` field must match the `name` provided in the [Configuration](03_config
 {
   "event": "interaction",
   "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",// required
-  "impression": "81f46c34-a4bb-469c-8708-f8127cd67d27", //required
+  "ranking": "81f46c34-a4bb-469c-8708-f8127cd67d27", //required
   "timestamp": "1599391467000",// required
   "user": "user1",// required
   "session": "session1",// required
@@ -119,7 +119,7 @@ The `type` field must match the `name` provided in the [Configuration](03_config
 ```
 
 - `id`: a request identifier.
-- `impression`: an identifier of the parent raning event event
+- `ranking`: an identifier of the parent raning event event
 - `user`: unique visitor identifier.
 - `session`: session identifier, a single visitor may have multiple sessions.
 - `type`: internal name of the event.

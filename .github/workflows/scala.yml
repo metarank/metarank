@@ -45,3 +45,7 @@ jobs:
 
     - name: Run e2e test
       run: ./run_e2e.sh target/scala-2.12/metarank.jar
+
+    - name: Run docker 
+      run: sbt docker:publishLocal && docker run metarank/metarank:latest
+      if: runner.os == 'Linux'

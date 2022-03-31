@@ -71,9 +71,13 @@ Compile / discoveredMainClasses := Seq()
 
 maintainer := "Metarank team"
 dockerExposedPorts ++= Seq(8080, 6123)
-dockerPermissionStrategy := DockerPermissionStrategy.None
+dockerPermissionStrategy := DockerPermissionStrategy.Run
 dockerBaseImage          := "openjdk:11.0.14.1-jdk"
 dockerExposedVolumes     := List("/data")
+dockerAliases := List(
+  DockerAlias(None, Some("metarank"), "metarank", Some("latest")),
+  DockerAlias(None, Some("metarank"), "metarank", Some(version.value))
+)
 
 dockerCommands := dockerCommands.value.flatMap {
   case Cmd("USER", args @ _*) if args.contains("1001:0") =>

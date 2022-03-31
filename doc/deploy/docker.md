@@ -36,5 +36,5 @@ The image exposes the following ports:
 
 To map these ports to your host, use the `-p` flag:
 ```shell
-docker -p 8080:8080 run metarank/metarank:latest inference <opts>
+docker run -p 8080:8080 metarank/metarank:latest inference <opts>
 ```

@@ -104,5 +104,5 @@ Usage: metarank validate <options>
 Possible options:
   --config <path>       - Validate feature configuration file
   --data <path>         - Validate historical events dataset
-  --help                - This help
+  --help                - This is help
 ```

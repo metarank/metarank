@@ -7,7 +7,7 @@ This tutorial reproduces the system running on [demo.metarank.ai](https://demo.m
 
 ### Prerequisites
 
-- [JVM 11+](https://www.oracle.com/java/technologies/downloads/) installed on your local machine
+- [JVM 11](https://www.oracle.com/java/technologies/downloads/) installed on your local machine
 - a running [Redis](https://redis.io/download) instance
 - latest [release jar file](https://github.com/metarank/metarank/releases) of Metarank
 

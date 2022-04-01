@@ -1,135 +1,100 @@
 # Configuration
 
 Metarank YAML config file contains the following sections:
-* Service configuration
-* Event schema definition: which fields and their types are expected to be included in incoming events
+* Interaction event configuration
 * Feature extractors: how features are computed on top of incoming events
-* Event source: where to read input events from
-* Store: where to persist computed feature values 
 
 
 ```yaml
-api:
-  port: 8080
-schema:
-  metadata:
-    - name: price
-      type: number
-      required: true
-  impression:
-    - name: query
-      type: string
-  interaction:
-    - name: type 
-      type: string
-feature:
-  - name: price
+interactions:
+  - name: click
+    weight: 1.0
+
+features:
+  - name: popularity
     type: number
-    source: price
-ingest:
-  file: /home/user/events.jsonl
-store:
-  type: redis
-  host: localhost
-  port: 6379
+    scope: item
+    source: metadata.popularity
+
+  - name: genre
+    type: string
+    scope: item
+    source: metadata.genres
+    values:
+      - drama
+      - comedy
+      - thriller
+  - name: global_item_click_count
+    type: interaction_count
+    interaction: click
+    scope: item
+
 ```
 
-## Service configuration
+## Interactions
 
-TODO
+Interaction define the way your users interact with the items you want to personalize, e.g. `click`, `add-to-wishlist`, `purchase`, `like`.
 
-## Ingest configuration
+Interactions can be used in the feature extractors, for example to calculate the click-through rate and 
+by defining `weight` you can control the optimization goal of your model: do you want to increase the amount of likes or purchases or balance between them.
 
-Supported input formats:
-* file: newline-separated jsonl-encoded events from a directory
-* api: RESTful endpoint so you can post your events there
-* kafka: coming soon
 
-File config example:
+You can define interaction by `name` and set `weight` for how much this interaction affects the model: 
+
 ```yaml
-ingest:
-  type: file
-  path: file:///home/work/input
+interactions:
+  - name: click // string
+    weight: 1.0 // floating number
 ```
 
-API Config example:
+The `name` of the interaction must be **unique**.
+The `name` is also used in the interaction events that are sent to Metarank and in the feature extractors.
+
+## Event schema
+
+You don't need to explicitely define the schema of the events that you will use. 
+
+Metarank will deduce the types of the incoming fields based on your feature extactors configuration.
+
+So, given the following feature extractor configuration: 
+
 ```yaml
-ingest:
-  type: api
-  port: 8081
+  - name: popularity
+    type: number
+    scope: item
+    source: metadata.popularity
+
+  - name: genre
+    type: string
+    scope: item
+    source: metadata.genres
+    values:
+      - drama
+      - comedy
+      - thriller
 ```
 
+Metarank will expect the `popularity` field to be a number and the `genres` to be a string or a list of strings and
+the metadata event will have the following structure
 
-## Event schema definition
-
-In this section field types and names should be defined for metadata, ranking and interaction events. Metarank supports
-the following types of fields:
-1. string: a regular UTF-8 string
-2. number: a double-precision floating-point format
-3. boolean: true or false
-4. list\<string\>: a sequence of strings
-5. list\<number\>: a sequence of numbers
-6. IP Address
-7. User-Agent
-8. Referrer
-
-So YAML snippet for a field is defined in the following way:
-```yaml
-- name: <name of field>
-  type: <one of field types>
-  required: <boolean> // this field is optional, all fields are optional by default
-```
-
-So having the item metadata event example from [event schema doc](xx_event_schema.md):
 ```json
 {
-  "id": "product1", 
-  "timestamp": "1599391467000", 
+  "event": "metadata",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000", // required
+  "item": "item1", // required
   "fields": [
-    {"name": "title", "value": "Nice jeans"},
-    {"name": "price", "value": 25.0},
-    {"name": "color", "value": ["blue", "black"]},
-    {"name": "availability", "value": true}
+    {"name": "popularity", "value": 25.0},
+    {"name": "genres", "value": ["blue", "black"]},
   ]
 }
 ```
 
-We need the following config for Metarank to accept it:
-
-```yaml
-schema:
-  metadata:
-    - name: title
-      type: string
-      required: true
-
-    - name: price
-      type: number
-
-    - name: color
-      type: list<string>
-
-    - name: availability
-      type: boolean      
-```
+Read more about [sending events in this doc](xx_event_schema.md).
 
 ## Feature extractor configuration
 
 Feature extractor configuration defines the way fields are mapped to features.
 
-Metarank supports a wide set of feature extractors with some shared properties:
-* each feature extractor can be scoped by user, session and item
-* the computed feature can be updated either in real-time, or with a certain period
-
-Feature extractors have a couple of shared fields, and in general, are configured in the following way:
-```yaml
-- name: price // name of the feature
-  type: scalar_number // feature type
-  refresh: 1h // how frequently this feature should be updated
-  source:
-    <where to take source data>
-```
-
 You can follow the [feature extractors](xx_feature_extractors.md) section of docs for more details on configuring 
 extractors.
-

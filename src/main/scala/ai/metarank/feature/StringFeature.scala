@@ -33,18 +33,26 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeatu
 
   override def fields = List(StringFieldSchema(schema.source))
 
-  override def writes(event: Event): Iterable[Put] = for {
-    key   <- keyOf(event)
-    field <- event.fields.find(_.name == schema.source.field)
-    fieldValue <- field match {
-      case StringField(_, value)     => Some(SStringList(List(value)))
-      case StringListField(_, value) => Some(SStringList(value))
-      case other =>
-        logger.warn(s"field extractor ${schema.name} expects a string or string[], but got $other in event $event")
-        None
+  override def writes(event: Event): Iterable[Put] = {
+    event match {
+      case Event.MetadataEvent(id, item, timestamp, fields, tenant) =>
+        val br = 1
+      case event: Event.FeedbackEvent =>
+        val br = 2
     }
-  } yield {
-    Put(key, event.timestamp, fieldValue)
+    for {
+      key   <- keyOf(event)
+      field <- event.fields.find(_.name == schema.source.field)
+      fieldValue <- field match {
+        case StringField(_, value)     => Some(SStringList(List(value)))
+        case StringListField(_, value) => Some(SStringList(value))
+        case other =>
+          logger.warn(s"field extractor ${schema.name} expects a string or string[], but got $other in event $event")
+          None
+      }
+    } yield {
+      Put(key, event.timestamp, fieldValue)
+    }
   }
 
   override def value(

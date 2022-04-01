@@ -15,6 +15,7 @@ $ java -jar metarank-assembly-x.x.x.jar
 15:35:35.261 INFO  ai.metarank.Main$ - - train: train the ranking ML model
 15:35:35.262 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
 15:35:35.263 INFO  ai.metarank.Main$ - - inference: run the inference API
+15:35:35.263 INFO  ai.metarank.Main$ - - validate: check config and data files for consistency
 15:35:35.265 INFO  ai.metarank.Main$ - - help: this help
 
 ```
@@ -91,4 +92,17 @@ Usage: Train [options]
   --port <value>          redis port, 6379 by default
   --batch-size <value>    write batch size, 1000 by default
   --format <value>        state encoding format, protobuf/json
+```
+
+### Validate
+
+A useful tool to check your config file and data files for sanity.
+
+```shell
+Metarank validator tool
+Usage: metarank validate <options>
+Possible options:
+  --config <path>       - Validate feature configuration file
+  --data <path>         - Validate historical events dataset
+  --help                - This help
 ```

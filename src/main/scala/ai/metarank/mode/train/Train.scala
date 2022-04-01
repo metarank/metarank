@@ -23,6 +23,7 @@ object Train extends IOApp with Logging {
     config  <- Config.load(cmd.config)
     mapping <- IO { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
     data    <- loadData(cmd.input, mapping.datasetDescriptor)
+    _       <- validate(data)
   } yield {
     val (train, test) = split(data, cmd.split)
     cmd.output.write(trainModel(train, test, cmd.booster, cmd.iterations))
@@ -30,15 +31,30 @@ object Train extends IOApp with Logging {
     ExitCode.Success
   }
 
-  def loadData(path: File, desc: DatasetDescriptor) = IO {
-    val queries = for {
-      file  <- path.listRecursively().filter(_.extension(includeDot = false).contains("json"))
-      line  <- file.lineIterator(StandardCharsets.UTF_8)
-      query <- decode[Query](line).toOption
-    } yield {
-      query
-    }
-    Dataset(desc, queries.toList)
+  def loadData(path: File, desc: DatasetDescriptor) = {
+    for {
+      files <- IO { path.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
+      filesNel <- files match {
+        case Nil =>
+          IO.raiseError(
+            new Exception("zero training files found. maybe you forgot to run bootstrap? or dir is incorrect?")
+          )
+        case nel => IO(logger.info(s"found training dataset files: $files")) *> IO.pure(nel)
+      }
+      queries <- IO {
+        for {
+          file  <- filesNel
+          line  <- file.lineIterator(StandardCharsets.UTF_8)
+          query <- decode[Query](line).toOption
+        } yield {
+          query
+        }
+      }
+      queriesNel <- queries match {
+        case Nil => IO.raiseError(new Exception("loaded 0 valid queries"))
+        case nel => IO(s"loaded ${nel.size} queries") *> IO.pure(nel)
+      }
+    } yield { Dataset(desc, queriesNel) }
   }
 
   def split(dataset: Dataset, factor: Int) = {
@@ -55,4 +71,18 @@ object Train extends IOApp with Logging {
     val model = booster.fit()
     model.save()
   }
+
+  def validate(ds: Dataset): IO[Unit] = {
+    if (ds.desc.features.isEmpty) {
+      IO.raiseError(DatasetValidationError("No features configured"))
+    } else if (ds.desc.features.size == 1) {
+      IO.raiseError(DatasetValidationError("Only single ML feature defined"))
+    } else if (ds.groups.isEmpty) {
+      IO.raiseError(DatasetValidationError("No click-throughs loaded"))
+    } else {
+      IO.unit
+    }
+  }
+
+  case class DatasetValidationError(msg: String) extends Exception(msg)
 }

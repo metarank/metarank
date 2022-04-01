@@ -33,7 +33,7 @@ object FeatureScope {
     val scope = Scope("item")
 
     override def tags(event: Event): Traversable[Tag] = event match {
-      case e: RankingEvent     => e.items.map(item => Tag(scope, item.id.value))
+      case e: RankingEvent     => e.items.toList.map(item => Tag(scope, item.id.value))
       case e: InteractionEvent => Some(Tag(scope, e.item.value))
       case e: MetadataEvent    => Some(Tag(scope, e.item.value))
     }

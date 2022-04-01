@@ -52,7 +52,7 @@ We recommend running Metarank with [Docker](doc/deploy/docker.md).
 
 If you would like to try it natively, here are the requirements:
 
-* Linux and MacOS have been tested. Windows support is coming soon
+* Linux or MacOS on x86. Windows support is coming soon
 * [JVM 11](https://www.oracle.com/java/technologies/downloads/)
 
 

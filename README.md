@@ -15,6 +15,15 @@
 [![Join our slack](https://img.shields.io/badge/Slack-join%20the%20community-blue?logo=slack&style=social)](https://metarank.ai/slack)
 
 
+## What is *personalization*?
+
+Personalization is showing the *same* items but in *different order* for *different users*.
+
+The ordering of products on Amazon, posts in FB, and search results in Google is *personalized for each visitor*, as it directly affects conversion, click rate and engagement, 
+and we've done 50+ a/b tests in different ecommerce verticals to confirm it.
+
+If you have items that are presented to a user in a specific order, you can look at personalizing this order to improvve your product's KPIs.
+
 ## Why Metarank?
 
 Metarank can run on-premises or in the cloud, making it easy to get state-of-the-art ML technologies by teams having little to no ML experience. 

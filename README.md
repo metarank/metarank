@@ -22,7 +22,7 @@ Personalization is showing the *same* items but in *different order* for *differ
 The ordering of products on Amazon, posts in FB, and search results in Google is *personalized for each visitor*, as it directly affects conversion, click rate and engagement, 
 and we've done 50+ a/b tests in different ecommerce verticals to confirm it.
 
-If you have items that are presented to a user in a specific order, you can look at personalizing this order to improvve your product's KPIs.
+If you have items that are presented to a user in a specific order, you can look at personalizing this order to improve your product's KPIs.
 
 ## Why Metarank?
 

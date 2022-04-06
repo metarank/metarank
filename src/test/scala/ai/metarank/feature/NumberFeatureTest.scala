@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FeatureScope.ItemScope
@@ -37,7 +38,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "extract field from metadata" in {
     val event  = TestMetadataEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event)
+    val result = feature.writes(event, FieldStore.empty, FieldStore.empty)
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -53,7 +54,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event)
+    val result = feature.writes(event, FieldStore.empty, FieldStore.empty)
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -63,7 +64,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     val key = Key(feature.states.head, Tenant("default"), "p1")
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
-      state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
+      features = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
       id = ItemRelevancy(ItemId("p1"))
     )
     result shouldBe SingleValue("popularity", 100.0)

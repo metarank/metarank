@@ -35,7 +35,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         session = SessionId("s1"),
         timestamp = now
       ),
-      state = Map.empty
+      features = Map.empty
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)
@@ -51,7 +51,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         timestamp = now,
         fields = List(StringField("ua", "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"))
       ),
-      state = Map.empty
+      features = Map.empty
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)

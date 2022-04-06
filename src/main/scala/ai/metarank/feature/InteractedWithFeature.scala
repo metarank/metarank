@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.BaseFeature.StatefulFeature
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, ItemEvent}
+import ai.metarank.feature.BaseFeature.ItemFeature
+import ai.metarank.flow.FieldStore
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, ItemId, MValue, UserId}
 import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -28,7 +29,7 @@ import io.findify.featury.model.Write.Put
 
 import scala.concurrent.duration.FiniteDuration
 
-case class InteractedWithFeature(schema: InteractedWithSchema) extends StatefulFeature with Logging {
+case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   // stores last interactions of customer
@@ -50,59 +51,62 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends StatefulF
 
   override def fields: List[FieldName] = List(schema.field)
 
-  override def writes(event: Event): Traversable[Write] = event match {
-    case meta: ItemEvent =>
-      for {
-        field <- meta.fields.find(_.name == schema.field.field).toTraversable
-        key   <- ItemScope.keys(meta, fieldConf.name)
-        value <- field match {
-          case Field.StringField(_, value)      => Some(SString(value))
-          case Field.StringListField(_, values) => Some(SStringList(values))
-          case other =>
-            logger.warn(s"field extractor ${schema.name} expects a string or string[], but got $other in event $event")
-            None
-        }
-      } yield {
-        Put(
-          key = key,
-          ts = meta.timestamp,
-          value = value
-        )
-      }
-    case _ => Traversable.empty
-  }
-
-  override def writes(event: Event, state: Map[Key, FeatureValue]): Traversable[Write] = {
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Traversable[Write] =
     event match {
-      case int: InteractionEvent if int.`type` == schema.interaction =>
+      case meta: ItemEvent =>
         for {
-          itemKey   <- ItemScope.keys(int, fieldConf.name)
-          itemValue <- state.get(itemKey).toTraversable
-          key       <- schema.scope.keys(int, listConf.name)
-          scalar    <- itemValue.cast[ScalarValue].toTraversable
-          string <- scalar.value match {
-            case SString(value)      => List(value)
-            case SStringList(values) => values
-            case _                   => Nil
+          field <- meta.fields.find(_.name == schema.field.field).toTraversable
+          key   <- ItemScope.keys(meta, fieldConf.name)
+          value <- field match {
+            case Field.StringField(_, value)      => Some(SString(value))
+            case Field.StringListField(_, values) => Some(SStringList(values))
+            case other =>
+              logger.warn(
+                s"field extractor ${schema.name} expects a string or string[], but got $other in event $event"
+              )
+              None
           }
         } yield {
-          Write.Append(key, SString(string), int.timestamp)
+          Put(
+            key = key,
+            ts = meta.timestamp,
+            value = value
+          )
         }
       case _ => Traversable.empty
     }
-  }
+
+//  override def writes(event: Event, state: Map[Key, FeatureValue]): Traversable[Write] = {
+//    event match {
+//      case int: InteractionEvent if int.`type` == schema.interaction =>
+//        for {
+//          itemKey   <- ItemScope.keys(int, fieldConf.name)
+//          itemValue <- state.get(itemKey).toTraversable
+//          key       <- schema.scope.keys(int, listConf.name)
+//          scalar    <- itemValue.cast[ScalarValue].toTraversable
+//          string <- scalar.value match {
+//            case SString(value)      => List(value)
+//            case SStringList(values) => values
+//            case _                   => Nil
+//          }
+//        } yield {
+//          Write.Append(key, SString(string), int.timestamp)
+//        }
+//      case _ => Traversable.empty
+//    }
+//  }
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue = {
     val result = for {
       visitorKey      <- schema.scope.keys(request, listConf.name).headOption
-      interactedValue <- state.get(visitorKey)
+      interactedValue <- features.get(visitorKey)
       interactedList  <- interactedValue.cast[BoundedListValue]
       itemKey = Key(Tag(ItemScope.scope, id.id.value), fieldConf.name, Tenant(request.tenant))
-      itemFieldValue <- state.get(itemKey).flatMap(_.cast[ScalarValue])
+      itemFieldValue <- features.get(itemKey).flatMap(_.cast[ScalarValue])
     } yield {
       val interactedValues = interactedList.values.map(_.value).collect { case SString(value) => value }
       val itemValues = itemFieldValue.value match {

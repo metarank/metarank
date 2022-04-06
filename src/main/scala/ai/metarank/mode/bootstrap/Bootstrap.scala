@@ -103,20 +103,14 @@ object Bootstrap extends IOApp with Logging {
       .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
       .transform(new FeatureJoinBootstrapFunction())
 
-    val transformStateless = OperatorTransformation
+    val transformFeatures = OperatorTransformation
       .bootstrapWith(stateSource.toJava)
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.statelessSchema))
-
-    val transformStateful = OperatorTransformation
-      .bootstrapWith(stateSource.toJava)
-      .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.statefulSchema))
+      .transform(new FeatureBootstrapFunction(mapping.schema))
 
     Savepoint
       .create(new EmbeddedRocksDBStateBackend(), 32)
-      .withOperator("process-stateless-writes", transformStateless)
-      .withOperator("process-stateful-writes", transformStateful)
+      .withOperator("process-writes", transformFeatures)
       .withOperator("join-state", transformStateJoin)
       .write(s"${cmd.outDirUrl}/savepoint")
 
@@ -134,31 +128,36 @@ object Bootstrap extends IOApp with Logging {
       }
   }
 
-  def makeUpdates(raw: DataStream[Event], grouped: KeyedStream[FeedbackEvent, EventId], mapping: FeatureMapping) = {
-    val impressions      = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
-    val events           = raw.union(impressions)
-    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-stateless-writes")
-    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-stateless-writes")
+  def makeUpdates(
+      raw: DataStream[Event],
+      grouped: KeyedStream[FeedbackEvent, EventId],
+      mapping: FeatureMapping
+  ): (DataStream[State], DataStream[FeatureValue]) = {
+    val impressions = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
+    val events      = raw.union(impressions)
+    // val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-stateless-writes")
+    // val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-stateless-writes")
 
-    val eventsWithState =
-      Featury
-        .join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
-        .id("join-state")
-    val statefulWrites = eventsWithState
-      .flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
-      .id("expand-stateful-writes")
-    val statefulUpdates =
-      Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds).id("process-stateful-writes")
-
-    val state1 = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
-    val state2 = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
-    val state = state1
-      .union(state2)
-      .keyBy(_.key)
-      .reduce((a, b) => if (a.ts.isAfter(b.ts)) a else b)
-      .id("select-last-state") // use only last state version
-    val updates = statelessUpdates.union(statefulUpdates)
-    (state, updates)
+//    val eventsWithState =
+//      Featury
+//        .join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
+//        .id("join-state")
+//    val statefulWrites = eventsWithState
+//      .flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
+//      .id("expand-stateful-writes")
+//    val statefulUpdates =
+//      Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds).id("process-stateful-writes")
+//
+//    val state1 = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
+//    val state2 = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
+//    val state = state1
+//      .union(state2)
+//      .keyBy(_.key)
+//      .reduce((a, b) => if (a.ts.isAfter(b.ts)) a else b)
+//      .id("select-last-state") // use only last state version
+//    val updates = statelessUpdates.union(statefulUpdates)
+//    (state, updates)
+    ???
   }
 
   def joinFeatures(

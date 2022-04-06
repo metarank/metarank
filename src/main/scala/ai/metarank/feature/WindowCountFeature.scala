@@ -1,10 +1,11 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.{PeriodRange, PeriodicCounterConfig}
@@ -15,7 +16,7 @@ import shapeless.syntax.typeable.typeableOps
 
 import scala.concurrent.duration._
 
-case class WindowCountFeature(schema: WindowCountSchema) extends ItemStatelessFeature {
+case class WindowCountFeature(schema: WindowCountSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 
@@ -32,25 +33,26 @@ case class WindowCountFeature(schema: WindowCountSchema) extends ItemStatelessFe
 
   override def fields: List[FieldName] = Nil
 
-  override def writes(event: Event): Traversable[Write] = event match {
-    case e: InteractionEvent if e.`type` == schema.interaction =>
-      Some(
-        PeriodicIncrement(
-          keyOf(schema.scope.scope.name, e.item.value, conf.name.value, event.tenant),
-          event.timestamp,
-          1
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Traversable[Write] =
+    event match {
+      case e: InteractionEvent if e.`type` == schema.interaction =>
+        Some(
+          PeriodicIncrement(
+            keyOf(schema.scope.scope.name, e.item.value, conf.name.value, event.tenant),
+            event.timestamp,
+            1
+          )
         )
-      )
-    case _ => None
-  }
+      case _ => None
+    }
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue = {
     val result = for {
-      value    <- state.get(keyOf(schema.scope, id.id, conf.name, request.tenant))
+      value    <- features.get(keyOf(schema.scope, id.id, conf.name, request.tenant))
       valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim
     } yield {
       VectorValue(names, valueNum.values.map(_.value.toDouble).toArray, dim)

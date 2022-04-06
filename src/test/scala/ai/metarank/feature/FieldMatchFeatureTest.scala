@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.FieldMatchFeature.{FieldMatchSchema, NgramMethod}
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.StringField
@@ -25,8 +26,8 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers {
   )
   val now = Timestamp.now
   it should "generate puts" in {
-    val puts =
-      feature.writes(TestMetadataEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)).toList
+    val event = TestMetadataEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
+    val puts  = feature.writes(event, FieldStore.empty, FieldStore.empty).toList
     puts shouldBe List(
       Put(Key(Tag(ItemScope.scope, "p1"), FeatureName("title_match"), Tenant("default")), now, SString("foobar"))
     )

@@ -2,7 +2,7 @@ package ai.metarank.model
 
 import io.circe.{Decoder, Encoder}
 
-case class ItemId(value: String)
+case class ItemId(value: String) extends AnyVal
 
 object ItemId {
   implicit val itemEncoder: Encoder[ItemId] = Encoder.encodeString.contramap(_.value)

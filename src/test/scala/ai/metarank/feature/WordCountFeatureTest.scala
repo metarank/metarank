@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FeatureScope.ItemScope
@@ -32,7 +33,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "extract field" in {
     val event  = TestMetadataEvent("p1", List(StringField("title", "foo, bar, baz!")))
-    val result = feature.writes(event)
+    val result = feature.writes(event, FieldStore.empty, FieldStore.empty)
     result shouldBe List(Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(3)))
   }
 
@@ -40,7 +41,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
     val key = Key(feature.states.head, Tenant("default"), "p1")
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
-      state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(3))),
+      features = Map(key -> ScalarValue(key, Timestamp.now, SDouble(3))),
       id = ItemRelevancy(ItemId("p1"))
     )
     result shouldBe SingleValue("title_words", 3.0)

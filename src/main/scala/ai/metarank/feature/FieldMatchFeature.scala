@@ -1,12 +1,13 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.{Item, Ranking}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
 import ai.metarank.util.{Logging, OneHotEncoder}
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
@@ -17,7 +18,7 @@ import io.findify.featury.model.Write.Put
 
 import scala.concurrent.duration._
 
-case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeature with Logging {
+case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -31,7 +32,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeat
 
   override def fields = List(schema.itemField, schema.rankingField)
 
-  override def writes(event: Event): Traversable[Write] = for {
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Traversable[Write] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.itemField.field)
     fieldValue <- field match {
@@ -44,10 +45,10 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeat
     Put(key, event.timestamp, fieldValue)
   }
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue = {
+  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue = {
     val result = for {
       key          <- keyOf(request, Some(id.id))
-      featureValue <- state.get(key)
+      featureValue <- features.get(key)
       itemString <- featureValue match {
         case ScalarValue(_, _, SString(value)) => Some(value)
         case other =>

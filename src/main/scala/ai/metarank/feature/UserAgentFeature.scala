@@ -1,10 +1,11 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.{ItemStatelessFeature, RankingStatelessFeature}
+import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.OneHotEncoder
 import io.circe.{Decoder, DecodingFailure}
@@ -17,7 +18,7 @@ import ua_parser.{Client, Parser}
 
 import scala.concurrent.duration._
 
-case class UserAgentFeature(schema: UserAgentSchema) extends RankingStatelessFeature {
+case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   lazy val parser       = new Parser()
   val names             = schema.field.possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.field.dim
@@ -32,11 +33,11 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingStatelessFea
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event): Iterable[Put] = Nil
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = Nil
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue]
+      features: Map[Key, FeatureValue]
   ): MValue = {
     request.fieldsMap.get(schema.source.field) match {
       case Some(StringField(_, value)) =>

@@ -1,9 +1,10 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging
@@ -17,7 +18,7 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
-case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeature with Logging {
+case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -31,7 +32,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeatu
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): Iterable[Put] = for {
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.source.field)
     numberField <- field match {
@@ -46,10 +47,10 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeatu
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
+    features.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0.0)
     }

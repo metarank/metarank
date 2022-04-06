@@ -1,9 +1,10 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging
 import io.circe.Decoder
@@ -16,7 +17,7 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 
-case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemStatelessFeature with Logging {
+case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = CounterConfig(
@@ -28,7 +29,7 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemS
   override def fields                      = Nil
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): Iterable[Increment] = for {
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Increment] = for {
     key <- keyOf(event)
     increment <- event match {
       case interaction: Event.InteractionEvent if interaction.`type` == schema.interaction => Some(1)
@@ -40,12 +41,12 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemS
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue = {
     val result = for {
       key   <- keyOf(request, Some(id.id))
-      value <- state.get(key)
+      value <- features.get(key)
     } yield {
       value
     }

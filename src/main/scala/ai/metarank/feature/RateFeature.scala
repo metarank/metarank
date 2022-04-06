@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.{PeriodRange, PeriodicCounterConfig}
@@ -17,7 +18,7 @@ import shapeless.syntax.typeable._
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class RateFeature(schema: RateFeatureSchema) extends ItemStatelessFeature {
+case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 
@@ -42,34 +43,35 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemStatelessFeature {
 
   override def fields: List[FieldName] = Nil
 
-  override def writes(event: Event): Traversable[Write] = event match {
-    case e: InteractionEvent if e.`type` == schema.top =>
-      Some(
-        PeriodicIncrement(
-          keyOf(schema.scope.scope.name, e.item.value, top.name.value, event.tenant),
-          event.timestamp,
-          1
+  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Traversable[Write] =
+    event match {
+      case e: InteractionEvent if e.`type` == schema.top =>
+        Some(
+          PeriodicIncrement(
+            keyOf(schema.scope.scope.name, e.item.value, top.name.value, event.tenant),
+            event.timestamp,
+            1
+          )
         )
-      )
-    case e: InteractionEvent if e.`type` == schema.bottom =>
-      Some(
-        PeriodicIncrement(
-          keyOf(schema.scope.scope.name, e.item.value, bottom.name.value, event.tenant),
-          event.timestamp,
-          1
+      case e: InteractionEvent if e.`type` == schema.bottom =>
+        Some(
+          PeriodicIncrement(
+            keyOf(schema.scope.scope.name, e.item.value, bottom.name.value, event.tenant),
+            event.timestamp,
+            1
+          )
         )
-      )
-    case _ => None
-  }
+      case _ => None
+    }
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue = {
     val result = for {
-      topValue    <- state.get(keyOf(schema.scope, id.id, top.name, request.tenant))
-      bottomValue <- state.get(keyOf(schema.scope, id.id, bottom.name, request.tenant))
+      topValue    <- features.get(keyOf(schema.scope, id.id, top.name, request.tenant))
+      bottomValue <- features.get(keyOf(schema.scope, id.id, bottom.name, request.tenant))
       topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim
       bottomNum   <- bottomValue.cast[PeriodicCounterValue] if (bottomNum.values.size == dim)
     } yield {

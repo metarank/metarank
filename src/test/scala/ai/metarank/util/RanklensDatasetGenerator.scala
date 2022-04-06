@@ -1,6 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, ItemEvent, RankingEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model._
 import better.files.File
@@ -78,7 +78,7 @@ object RanklensDatasetGenerator {
     val ranklens = read(File(path))
     val time0    = Timestamp.date(2021, 11, 14, 16, 25, 0)
     val meta = ranklens.movies.map(m => {
-      MetadataEvent(
+      ItemEvent(
         id = EventId(UUID.randomUUID().toString),
         item = ItemId(m.id.toString),
         timestamp = time0,

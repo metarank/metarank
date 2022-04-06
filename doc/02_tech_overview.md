@@ -32,11 +32,13 @@ For example, there is no need to have an exact real-time number of clicks update
 * Too many heavy writes will overload the storage.
 * Once-in-hour eventually-consistent snapshot is enough for the online ranking.
 
-There are three main types of feedback events:
+There are foru main types of feedback events:
 1. *Item metadata* event: a descriptor of the item itself you're ranking with all the fields relevant for the ranking.
 For example, you should emit this type of event when the item changes.
-2. *Ranking* event: a description of what items in which order were displayed to the customer. 
-3. *Feedback* event: how customer interacted with the ranking. For example, made a click, added item to cart or completed
+2. *User metadata* event: when external parameters about the current visitor change. For example, user switched the
+subscription plan from free to paid.
+3. *Ranking* event: a description of what items in which order were displayed to the customer. 
+4. *Feedback* event: how customer interacted with the ranking. For example, made a click, added item to cart or completed
 a purchase.
 
 ### Item metadata event
@@ -54,7 +56,7 @@ See the [configuration](03_configuration.md) section of the docs on how to imple
 Here is an example JSON for the metadata event:
 ```json
 {
-  "type": "metadata",
+  "type": "item",
   "id": "product1",
   "timestamp": "1599391467000",
   "fields": [

@@ -33,12 +33,6 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeatu
   override def fields = List(schema.source)
 
   override def writes(event: Event): Iterable[Put] = {
-    event match {
-      case Event.MetadataEvent(id, item, timestamp, fields, tenant) =>
-        val br = 1
-      case event: Event.FeedbackEvent =>
-        val br = 2
-    }
     for {
       key   <- keyOf(event)
       field <- event.fields.find(_.name == schema.source.field)

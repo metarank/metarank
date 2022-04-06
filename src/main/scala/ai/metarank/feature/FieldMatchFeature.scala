@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldName.{Metadata, Ranking}
+import ai.metarank.model.FieldName.{Item, Ranking}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.util.{Logging, OneHotEncoder}
@@ -120,7 +120,7 @@ object FieldMatchFeature {
   )
 
   implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema].ensure(
-    pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Metadata),
+    pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
     message = "ranking field can only be read from ranking event, and item field - only from metadata"
   )
 }

@@ -2,7 +2,7 @@ package ai.metarank.mode.validate
 
 import ai.metarank.mode.validate.CheckResult.{FailedCheck, SuccessfulCheck}
 import ai.metarank.model.Event
-import ai.metarank.model.Event.{InteractionEvent, MetadataEvent, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent}
 import ai.metarank.util.Logging
 import better.files.File
 import org.apache.commons.io.IOUtils
@@ -31,7 +31,7 @@ object EventFileValidator extends Logging {
 
   def checkContents(lines: List[String]): CheckResult = {
     val parsed = lines.map(line => decode[Event](line))
-    val metadata = parsed.collect { case Right(m @ MetadataEvent(_, _, _, _, _)) =>
+    val metadata = parsed.collect { case Right(m @ ItemEvent(_, _, _, _, _)) =>
       m
     }
     val ints = parsed.collect { case Right(i: InteractionEvent) =>
@@ -55,7 +55,7 @@ object EventFileValidator extends Logging {
     }
   }
 
-  def checkItems(metadata: List[MetadataEvent], ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
+  def checkItems(metadata: List[ItemEvent], ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
     val metadataItems    = metadata.map(_.item.value).toSet
     val interactionItems = ints.map(_.item.value).toSet
     val rankItems        = rankings.flatMap(_.items.toList.map(_.id.value)).toSet
@@ -90,7 +90,7 @@ object EventFileValidator extends Logging {
     logger.info(s"out-of-order interactions: ${ints.size - interactionAfter.size} (should be 0)")
   }
 
-  def checkMetadata(metadata: List[MetadataEvent], ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
+  def checkMetadata(metadata: List[ItemEvent], ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
     val firstUpdate = metadata
       .groupBy(_.item.value)
       .map { case (item, values) =>

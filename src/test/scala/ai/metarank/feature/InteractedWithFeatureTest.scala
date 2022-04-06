@@ -5,7 +5,7 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{FieldName, ItemId, SessionId}
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -21,7 +21,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   val conf = InteractedWithSchema(
     name = "seen_color",
     interaction = "impression",
-    field = FieldName(Metadata, "color"),
+    field = FieldName(Item, "color"),
     scope = SessionScope,
     count = Some(10),
     duration = Some(24.hours)

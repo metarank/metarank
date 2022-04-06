@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, ItemEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
@@ -20,7 +20,7 @@ sealed trait BaseFeature {
     case (SessionScope, e: FeedbackEvent) =>
       Some(keyOf(SessionScope.scope.name, e.session.value, schema.name, event.tenant))
     case (ItemScope, e: InteractionEvent) => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
-    case (ItemScope, e: MetadataEvent)    => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
+    case (ItemScope, e: ItemEvent)    => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
     case (ItemScope, e: RankingEvent)     => item.map(i => keyOf(ItemScope.scope.name, i.value, schema.name, e.tenant))
     case _                                => None
   }

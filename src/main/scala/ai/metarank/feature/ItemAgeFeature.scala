@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging
@@ -83,6 +83,6 @@ object ItemAgeFeature {
   }
 
   implicit val itemAgeDecoder: Decoder[ItemAgeSchema] =
-    deriveDecoder[ItemAgeSchema].ensure(_.source.event == Metadata, "can only work with fields from metadata events")
+    deriveDecoder[ItemAgeSchema].ensure(_.source.event == Item, "can only work with fields from metadata events")
 
 }

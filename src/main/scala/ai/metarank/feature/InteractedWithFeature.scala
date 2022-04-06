@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.StatefulFeature
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, ItemEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
@@ -51,7 +51,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends StatefulF
   override def fields: List[FieldName] = List(schema.field)
 
   override def writes(event: Event): Traversable[Write] = event match {
-    case meta: MetadataEvent =>
+    case meta: ItemEvent =>
       for {
         field <- meta.fields.find(_.name == schema.field.field).toTraversable
         key   <- ItemScope.keys(meta, fieldConf.name)

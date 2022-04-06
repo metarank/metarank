@@ -4,7 +4,7 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
@@ -20,14 +20,14 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
     WordCountSchema(
       name = "title_words",
       scope = ItemScope,
-      source = FieldName(Metadata, "title")
+      source = FieldName(Item, "title")
     )
   )
 
   it should "decode schema" in {
     val conf    = "name: title_words\ntype: word_count\nscope: item\nsource: metadata.title"
     val decoded = parse(conf).flatMap(_.as[FeatureSchema])
-    decoded shouldBe Right(WordCountSchema("title_words", FieldName(Metadata, "title"), ItemScope))
+    decoded shouldBe Right(WordCountSchema("title_words", FieldName(Item, "title"), ItemScope))
   }
 
   it should "extract field" in {

@@ -5,7 +5,7 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, ItemId}
-import ai.metarank.model.FieldName.{Metadata, Ranking}
+import ai.metarank.model.FieldName.{Item, Ranking}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
 import io.findify.featury.model.{Key, SString, ScalarValue, Timestamp}
@@ -19,7 +19,7 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers {
     FieldMatchSchema(
       name = "title_match",
       rankingField = FieldName(Ranking, "query"),
-      itemField = FieldName(Metadata, "title"),
+      itemField = FieldName(Item, "title"),
       method = NgramMethod(3)
     )
   )

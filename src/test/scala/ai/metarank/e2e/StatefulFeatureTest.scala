@@ -7,7 +7,7 @@ import ai.metarank.flow.EventStateJoin
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{Event, EventState, FieldName}
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestMetadataEvent}
 import io.findify.featury.flink.Featury
 import io.findify.featury.model.{BoundedListValue, SString, Timestamp}
@@ -26,7 +26,7 @@ class StatefulFeatureTest extends AnyFlatSpec with Matchers with FlinkTest {
     InteractedWithSchema(
       "clicked_color",
       "click",
-      FieldName(Metadata, "color"),
+      FieldName(Item, "color"),
       SessionScope,
       Some(10),
       Some(24.hours)

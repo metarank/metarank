@@ -7,7 +7,7 @@ Most common learn-to-rank tasks usually have typical shared set of ML features. 
 
 When Metarank receives a stream of events (both online during inference, and offline while training), it joins them together
 into a single view of visitor click chain:
-* For each ranking evente, we do a per-item join of item metadata events
+* For an each ranking event, we do a per-item join of item metadata events (and also pull user metadata events)
 * All the interaction events like clicks and purchases are also joined together
 
 So each feature extractor has full access to complete view of the click chain. Then a sequence of differently scoped
@@ -55,7 +55,6 @@ All the feature extractors have a set of common fields:
 * [interaction_count](features/counters.md#interaction-counter): number of interaction made within this session.
 * [window_event_count](features/counters.md#windowed-counter): sliding window count of interaction events.
 * [rate](features/counters.md#rate): rate of interaction events of type A over interaction events of type B. Useful for CTR/CVR rates.
-* *[coming soon]* text_match: matches a field from ranking event over a field of item metadata.
 
 ### Date and time
 * [local_time](features/datetime.md#localtime-extractor): map local visitor date-time to catch seasonality.

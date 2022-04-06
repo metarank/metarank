@@ -8,7 +8,7 @@ import ai.metarank.feature.WordCountFeature
 import ai.metarank.model.{Clickthrough, Event, EventState, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec

@@ -4,7 +4,7 @@ import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -23,7 +23,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
-        features = List(NumberFeatureSchema("price", FieldName(Metadata, "price"), ItemScope)),
+        features = List(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
         interactions = List(InteractionConfig("click", 1))
       )
     )

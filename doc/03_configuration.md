@@ -14,12 +14,12 @@ features:
   - name: popularity
     type: number
     scope: item
-    source: metadata.popularity
+    source: item.popularity
 
   - name: genre
     type: string
     scope: item
-    source: metadata.genres
+    source: item.genres
     values:
       - drama
       - comedy
@@ -62,12 +62,12 @@ So, given the following feature extractor configuration:
   - name: popularity
     type: number
     scope: item
-    source: metadata.popularity
+    source: item.popularity
 
   - name: genre
     type: string
     scope: item
-    source: metadata.genres
+    source: item.genres
     values:
       - drama
       - comedy
@@ -79,7 +79,7 @@ the metadata event will have the following structure
 
 ```json
 {
-  "event": "metadata",
+  "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
   "timestamp": "1599391467000", // required
   "item": "item1", // required

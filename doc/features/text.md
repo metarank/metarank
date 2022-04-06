@@ -8,7 +8,7 @@ related tasks, when you need to match a search query over multiple separate fiel
 Given this metadata event:
 ```json
 {
-  "event": "metadata",
+  "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
   "item": "item1", 
   "timestamp": "1599391467000", 
@@ -40,12 +40,12 @@ And a following ranking event:
 }
 ```
 
-With the following config file snippet you can do a per-field matching of `ranking.query` field over `metadata.title` field of
+With the following config file snippet you can do a per-field matching of `ranking.query` field over `item.title` field of
 the items in the ranking:
 ```yaml
 - name: title_match
   type: field_match
-  itemField: metadata.title // must be a string
+  itemField: item.title // must be a string
   rankingField: ranking.query // must be a string
   method:
     type: ngram // for now only ngram is supported

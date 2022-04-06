@@ -5,7 +5,7 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.{FieldName, ItemId}
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.Item
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
 import io.findify.featury.model.{Key, SDouble, ScalarValue, Timestamp}
@@ -18,7 +18,7 @@ import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 
 class ItemAgeFeatureTest extends AnyFlatSpec with Matchers {
-  lazy val feature   = ItemAgeFeature(ItemAgeSchema("itemage", FieldName(Metadata, "updated_at")))
+  lazy val feature   = ItemAgeFeature(ItemAgeSchema("itemage", FieldName(Item, "updated_at")))
   lazy val updatedAt = ZonedDateTime.of(2022, 3, 1, 0, 0, 0, 0, ZoneId.of("UTC+2"))
   lazy val now       = ZonedDateTime.of(2022, 3, 28, 0, 0, 0, 0, ZoneId.of("UTC+2"))
 

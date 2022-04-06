@@ -4,7 +4,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.FieldName.{Interaction, Metadata}
+import ai.metarank.model.FieldName.{Interaction, Item}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
@@ -22,7 +22,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
   val feature = NumberFeature(
     NumberFeatureSchema(
       name = "popularity",
-      source = FieldName(Metadata, "popularity"),
+      source = FieldName(Item, "popularity"),
       scope = ItemScope
     )
   )
@@ -31,7 +31,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     parse("name: price\ntype: number\nscope: item\nsource: metadata.price\nrefresh: 1m").flatMap(
       _.as[FeatureSchema]
     ) shouldBe Right(
-      NumberFeatureSchema("price", FieldName(Metadata, "price"), ItemScope, Some(1.minute))
+      NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope, Some(1.minute))
     )
   }
 

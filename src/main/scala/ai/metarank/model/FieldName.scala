@@ -13,8 +13,11 @@ object FieldName {
   sealed trait EventType {
     def asString: String
   }
-  case object Metadata extends EventType {
-    override def asString: String = "metadata"
+  case object Item extends EventType {
+    override def asString: String = "item"
+  }
+  case object User extends EventType {
+    override def asString: String = "user"
   }
   case class Interaction(`type`: String) extends EventType {
     override def asString: String = s"interaction:${`type`}"
@@ -31,7 +34,9 @@ object FieldName {
     case interactionPattern(tpe, field) => Success(FieldName(Interaction(tpe), field))
     case eventPattern(source, field) =>
       source match {
-        case "metadata" => Success(FieldName(Metadata, field))
+        case "metadata" => Success(FieldName(Item, field))
+        case "item"     => Success(FieldName(Item, field))
+        case "user"     => Success(FieldName(User, field))
         case "ranking"  => Success(FieldName(Ranking, field))
         case other      => Failure(new IllegalArgumentException(s"cannot decode source field $other"))
       }

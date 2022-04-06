@@ -2,13 +2,13 @@ package ai.metarank.feature
 
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, Write}
 
 sealed trait BaseFeature {
   def dim: Int
-  def fields: List[FieldSchema]
+  def fields: List[FieldName]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
   def writes(event: Event): Traversable[Write]

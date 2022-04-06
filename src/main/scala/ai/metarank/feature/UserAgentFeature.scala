@@ -3,16 +3,12 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.{ItemStatelessFeature, RankingStatelessFeature}
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
-import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.OneHotEncoder
-import cats.data.NonEmptyList
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.deriveDecoder
-import io.circe.parser._
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.FeatureName
 import io.findify.featury.model.Write.Put
@@ -34,7 +30,7 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingStatelessFea
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.source))
+  override def fields = List(schema.source)
 
   override def writes(event: Event): Iterable[Put] = Nil
 

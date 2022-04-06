@@ -4,20 +4,8 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.StatefulFeature
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{
-  Event,
-  FeatureSchema,
-  FeatureScope,
-  Field,
-  FieldName,
-  FieldSchema,
-  ItemId,
-  MValue,
-  SessionId,
-  UserId
-}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
 import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -60,7 +48,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends StatefulF
   )
   override def states: List[FeatureConfig] = List(listConf, fieldConf)
 
-  override def fields: List[FieldSchema] = List(StringFieldSchema(schema.field))
+  override def fields: List[FieldName] = List(schema.field)
 
   override def writes(event: Event): Traversable[Write] = event match {
     case meta: MetadataEvent =>

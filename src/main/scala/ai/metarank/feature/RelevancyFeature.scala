@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.model.MValue.SingleValue
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -16,7 +16,7 @@ import scala.concurrent.duration.FiniteDuration
 case class RelevancyFeature(schema: RelevancySchema) extends ItemStatelessFeature {
   override def dim: Int = 1
 
-  override def fields: List[FieldSchema] = Nil
+  override def fields: List[FieldName] = Nil
 
   override def states: List[FeatureConfig] = Nil
 

@@ -4,7 +4,6 @@ import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.util.Logging
@@ -27,7 +26,7 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeatur
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  override def fields                      = List(StringFieldSchema(schema.source))
+  override def fields                      = List(schema.source)
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): Iterable[Put] = for {

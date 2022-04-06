@@ -5,7 +5,7 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.{PeriodRange, PeriodicCounterConfig}
@@ -40,7 +40,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemStatelessFeature {
 
   override def states: List[FeatureConfig] = List(top, bottom)
 
-  override def fields: List[FieldSchema] = Nil
+  override def fields: List[FieldName] = Nil
 
   override def writes(event: Event): Traversable[Write] = event match {
     case e: InteractionEvent if e.`type` == schema.top =>

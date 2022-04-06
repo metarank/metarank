@@ -4,7 +4,6 @@ import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import ai.metarank.util.{Logging, OneHotEncoder}
@@ -31,7 +30,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeatu
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.source))
+  override def fields = List(schema.source)
 
   override def writes(event: Event): Iterable[Put] = {
     event match {

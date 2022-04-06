@@ -1,12 +1,9 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemStatelessFeature
-import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.Field.BooleanField
 import ai.metarank.model.FieldName.Metadata
-import ai.metarank.model.FieldSchema.{BooleanFieldSchema, NumberFieldSchema}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging
@@ -33,7 +30,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemStatelessFeature wi
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(NumberFieldSchema(schema.source))
+  override def fields = List(schema.source)
 
   override def writes(event: Event): Iterable[Put] = for {
     key   <- keyOf(event)

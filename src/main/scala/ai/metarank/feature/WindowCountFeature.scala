@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.{PeriodRange, PeriodicCounterConfig}
@@ -30,7 +30,7 @@ case class WindowCountFeature(schema: WindowCountSchema) extends ItemStatelessFe
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields: List[FieldSchema] = Nil
+  override def fields: List[FieldName] = Nil
 
   override def writes(event: Event): Traversable[Write] = event match {
     case e: InteractionEvent if e.`type` == schema.interaction =>

@@ -1,11 +1,8 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.Field.StringField
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging

@@ -3,9 +3,8 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, FieldSchema, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.model.Field.NumberField
-import ai.metarank.model.FieldSchema.NumberFieldSchema
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging
 import io.circe.Decoder
@@ -28,7 +27,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemStatelessFeatu
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  override def fields: List[FieldSchema] = List(NumberFieldSchema(schema.source))
+  override def fields: List[FieldName] = List(schema.source)
 
   override def states: List[FeatureConfig] = List(conf)
 

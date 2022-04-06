@@ -18,7 +18,7 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{FeatureSchema, FeatureScope, FieldSchema}
+import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
@@ -27,7 +27,7 @@ import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
 case class FeatureMapping(
     features: List[BaseFeature],
     statefulFeatures: List[StatefulFeature],
-    fields: List[FieldSchema],
+    fields: List[FieldName],
     schema: Schema,
     statefulSchema: Schema,
     statelessSchema: Schema,

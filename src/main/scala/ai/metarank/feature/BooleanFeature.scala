@@ -4,7 +4,6 @@ import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.BaseFeature.ItemStatelessFeature
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{BooleanField, NumberField}
-import ai.metarank.model.FieldSchema.BooleanFieldSchema
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
 import ai.metarank.util.Logging
@@ -29,7 +28,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemStatelessFea
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(BooleanFieldSchema(schema.source))
+  override def fields = List(schema.source)
 
   override def writes(event: Event): Iterable[Put] = for {
     key   <- keyOf(event)

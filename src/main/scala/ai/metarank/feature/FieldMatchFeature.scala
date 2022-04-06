@@ -5,28 +5,12 @@ import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.{Metadata, Ranking}
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.util.{Logging, OneHotEncoder}
-import cats.data.NonEmptyList
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
-import io.findify.featury.model.{
-  BoundedListValue,
-  CounterValue,
-  FeatureConfig,
-  FeatureValue,
-  FrequencyValue,
-  Key,
-  MapValue,
-  NumStatsValue,
-  PeriodicCounterValue,
-  SString,
-  SStringList,
-  ScalarValue,
-  Write
-}
+import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, ScalarValue, Write}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.FeatureName
 import io.findify.featury.model.Write.Put
@@ -45,7 +29,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeat
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.itemField), StringFieldSchema(schema.rankingField))
+  override def fields = List(schema.itemField, schema.rankingField)
 
   override def writes(event: Event): Traversable[Write] = for {
     key   <- keyOf(event)

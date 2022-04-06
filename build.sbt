@@ -3,7 +3,7 @@ import com.typesafe.sbt.packager.docker.{Cmd, DockerPermissionStrategy}
 
 name := "metarank"
 
-version := "0.2.6-SNAPSHOT-220331-2"
+version := "0.2.7"
 
 resolvers ++= Seq(
   ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")

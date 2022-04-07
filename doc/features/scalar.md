@@ -77,6 +77,28 @@ explicit feature:
 
 So the last price will be present in the set of ML features uses in the ranking.
 
+It's also possible to use `user` fields in a case when you have some pre-existing information about the visitor
+(for example, when visitor filled a form before). Then with this `user` event:
+```json
+{
+  "event": "user",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "user": "user1",
+  "timestamp": "1599391467000",
+  "fields": [
+    {"name": "age", "value": 30}
+  ]
+}
+```
+You can map the `age` field into a feature this way:
+```yaml
+- name: user_age
+  type: number
+  field: user.age // must be a number
+  refresh: 0s // optional, how frequently we should update the value, 0s by default
+  ttl: 90d // optional, how long should we store this field
+```
+
 ## String extractors
 
 With string values there is no easy way to map them into a finite set of ML features. But in a case when

@@ -24,7 +24,6 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
     UserAgentSchema(
       name = "ua_platform",
       source = FieldName(Ranking, "ua"),
-      scope = SessionScope,
       field = PlatformField
     )
   )

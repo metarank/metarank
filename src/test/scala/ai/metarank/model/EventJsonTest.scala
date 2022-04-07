@@ -1,7 +1,8 @@
 package ai.metarank.model
 
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, ItemEvent, RankingEvent}
-import ai.metarank.model.Field.{BooleanField, NumberField, NumberListField, StringField, StringListField}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
+import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

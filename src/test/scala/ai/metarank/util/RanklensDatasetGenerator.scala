@@ -1,7 +1,8 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, ItemEvent, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
+import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model._
 import better.files.File
 import cats.data.NonEmptyList

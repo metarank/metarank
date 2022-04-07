@@ -1,7 +1,7 @@
 package ai.metarank.flow
 
 import ai.metarank.mode.StateTtl
-import ai.metarank.model.{Field, ItemId, UserId}
+import ai.metarank.model.Field
 import org.apache.flink.api.common.state.{MapState, MapStateDescriptor, ValueState}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.runtime.state.FunctionInitializationContext

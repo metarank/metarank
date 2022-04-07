@@ -5,8 +5,9 @@ import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{FieldName, ItemId, SessionId}
+import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.Item
+import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec

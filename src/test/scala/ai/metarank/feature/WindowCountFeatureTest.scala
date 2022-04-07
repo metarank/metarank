@@ -4,12 +4,11 @@ import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.ItemId
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
 import io.findify.featury.model.{Key, PeriodicCounterState, PeriodicCounterValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}
-import io.findify.featury.model.PeriodicCounterState.TimeCounter
 import io.findify.featury.model.PeriodicCounterValue.PeriodicValue
 import io.findify.featury.model.Write.{Increment, PeriodicIncrement}
 import org.scalatest.flatspec.AnyFlatSpec

@@ -5,7 +5,8 @@ import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.model.MValue.SingleValue
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder

@@ -4,7 +4,8 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging

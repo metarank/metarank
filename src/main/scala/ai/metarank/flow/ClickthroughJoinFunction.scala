@@ -2,7 +2,7 @@ package ai.metarank.flow
 
 import ai.metarank.mode.StateTtl
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
-import ai.metarank.model.{Clickthrough, Event, EventId, SessionId}
+import ai.metarank.model.{Clickthrough, Event, EventId}
 import org.apache.flink.api.common.state.{ListState, ListStateDescriptor}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.runtime.state.{FunctionInitializationContext, FunctionSnapshotContext}

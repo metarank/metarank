@@ -6,6 +6,7 @@ import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.findify.featury.model.Timestamp
 import io.circe.generic.semiauto._
 import io.circe.generic.extras.semiauto.{deriveConfiguredCodec, deriveConfiguredDecoder, deriveConfiguredEncoder}
+import ai.metarank.model.Identifier._
 
 sealed trait Event {
   def id: EventId

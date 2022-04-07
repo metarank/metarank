@@ -12,6 +12,7 @@ import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.Write.Put
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key}
+import ai.metarank.model.Identifier._
 
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, ZonedDateTime}

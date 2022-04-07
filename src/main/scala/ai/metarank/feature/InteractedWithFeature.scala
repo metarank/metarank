@@ -6,7 +6,8 @@ import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder

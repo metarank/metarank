@@ -5,8 +5,9 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
+import ai.metarank.model.FeatureSchema
 import ai.metarank.model.FieldName.Item
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.{TestInteractionEvent, TestRankingEvent}
 import io.circe.yaml.parser.parse

@@ -5,7 +5,8 @@ import ai.metarank.feature.WindowCountFeature.WindowCountSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.{PeriodRange, PeriodicCounterConfig}

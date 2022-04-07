@@ -5,7 +5,8 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.util.Logging
 import io.circe.Decoder

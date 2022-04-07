@@ -7,7 +7,7 @@ import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.{Item, Ranking}
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FieldName, MValue}
 import ai.metarank.util.{Logging, OneHotEncoder}
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
@@ -15,6 +15,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, Scal
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.FeatureName
 import io.findify.featury.model.Write.Put
+import ai.metarank.model.Identifier._
 
 import scala.concurrent.duration._
 

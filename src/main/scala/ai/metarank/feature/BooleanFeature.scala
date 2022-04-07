@@ -6,14 +6,15 @@ import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue, UserId}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SBoolean, SDouble, ScalarValue}
+import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SBoolean, ScalarValue}
+import ai.metarank.model.Identifier._
 
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._

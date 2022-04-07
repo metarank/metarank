@@ -5,8 +5,9 @@ import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{NumberField, StringField}
-import ai.metarank.model.{FieldName, ItemId}
+import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.Item
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
 import io.findify.featury.model.{Key, SDouble, ScalarValue, Timestamp}

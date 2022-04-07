@@ -2,7 +2,8 @@ package ai.metarank.mode.inference
 
 import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
-import ai.metarank.model.{FeatureScope, ItemId, MValue}
+import ai.metarank.model.MValue
+import ai.metarank.model.Identifier._
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import io.findify.featury.model.FeatureValue

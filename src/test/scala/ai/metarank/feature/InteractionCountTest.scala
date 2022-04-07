@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
-import ai.metarank.model.{ItemId, SessionId}
+import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
 import io.findify.featury.model.Key
 import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}

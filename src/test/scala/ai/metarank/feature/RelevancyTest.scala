@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.ItemId
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.TestRankingEvent
 import cats.data.NonEmptyList

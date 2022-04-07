@@ -3,13 +3,13 @@ package ai.metarank.feature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
+import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName.{Interaction, Item}
 import ai.metarank.model.Field.{NumberField, StringField}
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
-import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{Key, SDouble, SString, ScalarValue, Timestamp}

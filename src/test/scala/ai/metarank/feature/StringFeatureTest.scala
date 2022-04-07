@@ -6,7 +6,8 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName.{Interaction, Item}
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{FieldName, ItemId, MValue, SessionId}
+import ai.metarank.model.Identifier.{ItemId, SessionId}
+import ai.metarank.model.{FieldName, MValue}
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
 import cats.data.NonEmptyList

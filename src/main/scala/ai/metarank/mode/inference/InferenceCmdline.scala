@@ -11,7 +11,7 @@ import scopt.OptionParser
 
 case class InferenceCmdline(
     port: Int = 8080,
-    host: String = "::",
+    host: String = "0.0.0.0",
     model: String,
     config: String,
     redisHost: Option[String] = None,
@@ -82,10 +82,10 @@ object InferenceCmdline extends Logging {
         .withFallback(() => env.getOrElse("METARANK_PORT", "8080").toInt)
 
       opt[String]("interface")
-        .text("network inferface to bind to, default is bind to everything")
+        .text("network inferface to bind to, default is bind to all ipv4 ifaces")
         .optional()
         .action((m, cmd) => cmd.copy(host = m))
-        .withFallback(() => env.getOrElse("METARANK_INTERFACE", "::"))
+        .withFallback(() => env.getOrElse("METARANK_INTERFACE", "0.0.0.0"))
 
       opt[String]("redis-host")
         .text("redis host")
@@ -123,7 +123,7 @@ object InferenceCmdline extends Logging {
 
     for {
       cmd <- IO.fromOption(
-        parser.parse(args, InferenceCmdline(8080, "::", null, null, None, 6379, null, 0, "", None, 1))
+        parser.parse(args, InferenceCmdline(8080, "0.0.0.0", null, null, None, 6379, null, 0, "", None, 1))
       )(
         new IllegalArgumentException("cannot parse cmdline")
       )

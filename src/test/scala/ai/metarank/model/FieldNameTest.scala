@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import ai.metarank.model.FieldName.{Interaction, Item, Ranking}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks

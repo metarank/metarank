@@ -34,7 +34,7 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = Nil
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = Nil
 
   override def value(
       request: Event.RankingEvent,

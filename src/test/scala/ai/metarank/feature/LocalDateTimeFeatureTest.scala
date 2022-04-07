@@ -11,7 +11,7 @@ import ai.metarank.feature.LocalDateTimeFeature.{
 }
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, MValue}
-import ai.metarank.model.FieldName.Ranking
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.TestRankingEvent
 import io.circe.yaml.parser.parse

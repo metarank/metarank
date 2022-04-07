@@ -1,9 +1,9 @@
 package ai.metarank.model
 
 import ai.metarank.model.FieldName.EventType
+import ai.metarank.model.FieldName.EventType._
 import io.circe.{Codec, Decoder, Encoder}
 
-import java.util.IllegalFormatException
 import scala.util.{Failure, Success}
 
 case class FieldName(event: EventType, field: String)
@@ -13,17 +13,19 @@ object FieldName {
   sealed trait EventType {
     def asString: String
   }
-  case object Item extends EventType {
-    override def asString: String = "item"
-  }
-  case object User extends EventType {
-    override def asString: String = "user"
-  }
-  case class Interaction(`type`: String) extends EventType {
-    override def asString: String = s"interaction:${`type`}"
-  }
-  case object Ranking extends EventType {
-    override def asString: String = "ranking"
+  object EventType {
+    case object Item extends EventType {
+      override def asString: String = "item"
+    }
+    case object User extends EventType {
+      override def asString: String = "user"
+    }
+    case class Interaction(`type`: String) extends EventType {
+      override def asString: String = s"interaction:${`type`}"
+    }
+    case object Ranking extends EventType {
+      override def asString: String = "ranking"
+    }
   }
 
   implicit val encoder: Encoder[FieldName] = Encoder.encodeString.contramap(x => s"${x.event.asString}.${x.field}")

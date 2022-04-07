@@ -1,18 +1,19 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.ItemEvent
-import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.Event.{ItemEvent, UserEvent}
 import ai.metarank.model.{EventId, Field}
+import ai.metarank.model.Identifier.{ItemId, UserId}
 import io.findify.featury.model.Timestamp
 
 import java.util.UUID
 
-object TestMetadataEvent {
-  def apply(id: String, fields: List[Field] = Nil) = ItemEvent(
+object TestUserEvent {
+  def apply(id: String, fields: List[Field] = Nil) = UserEvent(
     id = EventId(UUID.randomUUID().toString),
-    item = ItemId(id),
+    user = UserId(id),
     timestamp = Timestamp.now,
     fields = fields,
     tenant = "default"
   )
+
 }

@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
 import ai.metarank.model.Identifier._
 import ai.metarank.model.MValue.SingleValue
@@ -34,7 +34,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.source.field)
     fieldValue <- field match {

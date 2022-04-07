@@ -4,7 +4,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldName.EventType.Item
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import io.findify.featury.model.FeatureConfig.ScalarConfig

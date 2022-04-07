@@ -5,7 +5,7 @@ import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldName.{Item, Ranking}
+import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FieldName, MValue}
 import ai.metarank.util.{Logging, OneHotEncoder}
@@ -33,7 +33,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
 
   override def fields = List(schema.itemField, schema.rankingField)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Traversable[Write] = for {
+  override def writes(event: Event, fields: FieldStore): Traversable[Write] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.itemField.field)
     fieldValue <- field match {

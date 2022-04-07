@@ -6,10 +6,10 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.{Item, Ranking}
+import ai.metarank.model.FieldName.EventType.{Item, Ranking}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
+import ai.metarank.util.{TestItemEvent, TestRankingEvent}
 import io.findify.featury.model.{Key, SString, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}
 import io.findify.featury.model.Write.Put
@@ -27,8 +27,8 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers {
   )
   val now = Timestamp.now
   it should "generate puts" in {
-    val event = TestMetadataEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
-    val puts  = feature.writes(event, FieldStore.empty, FieldStore.empty).toList
+    val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
+    val puts  = feature.writes(event, FieldStore.empty).toList
     puts shouldBe List(
       Put(Key(Tag(ItemScope.scope, "p1"), FeatureName("title_match"), Tenant("default")), now, SString("foobar"))
     )

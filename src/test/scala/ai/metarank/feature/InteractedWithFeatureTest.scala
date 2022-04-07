@@ -5,11 +5,12 @@ import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldId.ItemFieldId
+import ai.metarank.model.{FieldId, FieldName}
+import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
@@ -43,7 +44,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "emit writes on meta field" in {
     val writes1 =
-      feature.writes(TestMetadataEvent("p1", List(StringField("color", "red"))), FieldStore.empty, FieldStore.empty)
+      feature.writes(TestItemEvent("p1", List(StringField("color", "red"))), FieldStore.empty)
 
     writes1.collect {
       case Put(
@@ -56,36 +57,37 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "emit writes on meta list field" in {
-    val event   = TestMetadataEvent("p1", List(StringListField("color", List("red"))))
-    val writes1 = feature.writes(event, FieldStore.empty, FieldStore.empty)
-
-    writes1.collect {
+    val event   = TestItemEvent("p1", List(StringListField("color", List("red"))))
+    val writes1 = feature.writes(event, FieldStore.empty)
+    val result = writes1.collect {
       case Put(
             Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
             _,
-            SStringList(value)
+            SString(value)
           ) =>
         value
-    }.flatten shouldBe List("red")
+    }
+    result shouldBe List("red")
   }
 
-//  it should "emit bounded list appends" in {
-//    val key = Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default"))
-//    val writes1 =
-//      feature.writes(
-//        TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"),
-//        Map(key -> ScalarValue(key, Timestamp.now, SString("red")))
-//      )
-//    val result = writes1.collect {
-//      case Append(
-//            Key(Tag(SessionScope.scope, "s1"), FeatureName("seen_color_last"), Tenant("default")),
-//            value,
-//            _
-//          ) =>
-//        value
-//    }
-//    result shouldBe List(SString("red"))
-//  }
+  it should "emit bounded list appends" in {
+    val writes1 =
+      feature.writes(
+        TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"),
+        FieldStore.map(
+          Map(ItemFieldId(Tenant("default"), ItemId("p1"), "color") -> StringField("color", "red"))
+        )
+      )
+    val result = writes1.collect {
+      case Append(
+            Key(Tag(SessionScope.scope, "s1"), FeatureName("seen_color_last"), Tenant("default")),
+            value,
+            _
+          ) =>
+        value
+    }
+    result shouldBe List(SString("red"))
+  }
 
   it should "compute values" in {
     val itemKey1 = Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default"))

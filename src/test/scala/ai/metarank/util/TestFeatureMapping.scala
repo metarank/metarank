@@ -9,7 +9,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldName.EventType.Item
 import cats.data.NonEmptyList
 import scala.concurrent.duration._
 

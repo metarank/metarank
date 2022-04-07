@@ -33,7 +33,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.source.field)
     numberField <- field match {

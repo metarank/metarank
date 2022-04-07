@@ -5,7 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldName.EventType.Item
 
 object TestConfig {
   def apply() = new Config(

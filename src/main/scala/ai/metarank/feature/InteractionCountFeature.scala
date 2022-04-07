@@ -30,7 +30,7 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
   override def fields                      = Nil
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Increment] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Increment] = for {
     key <- keyOf(event)
     increment <- event match {
       case interaction: Event.InteractionEvent if interaction.`type` == schema.interaction => Some(1)

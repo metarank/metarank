@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.flow.FieldStore
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.Identifier._
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
@@ -13,7 +13,7 @@ sealed trait BaseFeature {
   def fields: List[FieldName]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
-  def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Traversable[Write]
+  def writes(event: Event, fields: FieldStore): Traversable[Write]
 
   def keyOf(event: Event, item: Option[ItemId] = None): Option[Key] = (schema.scope, event) match {
     case (TenantScope, _) => Some(keyOf(TenantScope.scope.name, event.tenant, schema.name, event.tenant))
@@ -24,6 +24,7 @@ sealed trait BaseFeature {
     case (ItemScope, e: InteractionEvent) => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
     case (ItemScope, e: ItemEvent)        => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
     case (ItemScope, e: RankingEvent)     => item.map(i => keyOf(ItemScope.scope.name, i.value, schema.name, e.tenant))
+    case (UserScope, e: UserEvent)        => Some(keyOf(UserScope.scope.name, e.user.value, schema.name, event.tenant))
     case _                                => None
   }
 

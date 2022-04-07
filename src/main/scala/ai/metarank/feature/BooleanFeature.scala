@@ -32,7 +32,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.source.field)
     fieldValue <- field match {

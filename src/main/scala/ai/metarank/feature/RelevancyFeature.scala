@@ -22,7 +22,7 @@ case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
 
   override def states: List[FeatureConfig] = Nil
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = Nil
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = Nil
 
   override def value(
       request: Event.RankingEvent,

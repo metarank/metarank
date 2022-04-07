@@ -6,7 +6,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.FieldName.{Interaction, Item}
+import ai.metarank.model.FieldName.EventType._
 import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec

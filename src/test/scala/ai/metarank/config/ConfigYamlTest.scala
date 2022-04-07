@@ -4,7 +4,7 @@ import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldName.EventType._
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

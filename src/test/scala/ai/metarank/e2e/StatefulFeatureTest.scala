@@ -3,18 +3,13 @@ package ai.metarank.e2e
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.flow.EventStateJoin
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
-import ai.metarank.model.Field.StringField
-import ai.metarank.model.{Event, EventState, FieldName}
-import ai.metarank.model.FieldName.Item
-import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestMetadataEvent}
-import io.findify.featury.flink.Featury
-import io.findify.featury.model.{BoundedListValue, SString, Timestamp}
+import ai.metarank.model.FeatureScope.SessionScope
+import ai.metarank.model.FieldName
+import ai.metarank.model.FieldName.EventType.Item
+import ai.metarank.util.FlinkTest
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.flinkadt.api._
-import org.apache.flink.api.common.RuntimeExecutionMode
 
 import scala.language.higherKinds
 import scala.concurrent.duration._

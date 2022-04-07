@@ -29,8 +29,8 @@ class RankApiTest extends AnyFlatSpec with Matchers {
     val request   = TestRankingEvent((0 until 1000).map(i => s"p$i").toList)
     val response1 = api.rerank(request, false).unsafeRunSync()
     response1.items.size shouldBe 1000
-    counter.reads shouldBe 12
-    counter.featureReads shouldBe 6001
+    counter.reads shouldBe 10
+    counter.featureReads shouldBe 5001
   }
   it should "handle protocol errors" in {
     val store = Ref.of[IO, FeatureStoreResource](

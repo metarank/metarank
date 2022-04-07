@@ -5,11 +5,11 @@ import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.FieldName.Item
+import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
+import ai.metarank.util.{TestItemEvent, TestRankingEvent}
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.{Key, SDouble, SString, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.Tenant
@@ -33,8 +33,8 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "extract field" in {
-    val event  = TestMetadataEvent("p1", List(StringField("title", "foo, bar, baz!")))
-    val result = feature.writes(event, FieldStore.empty, FieldStore.empty)
+    val event  = TestItemEvent("p1", List(StringField("title", "foo, bar, baz!")))
+    val result = feature.writes(event, FieldStore.empty)
     result shouldBe List(Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(3)))
   }
 

@@ -6,7 +6,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.{Clickthrough, EventId, FieldName}
-import ai.metarank.model.FieldName.{Interaction, Item}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}

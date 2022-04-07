@@ -34,7 +34,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, user: FieldStore[UserId], item: FieldStore[ItemId]): Iterable[Put] = {
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = {
     for {
       key   <- keyOf(event)
       field <- event.fields.find(_.name == schema.source.field)

@@ -64,7 +64,7 @@ Example:
   type: interacted_with
   // type of the interaction event (interaction.type field)
   interaction: click
-  field: item.color // must be a string or string[]
+  field: item.color // must be a string or string[], and only works with item fields
 
   // session/user
   scope: user

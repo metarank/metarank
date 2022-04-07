@@ -1,7 +1,7 @@
 package ai.metarank.source
 
 import ai.metarank.model.{Event, Field}
-import ai.metarank.model.Event.{InteractionEvent, MetadataEvent, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect
@@ -31,8 +31,10 @@ case class LocalDirSource(path: String, limit: Long = Long.MaxValue) extends Sou
             case Right(decoded) if count < limit =>
               if (logger.isDebugEnabled) {
                 val eventString = decoded match {
-                  case m: MetadataEvent =>
-                    s"metadata: id=${m.item.value} fields: ${m.fields.map(formatField).mkString(" ")}"
+                  case m: UserEvent =>
+                    s"user: id=${m.user.value} fields: ${m.fields.map(formatField).mkString(" ")}"
+                  case m: ItemEvent =>
+                    s"item: id=${m.item.value} fields: ${m.fields.map(formatField).mkString(" ")}"
                   case r: RankingEvent =>
                     s"ranking: user=${r.user.value} session=${r.session.value} fields: ${r.fields.map(formatField).mkString(" ")}"
                   case i: InteractionEvent =>

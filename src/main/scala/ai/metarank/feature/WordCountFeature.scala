@@ -1,11 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.FieldSchema.StringFieldSchema
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.util.Logging
 import io.circe.Decoder
@@ -18,7 +19,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
 
-case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeature with Logging {
+case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -27,10 +28,10 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeatur
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  override def fields                      = List(StringFieldSchema(schema.source))
+  override def fields                      = List(schema.source)
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): Iterable[Put] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.source.field)
     fieldValue <- field match {
@@ -45,10 +46,10 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemStatelessFeatur
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
+    features.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
       case _                                       => SingleValue(schema.name, 0)
     }

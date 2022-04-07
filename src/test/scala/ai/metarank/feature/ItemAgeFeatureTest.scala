@@ -1,13 +1,15 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{NumberField, StringField}
-import ai.metarank.model.{FieldName, ItemId}
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName
+import ai.metarank.model.FieldName.EventType.Item
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestMetadataEvent, TestRankingEvent}
+import ai.metarank.util.{TestItemEvent, TestRankingEvent}
 import io.findify.featury.model.{Key, SDouble, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 import io.findify.featury.model.Write.Put
@@ -18,19 +20,17 @@ import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 
 class ItemAgeFeatureTest extends AnyFlatSpec with Matchers {
-  lazy val feature   = ItemAgeFeature(ItemAgeSchema("itemage", FieldName(Metadata, "updated_at")))
+  lazy val feature   = ItemAgeFeature(ItemAgeSchema("itemage", FieldName(Item, "updated_at")))
   lazy val updatedAt = ZonedDateTime.of(2022, 3, 1, 0, 0, 0, 0, ZoneId.of("UTC+2"))
   lazy val now       = ZonedDateTime.of(2022, 3, 28, 0, 0, 0, 0, ZoneId.of("UTC+2"))
 
   it should "make puts from iso timestamps" in {
-    val puts = feature
-      .writes(
-        TestMetadataEvent(
-          "p1",
-          List(StringField("updated_at", updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)))
-        ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
-      )
-      .toList
+    val event = TestItemEvent(
+      "p1",
+      List(StringField("updated_at", updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)))
+    ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
+
+    val puts = feature.writes(event, FieldStore.empty).toList
     puts shouldBe List(
       Put(
         Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
@@ -41,14 +41,12 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "make puts from unixtime" in {
-    val puts = feature
-      .writes(
-        TestMetadataEvent(
-          "p1",
-          List(NumberField("updated_at", updatedAt.toEpochSecond))
-        ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
-      )
-      .toList
+    val event = TestItemEvent(
+      "p1",
+      List(NumberField("updated_at", updatedAt.toEpochSecond))
+    ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
+
+    val puts = feature.writes(event, FieldStore.empty).toList
     puts shouldBe List(
       Put(
         Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
@@ -59,14 +57,12 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "make puts from unixtime string" in {
-    val puts = feature
-      .writes(
-        TestMetadataEvent(
-          "p1",
-          List(StringField("updated_at", updatedAt.toEpochSecond.toString))
-        ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
-      )
-      .toList
+    val event = TestItemEvent(
+      "p1",
+      List(StringField("updated_at", updatedAt.toEpochSecond.toString))
+    ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
+
+    val puts = feature.writes(event, FieldStore.empty).toList
     puts shouldBe List(
       Put(
         Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),

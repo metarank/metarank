@@ -1,12 +1,13 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.FieldSchema.StringFieldSchema
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, ItemId, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
 import io.circe.Decoder
@@ -18,7 +19,7 @@ import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SStr
 
 import scala.concurrent.duration._
 
-case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeature with Logging {
+case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with Logging {
   val possibleValues    = schema.values.toList
   val names             = possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.values.size
@@ -31,15 +32,9 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeatu
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.source))
+  override def fields = List(schema.source)
 
-  override def writes(event: Event): Iterable[Put] = {
-    event match {
-      case Event.MetadataEvent(id, item, timestamp, fields, tenant) =>
-        val br = 1
-      case event: Event.FeedbackEvent =>
-        val br = 2
-    }
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = {
     for {
       key   <- keyOf(event)
       field <- event.fields.find(_.name == schema.source.field)
@@ -57,12 +52,12 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemStatelessFeatu
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue = {
     val result = for {
       key   <- keyOf(request, Some(id.id))
-      value <- state.get(key)
+      value <- features.get(key)
     } yield {
       value
     }

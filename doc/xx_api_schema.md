@@ -9,7 +9,7 @@ Overally there are 2 endpoints that must be integrated:
 
 **API Endpoint**: `/feedback`
 
-Feedback endpoint receives several types of events: metadata, interaction, ranking. 
+Feedback endpoint receives several types of events: item, user, interaction, ranking. 
 
 Integrating these events is crucial for personalization to operate properly and provide relevant results. 
 
@@ -51,7 +51,7 @@ Ranking endpoint does the real work of personalizing items that are passed to it
 - `session`: session identifier, a single visitor may have multiple sessions.
 - `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](xx_event_schema.md).
 - `items`: which particular items were displayed to the visitor.
-- `items.id`: id of the content item. Should match the `item` property from metadata event.
+- `items.id`: id of the content item. Should match the `item` property from item metadata event.
 - `items.relevancy`: a score which was used to rank these items. For example, it can be BM25/tfidf score coming from ElasticSearch. If your system doesn't return any relevancy score, just use `1` as a value.
 
 ### Response format
@@ -66,6 +66,6 @@ Ranking endpoint does the real work of personalizing items that are passed to it
 }
 ```
 
-- `items.id`: id of the content item. Will `item` property from metadata event.
+- `items.id`: id of the content item. Will match `item` property from the item metadata event.
 - `items.relevancy`: a score calculated by personalization model
 - `items.features`: an array of feature values calculated by pesonaliization model. This field will be returned if `explain` field is set to `true` in the request. The structure of this object will vary depending on the feature type.

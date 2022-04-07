@@ -2,15 +2,9 @@ package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
-import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.e2e.RanklensTest.DiskStore
-import ai.metarank.feature.WordCountFeature
-import ai.metarank.model.{Clickthrough, Event, EventState, FieldName, ItemId, UserId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
-import ai.metarank.model.FieldName.Metadata
 import ai.metarank.util.{FlinkTest, RanklensEvents}
-import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.featury.flink.{Featury, Join}
@@ -19,26 +13,12 @@ import io.findify.flinkadt.api._
 import ai.metarank.flow.DataStreamOps._
 
 import scala.language.higherKinds
-import scala.concurrent.duration._
-import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.flow.{
-  ClickthroughJoin,
-  ClickthroughJoinFunction,
-  DatasetSink,
-  EventStateJoin,
-  ImpressionInjectFunction
-}
+import ai.metarank.flow.DatasetSink
 import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.bootstrap.Bootstrap.{joinFeatures, makeUpdates}
 import ai.metarank.mode.inference.FeatureStoreResource
 import ai.metarank.mode.inference.api.RankApi
 import ai.metarank.mode.inference.ranking.LightGBMScorer
 import ai.metarank.mode.train.Train
-import ai.metarank.mode.train.Train.{logger, split, trainModel}
 import ai.metarank.mode.train.TrainCmdline.LambdaMARTLightGBM
 import better.files.{File, Resource}
 import cats.effect.{IO, Ref}

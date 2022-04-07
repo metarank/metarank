@@ -1,13 +1,16 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{FieldName, ItemId, SessionId}
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldId.ItemFieldId
+import ai.metarank.model.{FieldId, FieldName}
+import ai.metarank.model.FieldName.EventType.Item
+import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
@@ -21,7 +24,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   val conf = InteractedWithSchema(
     name = "seen_color",
     interaction = "impression",
-    field = FieldName(Metadata, "color"),
+    field = FieldName(Item, "color"),
     scope = SessionScope,
     count = Some(10),
     duration = Some(24.hours)
@@ -40,7 +43,8 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "emit writes on meta field" in {
-    val writes1 = feature.writes(TestMetadataEvent("p1", List(StringField("color", "red"))))
+    val writes1 =
+      feature.writes(TestItemEvent("p1", List(StringField("color", "red"))), FieldStore.empty)
 
     writes1.collect {
       case Put(
@@ -53,24 +57,26 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   it should "emit writes on meta list field" in {
-    val writes1 = feature.writes(TestMetadataEvent("p1", List(StringListField("color", List("red")))))
-
-    writes1.collect {
+    val event   = TestItemEvent("p1", List(StringListField("color", List("red"))))
+    val writes1 = feature.writes(event, FieldStore.empty)
+    val result = writes1.collect {
       case Put(
             Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
             _,
-            SStringList(value)
+            SString(value)
           ) =>
         value
-    }.flatten shouldBe List("red")
+    }
+    result shouldBe List("red")
   }
 
   it should "emit bounded list appends" in {
-    val key = Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default"))
     val writes1 =
       feature.writes(
         TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"),
-        Map(key -> ScalarValue(key, Timestamp.now, SString("red")))
+        FieldStore.map(
+          Map(ItemFieldId(Tenant("default"), ItemId("p1"), "color") -> StringField("color", "red"))
+        )
       )
     val result = writes1.collect {
       case Append(
@@ -99,19 +105,19 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
 
     val values2 = feature.value(
       request = request,
-      state = state,
+      features = state,
       ItemRelevancy(ItemId("p2"))
     )
     values2 shouldBe SingleValue("seen_color", 1)
     val values3 = feature.value(
       request = request,
-      state = state,
+      features = state,
       ItemRelevancy(ItemId("p3"))
     )
     values3 shouldBe SingleValue("seen_color", 0)
     val values4 = feature.value(
       request = request,
-      state = state,
+      features = state,
       ItemRelevancy(ItemId("404"))
     )
     values4 shouldBe SingleValue("seen_color", 0)

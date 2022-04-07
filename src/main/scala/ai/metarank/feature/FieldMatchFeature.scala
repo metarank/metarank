@@ -1,39 +1,25 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldName.{Metadata, Ranking}
-import ai.metarank.model.FieldSchema.StringFieldSchema
+import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Event, FeatureSchema, FieldName, MValue}
 import ai.metarank.util.{Logging, OneHotEncoder}
-import cats.data.NonEmptyList
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
-import io.findify.featury.model.{
-  BoundedListValue,
-  CounterValue,
-  FeatureConfig,
-  FeatureValue,
-  FrequencyValue,
-  Key,
-  MapValue,
-  NumStatsValue,
-  PeriodicCounterValue,
-  SString,
-  SStringList,
-  ScalarValue,
-  Write
-}
+import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, ScalarValue, Write}
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.FeatureName
 import io.findify.featury.model.Write.Put
+import ai.metarank.model.Identifier._
 
 import scala.concurrent.duration._
 
-case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeature with Logging {
+case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -45,9 +31,9 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeat
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(StringFieldSchema(schema.itemField), StringFieldSchema(schema.rankingField))
+  override def fields = List(schema.itemField, schema.rankingField)
 
-  override def writes(event: Event): Traversable[Write] = for {
+  override def writes(event: Event, fields: FieldStore): Traversable[Write] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.itemField.field)
     fieldValue <- field match {
@@ -60,10 +46,10 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemStatelessFeat
     Put(key, event.timestamp, fieldValue)
   }
 
-  override def value(request: Event.RankingEvent, state: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue = {
+  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue = {
     val result = for {
       key          <- keyOf(request, Some(id.id))
-      featureValue <- state.get(key)
+      featureValue <- features.get(key)
       itemString <- featureValue match {
         case ScalarValue(_, _, SString(value)) => Some(value)
         case other =>
@@ -136,7 +122,7 @@ object FieldMatchFeature {
   )
 
   implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema].ensure(
-    pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Metadata),
+    pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
     message = "ranking field can only be read from ranking event, and item field - only from metadata"
   )
 }

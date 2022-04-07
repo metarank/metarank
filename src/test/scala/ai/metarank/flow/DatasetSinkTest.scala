@@ -5,8 +5,9 @@ import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.{Clickthrough, EventId, FieldName, ItemId}
-import ai.metarank.model.FieldName.{Interaction, Metadata}
+import ai.metarank.model.{Clickthrough, EventId, FieldName}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item}
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}
 import better.files.File
@@ -19,7 +20,7 @@ class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "write cts" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
     val mapping = FeatureMapping.fromFeatureSchema(
-      schema = List(NumberFeatureSchema("budget", FieldName(Metadata, "budget"), ItemScope)),
+      schema = List(NumberFeatureSchema("budget", FieldName(Item, "budget"), ItemScope)),
       interactions = List(InteractionConfig("click", 1.0))
     )
     val ct = Clickthrough(

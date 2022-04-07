@@ -6,8 +6,9 @@ import ai.metarank.feature.ua.PlatformField
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{FieldName, ItemId, SessionId}
-import ai.metarank.model.FieldName.{Metadata, Ranking}
+import ai.metarank.model.FieldName
+import ai.metarank.model.FieldName.EventType.{Item, Ranking}
+import ai.metarank.model.Identifier.SessionId
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.TestRankingEvent
 import cats.data.NonEmptyList
@@ -35,7 +36,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         session = SessionId("s1"),
         timestamp = now
       ),
-      state = Map.empty
+      features = Map.empty
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)
@@ -51,7 +52,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
         timestamp = now,
         fields = List(StringField("ua", "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"))
       ),
-      state = Map.empty
+      features = Map.empty
     )
     value should matchPattern {
       case VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), values, 3)

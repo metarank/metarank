@@ -6,11 +6,12 @@ import ai.metarank.flow.{
   ClickthroughJoin,
   ClickthroughJoinFunction,
   DatasetSink,
+  EventProcessFunction,
   EventStateJoin,
   ImpressionInjectFunction
 }
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
-import ai.metarank.model.{Clickthrough, Event, EventId, EventState}
+import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
 import ai.metarank.util.Logging
@@ -21,10 +22,12 @@ import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
 import io.findify.featury.model.Key.Tenant
-import io.findify.featury.model.{FeatureValue, Key, Schema, State}
+import io.findify.featury.model.{FeatureValue, Key, Schema, State, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.streaming.api.scala.{DataStream, KeyedStream, StreamExecutionEnvironment}
 import io.findify.flinkadt.api._
+import org.apache.flink.api.common.state.MapStateDescriptor
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend
@@ -103,20 +106,14 @@ object Bootstrap extends IOApp with Logging {
       .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
       .transform(new FeatureJoinBootstrapFunction())
 
-    val transformStateless = OperatorTransformation
+    val transformFeatures = OperatorTransformation
       .bootstrapWith(stateSource.toJava)
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.statelessSchema))
-
-    val transformStateful = OperatorTransformation
-      .bootstrapWith(stateSource.toJava)
-      .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.statefulSchema))
+      .transform(new FeatureBootstrapFunction(mapping.schema))
 
     Savepoint
       .create(new EmbeddedRocksDBStateBackend(), 32)
-      .withOperator("process-stateless-writes", transformStateless)
-      .withOperator("process-stateful-writes", transformStateful)
+      .withOperator("process-writes", transformFeatures)
       .withOperator("join-state", transformStateJoin)
       .write(s"${cmd.outDirUrl}/savepoint")
 
@@ -134,30 +131,24 @@ object Bootstrap extends IOApp with Logging {
       }
   }
 
-  def makeUpdates(raw: DataStream[Event], grouped: KeyedStream[FeedbackEvent, EventId], mapping: FeatureMapping) = {
-    val impressions      = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
-    val events           = raw.union(impressions)
-    val statelessWrites  = events.flatMap(e => mapping.features.flatMap(_.writes(e))).id("expand-stateless-writes")
-    val statelessUpdates = Featury.process(statelessWrites, mapping.schema, 20.seconds).id("process-stateless-writes")
+  def makeUpdates(
+      raw: DataStream[Event],
+      grouped: KeyedStream[FeedbackEvent, EventId],
+      mapping: FeatureMapping
+  ): (DataStream[State], DataStream[FeatureValue]) = {
+    val impressions = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
+    val events      = raw.union(impressions)
 
-    val eventsWithState =
-      Featury
-        .join[EventState](statelessUpdates, events.map(e => EventState(e)), EventStateJoin, mapping.statefulSchema)
-        .id("join-state")
-    val statefulWrites = eventsWithState
-      .flatMap(e => mapping.statefulFeatures.flatMap(_.writes(e.event, e.state)))
-      .id("expand-stateful-writes")
-    val statefulUpdates =
-      Featury.process(statefulWrites, mapping.statefulSchema, 20.seconds).id("process-stateful-writes")
+    val fieldState = new MapStateDescriptor[FieldId, Field](
+      "fields",
+      implicitly[TypeInformation[FieldId]],
+      implicitly[TypeInformation[Field]]
+    )
+    val fieldUpdates = raw.flatMap(e => FieldUpdate.fromEvent(e)).broadcast(fieldState)
 
-    val state1 = statelessUpdates.getSideOutput(FeatureProcessFunction.stateTag)
-    val state2 = statefulUpdates.getSideOutput(FeatureProcessFunction.stateTag)
-    val state = state1
-      .union(state2)
-      .keyBy(_.key)
-      .reduce((a, b) => if (a.ts.isAfter(b.ts)) a else b)
-      .id("select-last-state") // use only last state version
-    val updates = statelessUpdates.union(statefulUpdates)
+    val writes: DataStream[Write] = events.connect(fieldUpdates).process(EventProcessFunction(fieldState, mapping))
+    val updates                   = Featury.process(writes, mapping.schema, 20.seconds).id("process-stateful-writes")
+    val state                     = updates.getSideOutput(FeatureProcessFunction.stateTag)
     (state, updates)
   }
 

@@ -1,13 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemStatelessFeature
-import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.Field.BooleanField
-import ai.metarank.model.FieldName.Metadata
-import ai.metarank.model.FieldSchema.{BooleanFieldSchema, NumberFieldSchema}
+import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
+import ai.metarank.model.Identifier._
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.Logging
 import io.circe.Decoder
@@ -22,7 +21,7 @@ import java.time.format.DateTimeFormatter
 import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
-case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemStatelessFeature with Logging {
+case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
@@ -33,9 +32,9 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemStatelessFeature wi
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(NumberFieldSchema(schema.source))
+  override def fields = List(schema.source)
 
-  override def writes(event: Event): Iterable[Put] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.source.field)
     fieldValue <- field match {
@@ -62,10 +61,10 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemStatelessFeature wi
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue],
+      features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue =
-    state.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
+    features.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
       case Some(ScalarValue(_, _, SDouble(value))) =>
         val updatedAt = Timestamp(math.round(value * 1000))
         SingleValue(schema.name, updatedAt.diff(request.timestamp).toSeconds)
@@ -86,6 +85,6 @@ object ItemAgeFeature {
   }
 
   implicit val itemAgeDecoder: Decoder[ItemAgeSchema] =
-    deriveDecoder[ItemAgeSchema].ensure(_.source.event == Metadata, "can only work with fields from metadata events")
+    deriveDecoder[ItemAgeSchema].ensure(_.source.event == Item, "can only work with fields from metadata events")
 
 }

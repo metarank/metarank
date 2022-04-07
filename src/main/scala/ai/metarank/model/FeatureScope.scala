@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, MetadataEvent, RankingEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, RankingEvent}
 import ai.metarank.model.FeatureScope.TenantScope.tags
 import io.circe.{Decoder, Encoder}
 import io.findify.featury.model.Key
@@ -35,7 +35,8 @@ object FeatureScope {
     override def tags(event: Event): Traversable[Tag] = event match {
       case e: RankingEvent     => e.items.toList.map(item => Tag(scope, item.id.value))
       case e: InteractionEvent => Some(Tag(scope, e.item.value))
-      case e: MetadataEvent    => Some(Tag(scope, e.item.value))
+      case e: ItemEvent        => Some(Tag(scope, e.item.value))
+      case _                   => None
     }
   }
   case object UserScope extends FeatureScope {

@@ -5,7 +5,8 @@ import io.circe.generic.extras.Configuration
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.findify.featury.model.Timestamp
 import io.circe.generic.semiauto._
-import io.circe.generic.extras.semiauto.{deriveConfiguredCodec, deriveConfiguredDecoder}
+import io.circe.generic.extras.semiauto.{deriveConfiguredCodec, deriveConfiguredDecoder, deriveConfiguredEncoder}
+import ai.metarank.model.Identifier._
 
 sealed trait Event {
   def id: EventId
@@ -17,13 +18,23 @@ sealed trait Event {
 }
 
 object Event {
-  case class MetadataEvent(
+  sealed trait MetadataEvent extends Event
+
+  case class ItemEvent(
       id: EventId,
       item: ItemId,
       timestamp: Timestamp,
       fields: List[Field] = Nil,
       tenant: String = "default"
-  ) extends Event {}
+  ) extends MetadataEvent
+
+  case class UserEvent(
+      id: EventId,
+      user: UserId,
+      timestamp: Timestamp,
+      fields: List[Field] = Nil,
+      tenant: String = "default"
+  ) extends MetadataEvent
 
   sealed trait FeedbackEvent extends Event {
     def user: UserId
@@ -58,25 +69,40 @@ object Event {
   }
 
   object EventCodecs {
-    implicit val conf                                      = Configuration.default.withDefaults
-    implicit val relevancyCodec: Codec[ItemRelevancy]      = deriveCodec
-    implicit val metadataCodec: Codec[MetadataEvent]       = deriveConfiguredCodec
+    implicit val conf                                 = Configuration.default.withDefaults
+    implicit val relevancyCodec: Codec[ItemRelevancy] = deriveCodec
+
+    implicit val itemCodec: Codec[ItemEvent]               = deriveConfiguredCodec
+    implicit val userCodec: Codec[UserEvent]               = deriveConfiguredCodec
     implicit val rankingCodec: Codec[RankingEvent]         = deriveConfiguredCodec
     implicit val interactionCodec: Codec[InteractionEvent] = deriveConfiguredCodec
   }
 
-  import EventCodecs.metadataCodec
+  import EventCodecs.itemCodec
+  import EventCodecs.userCodec
   import EventCodecs.rankingCodec
   import EventCodecs.interactionCodec
+
   implicit val conf = Configuration.default
     .withDiscriminator("event")
     .withKebabCaseMemberNames
     .copy(transformConstructorNames = {
-      case "MetadataEvent"    => "metadata"
+      case "ItemEvent"        => "item"
+      case "UserEvent"        => "user"
       case "RankingEvent"     => "ranking"
       case "InteractionEvent" => "interaction"
     })
 
-  implicit val eventCodec: Codec[Event] = deriveConfiguredCodec[Event]
-
+  implicit val eventEncoder: Encoder[Event] = deriveConfiguredEncoder
+  implicit val eventDecoder: Decoder[Event] = Decoder.instance(c =>
+    c.downField("event").as[String] match {
+      case Left(error)                       => Left(error)
+      case Right("metadata") | Right("item") => itemCodec.tryDecode(c)
+      case Right("user")                     => userCodec.tryDecode(c)
+      case Right("ranking")                  => rankingCodec.tryDecode(c)
+      case Right("interaction")              => interactionCodec.tryDecode(c)
+      case Right(other) => Left(DecodingFailure(s"event type '$other' is not supported", c.history))
+    }
+  )
+  implicit val eventCodec: Codec[Event] = Codec.from(eventDecoder, eventEncoder)
 }

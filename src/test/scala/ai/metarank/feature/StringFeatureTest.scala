@@ -1,13 +1,15 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
-import ai.metarank.model.FieldName.{Interaction, Metadata}
+import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{FieldName, ItemId, MValue, SessionId}
+import ai.metarank.model.Identifier.{ItemId, SessionId}
+import ai.metarank.model.{FieldName, MValue}
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import cats.data.NonEmptyList
 import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Tenant}
@@ -19,17 +21,33 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
   val feature = StringFeature(
     StringFeatureSchema(
       name = "color",
-      source = FieldName(Metadata, "color"),
+      source = FieldName(Item, "color"),
       scope = ItemScope,
       values = NonEmptyList.of("red", "green", "blue")
     )
   )
 
-  it should "extract color field" in {
-    val event  = TestMetadataEvent("p1", List(StringField("color", "green")))
-    val result = feature.writes(event)
+  it should "extract item field" in {
+    val event  = TestItemEvent("p1", List(StringField("color", "green")))
+    val result = feature.writes(event, FieldStore.empty)
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SStringList(List("green")))
+    )
+  }
+
+  it should "extract user field" in {
+    val feature = StringFeature(
+      StringFeatureSchema(
+        name = "user_gender",
+        source = FieldName(User, "gender"),
+        scope = UserScope,
+        values = NonEmptyList.of("female", "male")
+      )
+    )
+    val event  = TestUserEvent("u1", List(StringField("gender", "male")))
+    val result = feature.writes(event, FieldStore.empty)
+    result shouldBe List(
+      Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SStringList(List("male")))
     )
   }
 
@@ -37,7 +55,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     val key = Key(feature.states.head, Tenant("default"), "p1")
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
-      state = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
+      features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
       id = ItemRelevancy(ItemId("p1"))
     )
     result should matchPattern {
@@ -56,12 +74,12 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     )
     val event =
       TestInteractionEvent("p1", "p0").copy(session = SessionId("s1"), fields = List(StringField("country", "b")))
-    val write = feature.writes(event)
+    val write = feature.writes(event, FieldStore.empty)
     val key   = Key(feature.states.head, Tenant("default"), "s1")
     write shouldBe List(Put(key, event.timestamp, SStringList(List("b"))))
     val value = feature.value(
       request = TestRankingEvent(List("p1")).copy(session = SessionId("s1")),
-      state = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("b")))),
+      features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("b")))),
       id = ItemRelevancy(ItemId("p1"))
     )
     value should matchPattern {

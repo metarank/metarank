@@ -45,10 +45,10 @@ Supported `parse` field values:
 
 ## item_age
 
-Sometimes it can be useful to know how fresh is the item in the ranking? Consider the following metadata event:
+Sometimes it can be useful to know how fresh is the item in the ranking? Consider the following item metadata event:
 ```json
 {
-  "event": "metadata",
+  "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
   "item": "product1", 
   "timestamp": "1599391467000",
@@ -64,7 +64,7 @@ snippet:
 ```yaml
 - name: freshness
   type: item_age
-  source: metadata.created_at // can only work with metadata event types
+  source: item.created_at // can only work with item metadata event types
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```

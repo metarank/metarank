@@ -1,17 +1,19 @@
 package ai.metarank.feature
 
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
+import ai.metarank.flow.FieldStore
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldSchema, ItemId, MValue}
+import ai.metarank.model.Identifier._
+import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, Write}
 
 sealed trait BaseFeature {
   def dim: Int
-  def fields: List[FieldSchema]
+  def fields: List[FieldName]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
-  def writes(event: Event): Traversable[Write]
+  def writes(event: Event, fields: FieldStore): Traversable[Write]
 
   def keyOf(event: Event, item: Option[ItemId] = None): Option[Key] = (schema.scope, event) match {
     case (TenantScope, _) => Some(keyOf(TenantScope.scope.name, event.tenant, schema.name, event.tenant))
@@ -20,8 +22,9 @@ sealed trait BaseFeature {
     case (SessionScope, e: FeedbackEvent) =>
       Some(keyOf(SessionScope.scope.name, e.session.value, schema.name, event.tenant))
     case (ItemScope, e: InteractionEvent) => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
-    case (ItemScope, e: MetadataEvent)    => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
+    case (ItemScope, e: ItemEvent)        => Some(keyOf(ItemScope.scope.name, e.item.value, schema.name, e.tenant))
     case (ItemScope, e: RankingEvent)     => item.map(i => keyOf(ItemScope.scope.name, i.value, schema.name, e.tenant))
+    case (UserScope, e: UserEvent)        => Some(keyOf(UserScope.scope.name, e.user.value, schema.name, event.tenant))
     case _                                => None
   }
 
@@ -37,24 +40,19 @@ sealed trait BaseFeature {
 
 object BaseFeature {
 
-  sealed trait ItemFeature extends BaseFeature {
+  trait ItemFeature extends BaseFeature {
     def value(
         request: Event.RankingEvent,
-        state: Map[Key, FeatureValue],
+        features: Map[Key, FeatureValue],
         id: ItemRelevancy
     ): MValue
   }
 
-  trait RankingStatelessFeature extends BaseFeature {
+  trait RankingFeature extends BaseFeature {
     def value(
         request: Event.RankingEvent,
-        state: Map[Key, FeatureValue]
+        features: Map[Key, FeatureValue]
     ): MValue
   }
 
-  trait ItemStatelessFeature extends ItemFeature {}
-
-  trait StatefulFeature extends ItemFeature {
-    def writes(event: Event, state: Map[Key, FeatureValue]): Traversable[Write]
-  }
 }

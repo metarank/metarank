@@ -13,7 +13,7 @@ This tutorial reproduces the system running on [demo.metarank.ai](https://demo.m
 
 For the data input, we are using a repackaged copy of the ranklens dataset [available here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events). 
 The only difference with the original dataset is that we have converted it to a metarank-compatible data model with 
-metadata/interaction/ranking [event format](./xx_event_schema.md).
+item/user/interaction/ranking [event format](./xx_event_schema.md).
 
 ### Configuration
 
@@ -27,42 +27,42 @@ features:
   - name: popularity
     type: number
     scope: item
-    source: metadata.popularity
+    source: item.popularity
 
   - name: vote_avg
     type: number
     scope: item
-    source: metadata.vote_avg
+    source: item.vote_avg
 
   - name: vote_cnt
     type: number
     scope: item
-    source: metadata.vote_cnt
+    source: item.vote_cnt
 
   - name: budget
     type: number
     scope: item
-    source: metadata.budget
+    source: item.budget
 
   - name: release_date
     type: number
     scope: item
-    source: metadata.release_date
+    source: item.release_date
 
   - name: runtime
     type: number
     scope: item
-    source: metadata.runtime
+    source: item.runtime
 
   - name: title_length
     type: word_count
-    source: metadata.title
+    source: item.title
     scope: item
 
   - name: genre
     type: string
     scope: item
-    source: metadata.genres
+    source: item.genres
     values:
       - drama
       - comedy
@@ -91,7 +91,7 @@ features:
   - name: liked_genre
     type: interacted_with
     interaction: click
-    field: metadata.genres
+    field: item.genres
     scope: session
     count: 10
     duration: 24h
@@ -99,7 +99,7 @@ features:
   - name: liked_actors
     type: interacted_with
     interaction: click
-    field: metadata.actors
+    field: item.actors
     scope: session
     count: 10
     duration: 24h
@@ -107,7 +107,7 @@ features:
   - name: liked_tags
     type: interacted_with
     interaction: click
-    field: metadata.tags
+    field: item.tags
     scope: session
     count: 10
     duration: 24h
@@ -115,7 +115,7 @@ features:
   - name: liked_director
     type: interacted_with
     interaction: click
-    field: metadata.director
+    field: item.director
     scope: session
     count: 10
     duration: 24h

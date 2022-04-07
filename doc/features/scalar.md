@@ -11,7 +11,7 @@ Metarank has a set of basic extractors to simplify the process even more:
 Consider this type of incoming event, emitted by your backend system when a product goes in stock, or it's price changes:
 ```json
 {
-  "event": "metadata",
+  "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
   "item": "product1", // required
   "timestamp": "1599391467000", // required
@@ -26,12 +26,12 @@ We can add the following extractor, so it will use the availability data for the
 ```yaml
 - name: availability
   type: boolean
-  field: metadata.availability // must be a boolean
+  field: item.availability // must be a boolean
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
 
-In practice, you can use not only fields from metadata events, but also from ranking.
+In practice, you can use not only fields from item metadata events, but also from ranking.
 
 An example for ranking events: 
 ```json
@@ -64,18 +64,40 @@ are no interactions happened yet, they will happen in the future.
 
 ## Numerical extractor
 
-With the same approach as for boolean extractor, you can pull a `price` field out of a metadata message into the
+With the same approach as for boolean extractor, you can pull a `price` field out of a item metadata message into the
 explicit feature:
 
 ```yaml
 - name: price
   type: number
-  field: metadata.price // must be a number
+  field: item.price // must be a number
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
 
 So the last price will be present in the set of ML features uses in the ranking.
+
+It's also possible to use `user` fields in a case when you have some pre-existing information about the visitor
+(for example, when visitor filled a form before). Then with this `user` event:
+```json
+{
+  "event": "user",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "user": "user1",
+  "timestamp": "1599391467000",
+  "fields": [
+    {"name": "age", "value": 30}
+  ]
+}
+```
+You can map the `age` field into a feature this way:
+```yaml
+- name: user_age
+  type: number
+  field: user.age // must be a number
+  refresh: 0s // optional, how frequently we should update the value, 0s by default
+  ttl: 90d // optional, how long should we store this field
+```
 
 ## String extractors
 

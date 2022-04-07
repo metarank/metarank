@@ -1,7 +1,8 @@
 package ai.metarank.model
 
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, MetadataEvent, RankingEvent}
-import ai.metarank.model.Field.{BooleanField, NumberField, NumberListField, StringField, StringListField}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
+import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -9,7 +10,7 @@ import io.circe.parser._
 import io.findify.featury.model.Timestamp
 
 class EventJsonTest extends AnyFlatSpec with Matchers {
-  it should "decode metadata" in {
+  it should "decode item metadata" in {
     val json = """{
                  |  "event": "metadata",
                  |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
@@ -23,7 +24,36 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |  ]
                  |}""".stripMargin
     decode[Event](json) shouldBe Right(
-      MetadataEvent(
+      ItemEvent(
+        id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
+        item = ItemId("product1"),
+        timestamp = Timestamp(1599391467000L),
+        fields = List(
+          StringField("title", "Nice jeans"),
+          NumberField("price", 25),
+          StringListField("color", List("blue", "black")),
+          BooleanField("availability", true)
+        ),
+        tenant = "default"
+      )
+    )
+  }
+
+  it should "decode item metadata with type=item" in {
+    val json = """{
+                 |  "event": "item",
+                 |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+                 |  "item": "product1",
+                 |  "timestamp": "1599391467000", 
+                 |  "fields": [
+                 |    {"name": "title", "value": "Nice jeans"},
+                 |    {"name": "price", "value": 25.0},
+                 |    {"name": "color", "value": ["blue", "black"]},
+                 |    {"name": "availability", "value": true}
+                 |  ]
+                 |}""".stripMargin
+    decode[Event](json) shouldBe Right(
+      ItemEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         item = ItemId("product1"),
         timestamp = Timestamp(1599391467000L),
@@ -52,7 +82,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |  "tenant": "foo"
                  |}""".stripMargin
     decode[Event](json) shouldBe Right(
-      MetadataEvent(
+      ItemEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         item = ItemId("product1"),
         timestamp = Timestamp(1599391467000L),
@@ -74,7 +104,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |  "timestamp": "1599391467000"
                  |}""".stripMargin
     decode[Event](json) shouldBe Right(
-      MetadataEvent(
+      ItemEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         item = ItemId("product1"),
         timestamp = Timestamp(1599391467000L),

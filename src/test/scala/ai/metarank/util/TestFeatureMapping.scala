@@ -9,18 +9,18 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.Metadata
+import ai.metarank.model.FieldName.EventType.Item
 import cats.data.NonEmptyList
 import scala.concurrent.duration._
 
 object TestFeatureMapping {
   def apply() = {
     val features = List(
-      NumberFeatureSchema("price", FieldName(Metadata, "price"), ItemScope),
-      WordCountSchema("title_length", FieldName(Metadata, "title"), ItemScope),
+      NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope),
+      WordCountSchema("title_length", FieldName(Item, "title"), ItemScope),
       StringFeatureSchema(
         "category",
-        FieldName(Metadata, "category"),
+        FieldName(Item, "category"),
         ItemScope,
         NonEmptyList.of("socks", "shirts")
       ),
@@ -28,7 +28,7 @@ object TestFeatureMapping {
       InteractedWithSchema(
         "clicked_category",
         "click",
-        FieldName(Metadata, "category"),
+        FieldName(Item, "category"),
         SessionScope,
         Some(10),
         Some(24.hours)

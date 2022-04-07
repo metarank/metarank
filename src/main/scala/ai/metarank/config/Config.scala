@@ -1,7 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.config.Config.InteractionConfig
-import ai.metarank.model.{FeatureSchema, FieldSchema}
+import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.IO

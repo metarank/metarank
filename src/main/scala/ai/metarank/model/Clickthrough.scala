@@ -2,6 +2,7 @@ package ai.metarank.model
 
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
+import ai.metarank.model.Identifier.ItemId
 import io.findify.featury.model.{FeatureValue, Key}
 
 case class Clickthrough(

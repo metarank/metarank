@@ -1,9 +1,10 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.RankingStatelessFeature
+import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.FieldName.Ranking
+import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model._
 import ai.metarank.util.Logging
@@ -11,20 +12,21 @@ import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.Write.Put
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key}
+import ai.metarank.model.Identifier._
 
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
-case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingStatelessFeature with Logging {
-  override def dim: Int                            = 1
-  override def states: List[FeatureConfig]         = Nil
-  override def fields                              = Nil
-  override def writes(event: Event): Iterable[Put] = Nil
+case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeature with Logging {
+  override def dim: Int                                                = 1
+  override def states: List[FeatureConfig]                             = Nil
+  override def fields                                                  = Nil
+  override def writes(event: Event, fields: FieldStore): Iterable[Put] = Nil
 
   override def value(
       request: Event.RankingEvent,
-      state: Map[Key, FeatureValue]
+      features: Map[Key, FeatureValue]
   ): MValue = {
 
     request.fieldsMap.get(schema.source.field) match {
@@ -93,6 +95,9 @@ object LocalDateTimeFeature {
   }
 
   implicit val timeDayDecoder: Decoder[LocalDateTimeSchema] =
-    deriveDecoder[LocalDateTimeSchema].ensure(_.source.event == Ranking, "can only work with ranking event fields")
+    deriveDecoder[LocalDateTimeSchema].ensure(
+      _.source.event == EventType.Ranking,
+      "can only work with ranking event fields"
+    )
 
 }

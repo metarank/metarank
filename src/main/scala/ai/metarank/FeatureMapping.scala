@@ -3,7 +3,7 @@ package ai.metarank
 import ai.metarank.config.Config.InteractionConfig
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.BaseFeature.{ItemFeature, ItemStatelessFeature, RankingStatelessFeature, StatefulFeature}
+import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
@@ -18,7 +18,7 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{FeatureSchema, FeatureScope, FieldSchema}
+import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
@@ -26,11 +26,8 @@ import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
 
 case class FeatureMapping(
     features: List[BaseFeature],
-    statefulFeatures: List[StatefulFeature],
-    fields: List[FieldSchema],
+    fields: List[FieldName],
     schema: Schema,
-    statefulSchema: Schema,
-    statelessSchema: Schema,
     weights: Map[String, Double],
     datasetDescriptor: DatasetDescriptor
 ) {
@@ -41,12 +38,11 @@ case class FeatureMapping(
   ): List[ItemValues] = {
     val state = source.map(fv => fv.key -> fv).toMap
 
-    val itemFeatures: List[ItemFeature] = features.collect {
-      case feature: ItemStatelessFeature => feature
-      case feature: StatefulFeature      => feature
+    val itemFeatures: List[ItemFeature] = features.collect { case feature: ItemFeature =>
+      feature
     }
 
-    val rankingFeatures = features.collect { case feature: RankingStatelessFeature =>
+    val rankingFeatures = features.collect { case feature: RankingFeature =>
       feature
     }
 
@@ -72,7 +68,7 @@ case class FeatureMapping(
 
 object FeatureMapping {
   def fromFeatureSchema(schema: List[FeatureSchema], interactions: List[InteractionConfig]) = {
-    val stateless = schema.collect {
+    val features: List[BaseFeature] = schema.collect {
       case c: NumberFeatureSchema    => NumberFeature(c)
       case c: StringFeatureSchema    => StringFeature(c)
       case c: BooleanFeatureSchema   => BooleanFeature(c)
@@ -85,12 +81,9 @@ object FeatureMapping {
       case c: LocalDateTimeSchema    => LocalDateTimeFeature(c)
       case c: ItemAgeSchema          => ItemAgeFeature(c)
       case c: FieldMatchSchema       => FieldMatchFeature(c)
+      case c: InteractedWithSchema   => InteractedWithFeature(c)
     }
-    val stateful = schema.collect { case c: InteractedWithSchema =>
-      InteractedWithFeature(c)
-    }
-    val features: List[BaseFeature] = stateless ++ stateful
-    val featurySchema               = Schema(features.flatMap(_.states))
+    val featurySchema = Schema(features.flatMap(_.states))
     val datasetFeatures = features.map {
       case f: BaseFeature if f.dim == 1 => SingularFeature(f.schema.name)
       case f: BaseFeature               => VectorFeature(f.schema.name, f.dim)
@@ -98,11 +91,8 @@ object FeatureMapping {
     val datasetDescriptor = DatasetDescriptor(datasetFeatures)
     new FeatureMapping(
       features = features,
-      statefulFeatures = stateful,
-      fields = stateless.flatMap(_.fields),
+      fields = features.flatMap(_.fields),
       schema = featurySchema,
-      statefulSchema = Schema(stateful.flatMap(_.states)),
-      statelessSchema = Schema(stateless.flatMap(_.states)),
       weights = interactions.map(int => int.name -> int.weight).toMap,
       datasetDescriptor = datasetDescriptor
     )

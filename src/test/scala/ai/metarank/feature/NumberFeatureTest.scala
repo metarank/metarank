@@ -1,14 +1,15 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{FeatureSchema, FieldName, ItemId}
-import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.FieldName.{Interaction, Metadata}
+import ai.metarank.model.{FeatureSchema, FieldName}
+import ai.metarank.model.FeatureScope.{ItemScope, UserScope}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.{NumberField, StringField}
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.util.{TestInteractionEvent, TestMetadataEvent, TestRankingEvent}
-import cats.data.NonEmptyList
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{Key, SDouble, SString, ScalarValue, Timestamp}
@@ -22,7 +23,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
   val feature = NumberFeature(
     NumberFeatureSchema(
       name = "popularity",
-      source = FieldName(Metadata, "popularity"),
+      source = FieldName(Item, "popularity"),
       scope = ItemScope
     )
   )
@@ -31,13 +32,13 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     parse("name: price\ntype: number\nscope: item\nsource: metadata.price\nrefresh: 1m").flatMap(
       _.as[FeatureSchema]
     ) shouldBe Right(
-      NumberFeatureSchema("price", FieldName(Metadata, "price"), ItemScope, Some(1.minute))
+      NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope, Some(1.minute))
     )
   }
 
   it should "extract field from metadata" in {
-    val event  = TestMetadataEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event)
+    val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
+    val result = feature.writes(event, FieldStore.empty)
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -53,9 +54,25 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event)
+    val result = feature.writes(event, FieldStore.empty)
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
+    )
+  }
+
+  it should "extract field from user profile" in {
+    val feature = NumberFeature(
+      NumberFeatureSchema(
+        name = "user_age",
+        source = FieldName(User, "age"),
+        scope = UserScope
+      )
+    )
+
+    val event  = TestUserEvent("u1", List(NumberField("age", 33)))
+    val result = feature.writes(event, FieldStore.empty)
+    result shouldBe List(
+      Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SDouble(33))
     )
   }
 
@@ -63,7 +80,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     val key = Key(feature.states.head, Tenant("default"), "p1")
     val result = feature.value(
       request = TestRankingEvent(List("p1")),
-      state = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
+      features = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
       id = ItemRelevancy(ItemId("p1"))
     )
     result shouldBe SingleValue("popularity", 100.0)

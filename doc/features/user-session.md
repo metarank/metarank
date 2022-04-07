@@ -21,7 +21,7 @@ Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
 ```
 
 There is a large collaborative effort to build a database of typical UA patterns, (UA-Parser)[https://github.com/ua-parser],
-which is used to extract all the possible metadata from these strings. 
+which is used to extract all the possible item metadata from these strings. 
 
 To map this to actual ML features, there is a predefined set of mappers:
 * platform: mobile, desktop, tablet
@@ -64,7 +64,7 @@ Example:
   type: interacted_with
   // type of the interaction event (interaction.type field)
   interaction: click
-  field: metadata.color // must be a string or string[]
+  field: item.color // must be a string or string[], and only works with item fields
 
   // session/user
   scope: user

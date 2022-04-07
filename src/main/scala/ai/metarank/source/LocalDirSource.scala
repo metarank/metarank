@@ -82,6 +82,6 @@ object LocalDirSource {
 
   object LocalDirWriter {
     def create(dir: File): Resource[IO, LocalDirWriter] =
-      effect.Resource.make(Ref.of[IO, Int](0).map(ref => new LocalDirWriter(dir, ref)))(w => IO { w.dir.delete() })
+      Resource.eval(Ref.of[IO, Int](0).map(cnt => new LocalDirWriter(dir, cnt)))
   }
 }

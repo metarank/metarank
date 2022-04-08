@@ -10,6 +10,7 @@ import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
+import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
@@ -82,6 +83,7 @@ object FeatureMapping {
       case c: ItemAgeSchema          => ItemAgeFeature(c)
       case c: FieldMatchSchema       => FieldMatchFeature(c)
       case c: InteractedWithSchema   => InteractedWithFeature(c)
+      case c: RefererSchema          => RefererFeature(c)
     }
     val featurySchema = Schema(features.flatMap(_.states))
     val datasetFeatures = features.map {

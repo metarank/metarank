@@ -41,18 +41,14 @@ To configure the extractor, use this YAML snippet:
   // options: platform, os, browser, bot
   field: "platform"
   
-  // technically, parsed user agent fields are stored in a feature store,
-  // so you can send this field only once, and it will be retrieved from
-  // the store automatically. Scope is a key used to store the value.
-  // Good options are: session/user
-  scope: session
-
   // optional, how frequently we should update the value
   refresh: 0s
 
   // optional, how long should we remember this field
   ttl: 90d
 ```
+
+The UA field is taken from each ranking request, so it should be always present.
 
 ## Interacted with
 
@@ -72,3 +68,45 @@ Example:
 
 For this example, Metarank will track all color field values for all items visitor clicked and intersect this set 
 with per-item field values in the ranking.
+
+## Referer
+
+For user/ranking/interaction events it's possible to parse a HTTP Referer field and extract the source medium.
+We use a [snowplow referer parser](https://s3-eu-west-1.amazonaws.com/snowplow-hosted-assets/third-party/referer-parser/referers-latest.json)
+parsing library, so it defines 6 types of referer mediums: unknown, search, internal, social, email, paid.
+
+For a ranking event:
+```json
+{
+  "event": "ranking",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000",
+  "user": "user1",
+  "session": "session1",
+  "fields": [
+      {"name": "referer", "value": "http://www.google.com"}
+  ],
+  "items": [
+    {"id": "item1", "relevancy":  1.0},
+    {"id": "item2", "relevancy":  0.5} 
+  ]
+}
+```
+
+and a configuration:
+```yaml
+- name: referer_medium
+  type: referer
+  source: ranking.referer
+  scope: user // can be user/session
+```
+
+It will detect that it's a "search" medium and one-hot-encode it to `[0, 1, 0, 0, 0, 0]`.
+
+A source field can be of a user/ranking/interaction type, and feature extractor memorises all the referer fields ingested:
+* it matches the HTTP Referer semantics, as referer field is sent on each request
+* there can be multiple referers. For example, visitor lands on a site from google (and gets a "search" referer),
+  then does a couple of interactions with the site (and also gets an "internal" referer medium)
+
+In a case when a visitor has multiple referers memorized, then the one-hot-encoded vector will have multiple flags enabled,
+like `[0, 1, 1, 0, 0, 0]` for a case with search+internal referer mediums.

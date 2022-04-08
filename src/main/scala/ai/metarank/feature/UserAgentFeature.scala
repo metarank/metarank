@@ -6,13 +6,10 @@ import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
-import ai.metarank.model.Identifier._
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.util.OneHotEncoder
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.FeatureName
 import io.findify.featury.model.Write.Put
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, SStringList, ScalarValue}
 import ua_parser.{Client, Parser}
@@ -24,13 +21,7 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   val names             = schema.field.possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.field.dim
 
-  private val conf = ScalarConfig(
-    scope = schema.scope.scope,
-    name = FeatureName(schema.name),
-    refresh = schema.refresh.getOrElse(0.seconds),
-    ttl = schema.ttl.getOrElse(90.days)
-  )
-  override def states: List[FeatureConfig] = List(conf)
+  override def states: List[FeatureConfig] = Nil
 
   override def fields = List(schema.source)
 
@@ -59,10 +50,11 @@ object UserAgentFeature {
       name: String,
       source: FieldName,
       field: UAField,
-      scope: FeatureScope,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override val scope = FeatureScope.SessionScope
+  }
 
   trait UAField {
     lazy val dim: Int = possibleValues.size

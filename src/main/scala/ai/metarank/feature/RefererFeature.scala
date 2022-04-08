@@ -41,13 +41,14 @@ import io.findify.featury.model.{
   MapValue,
   NumStatsValue,
   PeriodicCounterValue,
+  SBoolean,
   SString,
   ScalarValue,
   Write
 }
-import io.findify.featury.model.FeatureConfig.ScalarConfig
+import io.findify.featury.model.FeatureConfig.{MapConfig, ScalarConfig}
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
-import io.findify.featury.model.Write.Put
+import io.findify.featury.model.Write.{Put, PutTuple}
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
@@ -61,27 +62,29 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     CreateParser[Id].create(file.toString()).right.get // YOLO
   }
 
-  val conf = ScalarConfig(
+  val conf = MapConfig(
     scope = schema.scope.scope,
     name = FeatureName(schema.name),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  val names = List(
-    UnknownMedium.value,
-    SearchMedium.value,
-    InternalMedium.value,
-    SocialMedium.value,
-    EmailMedium.value,
-    PaidMedium.value
+  val possibleValues = Map(
+    UnknownMedium.value  -> 0,
+    SearchMedium.value   -> 1,
+    InternalMedium.value -> 2,
+    SocialMedium.value   -> 3,
+    EmailMedium.value    -> 4,
+    PaidMedium.value     -> 5
   )
 
-  override def dim: Int = 6
+  val names = possibleValues.keys.toList
 
-  override def fields: List[FieldName] = List(schema.source)
+  override val dim: Int = possibleValues.size
 
-  override def states: List[FeatureConfig] = List(conf)
+  override val fields: List[FieldName] = List(schema.source)
+
+  override val states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event, fields: FieldStore): Traversable[Write] = event match {
     case event: UserEvent if schema.source.event == User                             => writeField(event)
@@ -90,7 +93,7 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     case _                                                                           => Traversable.empty
   }
 
-  def writeField(event: Event): Traversable[Write] = {
+  def writeField(event: Event): Traversable[PutTuple] = {
     for {
       key   <- schema.scope.keys(event, conf.name)
       field <- event.fieldsMap.get(schema.source.field)
@@ -100,37 +103,34 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
           logger.warn(s"expected string field type, but got $field")
           None
       }
+      parsed <- parser.parse(ref)
     } yield {
-      Put(key, event.timestamp, SString(ref))
+      PutTuple(key, event.timestamp, parsed.medium.value, Some(SBoolean(true)))
     }
   }
 
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue]): MValue = {
     val result = for {
-      ref    <- fromState(request, features)
-      parsed <- parser.parse(ref)
+      mediums <- fromState(request, features)
     } yield {
-      val index = parsed.medium match {
-        case UnknownMedium  => 0
-        case SearchMedium   => 1
-        case InternalMedium => 2
-        case SocialMedium   => 3
-        case EmailMedium    => 4
-        case PaidMedium     => 5
-      }
       val buffer = new Array[Double](6)
-      buffer(index) = 1.0
+      for {
+        medium <- mediums
+        index  <- possibleValues.get(medium)
+      } {
+        buffer(index) = 1.0
+      }
       VectorValue(names, buffer, dim)
     }
     result.getOrElse(VectorValue.empty(names, dim))
   }
 
-  def fromState(request: Event.RankingEvent, features: Map[Key, FeatureValue]): Option[String] = for {
+  def fromState(request: Event.RankingEvent, features: Map[Key, FeatureValue]): Option[List[String]] = for {
     key      <- schema.scope.keys(request, conf.name).headOption
     refField <- features.get(key)
     ref <- refField match {
-      case ScalarValue(_, _, SString(value)) => Some(value)
-      case _                                 => None
+      case MapValue(_, _, values) => Some(values.keys.toList)
+      case _                      => None
     }
   } yield {
     ref

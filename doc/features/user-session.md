@@ -73,7 +73,7 @@ with per-item field values in the ranking.
 
 For user/ranking/interaction events it's possible to parse a HTTP Referer field and extract the source medium.
 We use a [snowplow referer parser](https://s3-eu-west-1.amazonaws.com/snowplow-hosted-assets/third-party/referer-parser/referers-latest.json)
-parsing library, so it defines 6 types of referers: unknown, search, internal, social, email, paid.
+parsing library, so it defines 6 types of referer mediums: unknown, search, internal, social, email, paid.
 
 For a ranking event:
 ```json
@@ -98,10 +98,15 @@ and a configuration:
 - name: referer_medium
   type: referer
   source: ranking.referer
-  scope: user
+  scope: user // can be user/session
 ```
 
 It will detect that it's a "search" medium and one-hot-encode it to `[0, 1, 0, 0, 0, 0]`.
 
 A source field can be of a user/ranking/interaction type, and feature extractor memorises all the referer fields ingested:
-* it matches the HTTP Referer??? 
+* it matches the HTTP Referer semantics, as referer field is sent on each request
+* there can be multiple referers. For example, visitor lands on a site from google (and gets a "search" referer),
+  then does a couple of interactions with the site (and also gets an "internal" referer medium)
+
+In a case when a visitor has multiple referers memorized, then the one-hot-encoded vector will have multiple flags enabled,
+like `[0, 1, 1, 0, 0, 0]` for a case with search+internal referer mediums.

@@ -49,12 +49,21 @@ case class FeatureMapping(
 
     val rankingValues = rankingFeatures.map(_.value(ranking, state))
 
+    val itemValuesMatrix = itemFeatures
+      .map(f => {
+        val values = f.values(ranking, state)
+        if (values.size != f.dim)
+          throw new IllegalStateException(s"for ${f.schema} dim mismatch: ${f.dim} != ${values.size}")
+        values
+      })
+      .transpose
+
     for {
-      item <- ranking.items.toList
+      item       <- ranking.items.toList
+      itemValues <- itemValuesMatrix
     } yield {
       val weight = interactions.find(_.item == item.id).map(e => weights.getOrElse(e.`type`, 1.0)).getOrElse(0.0)
-      val values = itemFeatures.map(_.value(ranking, state, item))
-      ItemValues(item.id, weight, rankingValues ++ values)
+      ItemValues(item.id, weight, rankingValues ++ itemValues)
     }
   }
 

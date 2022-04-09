@@ -9,7 +9,7 @@ sealed trait MValue {
 
 object MValue {
   case class SingleValue(name: String, value: Double) extends MValue {
-    override def dim: Int = 1
+    override val dim: Int = 1
   }
 
   case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue

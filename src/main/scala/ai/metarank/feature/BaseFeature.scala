@@ -46,6 +46,9 @@ object BaseFeature {
         features: Map[Key, FeatureValue],
         id: ItemRelevancy
     ): MValue
+
+    def values(request: Event.RankingEvent, features: Map[Key, FeatureValue]): List[MValue] =
+      request.items.toList.map(item => value(request, features, item))
   }
 
   trait RankingFeature extends BaseFeature {

@@ -41,20 +41,56 @@ And a following ranking event:
 ```
 
 With the following config file snippet you can do a per-field matching of `ranking.query` field over `item.title` field of
-the items in the ranking:
+the items in the ranking with 3-grams:
 ```yaml
 - name: title_match
   type: field_match
   itemField: item.title // must be a string
   rankingField: ranking.query // must be a string
   method:
-    type: ngram // for now only ngram is supported
+    type: ngram // for now only ngram and term are supported
+    language: en // ISO-639-1 language code
     n: 3
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
 
-Supported `type` field values:
+In a similar way you can do the same with term matching:
+```yaml
+- name: title_match
+  type: field_match
+  itemField: item.title // must be a string
+  rankingField: ranking.query // must be a string
+  method:
+    type: term // for now only ngram and term are supported
+    language: en // ISO-639-1 language code
+```
 
-- `ngram`: does a text match using ngram algorithm
+Both term and ngram matching methods leverage Lucene for text analysis and support the following set of languages:
+- *generic*: no language specific transformations
+- *en*: English
+- *cz*: Czech
+- *da*: Danish
+- *nl*: Dutch
+- *et*: Estonian
+- *fi*: Finnish
+- *fr*: French
+- *de*: German
+- *gr*: Greek
+- *it*: Italian
+- *no*: Norwegian
+- *pl*: Polish
+- *pt*: Portuguese
+- *es*: Spanish
+- *sv*: Swedish
+- *tr*: Turkish
+- *ar*: Arabic
+- *zh*: Chinese
+- *ja*: Japanese
 
+
+Both term and ngram method share the same approach to the text analysis:
+* text line is split into terms (using language-specific method)
+* stopwords are removed
+* for non-generic languages each term is stemmed
+* then terms/ngrams from item and ranking are scored using intersection/union method.

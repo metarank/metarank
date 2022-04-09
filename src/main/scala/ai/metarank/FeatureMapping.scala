@@ -19,7 +19,7 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName}
+import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
@@ -49,13 +49,24 @@ case class FeatureMapping(
 
     val rankingValues = rankingFeatures.map(_.value(ranking, state))
 
-    for {
-      item <- ranking.items.toList
+    val itemValuesMatrix = itemFeatures
+      .map(feature => {
+        val values = feature.values(ranking, state)
+        values.foreach { value =>
+          if (feature.dim != value.dim)
+            throw new IllegalStateException(s"for ${feature.schema} dim mismatch: ${feature.dim} != ${value.dim}")
+        }
+        values
+      })
+      .transpose
+
+    val itemScores = for {
+      (item, itemValues) <- ranking.items.toList.zip(itemValuesMatrix)
     } yield {
       val weight = interactions.find(_.item == item.id).map(e => weights.getOrElse(e.`type`, 1.0)).getOrElse(0.0)
-      val values = itemFeatures.map(_.value(ranking, state, item))
-      ItemValues(item.id, weight, rankingValues ++ values)
+      ItemValues(item.id, weight, rankingValues ++ itemValues)
     }
+    itemScores
   }
 
   def keys(ranking: RankingEvent): Traversable[Key] = for {

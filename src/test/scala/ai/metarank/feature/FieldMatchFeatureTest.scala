@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.FieldMatchFeature.{FieldMatchSchema, NgramMethod}
+import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
+import ai.metarank.feature.matcher.NgramMatcher
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
@@ -9,8 +10,8 @@ import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.{Item, Ranking}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestItemEvent, TestRankingEvent}
-import io.findify.featury.model.{Key, SString, ScalarValue, Timestamp}
+import ai.metarank.util.{TestItemEvent, TestRankingEvent, TextAnalyzer}
+import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}
 import io.findify.featury.model.Write.Put
 import org.scalatest.flatspec.AnyFlatSpec
@@ -22,15 +23,20 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers {
       name = "title_match",
       rankingField = FieldName(Ranking, "query"),
       itemField = FieldName(Item, "title"),
-      method = NgramMethod(3)
+      method = NgramMatcher(3, TextAnalyzer.english)
     )
   )
   val now = Timestamp.now
+
   it should "generate puts" in {
     val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
     val puts  = feature.writes(event, FieldStore.empty).toList
     puts shouldBe List(
-      Put(Key(Tag(ItemScope.scope, "p1"), FeatureName("title_match"), Tenant("default")), now, SString("foobar"))
+      Put(
+        Key(Tag(ItemScope.scope, "p1"), FeatureName("title_match"), Tenant("default")),
+        now,
+        SStringList(List("bar", "foo", "oba", "oob"))
+      )
     )
   }
 
@@ -38,7 +44,7 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers {
     val key     = Key(Tag(ItemScope.scope, "p1"), FeatureName("title_match"), Tenant("default"))
     val request = TestRankingEvent(List("p1")).copy(fields = List(StringField("query", "foo")))
     val result =
-      feature.value(request, Map(key -> ScalarValue(key, now, SString("foobar"))), ItemRelevancy(ItemId("p1")))
-    result shouldBe SingleValue("title_match", 0.25)
+      feature.values(request, Map(key -> ScalarValue(key, now, SStringList(List("bar", "foo", "oba", "oob")))))
+    result shouldBe List(SingleValue("title_match", 0.25))
   }
 }

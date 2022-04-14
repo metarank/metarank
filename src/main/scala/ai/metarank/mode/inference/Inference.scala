@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
-import ai.metarank.mode.inference.ranking.LightGBMScorer
+import ai.metarank.mode.inference.ranking.LtrlibScorer
 import ai.metarank.source.LocalDirSource.LocalDirWriter
 import ai.metarank.util.Logging
 import better.files.File
@@ -36,14 +36,14 @@ object Inference extends IOApp with Logging {
       confContents <- FileLoader.loadLocal(cmd.config, env).map(new String(_))
       config       <- Config.load(confContents)
       mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
-      model        <- FileLoader.loadLocal(cmd.model, env).map(new String(_))
+      model        <- FileLoader.loadLocal(cmd.model, env)
       result <- cluster(dir, config, mapping, cmd, model).use {
         _.serve.compile.drain.as(ExitCode.Success).flatTap(_ => IO { logger.info("Metarank API closed") })
       }
     } yield result
   }
 
-  def cluster(dir: File, config: Config, mapping: FeatureMapping, cmd: InferenceCmdline, model: String) = {
+  def cluster(dir: File, config: Config, mapping: FeatureMapping, cmd: InferenceCmdline, model: Array[Byte]) = {
     for {
       cluster  <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       redis    <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
@@ -52,7 +52,7 @@ object Inference extends IOApp with Logging {
       store    <- FeatureStoreResource.make(() => RedisStore(RedisConfig(redis.host, cmd.redisPort, cmd.format)))
       storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
       mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
-      scorer  = LightGBMScorer(model)
+      scorer <- Resource.eval(LtrlibScorer.fromBytes(model))
       writer <- LocalDirWriter.create(dir)
       routes  = HealthApi.routes <+> RankApi(mapping, storeRef, scorer).routes <+> FeedbackApi(writer).routes
       httpApp = Router("/" -> routes).orNotFound

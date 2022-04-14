@@ -19,7 +19,7 @@ import org.scalatest.matchers.should.Matchers
 import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 
-class ItemAgeFeatureTest extends AnyFlatSpec with Matchers {
+class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   lazy val feature   = ItemAgeFeature(ItemAgeSchema("itemage", FieldName(Item, "updated_at")))
   lazy val updatedAt = ZonedDateTime.of(2022, 3, 1, 0, 0, 0, 0, ZoneId.of("UTC+2"))
   lazy val now       = ZonedDateTime.of(2022, 3, 28, 0, 0, 0, 0, ZoneId.of("UTC+2"))
@@ -81,5 +81,18 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers {
       ItemRelevancy(ItemId("p1"))
     )
     result shouldBe SingleValue("itemage", 2332800.0)
+  }
+
+  it should "process events" in {
+    val event = TestItemEvent(
+      "p1",
+      List(StringField("updated_at", updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)))
+    ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
+    val result = process(
+      events = List(event),
+      schema = feature.schema,
+      request = TestRankingEvent(List("p1")).copy(timestamp = Timestamp(now.toInstant.toEpochMilli))
+    )
+    result shouldBe List(List(SingleValue("itemage", 2332800.0)))
   }
 }

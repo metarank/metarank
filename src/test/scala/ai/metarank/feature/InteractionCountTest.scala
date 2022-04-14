@@ -4,6 +4,7 @@ import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Identifier.{ItemId, SessionId}
+import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import io.findify.featury.model.Key
 import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}
@@ -11,7 +12,7 @@ import io.findify.featury.model.Write.Increment
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class InteractionCountTest extends AnyFlatSpec with Matchers {
+class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = InteractionCountFeature(
     InteractionCountSchema(
       name = "cnt",
@@ -40,5 +41,15 @@ class InteractionCountTest extends AnyFlatSpec with Matchers {
     write shouldBe List(
       Increment(Key(Tag(SessionScope.scope, "s1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
     )
+  }
+
+  it should "count events" in {
+    val result = process(
+      events = List(TestInteractionEvent("p1", "x"), TestInteractionEvent("p1", "x"), TestInteractionEvent("p1", "x")),
+      schema = feature.schema,
+      request = TestRankingEvent(List("p1"))
+    )
+    result should matchPattern { case List(List(SingleValue("cnt", 3))) =>
+    }
   }
 }

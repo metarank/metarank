@@ -17,7 +17,7 @@ import io.findify.featury.model.Write.Put
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class StringFeatureTest extends AnyFlatSpec with Matchers {
+class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = StringFeature(
     StringFeatureSchema(
       name = "color",
@@ -85,5 +85,18 @@ class StringFeatureTest extends AnyFlatSpec with Matchers {
     value should matchPattern {
       case VectorValue(List("country_a", "country_b", "country_c"), values, 3) if values.toList == List(0, 1, 0) =>
     }
+  }
+
+  it should "encode values" in {
+    val result = process(
+      events = List(TestItemEvent("p1", List(StringField("color", "red")))),
+      schema = feature.schema,
+      TestRankingEvent(List("p1"))
+    )
+    result should matchPattern {
+      case List(List(VectorValue(List("color_red", "color_green", "color_blue"), values, 3)))
+          if values.toList == List(1.0, 0, 0) =>
+    }
+    val br = 1
   }
 }

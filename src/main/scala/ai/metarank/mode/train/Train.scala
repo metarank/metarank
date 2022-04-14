@@ -26,8 +26,8 @@ object Train extends IOApp with Logging {
     _       <- validate(data)
   } yield {
     val (train, test) = split(data, cmd.split)
-    cmd.output.write(trainModel(train, test, cmd.booster, cmd.iterations))
-    logger.info(s"model written to ${cmd.output}")
+    cmd.output.writeByteArray(trainModel(train, test, cmd.booster, cmd.iterations))
+    logger.info(s"${cmd.booster} model written to ${cmd.output}")
     ExitCode.Success
   }
 

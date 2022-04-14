@@ -17,7 +17,7 @@ import ai.metarank.flow.DatasetSink
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.mode.inference.FeatureStoreResource
 import ai.metarank.mode.inference.api.RankApi
-import ai.metarank.mode.inference.ranking.LightGBMScorer
+import ai.metarank.mode.inference.ranking.LtrlibScorer
 import ai.metarank.mode.train.Train
 import ai.metarank.mode.train.TrainCmdline.LambdaMARTLightGBM
 import better.files.{File, Resource}
@@ -60,16 +60,16 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "train the model" ignore {
     val dataset       = Train.loadData(dir, mapping.datasetDescriptor).unsafeRunSync()
     val (train, test) = Train.split(dataset, 80)
-    modelFile.write(Train.trainModel(train, test, LambdaMARTLightGBM, 200))
+    modelFile.writeByteArray(Train.trainModel(train, test, LambdaMARTLightGBM, 200))
   }
 
   it should "rerank things" in {
     val event = RanklensEvents().collect { case r: RankingEvent =>
       r
     }.head
-    val model    = IOUtils.toString(Resource.my.getAsStream("/ranklens/ranklens.model"), StandardCharsets.UTF_8)
+    val model    = IOUtils.toByteArray(Resource.my.getAsStream("/ranklens/ranklens.model"))
     val store    = FeatureStoreResource.unsafe(() => DiskStore(updatesDir)).unsafeRunSync()
-    val ranker   = RankApi(mapping, store, LightGBMScorer(model))
+    val ranker   = RankApi(mapping, store, LtrlibScorer.fromBytes(model).unsafeRunSync())
     val response = ranker.rerank(event, false).unsafeRunSync()
     val br       = 1
   }

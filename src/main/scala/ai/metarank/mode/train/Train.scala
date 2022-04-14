@@ -9,7 +9,7 @@ import cats.effect.{ExitCode, IO, IOApp}
 import io.circe.parser._
 import io.github.metarank.ltrlib.booster.Booster.BoosterOptions
 import io.github.metarank.ltrlib.booster.{LightGBMBooster, XGBoostBooster}
-import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
+import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
 import java.nio.charset.StandardCharsets
@@ -65,10 +65,21 @@ object Train extends IOApp with Logging {
   def trainModel(train: Dataset, test: Dataset, mtype: ModelType, iterations: Int) = {
     val opts = BoosterOptions(trees = iterations)
     val booster = mtype match {
-      case TrainCmdline.LambdaMARTLightGBM => LambdaMART(train, opts, LightGBMBooster)
-      case TrainCmdline.LambdaMARTXGBoost  => LambdaMART(train, opts, XGBoostBooster)
+      case TrainCmdline.LambdaMARTLightGBM => LambdaMART(train, opts, LightGBMBooster, Some(test))
+      case TrainCmdline.LambdaMARTXGBoost  => LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
     val model = booster.fit()
+    val features = train.desc.features.flatMap {
+      case Feature.SingularFeature(name)     => List(name)
+      case Feature.VectorFeature(name, size) => (0 until size).map(i => s"${name}_$i")
+    }
+    val weights = model.weights()
+    logger.info("Feature weights")
+    for {
+      (feature, weight) <- features.zip(weights)
+    } {
+      logger.info(s"$feature = $weight")
+    }
     model.save()
   }
 

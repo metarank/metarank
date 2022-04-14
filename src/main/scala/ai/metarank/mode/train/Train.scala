@@ -27,7 +27,7 @@ object Train extends IOApp with Logging {
   } yield {
     val (train, test) = split(data, cmd.split)
     cmd.output.writeByteArray(trainModel(train, test, cmd.booster, cmd.iterations))
-    logger.info(s"model written to ${cmd.output}")
+    logger.info(s"${cmd.booster} model written to ${cmd.output}")
     ExitCode.Success
   }
 

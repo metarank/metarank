@@ -19,7 +19,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-class RateFeatureTest extends AnyFlatSpec with Matchers {
+class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf    = RateFeatureSchema("ctr", "click", "impression", 24.hours, List(7, 14), ItemScope)
   val feature = RateFeature(conf)
 
@@ -83,5 +83,22 @@ class RateFeatureTest extends AnyFlatSpec with Matchers {
     )
     val result1 = feature.value(TestRankingEvent(List("p1", "p2")), state, ItemRelevancy(ItemId("p1")))
     result1.asInstanceOf[VectorValue].values.toList shouldBe List(0.0, 0.0)
+  }
+
+  it should "process events" in {
+    val result = process(
+      events = List(
+        TestInteractionEvent("p1", "x").copy(`type` = "impression"),
+        TestInteractionEvent("p1", "x").copy(`type` = "impression"),
+        TestInteractionEvent("p1", "x").copy(`type` = "impression"),
+        TestInteractionEvent("p1", "x").copy(`type` = "impression"),
+        TestInteractionEvent("p1", "x").copy(`type` = "click")
+      ),
+      schema = RateFeatureSchema("ctr", "click", "impression", 24.hours, List(7, 14), ItemScope),
+      request = TestRankingEvent(List("p1"))
+    )
+    result should matchPattern {
+      case List(List(VectorValue(List("ctr_7", "ctr_14"), values, 2))) if values.toList == List(0.25, 0.25) =>
+    }
   }
 }

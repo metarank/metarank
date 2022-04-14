@@ -51,7 +51,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  override def states: List[FeatureConfig] = List(lastValues)
+  override def states: List[FeatureConfig] = List(lastValues, itemValues)
 
   override def fields: List[FieldName] = List(schema.field)
 
@@ -66,7 +66,11 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
             case _                               => Nil
           }
         } yield {
-          Put(Key(itemValues, Tenant(item.tenant), item.item.value), event.timestamp, SString(string))
+          Put(
+            key = Key(Tag(ItemScope.scope, item.item.value), itemValues.name, Tenant(event.tenant)),
+            ts = event.timestamp,
+            value = SString(string)
+          )
         }
       case int: InteractionEvent if int.`type` == schema.interaction =>
         for {

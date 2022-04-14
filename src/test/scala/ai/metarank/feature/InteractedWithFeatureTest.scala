@@ -20,7 +20,7 @@ import io.findify.featury.model.Write.{Append, Put}
 
 import scala.concurrent.duration._
 
-class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
+class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf = InteractedWithSchema(
     name = "seen_color",
     interaction = "impression",
@@ -121,5 +121,26 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers {
       ItemRelevancy(ItemId("404"))
     )
     values4 shouldBe SingleValue("seen_color", 0)
+  }
+
+  it should "process events" in {
+    val conf = InteractedWithSchema(
+      name = "seen_color",
+      interaction = "click",
+      field = FieldName(Item, "color"),
+      scope = SessionScope,
+      count = Some(10),
+      duration = Some(24.hours)
+    )
+    val result = process(
+      events = List(
+        TestItemEvent("p1", List(StringListField("color", List("red")))),
+        TestInteractionEvent("p1", "x")
+      ),
+      schema = conf,
+      request = TestRankingEvent(List("p1"))
+    )
+    result should matchPattern { case List(List(SingleValue("seen_color", 1.0))) =>
+    }
   }
 }

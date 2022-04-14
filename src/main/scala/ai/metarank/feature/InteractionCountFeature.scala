@@ -13,7 +13,7 @@ import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.{CounterConfig, ScalarConfig}
 import io.findify.featury.model.Key.{FeatureName, Tenant}
 import io.findify.featury.model.Write.{Increment, Put}
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
+import io.findify.featury.model.{CounterValue, FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
 import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
@@ -52,8 +52,8 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
       value
     }
     result match {
-      case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
-      case _                                       => SingleValue(schema.name, 0)
+      case Some(CounterValue(_, _, value)) => SingleValue(schema.name, value)
+      case _                               => SingleValue(schema.name, 0)
     }
   }
 }

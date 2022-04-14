@@ -3,8 +3,9 @@ package ai.metarank.flow
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.FieldStore.FlinkFieldStore
 import ai.metarank.model.{Event, Field, FieldId, FieldUpdate}
-import io.findify.featury.model.{Schema, Write}
+import io.findify.featury.model.{Schema, State, Write}
 import org.apache.flink.api.common.state.MapStateDescriptor
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.functions.co.BroadcastProcessFunction
 import org.apache.flink.util.Collector
 

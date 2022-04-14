@@ -48,7 +48,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
 
     val source  = env.fromCollection(events).watermark(_.timestamp.ts)
     val grouped = Bootstrap.groupFeedback(source)
-    val updates = Bootstrap.makeUpdates(source, grouped, mapping)._2
+    val updates = Bootstrap.makeUpdates(source, grouped, mapping)._3
     Featury.writeFeatures(updates, new Path(updatesDir.toString()), Compress.NoCompression)
     val computed = Bootstrap.joinFeatures(updates, grouped, mapping)
 

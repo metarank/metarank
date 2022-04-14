@@ -32,9 +32,9 @@ object FeedbackFlow extends Logging {
   ) = {
     AsyncFlinkJob.execute(cluster, Some(cmd.savepoint)) { env =>
       {
-        val source       = env.addSource(new LocalDirSource(path)).id("local-source")
-        val grouped      = Bootstrap.groupFeedback(source)
-        val (_, updates) = Bootstrap.makeUpdates(source, grouped, mapping)
+        val source          = env.addSource(new LocalDirSource(path)).id("local-source")
+        val grouped         = Bootstrap.groupFeedback(source)
+        val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping)
         updates
           .addSink(
             FeatureStoreSink(RedisStore(RedisConfig(redisHost, cmd.redisPort, cmd.format)), cmd.batchSize)

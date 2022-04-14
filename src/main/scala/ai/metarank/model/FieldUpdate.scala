@@ -4,6 +4,8 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserE
 import ai.metarank.model.FieldId.{ItemFieldId, UserFieldId}
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.Identifier.{ItemId, UserId}
+import io.circe.Codec
+import io.circe.generic.semiauto.deriveCodec
 import io.findify.featury.model.Key.Tenant
 
 case class FieldUpdate(id: FieldId, value: Field)

@@ -18,7 +18,7 @@ import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
-import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat}
+import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat, CompressedBulkWriter}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
 import io.findify.featury.model.Key.Tenant
@@ -30,11 +30,14 @@ import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.scala.ExecutionEnvironment
-import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend
+import org.apache.flink.contrib.streaming.state.{EmbeddedRocksDBStateBackend, RocksDBOptionsFactory}
 import org.apache.flink.core.fs.Path
+import org.apache.flink.runtime.state.hashmap.HashMapStateBackend
 import org.apache.flink.state.api.{OperatorTransformation, Savepoint}
 import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
+import org.rocksdb.{ColumnFamilyOptions, DBOptions}
 
+import java.util
 import scala.language.higherKinds
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
@@ -48,6 +51,12 @@ object Bootstrap extends IOApp with Logging {
   case object FeatureValueKeySelector extends KeySelector[FeatureValue, Tenant] {
     override def getKey(value: FeatureValue): Tenant = value.key.tenant
   }
+
+  lazy val fieldState = new MapStateDescriptor[FieldId, Field](
+    "fields",
+    implicitly[TypeInformation[FieldId]],
+    implicitly[TypeInformation[Field]]
+  )
 
   override def run(args: List[String]): IO[ExitCode] = for {
     env            <- IO { System.getenv().asScala.toMap }
@@ -66,19 +75,32 @@ object Bootstrap extends IOApp with Logging {
   def run(config: Config, cmd: BootstrapCmdline) = IO {
     if (cmd.outDirUrl.startsWith("file://")) { File(cmd.outDir).createDirectoryIfNotExists(createParents = true) }
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+
     val streamEnv =
       StreamExecutionEnvironment.createLocalEnvironment(cmd.parallelism, FlinkS3Configuration(System.getenv()))
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
+    streamEnv.getConfig.enableObjectReuse()
 
     logger.info("starting historical data processing")
-    val raw: DataStream[Event] = FileEventSource(cmd.eventPathUrl).eventStream(streamEnv).id("load")
-    val grouped                = groupFeedback(raw)
-    val (state, updates)       = makeUpdates(raw, grouped, mapping)
+    val raw: DataStream[Event]   = FileEventSource(cmd.eventPathUrl).eventStream(streamEnv).id("load")
+    val grouped                  = groupFeedback(raw)
+    val (state, fields, updates) = makeUpdates(raw, grouped, mapping)
 
     Featury.writeState(state, new Path(s"${cmd.outDirUrl}/state"), Compress.NoCompression).id("write-state")
     Featury
       .writeFeatures(updates, new Path(s"${cmd.outDirUrl}/features"), Compress.NoCompression)
       .id("write-features")
+    val fieldsPath = new Path(s"${cmd.outDirUrl}/fields")
+    fields
+      .sinkTo(
+        CompressedBulkWriter.writeFile(
+          path = fieldsPath,
+          compress = Compress.NoCompression,
+          codec = FieldUpdateCodec,
+          prefix = "fields"
+        )
+      )
+      .id("write-fields")
     val computed = joinFeatures(updates, grouped, mapping)
     computed.sinkTo(DatasetSink.json(mapping, s"${cmd.outDirUrl}/dataset")).id("write-train")
     streamEnv.execute("bootstrap")
@@ -99,10 +121,20 @@ object Bootstrap extends IOApp with Logging {
         valuesPath
       )
       .name("read-features")
-      .toJava
+
+    val fieldsSource = batch
+      .readFile(
+        new BulkInputFormat[FieldUpdate](
+          path = fieldsPath,
+          codec = FieldUpdateCodec,
+          compress = Compress.NoCompression
+        ),
+        fieldsPath.getPath
+      )
+      .name("read-fields")
 
     val transformStateJoin = OperatorTransformation
-      .bootstrapWith(valuesSource)
+      .bootstrapWith(valuesSource.toJava)
       .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
       .transform(new FeatureJoinBootstrapFunction())
 
@@ -111,10 +143,16 @@ object Bootstrap extends IOApp with Logging {
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
       .transform(new FeatureBootstrapFunction(mapping.schema))
 
+    val transformFields = OperatorTransformation
+      .bootstrapWith(fieldsSource.toJava)
+      .transform(FieldValueBootstrapFunction(fieldState))
+
+    val backend = new HashMapStateBackend()
     Savepoint
-      .create(new EmbeddedRocksDBStateBackend(), 32)
+      .create(backend, 32)
       .withOperator("process-writes", transformFeatures)
       .withOperator("join-state", transformStateJoin)
+      .withOperator("process-events", transformFields)
       .write(s"${cmd.outDirUrl}/savepoint")
 
     batch.execute("savepoint")
@@ -135,21 +173,20 @@ object Bootstrap extends IOApp with Logging {
       raw: DataStream[Event],
       grouped: KeyedStream[FeedbackEvent, EventId],
       mapping: FeatureMapping
-  ): (DataStream[State], DataStream[FeatureValue]) = {
+  ): (DataStream[State], DataStream[FieldUpdate], DataStream[FeatureValue]) = {
     val impressions = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
     val events      = raw.union(impressions)
 
-    val fieldState = new MapStateDescriptor[FieldId, Field](
-      "fields",
-      implicitly[TypeInformation[FieldId]],
-      implicitly[TypeInformation[Field]]
-    )
-    val fieldUpdates = raw.flatMap(e => FieldUpdate.fromEvent(e)).broadcast(fieldState)
+    val fieldUpdates = raw.flatMap(e => FieldUpdate.fromEvent(e))
 
-    val writes: DataStream[Write] = events.connect(fieldUpdates).process(EventProcessFunction(fieldState, mapping))
-    val updates                   = Featury.process(writes, mapping.schema, 20.seconds).id("process-stateful-writes")
-    val state                     = updates.getSideOutput(FeatureProcessFunction.stateTag)
-    (state, updates)
+    val writes: DataStream[Write] =
+      events
+        .connect(fieldUpdates.broadcast(fieldState))
+        .process(EventProcessFunction(fieldState, mapping))
+        .id("process-events")
+    val updates = Featury.process(writes, mapping.schema, 20.seconds).id("process-writes")
+    val state   = updates.getSideOutput(FeatureProcessFunction.stateTag)
+    (state, fieldUpdates, updates)
   }
 
   def joinFeatures(

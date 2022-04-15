@@ -19,7 +19,7 @@ There is also a shared optional "tenant" field for multi-tenancy cases.
 ### `fields` parameter
 
 `fields` parameter is used in all events, however it is **optional** for ranking and interaction events. 
-You provide some additional contexnt, like search query, selected filters, shipping data that can be used as features of your personalization model.
+You can provide some additional context, like a search query, selected filters or shipping data that can be used as features of your personalization model.
 
 ```json
 "fields": [
@@ -38,7 +38,7 @@ You provide some additional contexnt, like search query, selected filters, shipp
 ## Item metadata event
 
 Metadata event is used to provide Metarank with updates of your content items (new items added, updates of values for existing items). 
-You don't need to pass all values that your items have, only the ones that you might use as your personalization model features.
+You don't need to pass all values that your items have; only the ones that you might use as your personalization model features.
 
 ### Event format
 ```json
@@ -61,7 +61,7 @@ You don't need to pass all values that your items have, only the ones that you m
 ## User metadata event
 
 User metadata is useful when you have some extra knowledge about your visitor. For example, if visitor filled a signup form,
-it can be a gender, or maybe age.
+it could be gender or age.
 
 ### Event format
 ```json
@@ -83,7 +83,7 @@ it can be a gender, or maybe age.
 
 ## Ranking event
 
-Ranking event is used to indicate what items and in waht order are shown to a visitor. 
+Ranking event is used to indicate what items and in what order are shown to a visitor. 
 This information is used by personalization algorithms to understand which items are relevant for the visitor.
 
 ### Event format
@@ -118,7 +118,7 @@ or other score that your system generated. The value is optional and can be unde
 
 ## Interaction event
 
-Interaction event identifies what actions the visitor performed on the items displayed. 
+Interaction event identifies which actions the visitor performed on the items displayed. 
 Some of the example of such events are: click, like, purchase.
 The `type` field must match the `name` provided in the [Configuration](03_configuration.md).
 
@@ -142,7 +142,7 @@ The `type` field must match the `name` provided in the [Configuration](03_config
 ```
 
 - `id`: a request identifier.
-- `ranking`: an identifier of the parent raning event event
+- `ranking`: an identifier of the parent ranking event
 - `user`: unique visitor identifier.
 - `session`: session identifier, a single visitor may have multiple sessions.
 - `type`: internal name of the event.

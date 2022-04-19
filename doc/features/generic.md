@@ -8,6 +8,7 @@ You can use the `word_count` feature extractor to get the length of a string fie
 ```yaml
 - name: title_length
   type: word_count
+  scope: item
   field: item.title // must be a string
 ```
 
@@ -23,6 +24,7 @@ predefined min and max values and log transformation:
     max: 100   
   field: price
   source: item
+  scope: item
 ```
 
 Supported methods:
@@ -50,6 +52,7 @@ Example config for an `estimate_histogram`:
     bucket_count: 5 // so value will be mapped to 0-20-40-60-80-100 percentiles
   field: price
   source: item
+  scope: item
 ```
 
 ## List size
@@ -62,14 +65,3 @@ Counts the number of items in a string or numerical list. Example:
   source: item
 ```
 
-## Time difference
-
-Computes the time difference in seconds between time now and a numerical field value. 
-Field value should be a *unixtime*: number of seconds passed from 1970-01-01 00:00:00 in UTC timezone. 
-Example:
-```yaml
-- name: age
-  type: list_size
-  field: created_at
-  source: item
-```

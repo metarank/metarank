@@ -26,6 +26,7 @@ We can add the following extractor, so it will use the availability data for the
 ```yaml
 - name: availability
   type: boolean
+  scope: item
   field: item.availability // must be a boolean
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
@@ -56,6 +57,7 @@ So you can extract this `banner_examined` value using the following config:
 ```yaml
 - name: banner_examined
   type: boolean
+  scope: item
   field: ranking.banner_examined
 ```
 
@@ -71,6 +73,7 @@ explicit feature:
 - name: price
   type: number
   field: item.price // must be a number
+  scope: item
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
@@ -95,6 +98,7 @@ You can map the `age` field into a feature this way:
 - name: user_age
   type: number
   field: user.age // must be a number
+  scope: user
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
@@ -105,22 +109,23 @@ With string values there is no easy way to map them into a finite set of ML feat
 the string has low cardinality (so there is a finite and low number of possible values), we can do a
 (one-hot encoding)[https://en.wikipedia.org/wiki/One-hot] to convert it to a series of numbers.
 
-Imagine you have field `platform: "mobile"` and there is only a small finite set of possible values for this field:
-it can be either mobile, desktop or tablet. So we can do the actual mapping in the following way:
+Imagine you have field `color: "red"` and there is only a small finite set of possible values for this field:
+it can be either red, green or blue. So we can do the actual mapping in the following way:
 
 ```yaml
-- name: platform
+- name: color
   type: string
-  values: [mobile, desktop, tablet]
-  field: ranking.platform // must be either a string, or array of strings
+  scope: item
+  values: [red, green, blue]
+  field: item.color // must be either a string, or array of strings
 ```
 
-This snippet will emit the following ML feature group for a `platform: "mobile"` input:
-* platform_mobile: 1
-* platform_desktop: 0
-* platform_tablet: 0
+This snippet will emit the following ML feature group for a `color: "red"` input:
+* color_red: 1
+* color_green: 0
+* color_blue: 0
 
-The underlying string field can be also an array of strings like `platform: ["mobile", "tablet"]`, which will
+The underlying string field can be also an array of strings like `color: ["red", "blue"]`, which will
 toggle two instead of one bit in the resulting vector.
 
 As with number/boolean extractor, there is a limitation on extracting fields from interaction events: it is not possible, 

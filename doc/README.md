@@ -15,6 +15,7 @@
 
 * [Configuration](03_configuration.md)
 * [Feature extractors](xx_feature_extractors.md)
+* [Feature scopes](scopes.md)
 * [Event schema overview](xx_event_schema.md)
 
 ## Tutorials

@@ -20,7 +20,7 @@ object AsyncFlinkJob extends Logging {
         val env = new StreamExecutionEnvironment(new TestStreamEnvironment(cluster.cluster.getMiniCluster, 1))
         job(env)
         val graph = env.getStreamGraph.getJobGraph
-        savepoint.foreach(s => graph.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(s, false)))
+        savepoint.foreach(s => graph.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(s, true)))
         logger.info(s"submitted job ${graph} to local cluster")
         cluster.client.submitJob(graph)
       }

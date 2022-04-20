@@ -24,13 +24,17 @@ object RedisEndpoint {
     override def close: IO[Unit] = IO { service.close() }
   }
 
+  object EmbeddedRedis {
+    def createUnsafe(port: Int) = {
+      val service = new RedisServer()
+      service.listener("localhost", port)
+      service
+    }
+  }
+
   def create(dir: Option[String], host: Option[String], port: Int): Resource[IO, RedisEndpoint] = (dir, host) match {
     case (Some(dir), None) =>
-      Resource.make(IO {
-        val service = new RedisServer()
-        service.listener("localhost", port)
-        EmbeddedRedis("localhost", service, dir)
-      })(_.close)
+      Resource.make(IO { EmbeddedRedis("localhost", EmbeddedRedis.createUnsafe(port), dir) })(_.close)
     case (None, Some(host)) => Resource.make(IO.pure(RemoteRedis(host)))(_ => IO.unit)
     case _ =>
       Resource.raiseError[IO, RedisEndpoint, Throwable](

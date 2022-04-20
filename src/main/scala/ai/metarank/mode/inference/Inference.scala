@@ -5,6 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.mode.inference.ranking.LtrlibScorer
+import ai.metarank.source.LocalDirSource
 import ai.metarank.source.LocalDirSource.LocalDirWriter
 import ai.metarank.util.Logging
 import better.files.File
@@ -45,10 +46,19 @@ object Inference extends IOApp with Logging {
 
   def cluster(dir: File, config: Config, mapping: FeatureMapping, cmd: InferenceCmdline, model: Array[Byte]) = {
     for {
-      cluster  <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
-      redis    <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
-      _        <- Resource.eval(redis.upload)
-      _        <- FeedbackFlow.resource(cluster, dir.toString(), mapping, cmd, redis.host)
+      cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
+      redis   <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
+      _       <- Resource.eval(redis.upload)
+      _ <- FeedbackFlow.resource(
+        cluster,
+        mapping,
+        redis.host,
+        cmd.redisPort,
+        cmd.batchSize,
+        cmd.savepoint,
+        cmd.format,
+        _.addSource(new LocalDirSource(dir.toString()))
+      )
       store    <- FeatureStoreResource.make(() => RedisStore(RedisConfig(redis.host, cmd.redisPort, cmd.format)))
       storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
       mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)

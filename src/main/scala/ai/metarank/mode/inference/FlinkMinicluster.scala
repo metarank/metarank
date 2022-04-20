@@ -13,7 +13,7 @@ case class FlinkMinicluster(cluster: MiniClusterWithClientResource, client: Clus
 object FlinkMinicluster {
   def resource(conf: Configuration) = Resource.make(createCluster(conf))(shutdown)
 
-  private def createCluster(conf: Configuration) = IO {
+  def createCluster(conf: Configuration) = IO {
     val cluster = new MiniClusterWithClientResource(
       new MiniClusterResourceConfiguration.Builder()
         .setNumberTaskManagers(1)
@@ -26,7 +26,7 @@ object FlinkMinicluster {
     new FlinkMinicluster(cluster, client)
   }
 
-  private def shutdown(cluster: FlinkMinicluster) = IO {
+  def shutdown(cluster: FlinkMinicluster) = IO {
     cluster.client.close()
     cluster.cluster.after()
   }

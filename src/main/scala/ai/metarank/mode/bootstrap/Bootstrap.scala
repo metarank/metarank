@@ -80,17 +80,29 @@ object Bootstrap extends IOApp with Logging {
       StreamExecutionEnvironment.createLocalEnvironment(cmd.parallelism, FlinkS3Configuration(System.getenv()))
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
     streamEnv.getConfig.enableObjectReuse()
-
     logger.info("starting historical data processing")
-    val raw: DataStream[Event]   = FileEventSource(cmd.eventPathUrl).eventStream(streamEnv).id("load")
+
+    val raw: DataStream[Event] = FileEventSource(cmd.eventPathUrl).eventStream(streamEnv).id("load")
+    makeBootstrap(raw, mapping, cmd.outDirUrl)
+    streamEnv.execute("bootstrap")
+
+    logger.info("processing done, generating savepoint")
+    val batch = ExecutionEnvironment.getExecutionEnvironment
+    batch.setParallelism(cmd.parallelism)
+
+    makeSavepoint(batch, cmd.outDirUrl, mapping)
+    logger.info("Bootstrap done")
+  }
+
+  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: String) = {
     val grouped                  = groupFeedback(raw)
     val (state, fields, updates) = makeUpdates(raw, grouped, mapping)
 
-    Featury.writeState(state, new Path(s"${cmd.outDirUrl}/state"), Compress.NoCompression).id("write-state")
+    Featury.writeState(state, new Path(s"$dir/state"), Compress.NoCompression).id("write-state")
     Featury
-      .writeFeatures(updates, new Path(s"${cmd.outDirUrl}/features"), Compress.NoCompression)
+      .writeFeatures(updates, new Path(s"$dir/features"), Compress.NoCompression)
       .id("write-features")
-    val fieldsPath = new Path(s"${cmd.outDirUrl}/fields")
+    val fieldsPath = new Path(s"$dir/fields")
     fields
       .sinkTo(
         CompressedBulkWriter.writeFile(
@@ -102,61 +114,7 @@ object Bootstrap extends IOApp with Logging {
       )
       .id("write-fields")
     val computed = joinFeatures(updates, grouped, mapping)
-    computed.sinkTo(DatasetSink.json(mapping, s"${cmd.outDirUrl}/dataset")).id("write-train")
-    streamEnv.execute("bootstrap")
-
-    logger.info("processing done, generating savepoint")
-    val batch = ExecutionEnvironment.getExecutionEnvironment
-    batch.setParallelism(cmd.parallelism)
-    val stateSource = Featury.readState(batch, new Path(s"${cmd.outDirUrl}/state"), Compress.NoCompression)
-
-    val valuesPath = s"${cmd.outDirUrl}/features"
-    val valuesSource = batch
-      .readFile(
-        new BulkInputFormat[FeatureValue](
-          path = new Path(valuesPath),
-          codec = BulkCodec.featureValueProtobufCodec,
-          compress = Compress.NoCompression
-        ),
-        valuesPath
-      )
-      .name("read-features")
-
-    val fieldsSource = batch
-      .readFile(
-        new BulkInputFormat[FieldUpdate](
-          path = fieldsPath,
-          codec = FieldUpdateCodec,
-          compress = Compress.NoCompression
-        ),
-        fieldsPath.getPath
-      )
-      .name("read-fields")
-
-    val transformStateJoin = OperatorTransformation
-      .bootstrapWith(valuesSource.toJava)
-      .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
-      .transform(new FeatureJoinBootstrapFunction())
-
-    val transformFeatures = OperatorTransformation
-      .bootstrapWith(stateSource.toJava)
-      .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.schema))
-
-    val transformFields = OperatorTransformation
-      .bootstrapWith(fieldsSource.toJava)
-      .transform(FieldValueBootstrapFunction(fieldState))
-
-    val backend = new HashMapStateBackend()
-    Savepoint
-      .create(backend, 32)
-      .withOperator("process-writes", transformFeatures)
-      .withOperator("join-state", transformStateJoin)
-      .withOperator("process-events", transformFields)
-      .write(s"${cmd.outDirUrl}/savepoint")
-
-    batch.execute("savepoint")
-    logger.info("Bootstrap done")
+    computed.sinkTo(DatasetSink.json(mapping, s"$dir/dataset")).id("write-train")
   }
 
   def groupFeedback(raw: DataStream[Event]) = {
@@ -196,9 +154,61 @@ object Bootstrap extends IOApp with Logging {
   ) = {
     val clickthroughs = grouped.process(ClickthroughJoinFunction()).id("clickthroughs")
     val joined =
-      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("timejoin")
+      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
     val computed =
       joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions))).id("values")
     computed
+  }
+
+  def makeSavepoint(batch: ExecutionEnvironment, dir: String, mapping: FeatureMapping) = {
+    val stateSource = Featury.readState(batch, new Path(s"$dir/state"), Compress.NoCompression)
+
+    val valuesPath = s"$dir/features"
+    val valuesSource = batch
+      .readFile(
+        new BulkInputFormat[FeatureValue](
+          path = new Path(valuesPath),
+          codec = BulkCodec.featureValueProtobufCodec,
+          compress = Compress.NoCompression
+        ),
+        valuesPath
+      )
+      .name("read-features")
+
+    val fieldsPath = new Path(s"$dir/fields")
+    val fieldsSource = batch
+      .readFile(
+        new BulkInputFormat[FieldUpdate](
+          path = fieldsPath,
+          codec = FieldUpdateCodec,
+          compress = Compress.NoCompression
+        ),
+        fieldsPath.getPath
+      )
+      .name("read-fields")
+
+    val transformStateJoin = OperatorTransformation
+      .bootstrapWith(valuesSource.toJava)
+      .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
+      .transform(new FeatureJoinBootstrapFunction())
+
+    val transformFeatures = OperatorTransformation
+      .bootstrapWith(stateSource.toJava)
+      .keyBy(StateKeySelector, deriveTypeInformation[Key])
+      .transform(new FeatureBootstrapFunction(mapping.schema))
+
+    val transformFields = OperatorTransformation
+      .bootstrapWith(fieldsSource.toJava)
+      .transform(FieldValueBootstrapFunction(fieldState))
+
+    val backend = new HashMapStateBackend()
+    Savepoint
+      .create(backend, 32)
+      .withOperator("process-writes", transformFeatures)
+      .withOperator("join-state", transformStateJoin)
+      .withOperator("process-events", transformFields)
+      .write(s"$dir/savepoint")
+
+    batch.execute("savepoint")
   }
 }

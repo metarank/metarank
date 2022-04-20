@@ -107,6 +107,9 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       .unsafe(() => RedisStore(RedisConfig("localhost", port, StoreCodec.JsonCodec)))
       .unsafeRunSync()
 
+    val uploaded =
+      Upload.upload(s"$dir/features", "localhost", port, StoreCodec.JsonCodec, 1024).allocated.unsafeRunSync()
+
     val ranker    = RankApi(mapping, store, LtrlibScorer.fromBytes(model).unsafeRunSync())
     val response1 = ranker.rerank(ranking, true).unsafeRunSync()
     response1.state.session shouldBe empty

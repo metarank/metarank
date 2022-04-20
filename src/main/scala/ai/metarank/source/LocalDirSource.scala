@@ -15,6 +15,7 @@ case class LocalDirSource(path: String, limit: Long = Long.MaxValue) extends Sou
   @transient var stop  = false
   @transient var count = 0
   override def run(ctx: SourceFunction.SourceContext[Event]): Unit = {
+    logger.info("File-based queue main loop active")
     val dir = File(path)
     while (!stop) {
       val list = dir.listRecursively.toList.sortBy(_.name.toInt)

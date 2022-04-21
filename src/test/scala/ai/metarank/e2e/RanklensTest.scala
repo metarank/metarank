@@ -8,10 +8,10 @@ import ai.metarank.util.{FlinkTest, RanklensEvents}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.featury.flink.{Featury, Join}
-import org.apache.flink.api.common.RuntimeExecutionMode
+import org.apache.flink.api.common.{JobStatus, RuntimeExecutionMode}
 import io.findify.flinkadt.api._
 import ai.metarank.flow.DataStreamOps._
-
+import scala.concurrent.duration._
 import scala.language.higherKinds
 import ai.metarank.flow.DatasetSink
 import ai.metarank.mode.bootstrap.Bootstrap
@@ -129,7 +129,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       .allocated
       .unsafeRunSync()
       ._1
-    Upload.blockUntilFinished(cluster, flow).unsafeRunSync()
+    cluster.waitForStatus(flow, JobStatus.FINISHED, 5.minutes).unsafeRunSync()
 
     val response2 = ranker.rerank(ranking, true).unsafeRunSync()
     response2.state.session should not be empty

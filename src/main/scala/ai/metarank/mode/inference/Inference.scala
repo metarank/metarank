@@ -5,6 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.mode.inference.ranking.LtrlibScorer
+import ai.metarank.mode.upload.Upload
 import ai.metarank.source.LocalDirSource
 import ai.metarank.source.LocalDirSource.LocalDirWriter
 import ai.metarank.util.Logging
@@ -24,7 +25,8 @@ import io.findify.featury.values.FeatureStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
 import io.findify.flinkadt.api._
-
+import org.apache.flink.api.common.JobStatus
+import scala.concurrent.duration._
 import scala.collection.JavaConverters._
 
 object Inference extends IOApp with Logging {
@@ -49,7 +51,7 @@ object Inference extends IOApp with Logging {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       redis   <- RedisEndpoint.create(cmd.embeddedRedis, cmd.redisHost, cmd.redisPort)
       _       <- Resource.eval(redis.upload)
-      _ <- FeedbackFlow.resource(
+      job <- FeedbackFlow.resource(
         cluster,
         mapping,
         redis.host,
@@ -59,6 +61,7 @@ object Inference extends IOApp with Logging {
         cmd.format,
         _.addSource(new LocalDirSource(dir.toString()))
       )
+      _        <- Resource.eval(cluster.waitForStatus(job, JobStatus.RUNNING, 5.minutes))
       store    <- FeatureStoreResource.make(() => RedisStore(RedisConfig(redis.host, cmd.redisPort, cmd.format)))
       storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
       mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)

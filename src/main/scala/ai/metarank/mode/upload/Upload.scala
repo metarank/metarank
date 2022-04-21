@@ -43,19 +43,7 @@ object Upload extends IOApp with Logging {
           features.addSink(FeatureStoreSink(RedisStore(RedisConfig(host, port, format)), batchSize))
         }
       }
-      _ <- Resource.eval(blockUntilFinished(cluster, job))
+      _ <- Resource.eval(cluster.waitForStatus(job, JobStatus.FINISHED, 5.minutes))
     } yield {}
-
-  def blockUntilFinished(cluster: FlinkMinicluster, job: JobID): IO[Unit] = for {
-    _ <- IO.sleep(1.second)
-    _ <- IO.fromCompletableFuture(IO { cluster.client.getJobStatus(job) }).flatMap {
-      case JobStatus.FINISHED => IO { logger.info(s"job $job is finished") }
-      case other =>
-        IO { logger.warn(s"upload job not yet finished (status=$other), waiting 1s more") } *> blockUntilFinished(
-          cluster,
-          job
-        )
-    }
-  } yield {}
 
 }

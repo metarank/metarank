@@ -39,7 +39,7 @@ libraryDependencies ++= Seq(
   "com.github.scopt"     %% "scopt"                      % "4.0.1",
   "redis.clients"         % "jedis"                      % "4.2.2",
   "com.github.blemale"   %% "scaffeine"                  % "5.1.2",
-  "com.github.fppt"       % "jedis-mock"                 % "1.0.1"          % Test,
+  "com.github.fppt"       % "jedis-mock"                 % "1.0.2"          % Test,
   "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
   "io.findify"           %% "featury-flink"              % featuryVersion,
   "io.findify"           %% "featury-redis"              % featuryVersion,

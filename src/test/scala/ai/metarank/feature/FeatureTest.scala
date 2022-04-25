@@ -6,6 +6,7 @@ import ai.metarank.feature.FeatureTest.FeaturyMock
 import ai.metarank.flow.FieldStore.MapFieldStore
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{Event, FeatureSchema, Field, FieldId, FieldUpdate, MValue}
+import cats.data.NonEmptyList
 import com.github.blemale.scaffeine.Scaffeine
 import io.findify.featury.model.Feature._
 import io.findify.featury.model.Write._
@@ -16,7 +17,10 @@ import scala.collection.mutable
 
 trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
-    val mapping      = FeatureMapping.fromFeatureSchema(List(schema), List(InteractionConfig("click", 1.0)))
+    val mapping = FeatureMapping.fromFeatureSchema(
+      schema = NonEmptyList.of(schema),
+      interactions = NonEmptyList.of(InteractionConfig("click", 1.0))
+    )
     val fieldUpdates = mutable.Map[FieldId, Field]()
     val featury      = FeaturyMock(mapping.schema)
     val features = for {

@@ -11,6 +11,7 @@ import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}
 import better.files.File
+import cats.data.NonEmptyList
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -20,8 +21,8 @@ class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "write cts" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
     val mapping = FeatureMapping.fromFeatureSchema(
-      schema = List(NumberFeatureSchema("budget", FieldName(Item, "budget"), ItemScope)),
-      interactions = List(InteractionConfig("click", 1.0))
+      schema = NonEmptyList.of(NumberFeatureSchema("budget", FieldName(Item, "budget"), ItemScope)),
+      interactions = NonEmptyList.of(InteractionConfig("click", 1.0))
     )
     val ct = Clickthrough(
       ranking = TestRankingEvent(List("p1", "p2")).copy(id = EventId("1")),

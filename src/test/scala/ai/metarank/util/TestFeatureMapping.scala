@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 
 object TestFeatureMapping {
   def apply() = {
-    val features = List(
+    val features = NonEmptyList.of(
       NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope),
       WordCountSchema("title_length", FieldName(Item, "title"), ItemScope),
       StringFeatureSchema(
@@ -35,7 +35,7 @@ object TestFeatureMapping {
       )
     )
 
-    val inters = List(InteractionConfig("click", 1.0))
+    val inters = NonEmptyList.of(InteractionConfig("click", 1.0))
     FeatureMapping.fromFeatureSchema(features, inters)
   }
 }

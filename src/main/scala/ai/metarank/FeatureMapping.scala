@@ -20,6 +20,7 @@ import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue}
+import cats.data.NonEmptyList
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
@@ -79,7 +80,7 @@ case class FeatureMapping(
 }
 
 object FeatureMapping {
-  def fromFeatureSchema(schema: List[FeatureSchema], interactions: List[InteractionConfig]) = {
+  def fromFeatureSchema(schema: NonEmptyList[FeatureSchema], interactions: NonEmptyList[InteractionConfig]) = {
     val features: List[BaseFeature] = schema.collect {
       case c: NumberFeatureSchema    => NumberFeature(c)
       case c: StringFeatureSchema    => StringFeature(c)
@@ -106,7 +107,7 @@ object FeatureMapping {
       features = features,
       fields = features.flatMap(_.fields),
       schema = featurySchema,
-      weights = interactions.map(int => int.name -> int.weight).toMap,
+      weights = interactions.toList.map(int => int.name -> int.weight).toMap,
       datasetDescriptor = datasetDescriptor
     )
   }

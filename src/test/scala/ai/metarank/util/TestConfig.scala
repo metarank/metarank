@@ -13,6 +13,6 @@ object TestConfig {
   def apply() = new Config(
     features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
     interactions = NonEmptyList.of(InteractionConfig("click", 1.0)),
-    models = Map("shuffle" -> Shuffle())
+    models = NonEmptyMap.of("shuffle" -> Shuffle())
   )
 }

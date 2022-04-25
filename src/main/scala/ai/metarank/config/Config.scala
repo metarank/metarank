@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
 case class Config(
     features: NonEmptyList[FeatureSchema],
     interactions: NonEmptyList[InteractionConfig],
-    models: Map[String, ModelConfig]
+    models: NonEmptyMap[String, ModelConfig]
 )
 
 object Config extends Logging {
@@ -76,7 +76,7 @@ object Config extends Logging {
   def validateConfig(conf: Config): List[String] = {
     val features = nonUniqueNames[FeatureSchema](conf.features, _.name).map(_.toString("feature"))
     val ints     = nonUniqueNames[InteractionConfig](conf.interactions, _.name).map(_.toString("interaction"))
-    val modelFeatures = conf.models.toList.flatMap {
+    val modelFeatures = conf.models.toNel.toList.flatMap {
       case (name, LambdaMART(_, features)) =>
         val undefined = features.filterNot(feature => conf.features.exists(_.name == feature))
         undefined.map(feature => s"unresolved feature '$feature' in model '$name'")

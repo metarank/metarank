@@ -6,7 +6,7 @@ import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.util.TestConfig
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, NonEmptyMap}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -21,10 +21,10 @@ class ConfigTest extends AnyFlatSpec with Matchers {
     val conf = TestConfig()
     Config.validateConfig(conf) shouldBe Nil
     Config.validateConfig(
-      conf.copy(models = Map("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("price"))))
+      conf.copy(models = NonEmptyMap.of("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("price"))))
     ) shouldBe Nil
     Config.validateConfig(
-      conf.copy(models = Map("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("neprice"))))
+      conf.copy(models = NonEmptyMap.of("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("neprice"))))
     ) shouldBe List("unresolved feature 'neprice' in model 'test'")
   }
 }

@@ -32,7 +32,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
       Config(
         features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
         interactions = NonEmptyList.of(InteractionConfig("click", 1)),
-        models = Map("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("price")))
+        models = NonEmptyMap.of("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("price")))
       )
     )
   }

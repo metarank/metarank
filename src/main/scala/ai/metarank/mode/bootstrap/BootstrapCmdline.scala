@@ -28,7 +28,7 @@ object BootstrapCmdline extends Logging {
         }
 
       opt[String]("out")
-        .text("output directory, also")
+        .text("workdir directory")
         .required()
         .action((m, cmd) => cmd.copy(outDir = m))
         .withFallback(() => env.getOrElse("METARANK_OUT", ""))

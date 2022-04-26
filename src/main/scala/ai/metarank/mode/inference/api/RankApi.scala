@@ -24,7 +24,7 @@ import scala.concurrent.duration._
 case class RankApi(
     mapping: FeatureMapping,
     storeResourceRef: Ref[IO, FeatureStoreResource],
-    scorer: RankScorer
+    scorers: Map[String, RankScorer]
 ) extends Logging {
   import RankApi._
 
@@ -47,8 +47,12 @@ case class RankApi(
       case Some(existing) => IO.pure(existing)
       case None           => IO.raiseError(ModelError(s"model $model is not configured"))
     }
-    items  <- IO { ranker.featureValues(request, state.features) }
-    query  <- IO { ClickthroughQuery(items, request.id.value, ranker.datasetDescriptor) }
+    items <- IO { ranker.featureValues(request, state.features) }
+    query <- IO { ClickthroughQuery(items, request.id.value, ranker.datasetDescriptor) }
+    scorer <- scorers.get(model) match {
+      case Some(existing) => IO.pure(existing)
+      case None           => IO.raiseError(ModelError(s"model $model is not configured"))
+    }
     scores <- IO { scorer.score(query) }
     result <- explain match {
       case true  => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }

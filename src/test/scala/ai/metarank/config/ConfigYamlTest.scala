@@ -35,5 +35,4 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
       )
     )
   }
-
 }

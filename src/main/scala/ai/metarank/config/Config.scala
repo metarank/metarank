@@ -20,6 +20,8 @@ case class Config(
 )
 
 object Config extends Logging {
+  case class BootstrapConfig(eventPath: String)
+
   sealed trait ModelConfig
 
   object ModelConfig {

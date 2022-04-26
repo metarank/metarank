@@ -66,9 +66,9 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     Bootstrap.makeSavepoint(batch, dir.toString, mapping)
   }
 
-//  it should "train the xgboost model" in {
-//    train("xgboost", modelFileXgboost)
-//  }
+  it should "train the xgboost model" in {
+    train("xgboost", modelFileXgboost)
+  }
 
   it should "train the lightgbm model" in {
     train("lightgbm", modelFileLightgbm)
@@ -78,7 +78,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val model         = mapping.models(modelName)
     val dataset       = Train.loadData(dir, model.datasetDescriptor).unsafeRunSync()
     val (train, test) = Train.split(dataset, 80)
-    out.writeByteArray(model.train(train, test, 50).get)
+    out.writeByteArray(model.train(train, test, 20).get)
   }
 
   it should "rerank things" in {
@@ -142,6 +142,10 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val response2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response2.state.session should not be empty
     response1.items.map(_.score) shouldNot be(response2.items.map(_.score))
+
+    val response3 = ranker.rerank(ranking, "lightgbm", true).unsafeRunSync()
+    response3.state.session should not be empty
+
     redis.close()
   }
 }

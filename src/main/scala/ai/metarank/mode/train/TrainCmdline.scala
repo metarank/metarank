@@ -48,12 +48,6 @@ object TrainCmdline extends Logging {
         .action((m, cmd) => cmd.copy(split = m))
         .withFallback(() => env.getOrElse("METARANK_SPLIT", "80").toInt)
 
-      opt[String]("model-file")
-        .text("model output file")
-        .optional()
-        .action((m, cmd) => cmd.copy(output = File(m)))
-        .withFallback(() => env.getOrElse("METARANK_MODEL_FILE", "metarank.model"))
-
       opt[Int]("iterations")
         .text("number of iterations for model training, default 200")
         .optional()

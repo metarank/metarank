@@ -60,13 +60,13 @@ case class LambdaMARTRanker(
   }
 
   override def train(train: Dataset, test: Dataset, iterations: Int): Option[Array[Byte]] = {
-    val opts = BoosterOptions(trees = iterations)
+    val opts = BoosterOptions(trees = iterations, maxDepth = 8)
     val booster = conf.backend match {
       case ModelConfig.LightGBMBackend => LambdaMART(train, opts, LightGBMBooster, Some(test))
       case ModelConfig.XGBoostBackend  => LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
     val model = booster.fit()
-    logger.info("Feature stats: ")
+    logger.info(s"Feature stats (queries=${train.groups.size}, items=${train.itemCount}): ")
     fieldStats(train, model.weights()).foreach(field => logger.info(field.print()))
     Some(model.save())
   }

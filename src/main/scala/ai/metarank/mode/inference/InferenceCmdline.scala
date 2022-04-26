@@ -12,7 +12,6 @@ import scopt.OptionParser
 case class InferenceCmdline(
     port: Int = 8080,
     host: String = "0.0.0.0",
-    model: String,
     config: String,
     redisHost: Option[String] = None,
     redisPort: Int = 6379,
@@ -36,16 +35,6 @@ object InferenceCmdline extends Logging {
         .withFallback(() => env.getOrElse("METARANK_SAVEPOINT_DIR", ""))
         .validate {
           case "" => Left("savepoint dir is required")
-          case _  => Right({})
-        }
-
-      opt[String]("model")
-        .text("full path to model file to serve")
-        .required()
-        .action((m, cmd) => cmd.copy(model = m))
-        .withFallback(() => env.getOrElse("METARANK_MODEL", ""))
-        .validate {
-          case "" => Left("model file is required")
           case _  => Right({})
         }
 

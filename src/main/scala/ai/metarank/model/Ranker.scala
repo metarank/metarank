@@ -6,7 +6,7 @@ import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.util.Logging
 import io.findify.featury.model.{FeatureValue, Schema}
-import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
+import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 
 trait Ranker extends Logging {
   def conf: ModelConfig

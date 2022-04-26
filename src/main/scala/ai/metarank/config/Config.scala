@@ -1,7 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.Config.ModelConfig
+import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig, ModelConfig}
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import better.files.File
@@ -11,16 +11,44 @@ import io.circe.Decoder
 import io.circe.generic.extras.Configuration
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser.{parse => parseYaml}
+import io.findify.featury.values.StoreCodec
+import io.findify.featury.values.StoreCodec.{JsonCodec, ProtobufCodec}
 
 import scala.util.{Failure, Success}
 
 case class Config(
     features: NonEmptyList[FeatureSchema],
-    models: NonEmptyMap[String, ModelConfig]
+    models: NonEmptyMap[String, ModelConfig],
+    bootststap: BootstrapConfig,
+    inference: InferenceConfig
 )
 
 object Config extends Logging {
-  case class BootstrapConfig(eventPath: String)
+  case class BootstrapConfig(eventPath: MPath, workdir: MPath, parallelism: Int)
+  case class InferenceConfig(
+      port: Int,
+      host: String,
+      state: StateStoreConfig,
+      batchSize: Int,
+      parallelism: Int
+  )
+
+  sealed trait StateStoreConfig
+  object StateStoreConfig {
+    import io.circe.generic.extras.semiauto._
+
+    implicit val formatDecoder: Decoder[StoreCodec] = Decoder.decodeString.emapTry {
+      case "json"     => Success(JsonCodec)
+      case "protobuf" => Success(ProtobufCodec)
+      case other      => Failure(new Exception(s"codec $other is not supported"))
+    }
+
+    case class RedisConfig(host: String, port: Int, format: StoreCodec) extends StateStoreConfig
+    case class MemConfig(format: StoreCodec)                            extends StateStoreConfig
+
+    implicit val conf                                         = Configuration.default.withDiscriminator("type")
+    implicit val stateStoreDecoder: Decoder[StateStoreConfig] = deriveConfiguredDecoder
+  }
 
   sealed trait ModelConfig
 
@@ -45,6 +73,9 @@ object Config extends Logging {
     }
 
   }
+  implicit val bootstrapDecoder: Decoder[BootstrapConfig] = deriveDecoder
+  implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveDecoder
+
   implicit val conf =
     Configuration.default
       .withDiscriminator("type")

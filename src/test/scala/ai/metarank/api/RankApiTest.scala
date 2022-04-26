@@ -26,7 +26,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
         makeStore = () => counter
       )
     )
-    val api       = RankApi(mapping, store.unsafeRunSync(), RandomScorer())
+    val api       = RankApi(mapping, store.unsafeRunSync(), Map("random" -> RandomScorer()))
     val request   = TestRankingEvent((0 until 1000).map(i => s"p$i").toList)
     val response1 = api.rerank(request, "random", false).unsafeRunSync()
     response1.items.size shouldBe 1000
@@ -40,7 +40,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
         makeStore = () => RandomFeatureStore(mapping)
       )
     )
-    val api       = RankApi(mapping, store.unsafeRunSync(), RandomScorer())
+    val api       = RankApi(mapping, store.unsafeRunSync(), Map("random" -> RandomScorer()))
     val response1 = api.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", false).unsafeRunSync()
     response1.items.size shouldBe 3
   }
@@ -53,7 +53,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
         makeStore = () => broken
       )
     )
-    val api       = RankApi(mapping, store.unsafeRunSync(), RandomScorer())
+    val api       = RankApi(mapping, store.unsafeRunSync(), Map("random" -> RandomScorer()))
     val response1 = Try(api.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", false).unsafeRunSync())
     response1.isFailure shouldBe true
   }

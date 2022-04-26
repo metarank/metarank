@@ -9,17 +9,17 @@ import org.scalatest.matchers.should.Matchers
 
 class LtrlibScorerTest extends AnyFlatSpec with Matchers {
   it should "load xgboost" in {
-    val model = LtrlibScorer.fromBytes(IOUtils.resourceToByteArray("/models/xgboost.model")).unsafeRunSync()
+    val model = LtrlibScorer.fromBytes(IOUtils.resourceToByteArray("/models/xgboost.model")).right.get
     model.booster shouldBe a[XGBoostBooster]
   }
 
   it should "load base64 xgboost" in {
-    val model = LtrlibScorer.fromBytes(IOUtils.resourceToByteArray("/models/xgboost-b64.model")).unsafeRunSync()
+    val model = LtrlibScorer.fromBytes(IOUtils.resourceToByteArray("/models/xgboost-b64.model")).right.get
     model.booster shouldBe a[XGBoostBooster]
   }
 
   it should "load lightgbm" in {
-    val model = LtrlibScorer.fromBytes(IOUtils.resourceToByteArray("/models/lightgbm.model")).unsafeRunSync()
+    val model = LtrlibScorer.fromBytes(IOUtils.resourceToByteArray("/models/lightgbm.model")).right.get
     model.booster shouldBe a[LightGBMBooster]
   }
 }

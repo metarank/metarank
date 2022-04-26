@@ -14,7 +14,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val random  = new Random(1)
   lazy val mapping = ??? // FeatureMapping.fromFeatureSchema()
   lazy val store   = FeatureStoreResource.unsafe(() => RandomFeatureStore(mapping)).unsafeRunSync()
-  lazy val service = RankApi(mapping, store, RandomScorer())
+  lazy val service = RankApi(mapping, store, Map("random" -> RandomScorer()))
 
   it should "respond with the same data reranked" in {
     val response = service.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", explain = false).unsafeRunSync()

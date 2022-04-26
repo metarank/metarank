@@ -118,7 +118,11 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val uploaded =
       Upload.upload(s"$dir/features", "localhost", port, StoreCodec.JsonCodec, 1024).allocated.unsafeRunSync()
 
-    val ranker    = RankApi(mapping, store, LtrlibScorer.fromBytes(model).unsafeRunSync())
+    val rankers = Map(
+      "xgboost"  -> LtrlibScorer.fromBytes(modelFileXgboost.byteArray).right.get,
+      "lightgbm" -> LtrlibScorer.fromBytes(modelFileLightgbm.byteArray).right.get
+    )
+    val ranker    = RankApi(mapping, store, rankers)
     val response1 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response1.state.session shouldBe empty
 

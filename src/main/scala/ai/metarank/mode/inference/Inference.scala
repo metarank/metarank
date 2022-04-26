@@ -37,7 +37,7 @@ object Inference extends IOApp with Logging {
       confContents <- FileLoader.loadLocal(cmd.config, env).map(new String(_))
       config       <- Config.load(confContents)
       mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.models) }
-      model        <- FileLoader.loadLocal(cmd.model, env)
+      model        <- FileLoader.loadLocal(???, env)
       result <- cluster(dir, config, mapping, cmd, model).use {
         _.serve.compile.drain.as(ExitCode.Success).flatTap(_ => IO { logger.info("Metarank API closed") })
       }
@@ -62,9 +62,9 @@ object Inference extends IOApp with Logging {
       store    <- FeatureStoreResource.make(() => RedisStore(RedisConfig(redis.host, cmd.redisPort, cmd.format)))
       storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
       mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
-      scorer <- Resource.eval(LtrlibScorer.fromBytes(model))
+      scorer <- Resource.eval(IO.fromEither(LtrlibScorer.fromBytes(model)))
       writer <- LocalDirWriter.create(dir)
-      routes  = HealthApi.routes <+> RankApi(mapping, storeRef, scorer).routes <+> FeedbackApi(writer).routes
+      routes = HealthApi.routes <+> RankApi(mapping, storeRef, Map("x" -> scorer)).routes <+> FeedbackApi(writer).routes
       httpApp = Router("/" -> routes).orNotFound
     } yield {
       BlazeServerBuilder[IO]

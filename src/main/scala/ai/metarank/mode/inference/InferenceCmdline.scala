@@ -112,12 +112,12 @@ object InferenceCmdline extends Logging {
 
     for {
       cmd <- IO.fromOption(
-        parser.parse(args, InferenceCmdline(8080, "0.0.0.0", null, null, None, 6379, null, 0, "", None, 1))
+        parser.parse(args, InferenceCmdline(8080, "0.0.0.0", null, None, 6379, null, 0, "", None, 1))
       )(
         new IllegalArgumentException("cannot parse cmdline")
       )
       _ <- IO(logger.info(s"Port: ${cmd.port}"))
-      _ <- IO(logger.info(s"Model path: ${cmd.model}"))
+      // _ <- IO(logger.info(s"Model path: ${cmd.model}"))
     } yield {
       cmd
     }

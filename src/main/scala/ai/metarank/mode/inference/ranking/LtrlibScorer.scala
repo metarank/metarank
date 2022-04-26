@@ -23,17 +23,20 @@ case class LtrlibScorer(booster: Booster[_]) extends RankScorer {
 }
 
 object LtrlibScorer extends Logging {
-  def fromBytes(model: Array[Byte]): IO[LtrlibScorer] = {
+  def fromBytes(model: Array[Byte]): Either[Exception, LtrlibScorer] = {
     val first4 = new String(model.take(4), StandardCharsets.US_ASCII)
 
     first4 match {
-      case "tree" => IO(logger.info("loaded LightGBM model")) *> IO(LtrlibScorer(LightGBMBooster(model)))
-      case "binf" => IO(logger.info("loaded XGBoost model")) *> IO(LtrlibScorer(XGBoostBooster(model)))
+      case "tree" =>
+        logger.info("loaded LightGBM model")
+        Right(LtrlibScorer(LightGBMBooster(model)))
+      case "binf" =>
+        logger.info("loaded XGBoost model")
+        Right(LtrlibScorer(XGBoostBooster(model)))
       case "Ymlu" =>
-        IO(logger.info("loaded base64-encoded XGBoost model")) *> IO(
-          LtrlibScorer(XGBoostBooster(Base64.decodeBase64(model)))
-        )
-      case _ => IO.raiseError(new IllegalArgumentException("cannot detect model type"))
+        logger.info("loaded base64-encoded XGBoost model")
+        Right(LtrlibScorer(XGBoostBooster(Base64.decodeBase64(model))))
+      case _ => Left(new IllegalArgumentException("cannot detect model type"))
     }
 
   }

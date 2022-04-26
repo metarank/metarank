@@ -20,7 +20,6 @@ import ai.metarank.mode.inference.RedisEndpoint.EmbeddedRedis
 import ai.metarank.mode.inference.api.RankApi
 import ai.metarank.mode.inference.ranking.LtrlibScorer
 import ai.metarank.mode.train.Train
-import ai.metarank.mode.train.TrainCmdline.{LambdaMARTLightGBM, LambdaMARTXGBoost}
 import ai.metarank.mode.upload.Upload
 import ai.metarank.model.{Event, EventId}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
@@ -45,10 +44,11 @@ import scala.util.Random
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
-  val config    = Config.load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8)).unsafeRunSync()
-  lazy val dir  = File.newTemporaryDirectory("metarank_")
-  val modelFile = dir.createChild("metarank.model")
-  val mapping   = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+  val config   = Config.load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8)).unsafeRunSync()
+  lazy val dir = File.newTemporaryDirectory("metarank_")
+  val modelFileXgboost  = dir.createChild("metarank-xgboost.model")
+  val modelFileLightgbm = dir.createChild("metarank-lightgbm.model")
+  val mapping           = FeatureMapping.fromFeatureSchema(config.features, config.models)
 
   it should "accept events" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
@@ -66,11 +66,19 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     Bootstrap.makeSavepoint(batch, dir.toString, mapping)
   }
 
-  // fails, see https://github.com/metarank/metarank/issues/338
-  it should "train the model" in {
-    val dataset       = Train.loadData(dir, mapping.datasetDescriptor).unsafeRunSync()
+//  it should "train the xgboost model" in {
+//    train("xgboost", modelFileXgboost)
+//  }
+
+  it should "train the lightgbm model" in {
+    train("lightgbm", modelFileLightgbm)
+  }
+
+  def train(modelName: String, out: File) = {
+    val model         = mapping.models(modelName)
+    val dataset       = Train.loadData(dir, model.datasetDescriptor).unsafeRunSync()
     val (train, test) = Train.split(dataset, 80)
-    modelFile.writeByteArray(Train.trainModel(train, test, LambdaMARTXGBoost, 20))
+    out.writeByteArray(model.train(train, test, 50).get)
   }
 
   it should "rerank things" in {
@@ -111,7 +119,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       Upload.upload(s"$dir/features", "localhost", port, StoreCodec.JsonCodec, 1024).allocated.unsafeRunSync()
 
     val ranker    = RankApi(mapping, store, LtrlibScorer.fromBytes(model).unsafeRunSync())
-    val response1 = ranker.rerank(ranking, true).unsafeRunSync()
+    val response1 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response1.state.session shouldBe empty
 
     val cluster = FlinkMinicluster.createCluster(new Configuration()).unsafeRunSync()
@@ -131,7 +139,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       ._1
     Upload.blockUntilFinished(cluster, flow).unsafeRunSync()
 
-    val response2 = ranker.rerank(ranking, true).unsafeRunSync()
+    val response2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response2.state.session should not be empty
     response1.items.map(_.score) shouldNot be(response2.items.map(_.score))
     redis.close()

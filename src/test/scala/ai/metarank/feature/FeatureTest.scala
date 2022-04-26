@@ -1,12 +1,13 @@
 package ai.metarank.feature
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.InteractionConfig
+import ai.metarank.config.Config.ModelConfig.ShuffleConfig
 import ai.metarank.feature.FeatureTest.FeaturyMock
 import ai.metarank.flow.FieldStore.MapFieldStore
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{Event, FeatureSchema, Field, FieldId, FieldUpdate, MValue}
-import cats.data.NonEmptyList
+import ai.metarank.ranker.ShuffleRanker
+import cats.data.{NonEmptyList, NonEmptyMap}
 import com.github.blemale.scaffeine.Scaffeine
 import io.findify.featury.model.Feature._
 import io.findify.featury.model.Write._
@@ -19,7 +20,7 @@ trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
     val mapping = FeatureMapping.fromFeatureSchema(
       schema = NonEmptyList.of(schema),
-      interactions = NonEmptyList.of(InteractionConfig("click", 1.0))
+      models = NonEmptyMap.of("random" -> ShuffleConfig(10))
     )
     val fieldUpdates = mutable.Map[FieldId, Field]()
     val featury      = FeaturyMock(mapping.schema)

@@ -17,6 +17,7 @@ import scala.util.Try
 
 class RankApiTest extends AnyFlatSpec with Matchers {
   val mapping = TestFeatureMapping()
+
   it should "unfold long requests" in {
     val counter = new CountingStore()
     val store = Ref.of[IO, FeatureStoreResource](
@@ -27,7 +28,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
     )
     val api       = RankApi(mapping, store.unsafeRunSync(), RandomScorer())
     val request   = TestRankingEvent((0 until 1000).map(i => s"p$i").toList)
-    val response1 = api.rerank(request, false).unsafeRunSync()
+    val response1 = api.rerank(request, "random", false).unsafeRunSync()
     response1.items.size shouldBe 1000
     counter.reads shouldBe 12
     counter.featureReads shouldBe 6001
@@ -40,7 +41,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
       )
     )
     val api       = RankApi(mapping, store.unsafeRunSync(), RandomScorer())
-    val response1 = api.rerank(TestRankingEvent(List("p1", "p2", "p3")), false).unsafeRunSync()
+    val response1 = api.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", false).unsafeRunSync()
     response1.items.size shouldBe 3
   }
 
@@ -53,7 +54,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
       )
     )
     val api       = RankApi(mapping, store.unsafeRunSync(), RandomScorer())
-    val response1 = Try(api.rerank(TestRankingEvent(List("p1", "p2", "p3")), false).unsafeRunSync())
+    val response1 = Try(api.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", false).unsafeRunSync())
     response1.isFailure shouldBe true
   }
 }

@@ -11,7 +11,7 @@ import ai.metarank.flow.{
   ImpressionInjectFunction
 }
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
-import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
+import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate, Ranker}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.{EventSource, FileEventSource}
 import ai.metarank.util.Logging
@@ -74,7 +74,7 @@ object Bootstrap extends IOApp with Logging {
 
   def run(config: Config, cmd: BootstrapCmdline) = IO {
     if (cmd.outDirUrl.startsWith("file://")) { File(cmd.outDir).createDirectoryIfNotExists(createParents = true) }
-    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
 
     val streamEnv =
       StreamExecutionEnvironment.createLocalEnvironment(cmd.parallelism, FlinkS3Configuration(System.getenv()))
@@ -113,8 +113,17 @@ object Bootstrap extends IOApp with Logging {
         )
       )
       .id("write-fields")
-    val computed = joinFeatures(updates, grouped, mapping)
-    computed.sinkTo(DatasetSink.json(mapping, s"$dir/dataset")).id("write-train")
+    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id(s"clickthroughs")
+    val joined = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
+
+    mapping.models.foreach { case (name, model) =>
+      val computed =
+        joined
+          .map(ct => ct.copy(values = model.featureValues(ct.ranking, ct.features, ct.interactions)))
+          .id(s"$name-values")
+      computed.sinkTo(DatasetSink.json(model.datasetDescriptor, s"$dir/dataset-$name")).id(s"$name-write-train")
+
+    }
   }
 
   def groupFeedback(raw: DataStream[Event]) = {
@@ -145,19 +154,6 @@ object Bootstrap extends IOApp with Logging {
     val updates = Featury.process(writes, mapping.schema, 20.seconds).id("process-writes")
     val state   = updates.getSideOutput(FeatureProcessFunction.stateTag)
     (state, fieldUpdates, updates)
-  }
-
-  def joinFeatures(
-      updates: DataStream[FeatureValue],
-      grouped: KeyedStream[FeedbackEvent, EventId],
-      mapping: FeatureMapping
-  ) = {
-    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id("clickthroughs")
-    val joined =
-      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
-    val computed =
-      joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions))).id("values")
-    computed
   }
 
   def makeSavepoint(batch: ExecutionEnvironment, dir: String, mapping: FeatureMapping) = {

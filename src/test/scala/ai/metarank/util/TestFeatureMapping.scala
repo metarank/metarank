@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.InteractionConfig
+import ai.metarank.config.Config.ModelConfig.NoopConfig
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
@@ -10,7 +10,8 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, NonEmptyMap}
+
 import scala.concurrent.duration._
 
 object TestFeatureMapping {
@@ -35,7 +36,7 @@ object TestFeatureMapping {
       )
     )
 
-    val inters = NonEmptyList.of(InteractionConfig("click", 1.0))
-    FeatureMapping.fromFeatureSchema(features, inters)
+    val models = NonEmptyMap.of("random" -> NoopConfig())
+    FeatureMapping.fromFeatureSchema(features, models)
   }
 }

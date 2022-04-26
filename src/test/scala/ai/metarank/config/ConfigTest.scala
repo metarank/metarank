@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.ModelConfig.{LambdaMART, XGBoostBackend}
+import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, XGBoostBackend}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
@@ -21,10 +21,18 @@ class ConfigTest extends AnyFlatSpec with Matchers {
     val conf = TestConfig()
     Config.validateConfig(conf) shouldBe Nil
     Config.validateConfig(
-      conf.copy(models = NonEmptyMap.of("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("price"))))
+      conf.copy(models =
+        NonEmptyMap.of(
+          "test" -> LambdaMARTConfig(XGBoostBackend, NonEmptyList.of("price"), NonEmptyMap.of("click" -> 1))
+        )
+      )
     ) shouldBe Nil
     Config.validateConfig(
-      conf.copy(models = NonEmptyMap.of("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("neprice"))))
+      conf.copy(models =
+        NonEmptyMap.of(
+          "test" -> LambdaMARTConfig(XGBoostBackend, NonEmptyList.of("neprice"), NonEmptyMap.of("click" -> 1))
+        )
+      )
     ) shouldBe List("unresolved feature 'neprice' in model 'test'")
   }
 }

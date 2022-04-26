@@ -1,7 +1,7 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.ModelConfig.LambdaMART
-import ai.metarank.config.Config.{InteractionConfig, ModelConfig}
+import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.Config.ModelConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import better.files.File
@@ -16,20 +16,21 @@ import scala.util.{Failure, Success}
 
 case class Config(
     features: NonEmptyList[FeatureSchema],
-    interactions: NonEmptyList[InteractionConfig],
     models: NonEmptyMap[String, ModelConfig]
 )
 
 object Config extends Logging {
-  case class InteractionConfig(name: String, weight: Double)
-
   sealed trait ModelConfig
 
   object ModelConfig {
     import io.circe.generic.extras.semiauto._
-    case class LambdaMART(backend: ModelBackend, features: NonEmptyList[String]) extends ModelConfig
-    case class Shuffle()                                                         extends ModelConfig
-    case class Noop()                                                            extends ModelConfig
+    case class LambdaMARTConfig(
+        backend: ModelBackend,
+        features: NonEmptyList[String],
+        weights: NonEmptyMap[String, Double]
+    ) extends ModelConfig
+    case class ShuffleConfig(maxPositionChange: Int) extends ModelConfig
+    case class NoopConfig()                          extends ModelConfig
 
     sealed trait ModelBackend
     case object LightGBMBackend extends ModelBackend
@@ -46,14 +47,13 @@ object Config extends Logging {
     Configuration.default
       .withDiscriminator("type")
       .copy(transformConstructorNames = {
-        case "LambdaMART" => "lambdamart"
-        case "Shuffle"    => "shuffle"
-        case "Noop"       => "noop"
+        case "LambdaMARTConfig" => "lambdamart"
+        case "ShuffleConfig"    => "shuffle"
+        case "NoopConfig"       => "noop"
       })
   implicit val modelConfigDecoder: Decoder[ModelConfig] = io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 
-  implicit val intDecoder: Decoder[InteractionConfig] = deriveDecoder
-  implicit val configDecoder: Decoder[Config]         = deriveDecoder[Config].ensure(validateConfig)
+  implicit val configDecoder: Decoder[Config] = deriveDecoder[Config].ensure(validateConfig)
 
   def load(path: File): IO[Config] = for {
     contents <- IO { path.contentAsString }
@@ -75,14 +75,13 @@ object Config extends Logging {
 
   def validateConfig(conf: Config): List[String] = {
     val features = nonUniqueNames[FeatureSchema](conf.features, _.name).map(_.toString("feature"))
-    val ints     = nonUniqueNames[InteractionConfig](conf.interactions, _.name).map(_.toString("interaction"))
     val modelFeatures = conf.models.toNel.toList.flatMap {
-      case (name, LambdaMART(_, features)) =>
+      case (name, LambdaMARTConfig(_, features, _)) =>
         val undefined = features.filterNot(feature => conf.features.exists(_.name == feature))
         undefined.map(feature => s"unresolved feature '$feature' in model '$name'")
       case _ => Nil
     }
-    features ++ ints ++ modelFeatures
+    features ++ modelFeatures
   }
 
   case class NonUniqueName(name: String, count: Int) {

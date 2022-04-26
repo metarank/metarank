@@ -1,7 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.{InteractionConfig, ModelConfig}
-import ai.metarank.config.Config.ModelConfig.{LambdaMART, Shuffle, XGBoostBackend}
+import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, ShuffleConfig, XGBoostBackend}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
@@ -19,20 +18,20 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         |    type: number
         |    scope: item
         |    source: metadata.price
-        |interactions:
-        |  - name: click
-        |    weight: 1
         |models:
         |  test:
         |    type: lambdamart
         |    backend: xgboost
-        |    features: [ price ]""".stripMargin
+        |    features: [ price ]
+        |    weights:
+        |      click: 1""".stripMargin
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
         features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
-        interactions = NonEmptyList.of(InteractionConfig("click", 1)),
-        models = NonEmptyMap.of("test" -> LambdaMART(XGBoostBackend, NonEmptyList.of("price")))
+        models = NonEmptyMap.of(
+          "test" -> LambdaMARTConfig(XGBoostBackend, NonEmptyList.of("price"), NonEmptyMap.of("click" -> 1))
+        )
       )
     )
   }

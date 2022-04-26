@@ -1,7 +1,51 @@
 interactions:
   - name: click
     weight: 1.0
-
+models:
+  lightgbm:
+    type: lambdamart
+    backend: lightgbm
+    weights:
+      click: 1
+    features:
+      - popularity
+      - vote_avg
+      - vote_cnt
+      - budget
+      - release_date
+      - runtime
+      - title_length
+      - genre
+      - ctr
+      - liked_genre
+      - liked_actors
+      - liked_tags
+      - liked_director
+      - visitor_click_count
+      - global_item_click_count
+      - day_item_click_count
+#  xgboost:
+#    type: lambdamart
+#    backend: xgboost
+#    weights:
+#      click: 1
+#    features:
+#      - popularity
+#      - vote_avg
+#      - vote_cnt
+#      - budget
+#      - release_date
+#      - runtime
+#      - title_length
+#      - genre
+#      - ctr
+#      - liked_genre
+#      - liked_actors
+#      - liked_tags
+#      - liked_director
+#      - visitor_click_count
+#      - global_item_click_count
+#      - day_item_click_count
 features:
   - name: popularity
     type: number

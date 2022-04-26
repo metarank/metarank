@@ -16,6 +16,7 @@ import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
 import io.findify.featury.model.Key
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
+import org.http4s.Uri.Path.Segment
 import org.http4s.circe._
 
 import scala.concurrent.duration._
@@ -27,24 +28,28 @@ case class RankApi(
 ) extends Logging {
   import RankApi._
 
-  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" :? ExplainParamDecoder(explain) =>
+  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
       request  <- post.as[RankingEvent]
-      response <- rerank(request, explain.getOrElse(false))
+      response <- rerank(request, model, explain.getOrElse(false))
       ok       <- Ok(response.asJson)
     } yield {
       ok
     }
   }
 
-  def rerank(request: RankingEvent, explain: Boolean): IO[RankResponse] = for {
+  def rerank(request: RankingEvent, model: String, explain: Boolean): IO[RankResponse] = for {
     start     <- IO { System.currentTimeMillis() }
     keys      <- IO { mapping.keys(request) }
     state     <- readState(keys.toList)
     stateTook <- IO { System.currentTimeMillis() }
-    items     <- IO { mapping.map(request, state.features) }
-    query     <- IO { ClickthroughQuery(items, request.id.value, mapping.datasetDescriptor) }
-    scores    <- IO { scorer.score(query) }
+    ranker <- mapping.models.get(model) match {
+      case Some(existing) => IO.pure(existing)
+      case None           => IO.raiseError(ModelError(s"model $model is not configured"))
+    }
+    items  <- IO { ranker.featureValues(request, state.features) }
+    query  <- IO { ClickthroughQuery(items, request.id.value, ranker.datasetDescriptor) }
+    scores <- IO { scorer.score(query) }
     result <- explain match {
       case true  => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
       case false => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
@@ -104,4 +109,5 @@ object RankApi {
 
   object ExplainParamDecoder             extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
   case class StateReadError(msg: String) extends Exception(msg)
+  case class ModelError(msg: String)     extends Exception(msg)
 }

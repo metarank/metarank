@@ -107,11 +107,13 @@ lazy val flinkS3Conflicts = List(
   "com/google/thirdparty",
   "org/checkerframework",
   "org/apache/commons/beanutils",
+  "org/apache/commons/codec",
   "org/apache/commons/collections",
   "org/apache/commons/io",
   "org/apache/commons/lang3",
   "org/apache/commons/text",
-  "org/apache/commons/logging"
+  "org/apache/commons/logging",
+  "org/apache/http"
 )
 
 val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Conflicts)

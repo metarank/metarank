@@ -17,15 +17,12 @@ object TestConfig {
     models = NonEmptyMap.of("shuffle" -> ShuffleConfig(10)),
     bootststap = BootstrapConfig(
       eventPath = MPath("/tmp"),
-      workdir = MPath("/tmp"),
-      parallelism = 1
+      workdir = MPath("/tmp")
     ),
     inference = InferenceConfig(
       port = 8080,
       host = "0.0.0.0",
-      state = MemConfig(JsonCodec),
-      batchSize = 1024,
-      parallelism = 1
+      state = MemConfig(JsonCodec)
     )
   )
 }

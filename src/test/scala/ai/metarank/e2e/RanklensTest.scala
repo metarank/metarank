@@ -1,24 +1,21 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, MPath}
 import ai.metarank.e2e.RanklensTest.DiskStore
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.findify.featury.flink.{Featury, Join}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import io.findify.flinkadt.api._
 import ai.metarank.flow.DataStreamOps._
 
 import scala.language.higherKinds
-import ai.metarank.flow.DatasetSink
 import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster}
+import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Inference}
 import ai.metarank.mode.inference.RedisEndpoint.EmbeddedRedis
 import ai.metarank.mode.inference.api.RankApi
-import ai.metarank.mode.inference.ranking.LtrlibScorer
 import ai.metarank.mode.train.Train
 import ai.metarank.mode.upload.Upload
 import ai.metarank.model.{Event, EventId}
@@ -29,7 +26,6 @@ import cats.effect.{IO, Ref}
 import cats.effect.unsafe.implicits.global
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.format.BulkCodec
-import io.findify.featury.flink.util.Compress
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
 import io.findify.featury.model.{FeatureValue, Key, Timestamp}
 import io.findify.featury.values.{FeatureStore, StoreCodec}
@@ -37,7 +33,6 @@ import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.apache.commons.io.IOUtils
 import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.core.fs.Path
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
@@ -56,14 +51,14 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val events = RanklensEvents()
 
     val source = env.fromCollection(events).watermark(_.timestamp.ts)
-    Bootstrap.makeBootstrap(source, mapping, dir.toString())
+    Bootstrap.makeBootstrap(source, mapping, MPath(dir))
     env.execute("bootstrap")
   }
 
   it should "generate savepoint" in {
     val batch = ExecutionEnvironment.getExecutionEnvironment
 
-    Bootstrap.makeSavepoint(batch, dir.toString, mapping)
+    Bootstrap.makeSavepoint(batch, MPath(dir), mapping)
   }
 
   it should "train the xgboost model" in {
@@ -78,7 +73,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val model         = mapping.models(modelName)
     val dataset       = Train.loadData(dir, model.datasetDescriptor).unsafeRunSync()
     val (train, test) = Train.split(dataset, 80)
-    out.writeByteArray(model.train(train, test, 20).get)
+    out.writeByteArray(model.train(train, test).get)
   }
 
   it should "rerank things" in {
@@ -116,12 +111,9 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       .unsafeRunSync()
 
     val uploaded =
-      Upload.upload(s"$dir/features", "localhost", port, StoreCodec.JsonCodec, 1024).allocated.unsafeRunSync()
+      Upload.upload(MPath(dir) / "features", "localhost", port, StoreCodec.JsonCodec).allocated.unsafeRunSync()
 
-    val rankers = Map(
-      "xgboost"  -> LtrlibScorer.fromBytes(modelFileXgboost.byteArray).right.get,
-      "lightgbm" -> LtrlibScorer.fromBytes(modelFileLightgbm.byteArray).right.get
-    )
+    val rankers   = Inference.loadModels(config).unsafeRunSync()
     val ranker    = RankApi(mapping, store, rankers)
     val response1 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response1.state.session shouldBe empty
@@ -133,8 +125,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         mapping = mapping,
         redisHost = "localhost",
         redisPort = port,
-        batchSize = 1,
-        savepoint = s"$dir/savepoint",
+        savepoint = MPath(dir) / "savepoint",
         format = StoreCodec.JsonCodec,
         events = _.fromCollection(List[Event](ranking, interaction))
       )

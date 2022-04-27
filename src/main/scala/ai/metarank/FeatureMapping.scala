@@ -20,8 +20,8 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue, Ranker}
-import ai.metarank.ranker.{LambdaMARTRanker, NoopRanker, ShuffleRanker}
+import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.rank.{LambdaMARTModel, NoopModel, Model, ShuffleModel}
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
@@ -32,7 +32,7 @@ case class FeatureMapping(
     features: List[BaseFeature],
     fields: List[FieldName],
     schema: Schema,
-    models: Map[String, Ranker]
+    models: Map[String, Model]
 ) {
 
   def keys(ranking: RankingEvent): Traversable[Key] = for {
@@ -74,15 +74,15 @@ object FeatureMapping {
         } yield {
           feature
         }
-        name -> LambdaMARTRanker(
+        name -> LambdaMARTModel(
           conf = conf,
           features = modelFeatures,
           datasetDescriptor = makeDatasetDescriptor(modelFeatures),
           weights = conf.weights
         )
 
-      case (name, conf: NoopConfig)    => name -> NoopRanker(conf)
-      case (name, conf: ShuffleConfig) => name -> ShuffleRanker(conf)
+      case (name, conf: NoopConfig)    => name -> NoopModel(conf)
+      case (name, conf: ShuffleConfig) => name -> ShuffleModel(conf)
     }
 
     new FeatureMapping(

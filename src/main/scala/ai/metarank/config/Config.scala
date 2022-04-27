@@ -24,16 +24,19 @@ case class Config(
 )
 
 object Config extends Logging {
-  case class BootstrapConfig(eventPath: MPath, workdir: MPath, parallelism: Int)
+  case class BootstrapConfig(eventPath: MPath, workdir: MPath, parallelism: Int = 1)
   case class InferenceConfig(
       port: Int,
       host: String,
       state: StateStoreConfig,
-      batchSize: Int,
-      parallelism: Int
+      parallelism: Int = 1
   )
 
-  sealed trait StateStoreConfig
+  sealed trait StateStoreConfig {
+    def port: Int
+    def host: String
+    def format: StoreCodec
+  }
   object StateStoreConfig {
     import io.circe.generic.extras.semiauto._
 
@@ -44,9 +47,11 @@ object Config extends Logging {
     }
 
     case class RedisConfig(host: String, port: Int, format: StoreCodec) extends StateStoreConfig
-    case class MemConfig(format: StoreCodec)                            extends StateStoreConfig
+    case class MemConfig(format: StoreCodec, port: Int = 6379) extends StateStoreConfig {
+      val host = "localhost"
+    }
 
-    implicit val conf                                         = Configuration.default.withDiscriminator("type")
+    implicit val conf = Configuration.default.withDiscriminator("type").withDefaults
     implicit val stateStoreDecoder: Decoder[StateStoreConfig] = deriveConfiguredDecoder
   }
 
@@ -55,6 +60,7 @@ object Config extends Logging {
   object ModelConfig {
     import io.circe.generic.extras.semiauto._
     case class LambdaMARTConfig(
+        path: MPath,
         backend: ModelBackend,
         features: NonEmptyList[String],
         weights: NonEmptyMap[String, Double]
@@ -62,14 +68,22 @@ object Config extends Logging {
     case class ShuffleConfig(maxPositionChange: Int) extends ModelConfig
     case class NoopConfig()                          extends ModelConfig
 
-    sealed trait ModelBackend
-    case object LightGBMBackend extends ModelBackend
-    case object XGBoostBackend  extends ModelBackend
+    sealed trait ModelBackend {
+      def iterations: Int
+    }
+    object ModelBackend {
+      case class LightGBMBackend(iterations: Int = 100) extends ModelBackend
+      case class XGBoostBackend(iterations: Int = 100)  extends ModelBackend
+      implicit val conf =
+        Configuration.default
+          .withDiscriminator("type")
+          .withDefaults
+          .copy(transformConstructorNames = {
+            case "LightGBMBackend" => "lightgbm"
+            case "XGBoostBackend"  => "xgboost"
+          })
 
-    implicit val modelBackendDecoder: Decoder[ModelBackend] = Decoder.decodeString.emapTry {
-      case "lightgbm" => Success(LightGBMBackend)
-      case "xgboost"  => Success(XGBoostBackend)
-      case other      => Failure(new IllegalArgumentException(s"model backend $other is not supported"))
+      implicit val modelBackendDecoder: Decoder[ModelBackend] = deriveConfiguredDecoder
     }
 
   }
@@ -109,7 +123,7 @@ object Config extends Logging {
   def validateConfig(conf: Config): List[String] = {
     val features = nonUniqueNames[FeatureSchema](conf.features, _.name).map(_.toString("feature"))
     val modelFeatures = conf.models.toNel.toList.flatMap {
-      case (name, LambdaMARTConfig(_, features, _)) =>
+      case (name, LambdaMARTConfig(_, _, features, _)) =>
         val undefined = features.filterNot(feature => conf.features.exists(_.name == feature))
         undefined.map(feature => s"unresolved feature '$feature' in model '$name'")
       case _ => Nil

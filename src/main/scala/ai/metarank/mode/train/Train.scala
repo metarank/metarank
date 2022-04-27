@@ -26,7 +26,7 @@ object Train extends IOApp with Logging {
     _    <- validate(data)
   } yield {
     val (train, test) = split(data, cmd.split)
-    ranker.train(train, test, cmd.iterations) match {
+    ranker.train(train, test) match {
       case Some(modelBytes) =>
         cmd.output.writeByteArray(modelBytes)
         logger.info(s"${cmd.model} model written to ${cmd.output}")

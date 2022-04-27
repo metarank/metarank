@@ -6,7 +6,7 @@ import ai.metarank.feature.FeatureTest.FeaturyMock
 import ai.metarank.flow.FieldStore.MapFieldStore
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{Event, FeatureSchema, Field, FieldId, FieldUpdate, MValue}
-import ai.metarank.ranker.ShuffleRanker
+import ai.metarank.rank.ShuffleModel
 import cats.data.{NonEmptyList, NonEmptyMap}
 import com.github.blemale.scaffeine.Scaffeine
 import io.findify.featury.model.Feature._

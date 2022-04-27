@@ -6,6 +6,7 @@ import ai.metarank.mode.inference.{FeatureStoreResource, RankResponse}
 import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
 import ai.metarank.mode.inference.ranking.RankScorer
 import ai.metarank.model.Event.RankingEvent
+import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect._
 import cats.implicits._
@@ -24,7 +25,7 @@ import scala.concurrent.duration._
 case class RankApi(
     mapping: FeatureMapping,
     storeResourceRef: Ref[IO, FeatureStoreResource],
-    scorers: Map[String, RankScorer]
+    scorers: Map[String, Scorer]
 ) extends Logging {
   import RankApi._
 

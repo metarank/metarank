@@ -1,27 +1,27 @@
-package ai.metarank.ranker
+package ai.metarank.rank
 
 import ai.metarank.config.Config.ModelConfig
-import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.Config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
+import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, ModelBackend}
 import ai.metarank.feature.BaseFeature
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
-import ai.metarank.mode.train.Train.logger
-import ai.metarank.mode.train.TrainCmdline
 import ai.metarank.model.Clickthrough.ItemValues
-import ai.metarank.model.{Clickthrough, Event, Ranker}
-import ai.metarank.ranker.LambdaMARTRanker.Fillrate
+import ai.metarank.model.{Clickthrough, Event}
+import ai.metarank.rank.LambdaMARTModel.{Fillrate, LambdaMARTScorer}
+import ai.metarank.rank.Model.Scorer
 import cats.data.NonEmptyMap
 import io.findify.featury.model.{FeatureValue, Schema}
 import io.github.metarank.ltrlib.booster.Booster.BoosterOptions
-import io.github.metarank.ltrlib.booster.{LightGBMBooster, XGBoostBooster}
-import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
+import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, XGBoostBooster}
+import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
-case class LambdaMARTRanker(
+case class LambdaMARTModel(
     conf: LambdaMARTConfig,
     features: List[BaseFeature],
     datasetDescriptor: DatasetDescriptor,
     weights: NonEmptyMap[String, Double]
-) extends Ranker {
+) extends Model {
   override def featureValues(
       ranking: Event.RankingEvent,
       source: List[FeatureValue],
@@ -59,11 +59,11 @@ case class LambdaMARTRanker(
     itemScores
   }
 
-  override def train(train: Dataset, test: Dataset, iterations: Int): Option[Array[Byte]] = {
-    val opts = BoosterOptions(trees = iterations, maxDepth = 8)
+  override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = {
+    val opts = BoosterOptions(trees = conf.backend.iterations, maxDepth = 8)
     val booster = conf.backend match {
-      case ModelConfig.LightGBMBackend => LambdaMART(train, opts, LightGBMBooster, Some(test))
-      case ModelConfig.XGBoostBackend  => LambdaMART(train, opts, XGBoostBooster, Some(test))
+      case LightGBMBackend(_) => LambdaMART(train, opts, LightGBMBooster, Some(test))
+      case XGBoostBackend(_)  => LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
     val model = booster.fit()
     logger.info(s"Feature stats (queries=${train.groups.size}, items=${train.itemCount}): ")
@@ -98,8 +98,31 @@ case class LambdaMARTRanker(
   }
 }
 
-object LambdaMARTRanker {
+object LambdaMARTModel {
   case class Fillrate(name: String, zeroes: Int, nonzeroes: Int, weight: Double) {
     def print() = s"$name: zero=$zeroes nonzero=$nonzeroes weight=$weight"
+  }
+
+  case class LambdaMARTScorer(booster: Booster[_]) extends Scorer {
+    override def score(input: Query): Array[Double] = {
+      val features = new Array[Double](input.rows * input.columns)
+      var pos      = 0
+      for {
+        rowIndex <- 0 until input.rows
+        row = input.getRow(rowIndex)
+      } {
+        System.arraycopy(row, 0, features, pos, row.length)
+        pos += row.length
+      }
+      booster.predictMat(features, input.rows, input.columns)
+
+    }
+  }
+
+  object LambdaMARTScorer {
+    def apply(backend: ModelBackend, bytes: Array[Byte]): LambdaMARTScorer = backend match {
+      case LightGBMBackend(_) => LambdaMARTScorer(LightGBMBooster(bytes))
+      case XGBoostBackend(_)  => LambdaMARTScorer(XGBoostBooster(bytes))
+    }
   }
 }

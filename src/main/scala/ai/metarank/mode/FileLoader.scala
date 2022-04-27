@@ -11,7 +11,7 @@ import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
 import org.apache.commons.io.IOUtils
 
 object FileLoader {
-  def loadLocal(path: MPath, env: Map[String, String]): IO[Array[Byte]] = path match {
+  def load(path: MPath, env: Map[String, String]): IO[Array[Byte]] = path match {
     case MPath.S3Path(bucket, prefix) =>
       for {
         key <- IO.fromOption(env.get("AWS_ACCESS_KEY_ID"))(

@@ -12,7 +12,7 @@ import scala.util.Random
 
 class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val random  = new Random(1)
-  lazy val mapping = ??? // FeatureMapping.fromFeatureSchema()
+  lazy val mapping = TestFeatureMapping()
   lazy val store   = FeatureStoreResource.unsafe(() => RandomFeatureStore(mapping)).unsafeRunSync()
   lazy val service = RankApi(mapping, store, Map("random" -> RandomScorer()))
 

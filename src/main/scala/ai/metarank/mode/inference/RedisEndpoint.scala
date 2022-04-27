@@ -3,6 +3,7 @@ package ai.metarank.mode.inference
 import ai.metarank.config.Config.StateStoreConfig
 import ai.metarank.config.MPath
 import ai.metarank.mode.upload.Upload
+import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import com.github.microwww.redis.RedisServer
@@ -27,9 +28,10 @@ object RedisEndpoint {
     override def close: IO[Unit] = IO { service.close() }
   }
 
-  object EmbeddedRedis {
+  object EmbeddedRedis extends Logging {
     def createUnsafe(port: Int) = {
       val service = new RedisServer()
+      logger.info(s"starting embedded redis on localhost:$port")
       service.listener("localhost", port)
       service
     }

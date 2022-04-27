@@ -3,38 +3,22 @@
 set -euxo pipefail
 
 JAR=$1
-TMPDIR=`mktemp -d /tmp/ranklens-XXXXXX`
 
-java -jar $JAR bootstrap \
-  --events src/test/resources/ranklens/events/ \
-  --out $TMPDIR \
-  --config src/test/resources/ranklens/config.yml
+java -jar $JAR bootstrap src/test/resources/ranklens/config.yml
 
-echo "Boostrap done into dir $TMPDIR"
+echo "Boostrap done"
 
-java -jar $JAR train \
-  --input $TMPDIR/dataset \
-  --config src/test/resources/ranklens/config.yml \
-  --model-type lambdamart-lightgbm \
-  --model-file $TMPDIR/metarank.model
+java -jar $JAR train src/test/resources/ranklens/config.yml xgboost
 
 echo "Training done"
 
-java -jar $JAR upload \
-  --features-dir $TMPDIR/features \
-  --host localhost \
-  --format json
+java -jar $JAR upload src/test/resources/ranklens/config.yml
 
 echo "Upload done"
 
-java -jar $JAR inference \
-  --config src/test/resources/ranklens/config.yml \
-  --model $TMPDIR/metarank.model \
-  --redis-host localhost \
-  --format json \
-  --savepoint-dir $TMPDIR/savepoint & echo $! > $TMPDIR/inference.pid
+java -jar $JAR inference src/test/resources/ranklens/config.yml & echo $! > /tmp/inference.pid
 
-PID=`cat $TMPDIR/inference.pid`
+PID=$(cat /tmp/inference.pid)
 
 echo "Waiting for http server with pid=$PID to come online..."
 

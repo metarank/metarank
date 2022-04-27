@@ -1,12 +1,13 @@
 bootstrap:
-  eventPath: src/test/resources/events/
+  eventPath: src/test/resources/ranklens/events/
   workdir: /tmp/bootstrap
 
 inference:
   port: 8080
   host: "0.0.0.0"
   state:
-    type: memory
+    type: redis
+    host: localhost
     format: json
 
 models:

@@ -40,6 +40,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         |    backend: 
         |      type: xgboost
         |      iterations: 10
+        |      seed: 0
         |    features: [ price ]
         |    weights:
         |      click: 1""".stripMargin
@@ -50,7 +51,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         models = NonEmptyMap.of(
           "test" -> LambdaMARTConfig(
             MPath("/tmp/model.dat"),
-            XGBoostBackend(10),
+            XGBoostBackend(10, seed = 0),
             NonEmptyList.of("price"),
             NonEmptyMap.of("click" -> 1)
           )

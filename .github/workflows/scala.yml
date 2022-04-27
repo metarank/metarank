@@ -20,7 +20,7 @@ jobs:
       if: runner.os == 'macOS'
 
     - name: install haveged
-      run: sudo apt-get install haveged && sudo haveged && cat /etc/cpuinfo && ls -l /dev/
+      run: sudo apt-get install haveged && sudo haveged && cat /proc/cpuinfo && ls -l /dev/
       if: runner.os == 'Linux'
 
     - uses: actions/checkout@v2

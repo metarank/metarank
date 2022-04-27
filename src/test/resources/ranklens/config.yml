@@ -42,7 +42,7 @@ models:
     path: /tmp/xgboost.model
     backend:
       type: xgboost
-      iterations: 100
+      iterations: 10
       seed: 0
     weights:
       click: 1

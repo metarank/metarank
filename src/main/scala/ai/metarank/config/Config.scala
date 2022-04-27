@@ -19,18 +19,30 @@ import scala.util.{Failure, Success}
 case class Config(
     features: NonEmptyList[FeatureSchema],
     models: NonEmptyMap[String, ModelConfig],
-    bootststap: BootstrapConfig,
+    bootstrap: BootstrapConfig,
     inference: InferenceConfig
 )
 
 object Config extends Logging {
+
   case class BootstrapConfig(eventPath: MPath, workdir: MPath, parallelism: Int = 1)
+  object BootstrapConfig {
+    import io.circe.generic.extras.semiauto._
+    implicit val config                                     = Configuration.default.withDefaults
+    implicit val bootstrapDecoder: Decoder[BootstrapConfig] = deriveConfiguredDecoder[BootstrapConfig]
+
+  }
   case class InferenceConfig(
-      port: Int,
-      host: String,
+      port: Int = 8080,
+      host: String = "0.0.0.0",
       state: StateStoreConfig,
       parallelism: Int = 1
   )
+  object InferenceConfig {
+    import io.circe.generic.extras.semiauto._
+    implicit val config                                     = Configuration.default.withDefaults
+    implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveConfiguredDecoder
+  }
 
   sealed trait StateStoreConfig {
     def port: Int
@@ -51,7 +63,15 @@ object Config extends Logging {
       val host = "localhost"
     }
 
-    implicit val conf = Configuration.default.withDiscriminator("type").withDefaults
+    implicit val conf = Configuration.default
+      .withDiscriminator("type")
+      .withDefaults
+      .copy(transformConstructorNames = {
+        case "RedisConfig" => "redis"
+        case "MemConfig"   => "memory"
+      })
+    implicit val redisDecoder: Decoder[RedisConfig]           = deriveConfiguredDecoder
+    implicit val memDecoder: Decoder[MemConfig]               = deriveConfiguredDecoder
     implicit val stateStoreDecoder: Decoder[StateStoreConfig] = deriveConfiguredDecoder
   }
 
@@ -87,8 +107,6 @@ object Config extends Logging {
     }
 
   }
-  implicit val bootstrapDecoder: Decoder[BootstrapConfig] = deriveDecoder
-  implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveDecoder
 
   implicit val conf =
     Configuration.default

@@ -4,7 +4,6 @@ import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.mode.inference.{FeatureStoreResource, RankResponse}
 import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
-import ai.metarank.mode.inference.ranking.RankScorer
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
@@ -17,7 +16,6 @@ import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
 import io.findify.featury.model.Key
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
-import org.http4s.Uri.Path.Segment
 import org.http4s.circe._
 
 import scala.concurrent.duration._

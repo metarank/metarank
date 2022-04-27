@@ -2,13 +2,11 @@ package ai.metarank.mode.inference
 
 import ai.metarank.config.Config.StateStoreConfig
 import ai.metarank.config.MPath
-import ai.metarank.mode.upload.{Upload, UploadCmdline}
-import cats.effect
+import ai.metarank.mode.upload.Upload
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import com.github.microwww.redis.RedisServer
 import io.findify.featury.values.StoreCodec
-import io.findify.featury.values.StoreCodec.JsonCodec
 
 sealed trait RedisEndpoint {
   def host: String

@@ -5,7 +5,6 @@ import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, NoopConfig, Shuf
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
-import ai.metarank.mode.inference.ranking.LtrlibScorer
 import ai.metarank.model.Event
 import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
 import ai.metarank.rank.Model.Scorer
@@ -13,7 +12,6 @@ import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.ShuffleModel.ShuffleScorer
 import ai.metarank.source.FeedbackApiSource
 import ai.metarank.util.Logging
-import better.files.File
 import cats.effect.kernel.Ref
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, IOApp, Resource}
@@ -41,7 +39,7 @@ object Inference extends IOApp with Logging {
       case configPath :: Nil =>
         for {
           env          <- IO { System.getenv().asScala.toMap }
-          confContents <- FileLoader.load(MPath(configPath), env)
+          confContents <- FileLoader.read(MPath(configPath), env)
           config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
           mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.models) }
           models       <- loadModels(config, env)
@@ -58,14 +56,14 @@ object Inference extends IOApp with Logging {
   def cluster(config: Config, mapping: FeatureMapping, models: Map[String, Scorer]) = {
     for {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
-      redis   <- RedisEndpoint.create(config.inference.state, config.bootststap.workdir)
+      redis   <- RedisEndpoint.create(config.inference.state, config.bootstrap.workdir)
       _       <- Resource.eval(redis.upload)
       _ <- FeedbackFlow.resource(
         cluster,
         mapping,
         config.inference.state.host,
         config.inference.state.port,
-        config.bootststap.workdir.child("savepoint"),
+        config.bootstrap.workdir.child("savepoint"),
         config.inference.state.format,
         _.addSource(FeedbackApiSource(config.inference.host, config.inference.port))
       )
@@ -89,7 +87,7 @@ object Inference extends IOApp with Logging {
     config.models.toNel.toList
       .map {
         case (name, LambdaMARTConfig(path, backend, _, _)) =>
-          FileLoader.load(path, env).map(file => name -> LambdaMARTScorer(backend, file))
+          FileLoader.read(path, env).map(file => name -> LambdaMARTScorer(backend, file))
         case (name, ShuffleConfig(maxPositionChange)) =>
           IO.pure(name -> ShuffleScorer(maxPositionChange))
         case (name, _: NoopConfig) =>

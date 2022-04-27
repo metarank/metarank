@@ -62,20 +62,20 @@ object Bootstrap extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = for {
     env <- IO { System.getenv().asScala.toMap }
     configContents <- args match {
-      case configPath :: Nil => FileLoader.load(MPath(configPath), env)
+      case configPath :: Nil => FileLoader.read(MPath(configPath), env)
       case _                 => IO.raiseError(new IllegalArgumentException("usage: metarank <config path>"))
     }
     config <- Config.load(new String(configContents))
     _      <- IO { logger.info("Performing bootstap.") }
-    _      <- IO { logger.info(s"  events URL: ${config.bootststap.eventPath}") }
-    _      <- IO { logger.info(s"  output dir URL: ${config.bootststap.workdir}") }
+    _      <- IO { logger.info(s"  events URL: ${config.bootstrap.eventPath}") }
+    _      <- IO { logger.info(s"  output dir URL: ${config.bootstrap.workdir}") }
     _      <- run(config)
   } yield {
     ExitCode.Success
   }
 
   def run(config: Config) = IO {
-    config.bootststap.workdir match {
+    config.bootstrap.workdir match {
       case path: MPath.LocalPath if path.file.notExists =>
         logger.info(s"local dir $path does not exist, creating")
         path.file.createDirectoryIfNotExists(createParents = true)
@@ -85,22 +85,22 @@ object Bootstrap extends IOApp with Logging {
 
     val streamEnv =
       StreamExecutionEnvironment.createLocalEnvironment(
-        config.bootststap.parallelism,
+        config.bootstrap.parallelism,
         FlinkS3Configuration(System.getenv())
       )
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
 
-    val raw: DataStream[Event] = FileEventSource(config.bootststap.eventPath.uri).eventStream(streamEnv).id("load")
-    makeBootstrap(raw, mapping, config.bootststap.workdir)
+    val raw: DataStream[Event] = FileEventSource(config.bootstrap.eventPath.uri).eventStream(streamEnv).id("load")
+    makeBootstrap(raw, mapping, config.bootstrap.workdir)
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
     val batch = ExecutionEnvironment.getExecutionEnvironment
-    batch.setParallelism(config.bootststap.parallelism)
+    batch.setParallelism(config.bootstrap.parallelism)
 
-    makeSavepoint(batch, config.bootststap.workdir, mapping)
+    makeSavepoint(batch, config.bootstrap.workdir, mapping)
     logger.info("Bootstrap done")
   }
 

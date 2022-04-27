@@ -14,12 +14,12 @@ class MPathTest extends AnyFlatSpec with Matchers {
     parse("s3://bucket/prefix") shouldBe Right(S3Path("bucket", "prefix"))
   }
 
-  it should "decode local:// paths with double slashes" in {
-    parse("local://home/foo") shouldBe Right(LocalPath("/home/foo"))
+  it should "decode file:// paths with double slashes" in {
+    parse("file://home/foo") shouldBe Right(LocalPath("/home/foo"))
   }
 
-  it should "decode local:// paths with triple slashes" in {
-    parse("local:///home/foo") shouldBe Right(LocalPath("/home/foo"))
+  it should "decode file:// paths with triple slashes" in {
+    parse("file:///home/foo") shouldBe Right(LocalPath("/home/foo"))
   }
 
   it should "decode local relative paths" in {

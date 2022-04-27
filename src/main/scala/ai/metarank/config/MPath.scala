@@ -22,14 +22,14 @@ object MPath {
   }
   case class LocalPath(path: String) extends MPath {
     def file = File(path)
-    def uri  = s"local://$path"
+    def uri  = s"file://$path"
 
     override def /(next: String): MPath = copy(path = path + "/" + next)
   }
 
   val s3Pattern            = "s3://([a-z0-9\\.\\-]{3,})/([ a-zA-Z0-9\\!\\-_\\.\\*'\\(\\)]+)".r
-  val localSchemePattern3  = "local:///(.+)".r
-  val localSchemePattern2  = "local://(.+)".r
+  val localSchemePattern3  = "file:///(.+)".r
+  val localSchemePattern2  = "file://(.+)".r
   val localAbsolutePattern = "/(.+)".r
   val localRelativePattern = "\\./(.+)".r
 

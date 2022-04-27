@@ -27,10 +27,10 @@ object Upload extends IOApp with Logging {
     case configPath :: Nil =>
       for {
         env          <- IO { System.getenv().asScala.toMap }
-        confContents <- FileLoader.load(MPath(configPath), env)
+        confContents <- FileLoader.read(MPath(configPath), env)
         config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
         _ <- upload(
-          config.bootststap.workdir.child("features"),
+          config.bootstrap.workdir.child("features"),
           config.inference.state.host,
           config.inference.state.port,
           config.inference.state.format

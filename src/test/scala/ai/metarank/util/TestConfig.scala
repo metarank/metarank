@@ -15,7 +15,7 @@ object TestConfig {
   def apply() = new Config(
     features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
     models = NonEmptyMap.of("shuffle" -> ShuffleConfig(10)),
-    bootststap = BootstrapConfig(
+    bootstrap = BootstrapConfig(
       eventPath = MPath("/tmp"),
       workdir = MPath("/tmp")
     ),

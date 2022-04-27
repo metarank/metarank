@@ -25,7 +25,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         |  host: localhost
         |  port: 8080
         |  state:
-        |    type: mem
+        |    type: memory
         |    format: json
         |features:
         |  - name: price
@@ -54,7 +54,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
             NonEmptyMap.of("click" -> 1)
           )
         ),
-        bootststap = BootstrapConfig(
+        bootstrap = BootstrapConfig(
           eventPath = LocalPath("/tmp/events"),
           workdir = S3Path("bucket", "prefix")
         ),

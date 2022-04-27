@@ -1,7 +1,9 @@
 package ai.metarank.mode.train
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, MPath}
+import ai.metarank.mode.FileLoader
+import ai.metarank.rank.{LambdaMARTModel, Model}
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
@@ -14,27 +16,30 @@ import scala.collection.JavaConverters._
 
 object Train extends IOApp with Logging {
   import ai.metarank.flow.DatasetSink.queryCodec
-  override def run(args: List[String]): IO[ExitCode] = for {
-    cmd     <- TrainCmdline.parse(args, System.getenv().asScala.toMap)
-    config  <- Config.load(cmd.config)
-    mapping <- IO { FeatureMapping.fromFeatureSchema(config.features, config.models) }
-    ranker <- mapping.models.get(cmd.model) match {
-      case Some(value) => IO.pure(value)
-      case None        => IO.raiseError(new Exception(s"model ${cmd.model} is not configured"))
+  override def run(args: List[String]): IO[ExitCode] =
+    args match {
+      case configPath :: modelName :: Nil =>
+        for {
+          env          <- IO { System.getenv().asScala.toMap }
+          confContents <- FileLoader.read(MPath(configPath), env)
+          config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
+          mapping      <- IO { FeatureMapping.fromFeatureSchema(config.features, config.models) }
+          ranker <- mapping.models.get(modelName) match {
+            case Some(value: LambdaMARTModel) => IO.pure(value)
+            case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
+          }
+          dataPath <- config.bootstrap.workdir / s"dataset-$modelName" match {
+            case MPath.S3Path(bucket, path) => IO.raiseError(new Exception(s"training works only with local datasets"))
+            case MPath.LocalPath(path)      => IO(File(path))
+          }
+          data <- loadData(dataPath, ranker.datasetDescriptor)
+          _    <- train(data, ranker, ranker.conf.path, env)
+        } yield {
+          ExitCode.Success
+        }
+      case _ =>
+        IO(logger.error("usage: metarank train <config path> <model name>")) *> IO.pure(ExitCode.Success)
     }
-    data <- loadData(cmd.input, ranker.datasetDescriptor)
-    _    <- validate(data)
-  } yield {
-    val (train, test) = split(data, cmd.split)
-    ranker.train(train, test) match {
-      case Some(modelBytes) =>
-        cmd.output.writeByteArray(modelBytes)
-        logger.info(s"${cmd.model} model written to ${cmd.output}")
-      case None =>
-        logger.info(s"${cmd.model} model is empty")
-    }
-    ExitCode.Success
-  }
 
   def loadData(path: File, desc: DatasetDescriptor) = {
     for {
@@ -77,6 +82,17 @@ object Train extends IOApp with Logging {
     } else {
       IO.unit
     }
+  }
+
+  def train(data: Dataset, ranker: Model, path: MPath, env: Map[String, String]) = {
+    val (train, test) = split(data, 80)
+    ranker.train(train, test) match {
+      case Some(modelBytes) =>
+        FileLoader.write(path, env, modelBytes) *> IO(logger.info(s"model written to $path"))
+      case None =>
+        IO(logger.info("model is empty"))
+    }
+
   }
 
   case class DatasetValidationError(msg: String) extends Exception(msg)

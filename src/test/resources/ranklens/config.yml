@@ -1,10 +1,21 @@
-interactions:
-  - name: click
-    weight: 1.0
+bootstrap:
+  eventPath: src/test/resources/events/
+  workdir: /tmp/bootstrap
+
+inference:
+  port: 8080
+  host: "0.0.0.0"
+  state:
+    type: memory
+    format: json
+
 models:
   lightgbm:
     type: lambdamart
-    backend: lightgbm
+    path: /tmp/lightgbm.model
+    backend:
+      type: lightgbm
+      iterations: 100
     weights:
       click: 1
     features:
@@ -24,28 +35,31 @@ models:
       - visitor_click_count
       - global_item_click_count
       - day_item_click_count
-#  xgboost:
-#    type: lambdamart
-#    backend: xgboost
-#    weights:
-#      click: 1
-#    features:
-#      - popularity
-#      - vote_avg
-#      - vote_cnt
-#      - budget
-#      - release_date
-#      - runtime
-#      - title_length
-#      - genre
-#      - ctr
-#      - liked_genre
-#      - liked_actors
-#      - liked_tags
-#      - liked_director
-#      - visitor_click_count
-#      - global_item_click_count
-#      - day_item_click_count
+  xgboost:
+    type: lambdamart
+    path: /tmp/xgboost.model
+    backend:
+      type: xgboost
+      iterations: 100
+    weights:
+      click: 1
+    features:
+      - popularity
+      - vote_avg
+      - vote_cnt
+      - budget
+      - release_date
+      - runtime
+      - title_length
+      - genre
+      - ctr
+      - liked_genre
+      - liked_actors
+      - liked_tags
+      - liked_director
+      - visitor_click_count
+      - global_item_click_count
+      - day_item_click_count
 features:
   - name: popularity
     type: number

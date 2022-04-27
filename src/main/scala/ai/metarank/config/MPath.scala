@@ -5,6 +5,8 @@ import better.files.Dsl.cwd
 import better.files.File
 import org.apache.flink.core.fs.Path
 
+import scala.util.Random
+
 sealed trait MPath {
   def path: String
   def uri: String

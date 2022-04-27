@@ -1,5 +1,6 @@
 package ai.metarank.mode
 
+import ai.metarank.config.MPath
 import ai.metarank.mode.train.Train
 import better.files.File
 import cats.effect.unsafe.implicits.global
@@ -49,6 +50,6 @@ class TrainTest extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
 //  }
 
   it should "fail on empty dir" in {
-    Try(Train.loadData(File("/no/such/dir"), desc).unsafeRunSync()).isFailure shouldBe true
+    Try(Train.loadData(MPath(File("/no/such/dir")), desc, "foo").unsafeRunSync()).isFailure shouldBe true
   }
 }

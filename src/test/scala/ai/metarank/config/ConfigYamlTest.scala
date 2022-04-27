@@ -9,6 +9,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType._
+import better.files.Resource
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.circe.yaml.parser.parse
 import io.findify.featury.values.StoreCodec.JsonCodec
@@ -65,5 +66,11 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         )
       )
     )
+  }
+
+  it should "parse ranklens config" in {
+    val yaml = Resource.my.getAsString("/ranklens/config.yml")
+    val conf = parse(yaml).flatMap(_.as[Config])
+    conf.isRight shouldBe true
   }
 }

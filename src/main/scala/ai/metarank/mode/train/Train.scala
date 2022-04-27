@@ -28,11 +28,7 @@ object Train extends IOApp with Logging {
             case Some(value: LambdaMARTModel) => IO.pure(value)
             case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
           }
-          dataPath <- config.bootstrap.workdir / s"dataset-$modelName" match {
-            case MPath.S3Path(bucket, path) => IO.raiseError(new Exception(s"training works only with local datasets"))
-            case MPath.LocalPath(path)      => IO(File(path))
-          }
-          data <- loadData(dataPath, ranker.datasetDescriptor)
+          data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName)
           _    <- train(data, ranker, ranker.conf.path, env)
         } yield {
           ExitCode.Success
@@ -41,9 +37,13 @@ object Train extends IOApp with Logging {
         IO(logger.error("usage: metarank train <config path> <model name>")) *> IO.pure(ExitCode.Success)
     }
 
-  def loadData(path: File, desc: DatasetDescriptor) = {
+  def loadData(path: MPath, desc: DatasetDescriptor, modelName: String) = {
     for {
-      files <- IO { path.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
+      dataPath <- path / s"dataset-$modelName" match {
+        case MPath.S3Path(_, _)    => IO.raiseError(new Exception(s"training works yet only with local datasets"))
+        case MPath.LocalPath(path) => IO(File(path))
+      }
+      files <- IO { dataPath.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
       filesNel <- files match {
         case Nil =>
           IO.raiseError(

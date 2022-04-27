@@ -1,7 +1,7 @@
 package ai.metarank.mode.bootstrap
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, MPath}
 import ai.metarank.flow.{
   ClickthroughJoin,
   ClickthroughJoinFunction,
@@ -59,20 +59,22 @@ object Bootstrap extends IOApp with Logging {
   )
 
   override def run(args: List[String]): IO[ExitCode] = for {
-    env            <- IO { System.getenv().asScala.toMap }
-    cmd            <- BootstrapCmdline.parse(args, env)
-    _              <- IO { logger.info("Performing bootstap.") }
-    _              <- IO { logger.info(s"  events URL: ${cmd.eventPathUrl}") }
-    _              <- IO { logger.info(s"  output dir URL: ${cmd.outDirUrl}") }
-    _              <- IO { logger.info(s"  config: ${cmd.config}") }
-    configContents <- FileLoader.loadLocal(cmd.config, env)
-    config         <- Config.load(new String(configContents))
-    _              <- run(config, cmd)
+    env <- IO { System.getenv().asScala.toMap }
+    configContents <- args.headOption match {
+      case Some(configPath) => FileLoader.loadLocal(MPath(configPath), env)
+      case None             => IO.raiseError(new IllegalArgumentException("usage: metarank <config path>"))
+    }
+    config <- Config.load(new String(configContents))
+    _      <- IO { logger.info("Performing bootstap.") }
+    _      <- IO { logger.info(s"  events URL: ${config.bootststap.eventPath}") }
+    _      <- IO { logger.info(s"  output dir URL: ${config.bootststap.workdir}") }
+    _      <- IO { logger.info(s"  config: ${configPath}") }
+    _      <- run(config, cmd)
   } yield {
     ExitCode.Success
   }
 
-  def run(config: Config, cmd: BootstrapCmdline) = IO {
+  def run(config: Config) = IO {
     if (cmd.outDirUrl.startsWith("file://")) { File(cmd.outDir).createDirectoryIfNotExists(createParents = true) }
     val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
 

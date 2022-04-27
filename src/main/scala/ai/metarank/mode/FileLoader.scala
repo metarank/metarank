@@ -1,5 +1,7 @@
 package ai.metarank.mode
 
+import ai.metarank.config.MPath
+import ai.metarank.config.MPath.LocalPath
 import better.files.File
 import cats.effect.IO
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider, BasicAWSCredentials}
@@ -9,10 +11,8 @@ import com.amazonaws.services.s3.{AmazonS3Client, AmazonS3ClientBuilder}
 import org.apache.commons.io.IOUtils
 
 object FileLoader {
-  val s3Pattern   = "s3://([a-zA-Z0-9\\-_]+)/(.*)".r
-  val filePattern = "file://(.*)".r
-  def loadLocal(path: String, env: Map[String, String]): IO[Array[Byte]] = path match {
-    case s3Pattern(bucket, prefix) =>
+  def loadLocal(path: MPath, env: Map[String, String]): IO[Array[Byte]] = path match {
+    case MPath.S3Path(bucket, prefix) =>
       for {
         key <- IO.fromOption(env.get("AWS_ACCESS_KEY_ID"))(
           new IllegalArgumentException("AWS_ACCESS_KEY_ID not defined for s3:// scheme")
@@ -36,16 +36,6 @@ object FileLoader {
         client.shutdown()
         bytes
       }
-    case filePattern(local)             => IO { File(local).byteArray }
-    case other if other.startsWith("/") => IO { File(other).byteArray }
-    case other                          => IO { (File.currentWorkingDirectory / other).byteArray }
+    case LocalPath(local) => IO { File(local).byteArray }
   }
-
-  def makeURL(path: String): String = path match {
-    case s3 @ s3Pattern(_, _)                 => s3
-    case file @ filePattern(_)                => file
-    case absolute if absolute.startsWith("/") => "file://" + absolute
-    case relative                             => "file://" + (File.currentWorkingDirectory / relative).toString
-  }
-
 }

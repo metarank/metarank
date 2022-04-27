@@ -14,7 +14,7 @@ import io.circe.yaml.parser.{parse => parseYaml}
 import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.StoreCodec.{JsonCodec, ProtobufCodec}
 
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Random, Success}
 
 case class Config(
     features: NonEmptyList[FeatureSchema],
@@ -91,8 +91,8 @@ object Config extends Logging {
       def iterations: Int
     }
     object ModelBackend {
-      case class LightGBMBackend(iterations: Int = 100) extends ModelBackend
-      case class XGBoostBackend(iterations: Int = 100)  extends ModelBackend
+      case class LightGBMBackend(iterations: Int = 100, seed: Int = Random.nextInt(Int.MaxValue)) extends ModelBackend
+      case class XGBoostBackend(iterations: Int = 100, seed: Int = Random.nextInt(Int.MaxValue))  extends ModelBackend
       implicit val conf =
         Configuration.default
           .withDiscriminator("type")

@@ -12,7 +12,7 @@ import ai.metarank.rank.Model.Scorer
 import cats.data.NonEmptyMap
 import io.findify.featury.model.{FeatureValue, Schema}
 import io.github.metarank.ltrlib.booster.Booster.BoosterOptions
-import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, XGBoostBooster}
+import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
@@ -60,10 +60,13 @@ case class LambdaMARTModel(
   }
 
   override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = {
-    val opts = BoosterOptions(trees = conf.backend.iterations, maxDepth = 8)
     val booster = conf.backend match {
-      case LightGBMBackend(_) => LambdaMART(train, opts, LightGBMBooster, Some(test))
-      case XGBoostBackend(_)  => LambdaMART(train, opts, XGBoostBooster, Some(test))
+      case LightGBMBackend(it, seed) =>
+        val opts = LightGBMOptions(trees = it, numLeaves = 16, randomSeed = seed)
+        LambdaMART(train, opts, LightGBMBooster, Some(test))
+      case XGBoostBackend(it, seed) =>
+        val opts = XGBoostOptions(trees = it, randomSeed = seed)
+        LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
     val model = booster.fit()
     logger.info(s"Feature stats (queries=${train.groups.size}, items=${train.itemCount}): ")
@@ -121,8 +124,8 @@ object LambdaMARTModel {
 
   object LambdaMARTScorer {
     def apply(backend: ModelBackend, bytes: Array[Byte]): LambdaMARTScorer = backend match {
-      case LightGBMBackend(_) => LambdaMARTScorer(LightGBMBooster(bytes))
-      case XGBoostBackend(_)  => LambdaMARTScorer(XGBoostBooster(bytes))
+      case LightGBMBackend(_, _) => LambdaMARTScorer(LightGBMBooster(bytes))
+      case XGBoostBackend(_, _)  => LambdaMARTScorer(XGBoostBooster(bytes))
     }
   }
 }

@@ -28,8 +28,8 @@ object Config extends Logging {
   case class BootstrapConfig(eventPath: MPath, workdir: MPath, parallelism: Int = 1)
   object BootstrapConfig {
     import io.circe.generic.extras.semiauto._
-    implicit val config                                     = Configuration.default.withDefaults
-    implicit val bootstrapDecoder: Decoder[BootstrapConfig] = deriveConfiguredDecoder[BootstrapConfig]
+    implicit val config: io.circe.generic.extras.Configuration = Configuration.default.withDefaults
+    implicit val bootstrapDecoder: Decoder[BootstrapConfig]    = deriveConfiguredDecoder[BootstrapConfig]
 
   }
   case class InferenceConfig(
@@ -41,7 +41,7 @@ object Config extends Logging {
   object InferenceConfig {
     import io.circe.generic.extras.semiauto._
     implicit val config                                     = Configuration.default.withDefaults
-    implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveConfiguredDecoder
+    implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveConfiguredDecoder[InferenceConfig]
   }
 
   sealed trait StateStoreConfig {
@@ -58,8 +58,9 @@ object Config extends Logging {
       case other      => Failure(new Exception(s"codec $other is not supported"))
     }
 
-    case class RedisConfig(host: String, port: Int, format: StoreCodec) extends StateStoreConfig
-    case class MemConfig(format: StoreCodec, port: Int = 6379) extends StateStoreConfig {
+    case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec = JsonCodec) extends StateStoreConfig
+
+    case class MemConfig(format: StoreCodec = JsonCodec, port: Int = 6379) extends StateStoreConfig {
       val host = "localhost"
     }
 
@@ -70,8 +71,6 @@ object Config extends Logging {
         case "RedisConfig" => "redis"
         case "MemConfig"   => "memory"
       })
-    implicit val redisDecoder: Decoder[RedisConfig]           = deriveConfiguredDecoder
-    implicit val memDecoder: Decoder[MemConfig]               = deriveConfiguredDecoder
     implicit val stateStoreDecoder: Decoder[StateStoreConfig] = deriveConfiguredDecoder
   }
 
@@ -105,18 +104,16 @@ object Config extends Logging {
 
       implicit val modelBackendDecoder: Decoder[ModelBackend] = deriveConfiguredDecoder
     }
-
+    implicit val conf =
+      Configuration.default
+        .withDiscriminator("type")
+        .copy(transformConstructorNames = {
+          case "LambdaMARTConfig" => "lambdamart"
+          case "ShuffleConfig"    => "shuffle"
+          case "NoopConfig"       => "noop"
+        })
+    implicit val modelConfigDecoder: Decoder[ModelConfig] = io.circe.generic.extras.semiauto.deriveConfiguredDecoder
   }
-
-  implicit val conf =
-    Configuration.default
-      .withDiscriminator("type")
-      .copy(transformConstructorNames = {
-        case "LambdaMARTConfig" => "lambdamart"
-        case "ShuffleConfig"    => "shuffle"
-        case "NoopConfig"       => "noop"
-      })
-  implicit val modelConfigDecoder: Decoder[ModelConfig] = io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 
   implicit val configDecoder: Decoder[Config] = deriveDecoder[Config].ensure(validateConfig)
 

@@ -4,10 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.mode.AsyncFlinkJob
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.model.Event
-import ai.metarank.source.LocalDirSource
 import ai.metarank.util.Logging
-import cats.effect.IO
-import cats.effect.kernel.Resource
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.format.FeatureStoreSink
 import io.findify.featury.model.FeatureValue
@@ -15,9 +12,6 @@ import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings
-import org.apache.flink.streaming.api.functions.source.SourceFunction
-import org.apache.flink.streaming.util.TestStreamEnvironment
 
 object FeedbackFlow extends Logging {
   import ai.metarank.flow.DataStreamOps._

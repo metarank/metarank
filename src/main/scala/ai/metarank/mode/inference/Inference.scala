@@ -5,11 +5,12 @@ import ai.metarank.config.Config
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.mode.inference.ranking.LtrlibScorer
-import ai.metarank.source.LocalDirSource
-import ai.metarank.source.LocalDirSource.LocalDirWriter
+import ai.metarank.model.Event
+import ai.metarank.source.FeedbackApiSource
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.kernel.Ref
+import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import org.http4s._
 import org.http4s.server._
@@ -57,19 +58,28 @@ object Inference extends IOApp with Logging {
         cmd.batchSize,
         cmd.savepoint,
         cmd.format,
-        _.addSource(new LocalDirSource(dir.toString()))
+        _.addSource(FeedbackApiSource(cmd.host, cmd.port))
       )
       store    <- FeatureStoreResource.make(() => RedisStore(RedisConfig(redis.host, cmd.redisPort, cmd.format)))
       storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
       mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
       scorer <- Resource.eval(IO.fromEither(LtrlibScorer.fromBytes(model)))
-      writer <- LocalDirWriter.create(dir)
-      routes = HealthApi.routes <+> RankApi(mapping, storeRef, Map("x" -> scorer)).routes <+> FeedbackApi(writer).routes
+      queue  <- Resource.eval(Queue.dropping[IO, Event](1000))
+      routes  = HealthApi.routes <+> RankApi(mapping, queue, Map("x" -> scorer)).routes <+> FeedbackApi(writer).routes
       httpApp = Router("/" -> routes).orNotFound
     } yield {
       BlazeServerBuilder[IO]
         .bindHttp(cmd.port, cmd.host)
         .withHttpApp(httpApp)
+        .withBanner(logo.split("\n").toList)
     }
   }
+
+  def logo = """
+               |                __                              __    
+               |  _____   _____/  |______ ____________    ____ |  | __
+               | /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
+               ||  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
+               ||__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
+               |      \/     \/          \/           \/     \/     \/""".stripMargin
 }

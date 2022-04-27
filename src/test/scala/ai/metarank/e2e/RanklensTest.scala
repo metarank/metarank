@@ -44,7 +44,9 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8))
     .unsafeRunSync()
 
-  val config = baseConfig.copy(bootstrap = baseConfig.bootstrap.copy(workdir = MPath(File.newTemporaryDirectory())))
+  val config = baseConfig.copy(
+    bootstrap = baseConfig.bootstrap.copy(workdir = MPath(File.newTemporaryDirectory()))
+  )
 
   val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
 

@@ -10,32 +10,32 @@ inference:
     format: json
 
 models:
-  lightgbm:
-    type: lambdamart
-    path: /tmp/lightgbm.model
-    backend:
-      type: lightgbm
-      iterations: 100
-      seed: 0
-    weights:
-      click: 1
-    features:
-      - popularity
-      - vote_avg
-      - vote_cnt
-      - budget
-      - release_date
-      - runtime
-      - title_length
-      - genre
-      - ctr
-      - liked_genre
-      - liked_actors
-      - liked_tags
-      - liked_director
-      - visitor_click_count
-      - global_item_click_count
-      - day_item_click_count
+#  lightgbm:
+#    type: lambdamart
+#    path: /tmp/lightgbm.model
+#    backend:
+#      type: lightgbm
+#      iterations: 100
+#      seed: 0
+#    weights:
+#      click: 1
+#    features:
+#      - popularity
+#      - vote_avg
+#      - vote_cnt
+#      - budget
+#      - release_date
+#      - runtime
+#      - title_length
+#      - genre
+#      - ctr
+#      - liked_genre
+#      - liked_actors
+#      - liked_tags
+#      - liked_director
+#      - visitor_click_count
+#      - global_item_click_count
+#      - day_item_click_count
   xgboost:
     type: lambdamart
     path: /tmp/xgboost.model

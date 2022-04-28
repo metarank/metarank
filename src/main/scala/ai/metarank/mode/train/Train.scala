@@ -1,16 +1,14 @@
 package ai.metarank.mode.train
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
-import ai.metarank.mode.train.TrainCmdline.ModelType
+import ai.metarank.config.{Config, MPath}
+import ai.metarank.mode.FileLoader
+import ai.metarank.rank.{LambdaMARTModel, Model}
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import io.circe.parser._
-import io.github.metarank.ltrlib.booster.Booster.BoosterOptions
-import io.github.metarank.ltrlib.booster.{LightGBMBooster, XGBoostBooster}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
-import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
@@ -18,22 +16,34 @@ import scala.collection.JavaConverters._
 
 object Train extends IOApp with Logging {
   import ai.metarank.flow.DatasetSink.queryCodec
-  override def run(args: List[String]): IO[ExitCode] = for {
-    cmd     <- TrainCmdline.parse(args, System.getenv().asScala.toMap)
-    config  <- Config.load(cmd.config)
-    mapping <- IO { FeatureMapping.fromFeatureSchema(config.features, config.interactions) }
-    data    <- loadData(cmd.input, mapping.datasetDescriptor)
-    _       <- validate(data)
-  } yield {
-    val (train, test) = split(data, cmd.split)
-    cmd.output.writeByteArray(trainModel(train, test, cmd.booster, cmd.iterations))
-    logger.info(s"${cmd.booster} model written to ${cmd.output}")
-    ExitCode.Success
-  }
+  override def run(args: List[String]): IO[ExitCode] =
+    args match {
+      case configPath :: modelName :: Nil =>
+        for {
+          env          <- IO { System.getenv().asScala.toMap }
+          confContents <- FileLoader.read(MPath(configPath), env)
+          config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
+          mapping      <- IO { FeatureMapping.fromFeatureSchema(config.features, config.models) }
+          ranker <- mapping.models.get(modelName) match {
+            case Some(value: LambdaMARTModel) => IO.pure(value)
+            case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
+          }
+          data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName)
+          _    <- train(data, ranker, ranker.conf.path, env)
+        } yield {
+          ExitCode.Success
+        }
+      case _ =>
+        IO(logger.error("usage: metarank train <config path> <model name>")) *> IO.pure(ExitCode.Success)
+    }
 
-  def loadData(path: File, desc: DatasetDescriptor) = {
+  def loadData(path: MPath, desc: DatasetDescriptor, modelName: String) = {
     for {
-      files <- IO { path.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
+      dataPath <- path / s"dataset-$modelName" match {
+        case MPath.S3Path(_, _)    => IO.raiseError(new Exception(s"training works yet only with local datasets"))
+        case MPath.LocalPath(path) => IO(File(path))
+      }
+      files <- IO { dataPath.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
       filesNel <- files match {
         case Nil =>
           IO.raiseError(
@@ -62,27 +72,6 @@ object Train extends IOApp with Logging {
     (Dataset(dataset.desc, train), Dataset(dataset.desc, test))
   }
 
-  def trainModel(train: Dataset, test: Dataset, mtype: ModelType, iterations: Int) = {
-    val opts = BoosterOptions(trees = iterations)
-    val booster = mtype match {
-      case TrainCmdline.LambdaMARTLightGBM => LambdaMART(train, opts, LightGBMBooster, Some(test))
-      case TrainCmdline.LambdaMARTXGBoost  => LambdaMART(train, opts, XGBoostBooster, Some(test))
-    }
-    val model = booster.fit()
-    val features = train.desc.features.flatMap {
-      case Feature.SingularFeature(name)     => List(name)
-      case Feature.VectorFeature(name, size) => (0 until size).map(i => s"${name}_$i")
-    }
-    val weights = model.weights()
-    logger.info("Feature weights")
-    for {
-      (feature, weight) <- features.zip(weights)
-    } {
-      logger.info(s"$feature = $weight")
-    }
-    model.save()
-  }
-
   def validate(ds: Dataset): IO[Unit] = {
     if (ds.desc.features.isEmpty) {
       IO.raiseError(DatasetValidationError("No features configured"))
@@ -93,6 +82,17 @@ object Train extends IOApp with Logging {
     } else {
       IO.unit
     }
+  }
+
+  def train(data: Dataset, ranker: Model, path: MPath, env: Map[String, String]) = {
+    val (train, test) = split(data, 80)
+    ranker.train(train, test) match {
+      case Some(modelBytes) =>
+        FileLoader.write(path, env, modelBytes) *> IO(logger.info(s"model written to $path"))
+      case None =>
+        IO(logger.info("model is empty"))
+    }
+
   }
 
   case class DatasetValidationError(msg: String) extends Exception(msg)

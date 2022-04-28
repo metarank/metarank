@@ -1,7 +1,8 @@
 package ai.metarank.mode.upload
 
+import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.inference.FlinkMinicluster
-import ai.metarank.mode.{AsyncFlinkJob, FlinkS3Configuration}
+import ai.metarank.mode.{AsyncFlinkJob, FileLoader, FlinkS3Configuration}
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import io.findify.featury.connector.redis.RedisStore
@@ -15,32 +16,43 @@ import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.{JobID, JobStatus}
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
+
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 import scala.collection.JavaConverters._
 import scala.language.higherKinds
 
 object Upload extends IOApp with Logging {
-  override def run(args: List[String]): IO[ExitCode] = for {
-    cmd <- UploadCmdline.parse(args, System.getenv().asScala.toMap)
-    _   <- run(cmd).use(_ => IO.unit)
-    _   <- IO { logger.info("Upload done") }
-  } yield {
-    ExitCode.Success
+  override def run(args: List[String]): IO[ExitCode] = args match {
+    case configPath :: Nil =>
+      for {
+        env          <- IO { System.getenv().asScala.toMap }
+        confContents <- FileLoader.read(MPath(configPath), env)
+        config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
+        _ <- upload(
+          config.bootstrap.workdir.child("features"),
+          config.inference.state.host,
+          config.inference.state.port,
+          config.inference.state.format
+        ).use { _ => IO { logger.info("Upload done") } }
+      } yield {
+        ExitCode.Success
+      }
+    case _ =>
+      IO { logger.error("usage: metarank upload <config path>") } *> IO.pure(ExitCode.Success)
   }
 
-  def run(cmd: UploadCmdline) = upload(cmd.dir, cmd.host, cmd.port, cmd.format, cmd.batchSize)
-
-  def upload(dir: String, host: String, port: Int, format: StoreCodec, batchSize: Int) =
+  def upload(dir: MPath, host: String, port: Int, format: StoreCodec) =
     for {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       job <- AsyncFlinkJob.execute(cluster) { env =>
         {
           val features = env.fromSource(
-            Featury.readFeatures(new Path(dir), Compress.NoCompression),
+            Featury.readFeatures(dir.flinkPath, Compress.NoCompression),
             WatermarkStrategy.noWatermarks(),
             "read"
           )
-          features.addSink(FeatureStoreSink(RedisStore(RedisConfig(host, port, format)), batchSize))
+          features.addSink(FeatureStoreSink(RedisStore(RedisConfig(host, port, format)), 1024))
         }
       }
       _ <- Resource.eval(blockUntilFinished(cluster, job))

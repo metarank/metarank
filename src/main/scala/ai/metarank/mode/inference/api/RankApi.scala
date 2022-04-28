@@ -4,8 +4,8 @@ import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.mode.inference.{FeatureStoreResource, RankResponse}
 import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
-import ai.metarank.mode.inference.ranking.RankScorer
 import ai.metarank.model.Event.RankingEvent
+import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect._
 import cats.implicits._
@@ -23,28 +23,36 @@ import scala.concurrent.duration._
 case class RankApi(
     mapping: FeatureMapping,
     storeResourceRef: Ref[IO, FeatureStoreResource],
-    scorer: RankScorer
+    scorers: Map[String, Scorer]
 ) extends Logging {
   import RankApi._
 
-  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" :? ExplainParamDecoder(explain) =>
+  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
       request  <- post.as[RankingEvent]
-      response <- rerank(request, explain.getOrElse(false))
+      response <- rerank(request, model, explain.getOrElse(false))
       ok       <- Ok(response.asJson)
     } yield {
       ok
     }
   }
 
-  def rerank(request: RankingEvent, explain: Boolean): IO[RankResponse] = for {
+  def rerank(request: RankingEvent, model: String, explain: Boolean): IO[RankResponse] = for {
     start     <- IO { System.currentTimeMillis() }
     keys      <- IO { mapping.keys(request) }
     state     <- readState(keys.toList)
     stateTook <- IO { System.currentTimeMillis() }
-    items     <- IO { mapping.map(request, state.features) }
-    query     <- IO { ClickthroughQuery(items, request.id.value, mapping.datasetDescriptor) }
-    scores    <- IO { scorer.score(query) }
+    ranker <- mapping.models.get(model) match {
+      case Some(existing) => IO.pure(existing)
+      case None           => IO.raiseError(ModelError(s"model $model is not configured"))
+    }
+    items <- IO { ranker.featureValues(request, state.features) }
+    query <- IO { ClickthroughQuery(items, request.id.value, ranker.datasetDescriptor) }
+    scorer <- scorers.get(model) match {
+      case Some(existing) => IO.pure(existing)
+      case None           => IO.raiseError(ModelError(s"model $model is not configured"))
+    }
+    scores <- IO { scorer.score(query) }
     result <- explain match {
       case true  => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
       case false => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
@@ -104,4 +112,5 @@ object RankApi {
 
   object ExplainParamDecoder             extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
   case class StateReadError(msg: String) extends Exception(msg)
+  case class ModelError(msg: String)     extends Exception(msg)
 }

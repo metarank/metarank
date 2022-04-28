@@ -1,6 +1,7 @@
 package ai.metarank.mode.inference
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.MPath
 import ai.metarank.mode.AsyncFlinkJob
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.model.Event
@@ -20,8 +21,7 @@ object FeedbackFlow extends Logging {
       mapping: FeatureMapping,
       redisHost: String,
       redisPort: Int,
-      batchSize: Int,
-      savepoint: String,
+      savepoint: MPath,
       format: StoreCodec,
       events: StreamExecutionEnvironment => DataStream[Event]
   )(implicit
@@ -29,14 +29,14 @@ object FeedbackFlow extends Logging {
       valti: TypeInformation[FeatureValue],
       intti: TypeInformation[Int]
   ) = {
-    AsyncFlinkJob.execute(cluster, Some(savepoint)) { env =>
+    AsyncFlinkJob.execute(cluster, Some(savepoint.uri)) { env =>
       {
         val source          = events(env).id("local-source")
         val grouped         = Bootstrap.groupFeedback(source)
         val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping)
         updates
           .addSink(
-            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)), batchSize)
+            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)), 1024)
           )
           .id("write-redis")
       }

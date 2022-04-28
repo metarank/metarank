@@ -1,36 +1,32 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
-import ai.metarank.e2e.RanklensTest.DiskStore
+import ai.metarank.config.{Config, MPath}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.findify.featury.flink.{Featury, Join}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import io.findify.flinkadt.api._
 import ai.metarank.flow.DataStreamOps._
+import ai.metarank.mode.FileLoader
 
 import scala.language.higherKinds
-import ai.metarank.flow.DatasetSink
 import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster}
+import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Inference}
 import ai.metarank.mode.inference.RedisEndpoint.EmbeddedRedis
 import ai.metarank.mode.inference.api.RankApi
-import ai.metarank.mode.inference.ranking.LtrlibScorer
 import ai.metarank.mode.train.Train
-import ai.metarank.mode.train.TrainCmdline.{LambdaMARTLightGBM, LambdaMARTXGBoost}
 import ai.metarank.mode.upload.Upload
 import ai.metarank.model.{Event, EventId}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.rank.LambdaMARTModel
 import better.files.{File, Resource}
 import cats.data.NonEmptyList
 import cats.effect.{IO, Ref}
 import cats.effect.unsafe.implicits.global
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.format.BulkCodec
-import io.findify.featury.flink.util.Compress
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
 import io.findify.featury.model.{FeatureValue, Key, Timestamp}
 import io.findify.featury.values.{FeatureStore, StoreCodec}
@@ -38,17 +34,21 @@ import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.apache.commons.io.IOUtils
 import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.core.fs.Path
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
-  val config    = Config.load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8)).unsafeRunSync()
-  lazy val dir  = File.newTemporaryDirectory("metarank_")
-  val modelFile = dir.createChild("metarank.model")
-  val mapping   = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+  val baseConfig = Config
+    .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8))
+    .unsafeRunSync()
+
+  val config = baseConfig.copy(
+    bootstrap = baseConfig.bootstrap.copy(workdir = MPath(File.newTemporaryDirectory()))
+  )
+
+  val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
 
   it should "accept events" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
@@ -56,21 +56,30 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val events = RanklensEvents()
 
     val source = env.fromCollection(events).watermark(_.timestamp.ts)
-    Bootstrap.makeBootstrap(source, mapping, dir.toString())
+    Bootstrap.makeBootstrap(source, mapping, config.bootstrap.workdir)
     env.execute("bootstrap")
   }
 
   it should "generate savepoint" in {
     val batch = ExecutionEnvironment.getExecutionEnvironment
 
-    Bootstrap.makeSavepoint(batch, dir.toString, mapping)
+    Bootstrap.makeSavepoint(batch, config.bootstrap.workdir, mapping)
   }
 
-  // fails, see https://github.com/metarank/metarank/issues/338
-  it should "train the model" in {
-    val dataset       = Train.loadData(dir, mapping.datasetDescriptor).unsafeRunSync()
+  it should "train the xgboost model" in {
+    train("xgboost")
+  }
+
+  // issue with lack of enthropy on ubuntu@GHA
+//  it should "train the lightgbm model" in {
+//    train("lightgbm")
+//  }
+
+  def train(modelName: String) = {
+    val model         = mapping.models(modelName).asInstanceOf[LambdaMARTModel]
+    val dataset       = Train.loadData(config.bootstrap.workdir, model.datasetDescriptor, modelName).unsafeRunSync()
     val (train, test) = Train.split(dataset, 80)
-    modelFile.writeByteArray(Train.trainModel(train, test, LambdaMARTXGBoost, 20))
+    FileLoader.write(model.conf.path, Map.empty, model.train(train, test).get).unsafeRunSync()
   }
 
   it should "rerank things" in {
@@ -102,16 +111,20 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     )
     val port  = 1024 + Random.nextInt(10000)
     val redis = EmbeddedRedis.createUnsafe(port)
-    val model = IOUtils.toByteArray(Resource.my.getAsStream("/ranklens/ranklens.model"))
+
     val store = FeatureStoreResource
       .unsafe(() => RedisStore(RedisConfig("localhost", port, StoreCodec.JsonCodec)))
       .unsafeRunSync()
 
     val uploaded =
-      Upload.upload(s"$dir/features", "localhost", port, StoreCodec.JsonCodec, 1024).allocated.unsafeRunSync()
+      Upload
+        .upload(config.bootstrap.workdir / "features", "localhost", port, StoreCodec.JsonCodec)
+        .allocated
+        .unsafeRunSync()
 
-    val ranker    = RankApi(mapping, store, LtrlibScorer.fromBytes(model).unsafeRunSync())
-    val response1 = ranker.rerank(ranking, true).unsafeRunSync()
+    val rankers   = Inference.loadModels(config).unsafeRunSync()
+    val ranker    = RankApi(mapping, store, rankers)
+    val response1 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response1.state.session shouldBe empty
 
     val cluster = FlinkMinicluster.createCluster(new Configuration()).unsafeRunSync()
@@ -121,8 +134,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         mapping = mapping,
         redisHost = "localhost",
         redisPort = port,
-        batchSize = 1,
-        savepoint = s"$dir/savepoint",
+        savepoint = config.bootstrap.workdir / "savepoint",
         format = StoreCodec.JsonCodec,
         events = _.fromCollection(List[Event](ranking, interaction))
       )
@@ -131,9 +143,13 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       ._1
     Upload.blockUntilFinished(cluster, flow).unsafeRunSync()
 
-    val response2 = ranker.rerank(ranking, true).unsafeRunSync()
+    val response2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response2.state.session should not be empty
     response1.items.map(_.score) shouldNot be(response2.items.map(_.score))
+
+//    val response3 = ranker.rerank(ranking, "lightgbm", true).unsafeRunSync()
+//    response3.state.session should not be empty
+
     redis.close()
   }
 }

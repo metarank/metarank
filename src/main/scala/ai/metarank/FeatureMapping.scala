@@ -1,6 +1,7 @@
 package ai.metarank
 
-import ai.metarank.config.Config.InteractionConfig
+import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
+import ai.metarank.config.Config.ModelConfig
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
@@ -20,6 +21,8 @@ import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.rank.{LambdaMARTModel, NoopModel, Model, ShuffleModel}
+import cats.data.{NonEmptyList, NonEmptyMap}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
@@ -29,45 +32,8 @@ case class FeatureMapping(
     features: List[BaseFeature],
     fields: List[FieldName],
     schema: Schema,
-    weights: Map[String, Double],
-    datasetDescriptor: DatasetDescriptor
+    models: Map[String, Model]
 ) {
-  def map(
-      ranking: RankingEvent,
-      source: List[FeatureValue],
-      interactions: List[InteractionEvent] = Nil
-  ): List[ItemValues] = {
-    val state = source.map(fv => fv.key -> fv).toMap
-
-    val itemFeatures: List[ItemFeature] = features.collect { case feature: ItemFeature =>
-      feature
-    }
-
-    val rankingFeatures = features.collect { case feature: RankingFeature =>
-      feature
-    }
-
-    val rankingValues = rankingFeatures.map(_.value(ranking, state))
-
-    val itemValuesMatrix = itemFeatures
-      .map(feature => {
-        val values = feature.values(ranking, state)
-        values.foreach { value =>
-          if (feature.dim != value.dim)
-            throw new IllegalStateException(s"for ${feature.schema} dim mismatch: ${feature.dim} != ${value.dim}")
-        }
-        values
-      })
-      .transpose
-
-    val itemScores = for {
-      (item, itemValues) <- ranking.items.toList.zip(itemValuesMatrix)
-    } yield {
-      val weight = interactions.find(_.item == item.id).map(e => weights.getOrElse(e.`type`, 1.0)).getOrElse(0.0)
-      ItemValues(item.id, weight, rankingValues ++ itemValues)
-    }
-    itemScores
-  }
 
   def keys(ranking: RankingEvent): Traversable[Key] = for {
     tag           <- FeatureScope.tags(ranking)
@@ -79,7 +45,10 @@ case class FeatureMapping(
 }
 
 object FeatureMapping {
-  def fromFeatureSchema(schema: List[FeatureSchema], interactions: List[InteractionConfig]) = {
+  def fromFeatureSchema(
+      schema: NonEmptyList[FeatureSchema],
+      models: NonEmptyMap[String, ModelConfig]
+  ) = {
     val features: List[BaseFeature] = schema.collect {
       case c: NumberFeatureSchema    => NumberFeature(c)
       case c: StringFeatureSchema    => StringFeature(c)
@@ -97,18 +66,39 @@ object FeatureMapping {
       case c: RefererSchema          => RefererFeature(c)
     }
     val featurySchema = Schema(features.flatMap(_.states))
-    val datasetFeatures = features.map {
-      case f: BaseFeature if f.dim == 1 => SingularFeature(f.schema.name)
-      case f: BaseFeature               => VectorFeature(f.schema.name, f.dim)
+    val m = models.toNel.toList.map {
+      case (name, conf: LambdaMARTConfig) =>
+        val modelFeatures = for {
+          featureName <- conf.features.toList
+          feature     <- features.find(_.schema.name == featureName)
+        } yield {
+          feature
+        }
+        name -> LambdaMARTModel(
+          conf = conf,
+          features = modelFeatures,
+          datasetDescriptor = makeDatasetDescriptor(modelFeatures),
+          weights = conf.weights
+        )
+
+      case (name, conf: NoopConfig)    => name -> NoopModel(conf)
+      case (name, conf: ShuffleConfig) => name -> ShuffleModel(conf)
     }
-    val datasetDescriptor = DatasetDescriptor(datasetFeatures)
+
     new FeatureMapping(
       features = features,
       fields = features.flatMap(_.fields),
       schema = featurySchema,
-      weights = interactions.map(int => int.name -> int.weight).toMap,
-      datasetDescriptor = datasetDescriptor
+      models = m.toMap
     )
+  }
+
+  def makeDatasetDescriptor(features: List[BaseFeature]): DatasetDescriptor = {
+    val datasetFeatures = features.map {
+      case f: BaseFeature if f.dim == 1 => SingularFeature(f.schema.name)
+      case f: BaseFeature               => VectorFeature(f.schema.name, f.dim)
+    }
+    DatasetDescriptor(datasetFeatures)
   }
 
 }

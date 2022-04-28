@@ -1,7 +1,7 @@
 package ai.metarank.mode.bootstrap
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, MPath}
 import ai.metarank.flow.{
   ClickthroughJoin,
   ClickthroughJoinFunction,
@@ -13,6 +13,7 @@ import ai.metarank.flow.{
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
+import ai.metarank.rank.Model
 import ai.metarank.source.{EventSource, FileEventSource}
 import ai.metarank.util.Logging
 import better.files.File
@@ -59,50 +60,59 @@ object Bootstrap extends IOApp with Logging {
   )
 
   override def run(args: List[String]): IO[ExitCode] = for {
-    env            <- IO { System.getenv().asScala.toMap }
-    cmd            <- BootstrapCmdline.parse(args, env)
-    _              <- IO { logger.info("Performing bootstap.") }
-    _              <- IO { logger.info(s"  events URL: ${cmd.eventPathUrl}") }
-    _              <- IO { logger.info(s"  output dir URL: ${cmd.outDirUrl}") }
-    _              <- IO { logger.info(s"  config: ${cmd.config}") }
-    configContents <- FileLoader.loadLocal(cmd.config, env)
-    config         <- Config.load(new String(configContents))
-    _              <- run(config, cmd)
+    env <- IO { System.getenv().asScala.toMap }
+    configContents <- args match {
+      case configPath :: Nil => FileLoader.read(MPath(configPath), env)
+      case _                 => IO.raiseError(new IllegalArgumentException("usage: metarank <config path>"))
+    }
+    config <- Config.load(new String(configContents))
+    _      <- IO { logger.info("Performing bootstap.") }
+    _      <- IO { logger.info(s"  events URL: ${config.bootstrap.eventPath}") }
+    _      <- IO { logger.info(s"  output dir URL: ${config.bootstrap.workdir}") }
+    _      <- run(config)
   } yield {
     ExitCode.Success
   }
 
-  def run(config: Config, cmd: BootstrapCmdline) = IO {
-    if (cmd.outDirUrl.startsWith("file://")) { File(cmd.outDir).createDirectoryIfNotExists(createParents = true) }
-    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.interactions)
+  def run(config: Config) = IO {
+    config.bootstrap.workdir match {
+      case path: MPath.LocalPath if path.file.notExists =>
+        logger.info(s"local dir $path does not exist, creating")
+        path.file.createDirectoryIfNotExists(createParents = true)
+      case _ => // none
+    }
+    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
 
     val streamEnv =
-      StreamExecutionEnvironment.createLocalEnvironment(cmd.parallelism, FlinkS3Configuration(System.getenv()))
+      StreamExecutionEnvironment.createLocalEnvironment(
+        config.bootstrap.parallelism,
+        FlinkS3Configuration(System.getenv())
+      )
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
 
-    val raw: DataStream[Event] = FileEventSource(cmd.eventPathUrl).eventStream(streamEnv).id("load")
-    makeBootstrap(raw, mapping, cmd.outDirUrl)
+    val raw: DataStream[Event] = FileEventSource(config.bootstrap.eventPath.uri).eventStream(streamEnv).id("load")
+    makeBootstrap(raw, mapping, config.bootstrap.workdir)
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
     val batch = ExecutionEnvironment.getExecutionEnvironment
-    batch.setParallelism(cmd.parallelism)
+    batch.setParallelism(config.bootstrap.parallelism)
 
-    makeSavepoint(batch, cmd.outDirUrl, mapping)
+    makeSavepoint(batch, config.bootstrap.workdir, mapping)
     logger.info("Bootstrap done")
   }
 
-  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: String) = {
+  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: MPath) = {
     val grouped                  = groupFeedback(raw)
     val (state, fields, updates) = makeUpdates(raw, grouped, mapping)
 
-    Featury.writeState(state, new Path(s"$dir/state"), Compress.NoCompression).id("write-state")
+    Featury.writeState(state, dir.child("state").flinkPath, Compress.NoCompression).id("write-state")
     Featury
-      .writeFeatures(updates, new Path(s"$dir/features"), Compress.NoCompression)
+      .writeFeatures(updates, dir.child("features").flinkPath, Compress.NoCompression)
       .id("write-features")
-    val fieldsPath = new Path(s"$dir/fields")
+    val fieldsPath = dir.child("fields").flinkPath
     fields
       .sinkTo(
         CompressedBulkWriter.writeFile(
@@ -113,8 +123,19 @@ object Bootstrap extends IOApp with Logging {
         )
       )
       .id("write-fields")
-    val computed = joinFeatures(updates, grouped, mapping)
-    computed.sinkTo(DatasetSink.json(mapping, s"$dir/dataset")).id("write-train")
+    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id(s"clickthroughs")
+    val joined = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
+
+    mapping.models.foreach { case (name, model) =>
+      val computed =
+        joined
+          .map(ct => ct.copy(values = model.featureValues(ct.ranking, ct.features, ct.interactions)))
+          .id(s"$name-values")
+      computed
+        .sinkTo(DatasetSink.json(model.datasetDescriptor, dir.child(s"dataset-$name").uri))
+        .id(s"$name-write-train")
+
+    }
   }
 
   def groupFeedback(raw: DataStream[Event]) = {
@@ -147,43 +168,30 @@ object Bootstrap extends IOApp with Logging {
     (state, fieldUpdates, updates)
   }
 
-  def joinFeatures(
-      updates: DataStream[FeatureValue],
-      grouped: KeyedStream[FeedbackEvent, EventId],
-      mapping: FeatureMapping
-  ) = {
-    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id("clickthroughs")
-    val joined =
-      Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
-    val computed =
-      joined.map(ct => ct.copy(values = mapping.map(ct.ranking, ct.features, ct.interactions))).id("values")
-    computed
-  }
+  def makeSavepoint(batch: ExecutionEnvironment, dir: MPath, mapping: FeatureMapping) = {
+    val stateSource = Featury.readState(batch, dir.child("state").flinkPath, Compress.NoCompression)
 
-  def makeSavepoint(batch: ExecutionEnvironment, dir: String, mapping: FeatureMapping) = {
-    val stateSource = Featury.readState(batch, new Path(s"$dir/state"), Compress.NoCompression)
-
-    val valuesPath = s"$dir/features"
+    val valuesPath = dir / "features"
     val valuesSource = batch
       .readFile(
         new BulkInputFormat[FeatureValue](
-          path = new Path(valuesPath),
+          path = valuesPath.flinkPath,
           codec = BulkCodec.featureValueProtobufCodec,
           compress = Compress.NoCompression
         ),
-        valuesPath
+        valuesPath.uri
       )
       .name("read-features")
 
-    val fieldsPath = new Path(s"$dir/fields")
+    val fieldsPath = dir / "fields"
     val fieldsSource = batch
       .readFile(
         new BulkInputFormat[FieldUpdate](
-          path = fieldsPath,
+          path = fieldsPath.flinkPath,
           codec = FieldUpdateCodec,
           compress = Compress.NoCompression
         ),
-        fieldsPath.getPath
+        fieldsPath.uri
       )
       .name("read-fields")
 
@@ -207,7 +215,7 @@ object Bootstrap extends IOApp with Logging {
       .withOperator("process-writes", transformFeatures)
       .withOperator("join-state", transformStateJoin)
       .withOperator("process-events", transformFields)
-      .write(s"$dir/savepoint")
+      .write(dir.child("savepoint").uri)
 
     batch.execute("savepoint")
   }

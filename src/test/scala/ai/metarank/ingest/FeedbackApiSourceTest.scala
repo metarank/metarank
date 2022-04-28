@@ -1,6 +1,5 @@
 package ai.metarank.ingest
 
-import ai.metarank.mode.inference.Inference.logo
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.model.Event
 import ai.metarank.source.FeedbackApiSource

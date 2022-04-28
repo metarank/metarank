@@ -1,7 +1,9 @@
 package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.InteractionConfig
+import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.Config.ModelConfig.ModelBackend.XGBoostBackend
+import ai.metarank.config.MPath
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.FeatureScope.ItemScope
@@ -11,6 +13,7 @@ import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}
 import better.files.File
+import cats.data.{NonEmptyList, NonEmptyMap}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -19,9 +22,15 @@ import org.apache.flink.api.scala._
 class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "write cts" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
+    val model = LambdaMARTConfig(
+      MPath(File.newTemporaryFile()),
+      XGBoostBackend(),
+      NonEmptyList.of("budget"),
+      NonEmptyMap.of("click" -> 1)
+    )
     val mapping = FeatureMapping.fromFeatureSchema(
-      schema = List(NumberFeatureSchema("budget", FieldName(Item, "budget"), ItemScope)),
-      interactions = List(InteractionConfig("click", 1.0))
+      schema = NonEmptyList.of(NumberFeatureSchema("budget", FieldName(Item, "budget"), ItemScope)),
+      models = NonEmptyMap.of("test" -> model)
     )
     val ct = Clickthrough(
       ranking = TestRankingEvent(List("p1", "p2")).copy(id = EventId("1")),
@@ -32,7 +41,7 @@ class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
       )
     )
     val dir = File.newTemporaryDirectory("csv_")
-    env.fromCollection(List(ct)).sinkTo(DatasetSink.csv(mapping, s"file:///$dir"))
+    env.fromCollection(List(ct)).sinkTo(DatasetSink.csv(mapping.models("test").datasetDescriptor, s"file:///$dir"))
     env.execute()
     val csv = dir.listRecursively.filter(_.name.endsWith(".csv")).toList.headOption.map(_.contentAsString)
     val expected = """label,group,budget

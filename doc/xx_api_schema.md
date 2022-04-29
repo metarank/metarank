@@ -18,12 +18,13 @@ You can find events and their description on the [Supported events](xx_event_sch
 
 ## Ranking
 
-**API Endpoint**: `/rank`
+**API Endpoint**: `/rank/<model name>`
 **Method**: `POST`
 **Querystring Parameters**:
 - `explain: boolean`: used to provide extra information in the response containing calculated feature values.
 
-Ranking endpoint does the real work of personalizing items that are passed to it. 
+Ranking endpoint does the real work of personalizing items that are passed to it. You need to explicitly
+define which model to invoke.
 
 
 ### Payload format

@@ -1,15 +1,12 @@
 # Configuration
 
 Metarank YAML config file contains the following sections:
-* Interaction event configuration
 * Feature extractors: how features are computed on top of incoming events
-
+* Model configuration
+* Bootstrapping options
+* Inference options
 
 ```yaml
-interactions:
-  - name: click
-    weight: 1.0
-
 features:
   - name: popularity
     type: number
@@ -24,14 +21,37 @@ features:
       - drama
       - comedy
       - thriller
-  - name: global_item_click_count
-    type: interaction_count
-    interaction: click
-    scope: item
 
+models:
+  default:
+    type: lambdamart
+    path: /tmp/xgboost.model
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
+    features:
+      - popularity
+      - genre
+
+bootstrap:
+  eventPath: file:///ranklens/events/
+  workdir: file:///tmp/bootstrap
+
+inference:
+  port: 8080
+  host: "0.0.0.0"
+  state:
+    type: redis
+    host: localhost
+    format: json
 ```
 
-## Interactions
+See the [sample-config.yml](sample-config.yml) file for more detailed config format description.
+
+## Interaction weights
 
 Interaction define the way your users interact with the items you want to personalize, e.g. `click`, `add-to-wishlist`, `purchase`, `like`.
 
@@ -42,7 +62,6 @@ by defining `weight` you can control the optimization goal of your model: do you
 You can define interaction by `name` and set `weight` for how much this interaction affects the model: 
 
 ```yaml
-interactions:
   - name: click // string
     weight: 1.0 // floating number
 ```
@@ -96,5 +115,5 @@ Read more about [sending events in this doc](xx_event_schema.md).
 
 Feature extractor configuration defines the way fields are mapped to features.
 
-You can follow the [feature extractors](xx_feature_extractors.md) section of docs for more details on configuring 
+You can follow the [feature extractors](feature_extractors.md) section of docs for more details on configuring 
 extractors.

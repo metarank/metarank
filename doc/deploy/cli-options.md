@@ -5,7 +5,7 @@ Metarank CLI has a set of command-line options to control its behavior.
 To run the main app, download the [latest jar file](https://github.com/metarank/metarank/releases) and run the following command:
 
 ```shell
-$ java -jar metarank-assembly-x.x.x.jar
+$ java -jar metarank-x.x.x.jar
 
 15:35:35.252 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
 
@@ -22,76 +22,37 @@ $ java -jar metarank-assembly-x.x.x.jar
 
 The command-line argument structure is:
 ```shell
-$ java -jar metarank-assembly-x.x.x.jar <command> <args>
+$ java -jar metarank.jar <command> <args>
 ```
 
-## Environment variables
-
-You can use environment variables instead of passing CLI options. This can be useful for configuring Metarank deployment for different environments (local, staging, production).
-
-Environment variable naming format is `METARANK_` prefix and uppercased option name. 
-
-A few examples:
-* `--parallelism` becomes `METARANK_PARALLELISM`
-* `--savepoint-dir` becomes `METARANK_SAVEPOINT_DIR`
-
 ## CLI Options
+
+Originally Metarank used a very complicated set of command line switches to control its behavior. But more things it
+supported, more obscure the switches become. So for now metarank is configured using a separate config file. See
+a [sample config file](../sample-config.yml) for a source of inspiration and basic options description.
 
 ### Bootstrap
 
 ```shell
-Metarank v0.x
-Usage: Bootstrap [options]
-
-  --events <value>       full path to directory containing historical events, with file:// or s3:// prefix
-  --out <value>          output directory
-  --config <value>       config file
-  --parallelism <value>  parallelism for a bootstrap job
+$ java -jar metarank.jar bootstrap <config file>
 ```
 
 ### Inference
 
 ```shell
-Metarank v0.x
-Usage: Inference API [options]
-
-  --savepoint-dir <value>  full path savepoint snapshot, the /savepoint dir after the bootstrap phase
-  --model <value>          full path to model file to serve
-  --format <value>         state encoding format, protobuf/json
-  --config <value>         config file with feature definition
-  --port <value>           HTTP port to bind to, default 8080
-  --interface <value>      network inferface to bind to, default is bind to everything
-  --redis-host <value>     redis host
-  --redis-port <value>     redis port, 6379 by default
-  --batch-size <value>     redis batch size, default 1
-  --embedded-redis-features-dir <value>
-                           path to /features directory after the bootstrap for embedded redis, like file:///tmp/data or s3://bucket/dir
+$ java -jar metarank.jar inference <config file>
 ```
 
 ### Train
 
 ```shell
-Usage: Train [options]
-
-  --input <value>       path to /dataset directory after the bootstrap, like file:///tmp/data or s3://bucket/dir
-  --split <value>       train/validation split in percent, default 80/20
-  --model-file <value>  model output file
-  --iterations <value>  number of iterations for model training, default 200
-  --config <value>      config file with feature definition
-  --model-type <value>  which model to train
-
+$ java -jar metarank.jar train <config file> <model name from config>
 ```
 
 ### Upload
 
 ```shell
-Usage: Train [options]
-
-  --features-dir <value>  path to /features directory after the bootstrap, like file:///tmp/data or s3://bucket/dir
-  --host <value>          redis host
-  --port <value>          redis port, 6379 by default
-  --batch-size <value>    write batch size, 1000 by default
-  --format <value>        state encoding format, protobuf/json
+$ java -jar metarank.jar upload <config file>
 ```
 
 ### Validate
@@ -99,8 +60,7 @@ Usage: Train [options]
 A useful tool to check your config file and data files for sanity.
 
 ```shell
-Metarank validator tool
-Usage: metarank validate <options>
+Usage: $ java -jar metarank.jar metarank validate <options>
 Possible options:
   --config <path>       - Validate feature configuration file
   --data <path>         - Validate historical events dataset

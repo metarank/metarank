@@ -26,7 +26,7 @@ and the following feature config:
 ```yaml
 - name: time
   type: local_time
-  parse: time_of_day // can be time_of_day/day_of_month/month_of_year/year/second
+  parse: time_of_day // can be day_of_week/time_of_day/day_of_month/month_of_year/year/second
   source: ranking.localts // can only work with ranking event types, the field must be string with ISO-formatted zoned datetime
 ```
 
@@ -37,6 +37,7 @@ This extractor requires a separate field and cannot use a global `timestamp` one
 about timezone.
 
 Supported `parse` field values:
+* `day_of_week`: day number in 1..7 range, where Monday is 1
 * `time_of_day`: local time in 0.0..23.99 range
 * `day_of_month`: day of current month in 1..31 range
 * `month_of_year`: current month in 1..12 range

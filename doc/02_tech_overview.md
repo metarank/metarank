@@ -19,7 +19,7 @@ compatible format and performs the ML model training.
 This part of Metarank performs all the heavy-lifting required to update it's internal state of the
 world representation used for ranking. It is done with the following steps:
  
-* Accept event via REST API and validate its schema.
+* Accept event via REST API (or Kafka/Pulsar stream) and validate its schema.
 * Update all the dependant feature values' internal states.
 * Periodically flush the state to the storage, so it can be used for ranking.
 
@@ -32,7 +32,7 @@ For example, there is no need to have an exact real-time number of clicks update
 * Too many heavy writes will overload the storage.
 * Once-in-hour eventually-consistent snapshot is enough for the online ranking.
 
-There are foru main types of feedback events:
+There are four main types of feedback events:
 1. *Item metadata* event: a descriptor of the item itself you're ranking with all the fields relevant for the ranking.
 For example, you should emit this type of event when the item changes.
 2. *User metadata* event: when external parameters about the current visitor change. For example, user switched the
@@ -174,8 +174,10 @@ used later to periodically retrain the model using fresh data.
 Metarank is storage-agnostic and has pluggable adaptors for existing databases, so it can be
 quite flexible while integrating with existing infrastructures.
 
-Planned connectors are:
+Right now Metarank supports following connectors:
 * Redis, as the one which is simple and fast enough for testing and prototyping.
+
+Planned connectors are:
 * Postgres, as the most widely used DB.
 * Cassandra, as it can scale up linearly for heavy write traffic.
 

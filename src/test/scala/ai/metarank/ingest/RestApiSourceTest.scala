@@ -2,7 +2,8 @@ package ai.metarank.ingest
 
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.model.Event
-import ai.metarank.source.FeedbackApiSource
+import ai.metarank.source.RestApiSource
+import ai.metarank.source.RestApiSource.RestApiSourceFunction
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.effect.{ExitCode, IO, Ref}
 import cats.effect.std.Queue
@@ -14,9 +15,10 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flink.api.scala._
+
 import scala.util.Random
 
-class FeedbackApiSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
+class RestApiSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
   val signal = SignallingRef[IO, Boolean](false).unsafeRunSync()
   val exit   = Ref[IO].of(ExitCode.Success).unsafeRunSync()
   val queue  = Queue.bounded[IO, Event](100).unsafeRunSync()
@@ -42,7 +44,7 @@ class FeedbackApiSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
   it should "receive event" in {
     val event = TestItemEvent("p1")
     queue.offer(event).unsafeRunSync()
-    val received = env.addSource(FeedbackApiSource(host, port, 1)).executeAndCollect(1)
+    val received = env.addSource(RestApiSourceFunction(host, port, 1)).executeAndCollect(1)
     received shouldBe List(event)
   }
 }

@@ -88,6 +88,8 @@ inference:
     # kafka and pulsar definitions are the same as for the bootstrap.source section
     type: rest
     bufferSize: 1000 # optional (default 10000), size of an internal buffer for feedback events
+    host: localhost # hostname of merarank API
+    port: 8080 # its port
 
   state: # a place to store the feature values for the ML inference
     # Local memory

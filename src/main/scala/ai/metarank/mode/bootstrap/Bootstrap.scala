@@ -67,8 +67,7 @@ object Bootstrap extends IOApp with Logging {
     }
     config <- Config.load(new String(configContents))
     _      <- IO { logger.info("Performing bootstap.") }
-    _      <- IO { logger.info(s"  events URL: ${config.bootstrap.eventPath}") }
-    _      <- IO { logger.info(s"  output dir URL: ${config.bootstrap.workdir}") }
+    _      <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
     _      <- run(config)
   } yield {
     ExitCode.Success
@@ -92,7 +91,7 @@ object Bootstrap extends IOApp with Logging {
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
 
-    val raw: DataStream[Event] = FileEventSource(config.bootstrap.eventPath.uri).eventStream(streamEnv).id("load")
+    val raw: DataStream[Event] = EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv).id("load")
     makeBootstrap(raw, mapping, config.bootstrap.workdir)
     streamEnv.execute("bootstrap")
 

@@ -10,7 +10,8 @@ import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.ShuffleModel.ShuffleScorer
-import ai.metarank.source.FeedbackApiSource
+import ai.metarank.source.RestApiSource.RestApiSourceFunction
+import ai.metarank.source.{EventSource, RestApiSource}
 import ai.metarank.util.Logging
 import cats.effect.kernel.Ref
 import cats.effect.std.Queue
@@ -65,7 +66,8 @@ object Inference extends IOApp with Logging {
         config.inference.state.port,
         config.bootstrap.workdir.child("savepoint"),
         config.inference.state.format,
-        _.addSource(FeedbackApiSource(config.inference.host, config.inference.port))
+///        EventSource.fromConfig(config.inference.)
+        _.addSource(RestApiSourceFunction(config.inference.host, config.inference.port))
       )
       store <- FeatureStoreResource.make(() =>
         RedisStore(RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format))

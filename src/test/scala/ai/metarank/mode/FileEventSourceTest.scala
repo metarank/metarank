@@ -1,5 +1,6 @@
 package ai.metarank.mode
 
+import ai.metarank.config.MPath.LocalPath
 import ai.metarank.source.FileEventSource
 import better.files.File
 import org.apache.flink.core.fs.Path
@@ -11,7 +12,7 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers {
   val child   = dir.createChild("child", asDirectory = true)
   val leaf    = child.createChild("events.json.gz")
   val exclude = child.createChild("conf.yml")
-  val source  = new FileEventSource(dir.toString())
+  val source  = new FileEventSource(LocalPath(dir.toString()))
 
   "file filter" should "accept dirs" in {
     source.selectFile(new Path("file://" + dir.toString())) shouldBe true

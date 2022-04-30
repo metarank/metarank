@@ -90,4 +90,6 @@ REST connector configured in the following way:
 ```yaml
     type: rest
     bufferSize: 1000 # optional, default 10000
+    host: localhost # hostname of metarank API
+    port: 8080 # port of metarank API
 ```

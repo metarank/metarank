@@ -21,7 +21,7 @@ case class Config(
 
 object Config extends Logging {
 
-  case class BootstrapConfig(eventPath: MPath, workdir: MPath, parallelism: Int = 1)
+  case class BootstrapConfig(source: EventSourceConfig, workdir: MPath, parallelism: Int = 1)
   object BootstrapConfig {
     import io.circe.generic.extras.semiauto._
     implicit val config: io.circe.generic.extras.Configuration = Configuration.default.withDefaults
@@ -32,6 +32,7 @@ object Config extends Logging {
       port: Int = 8080,
       host: String = "0.0.0.0",
       state: StateStoreConfig,
+      source: EventSourceConfig,
       parallelism: Int = 1
   )
   object InferenceConfig {

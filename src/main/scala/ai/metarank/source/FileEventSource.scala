@@ -1,6 +1,7 @@
 package ai.metarank.source
 
 import FileEventSource.EventStreamFormat
+import ai.metarank.config.MPath
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.configuration.Configuration
@@ -16,9 +17,10 @@ import ai.metarank.flow.DataStreamOps._
 import ai.metarank.util.Logging
 import org.apache.flink.connector.file.src.compression.StandardDeCompressors
 import org.apache.flink.connector.file.src.enumerate.NonSplittingRecursiveEnumerator
+
 import scala.collection.JavaConverters._
 
-case class FileEventSource(path: String) extends EventSource with Logging {
+case class FileEventSource(path: MPath) extends EventSource with Logging {
   val compressedExts = StandardDeCompressors.getCommonSuffixes.asScala.toList.map(ext => s".$ext")
   val commonExts     = List(".json", ".jsonl")
 
@@ -43,7 +45,7 @@ case class FileEventSource(path: String) extends EventSource with Logging {
     env
       .fromSource(
         source = FileSource
-          .forRecordStreamFormat(EventStreamFormat(), new Path(path))
+          .forRecordStreamFormat(EventStreamFormat(), path.flinkPath)
           .processStaticFileSet()
           .setFileEnumerator(() => new NonSplittingRecursiveEnumerator(selectFile))
           .build(),

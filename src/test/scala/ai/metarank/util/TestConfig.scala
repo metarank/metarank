@@ -2,7 +2,7 @@ package ai.metarank.util
 
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
-import ai.metarank.config.EventSourceConfig.{FilesSourceConfig, RestSourceConfig}
+import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
 import ai.metarank.config.MPath.LocalPath
 import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.config.StateStoreConfig.MemConfig
@@ -18,7 +18,7 @@ object TestConfig {
     features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
     models = NonEmptyMap.of("shuffle" -> ShuffleConfig(10)),
     bootstrap = BootstrapConfig(
-      source = FilesSourceConfig(LocalPath("/tmp/events")),
+      source = FileSourceConfig(LocalPath("/tmp/events")),
       workdir = MPath("/tmp")
     ),
     inference = InferenceConfig(

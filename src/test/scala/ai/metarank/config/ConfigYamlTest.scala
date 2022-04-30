@@ -1,7 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
-import ai.metarank.config.EventSourceConfig.{FilesSourceConfig, RestSourceConfig}
+import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
 import ai.metarank.config.MPath.{LocalPath, S3Path}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
@@ -58,7 +58,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
           )
         ),
         bootstrap = BootstrapConfig(
-          source = FilesSourceConfig(LocalPath("/tmp/events")),
+          source = FileSourceConfig(LocalPath("/tmp/events")),
           workdir = S3Path("bucket", "prefix")
         ),
         inference = InferenceConfig(

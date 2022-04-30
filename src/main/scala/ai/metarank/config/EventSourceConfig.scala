@@ -32,7 +32,7 @@ object EventSourceConfig {
     }
   }
 
-  case class FilesSourceConfig(path: MPath) extends EventSourceConfig
+  case class FileSourceConfig(path: MPath) extends EventSourceConfig
   case class KafkaSourceConfig(brokers: NonEmptyList[String], topic: String, groupId: String, offset: SourceOffset)
       extends EventSourceConfig
   case class PulsarSourceConfig(
@@ -43,7 +43,8 @@ object EventSourceConfig {
       subscriptionType: String,
       offset: SourceOffset
   ) extends EventSourceConfig
-  case class RestSourceConfig(bufferSize: Int, host: String, port: Int) extends EventSourceConfig
+  case class RestSourceConfig(bufferSize: Int = 10000, host: String = "localhost", port: Int = 8080)
+      extends EventSourceConfig
   implicit val conf = Configuration.default
     .withDiscriminator("type")
     .withDefaults

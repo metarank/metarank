@@ -44,11 +44,10 @@ type: kafka
 brokers: [broker1, broker2]
 topic: events
 groupId: metarank
-offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
+offset: earliest|latest|ts=<unixtime>|last=<duration>
 ```
 Offset options are:
 * earliest - start from the first stored message in the topic
-* id=\<offset id\> - start from a specific offset id
 * latest - consume only events that came recently (after we connected)
 * ts=\<timestamp\> - start from a specific absolute timestamp in the past
 * last=\<duration\> - consume only events happened within the defined relative duration (duration supports the 
@@ -67,7 +66,7 @@ adminUrl: <pulsar service HTTP admin URL>
 topic: events
 subscriptionName: metarank
 subscriptionType: exclusive # options are exclusive, shared, failover
-offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
+offset: earliest|latest|ts=<unixtime>|last=<duration>
 ```
 
 ## Inference data sources

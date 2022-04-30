@@ -70,7 +70,8 @@ libraryDependencies ++= Seq(
   "org.apache.lucene"         % "lucene-analysis-smartcn"  % luceneVersion,
   "org.apache.lucene"         % "lucene-analysis-kuromoji" % luceneVersion,
   "org.apache.lucene"         % "lucene-analysis-stempel"  % luceneVersion,
-  "org.apache.httpcomponents" % "httpclient"               % "4.5.13"
+  "org.apache.httpcomponents" % "httpclient"               % "4.5.13",
+  "io.github.embeddedkafka"  %% "embedded-kafka"           % "3.1.0" % Test
 )
 
 enablePlugins(DockerPlugin)

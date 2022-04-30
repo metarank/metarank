@@ -7,7 +7,9 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 
 trait EventSource {
-  def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event]
+  def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
+      ti: TypeInformation[Event]
+  ): DataStream[Event]
 }
 
 object EventSource {

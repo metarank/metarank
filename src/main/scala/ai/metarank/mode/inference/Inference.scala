@@ -59,6 +59,7 @@ object Inference extends IOApp with Logging {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       redis   <- RedisEndpoint.create(config.inference.state, config.bootstrap.workdir)
       _       <- Resource.eval(redis.upload)
+      source  <- Resource.pure(EventSource.fromConfig(config.inference.source))
       _ <- FeedbackFlow.resource(
         cluster,
         mapping,
@@ -66,8 +67,7 @@ object Inference extends IOApp with Logging {
         config.inference.state.port,
         config.bootstrap.workdir.child("savepoint"),
         config.inference.state.format,
-///        EventSource.fromConfig(config.inference.)
-        _.addSource(RestApiSourceFunction(config.inference.host, config.inference.port))
+        source.eventStream(_, bounded = false)
       )
       store <- FeatureStoreResource.make(() =>
         RedisStore(RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format))

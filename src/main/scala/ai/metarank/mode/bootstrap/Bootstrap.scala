@@ -91,7 +91,8 @@ object Bootstrap extends IOApp with Logging {
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
 
-    val raw: DataStream[Event] = EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv).id("load")
+    val raw: DataStream[Event] =
+      EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
     makeBootstrap(raw, mapping, config.bootstrap.workdir)
     streamEnv.execute("bootstrap")
 

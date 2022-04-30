@@ -18,7 +18,9 @@ import java.nio.charset.StandardCharsets
 import scala.util.{Failure, Success, Try}
 
 case class RestApiSource(host: String, port: Int, limit: Long = Long.MaxValue) extends EventSource {
-  override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
+  override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
+      ti: TypeInformation[Event]
+  ): DataStream[Event] =
     env.addSource(RestApiSourceFunction(host, port, limit))
 }
 

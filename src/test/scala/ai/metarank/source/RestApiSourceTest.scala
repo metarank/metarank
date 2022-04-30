@@ -1,8 +1,7 @@
-package ai.metarank.ingest
+package ai.metarank.source
 
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.model.Event
-import ai.metarank.source.RestApiSource
 import ai.metarank.source.RestApiSource.RestApiSourceFunction
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.effect.{ExitCode, IO, Ref}

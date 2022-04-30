@@ -41,7 +41,10 @@ case class FileEventSource(path: MPath) extends EventSource with Logging {
       isMatched
     }
   }
-  override def eventStream(env: StreamExecutionEnvironment)(implicit ti: TypeInformation[Event]): DataStream[Event] =
+  override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
+      ti: TypeInformation[Event]
+  ): DataStream[Event] = {
+    logger.info(s"File event source: path=${path}")
     env
       .fromSource(
         source = FileSource
@@ -53,6 +56,7 @@ case class FileEventSource(path: MPath) extends EventSource with Logging {
         sourceName = "events-source"
       )
       .id("file-source")
+  }
 }
 
 object FileEventSource {

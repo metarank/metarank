@@ -22,7 +22,6 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
   it should "decode offset formats" in {
     parse("earliest") shouldBe Right(Source(Earliest))
     parse("latest") shouldBe Right(Source(Latest))
-    parse("id=1234") shouldBe Right(Source(ExactOffset(1234)))
     parse("ts=1234") shouldBe Right(Source(ExactTimestamp(1234)))
     parse("last=60d") shouldBe Right(Source(RelativeDuration(60.days)))
     parse("last=60").isLeft shouldBe true

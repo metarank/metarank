@@ -16,16 +16,13 @@ object EventSourceConfig {
     case object Latest                                    extends SourceOffset
     case object Earliest                                  extends SourceOffset
     case class ExactTimestamp(ts: Long)                   extends SourceOffset
-    case class ExactOffset(offset: Long)                  extends SourceOffset
     case class RelativeDuration(duration: FiniteDuration) extends SourceOffset
 
-    val idPattern       = "id=([0-9]+)".r
     val tsPattern       = "ts=([0-9]+)".r
     val durationPattern = "last=([0-9]+)([smhd])".r
     implicit val sourceOffsetDecoder: Decoder[SourceOffset] = Decoder.decodeString.emapTry {
       case "earliest"                   => Success(Earliest)
       case "latest"                     => Success(Latest)
-      case idPattern(id)                => Success(ExactOffset(id.toLong))
       case tsPattern(ts)                => Success(ExactTimestamp(ts.toLong))
       case durationPattern(num, suffix) => Success(RelativeDuration(FiniteDuration(num.toLong, suffix)))
       case other                        => Failure(new Exception(s"offset $other is not supported"))

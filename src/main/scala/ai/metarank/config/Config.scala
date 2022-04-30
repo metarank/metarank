@@ -1,7 +1,7 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig, ModelConfig}
+import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
+import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import better.files.File
@@ -11,10 +11,6 @@ import io.circe.Decoder
 import io.circe.generic.extras.Configuration
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser.{parse => parseYaml}
-import io.findify.featury.values.StoreCodec
-import io.findify.featury.values.StoreCodec.{JsonCodec, ProtobufCodec}
-
-import scala.util.{Failure, Random, Success}
 
 case class Config(
     features: NonEmptyList[FeatureSchema],
@@ -30,8 +26,8 @@ object Config extends Logging {
     import io.circe.generic.extras.semiauto._
     implicit val config: io.circe.generic.extras.Configuration = Configuration.default.withDefaults
     implicit val bootstrapDecoder: Decoder[BootstrapConfig]    = deriveConfiguredDecoder[BootstrapConfig]
-
   }
+
   case class InferenceConfig(
       port: Int = 8080,
       host: String = "0.0.0.0",
@@ -42,77 +38,6 @@ object Config extends Logging {
     import io.circe.generic.extras.semiauto._
     implicit val config                                     = Configuration.default.withDefaults
     implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveConfiguredDecoder[InferenceConfig]
-  }
-
-  sealed trait StateStoreConfig {
-    def port: Int
-    def host: String
-    def format: StoreCodec
-  }
-  object StateStoreConfig {
-    import io.circe.generic.extras.semiauto._
-
-    implicit val formatDecoder: Decoder[StoreCodec] = Decoder.decodeString.emapTry {
-      case "json"     => Success(JsonCodec)
-      case "protobuf" => Success(ProtobufCodec)
-      case other      => Failure(new Exception(s"codec $other is not supported"))
-    }
-
-    case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec = JsonCodec) extends StateStoreConfig
-
-    case class MemConfig(format: StoreCodec = JsonCodec, port: Int = 6379) extends StateStoreConfig {
-      val host = "localhost"
-    }
-
-    implicit val conf = Configuration.default
-      .withDiscriminator("type")
-      .withDefaults
-      .copy(transformConstructorNames = {
-        case "RedisConfig" => "redis"
-        case "MemConfig"   => "memory"
-      })
-    implicit val stateStoreDecoder: Decoder[StateStoreConfig] = deriveConfiguredDecoder
-  }
-
-  sealed trait ModelConfig
-
-  object ModelConfig {
-    import io.circe.generic.extras.semiauto._
-    case class LambdaMARTConfig(
-        path: MPath,
-        backend: ModelBackend,
-        features: NonEmptyList[String],
-        weights: NonEmptyMap[String, Double]
-    ) extends ModelConfig
-    case class ShuffleConfig(maxPositionChange: Int) extends ModelConfig
-    case class NoopConfig()                          extends ModelConfig
-
-    sealed trait ModelBackend {
-      def iterations: Int
-    }
-    object ModelBackend {
-      case class LightGBMBackend(iterations: Int = 100, seed: Int = Random.nextInt(Int.MaxValue)) extends ModelBackend
-      case class XGBoostBackend(iterations: Int = 100, seed: Int = Random.nextInt(Int.MaxValue))  extends ModelBackend
-      implicit val conf =
-        Configuration.default
-          .withDiscriminator("type")
-          .withDefaults
-          .copy(transformConstructorNames = {
-            case "LightGBMBackend" => "lightgbm"
-            case "XGBoostBackend"  => "xgboost"
-          })
-
-      implicit val modelBackendDecoder: Decoder[ModelBackend] = deriveConfiguredDecoder
-    }
-    implicit val conf =
-      Configuration.default
-        .withDiscriminator("type")
-        .copy(transformConstructorNames = {
-          case "LambdaMARTConfig" => "lambdamart"
-          case "ShuffleConfig"    => "shuffle"
-          case "NoopConfig"       => "noop"
-        })
-    implicit val modelConfigDecoder: Decoder[ModelConfig] = io.circe.generic.extras.semiauto.deriveConfiguredDecoder
   }
 
   implicit val configDecoder: Decoder[Config] = deriveDecoder[Config].ensure(validateConfig)

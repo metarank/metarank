@@ -50,15 +50,46 @@ models:
 
 # where to take events from, and where to write intermediate data.
 bootstrap:
-  eventPath: file:///ranklens/events/
   workdir: file:///tmp/bootstrap
+  source:
+    type: file
+    path: file:///ranklens/events/
+
+    # possible options: file, kafka, pulsar
+
+    # type: kafka
+    # brokers: [broker1, broker2]
+    # topic: events
+    # groupId: metarank
+    # offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
+
+    # offset options are:
+    # earliest - start from the first stored message in the topic
+    # id=<offset id> - start from a specific offset id
+    # latest - consume only events that came recently (after we connected)
+    # ts=<timestamp> - start from a specific absolute timestamp in the past
+    # last=<duration> - consume only events happened within the defined relative duration
+    #   duration supports the following patterns: 1s, 1m, 1h, 1d
+
+    # type: pulsar
+    # serviceUrl: <pulsar service URL>
+    # adminUrl: <pulsar service HTTP admin URL>
+    # topic: events
+    # subscriptionName: metarank
+    # subscriptionType: exclusive # options are exclusive, shared, failover
+    # offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
 
 # options to use for the inference process
 inference:
   port: 8080
   host: "0.0.0.0"
-  # a place to store the feature values for the ML inference
-  state:
+  source: # a source of events to be processed in real-time
+    # possible options are: kafka, pulsar, rest
+    # kafka and pulsar definitions are the same as for the bootstrap.source section
+    type: rest
+    bufferSize: 1000 # optional (default 10000), size of an internal buffer for feedback events
+
+  state: # a place to store the feature values for the ML inference
     # Local memory
     # A node-local in-memory storage without any persistence. Loads latest feature values from the bootstrap process
     # automatically, so you don't need to run the Upload job with this type of storage.

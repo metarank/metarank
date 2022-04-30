@@ -1,7 +1,7 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.Config.ModelConfig.ModelBackend.XGBoostBackend
+import ai.metarank.config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName

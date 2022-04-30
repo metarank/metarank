@@ -1,0 +1,57 @@
+package ai.metarank.config
+
+import cats.data.NonEmptyList
+import io.circe.Decoder
+import io.circe.generic.extras.Configuration
+import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
+
+import scala.concurrent.duration.FiniteDuration
+import scala.util.{Failure, Success}
+
+sealed trait EventSourceConfig
+
+object EventSourceConfig {
+  sealed trait SourceOffset
+  object SourceOffset {
+    case object Latest                                    extends SourceOffset
+    case object Earliest                                  extends SourceOffset
+    case class ExactTimestamp(ts: Long)                   extends SourceOffset
+    case class ExactOffset(offset: Long)                  extends SourceOffset
+    case class RelativeDuration(duration: FiniteDuration) extends SourceOffset
+
+    val idPattern       = "id=([0-9]+)".r
+    val tsPattern       = "ts=([0-9]+)".r
+    val durationPattern = "last=([0-9]+)([smhd])".r
+    implicit val sourceOffsetDecoder: Decoder[SourceOffset] = Decoder.decodeString.emapTry {
+      case "earliest"                   => Success(Earliest)
+      case "latest"                     => Success(Latest)
+      case idPattern(id)                => Success(ExactOffset(id.toLong))
+      case tsPattern(ts)                => Success(ExactTimestamp(ts.toLong))
+      case durationPattern(num, suffix) => Success(RelativeDuration(FiniteDuration(num.toLong, suffix)))
+      case other                        => Failure(new Exception(s"offset $other is not supported"))
+    }
+  }
+
+  case class FilesSourceConfig(path: MPath) extends EventSourceConfig
+  case class KafkaSourceConfig(brokers: NonEmptyList[String], topic: String, groupId: String, offset: SourceOffset)
+  case class PulsarSourceConfig(
+      serviceUrl: String,
+      adminUrl: String,
+      topic: String,
+      subscriptionName: String,
+      subscriptionType: String,
+      offset: SourceOffset
+  )
+  case class RestSourceConfig(bufferSize: Int) extends EventSourceConfig
+  implicit val conf = Configuration.default
+    .withDiscriminator("type")
+    .withDefaults
+    .copy(transformConstructorNames = {
+      case "FilesSourceConfig"  => "file"
+      case "KafkaSourceConfig"  => "kafka"
+      case "PulsarSourceConfig" => "pulsar"
+      case "RestSourceConfig"   => "rest"
+    })
+  implicit val eventSourceDecoder: Decoder[EventSourceConfig] = deriveConfiguredDecoder
+
+}

@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.ModelConfig.ShuffleConfig
+import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.feature.FeatureTest.FeaturyMock
 import ai.metarank.flow.FieldStore.MapFieldStore
 import ai.metarank.model.Event.RankingEvent

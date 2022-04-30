@@ -2,8 +2,8 @@ package ai.metarank.util
 
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
-import ai.metarank.config.Config.ModelConfig.ShuffleConfig
-import ai.metarank.config.Config.StateStoreConfig.MemConfig
+import ai.metarank.config.ModelConfig.ShuffleConfig
+import ai.metarank.config.StateStoreConfig.MemConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName

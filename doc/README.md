@@ -21,6 +21,7 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 * [Feature extractors](feature_extractors.md): configuring the way events are mapped to ML features.
 * [Feature scopes](scopes.md): ML features can be bound to a specific scope (like count number of clicks per *item* - so item is the scope) 
 * [Event schema overview](xx_event_schema.md): How input events about visitor activity look like.
+* [Event sources](data-sources.md): From which sources Metarank can pull events from.
 
 ## Tutorials
 

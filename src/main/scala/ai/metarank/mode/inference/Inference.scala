@@ -1,7 +1,7 @@
 package ai.metarank.mode.inference
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
+import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}

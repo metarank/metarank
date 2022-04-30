@@ -1,7 +1,7 @@
 package ai.metarank
 
-import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
-import ai.metarank.config.Config.ModelConfig
+import ai.metarank.config.ModelConfig
+import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
@@ -21,7 +21,7 @@ import ai.metarank.feature._
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue}
-import ai.metarank.rank.{LambdaMARTModel, NoopModel, Model, ShuffleModel}
+import ai.metarank.rank.{LambdaMARTModel, Model, NoopModel, ShuffleModel}
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}

@@ -1,12 +1,10 @@
 package ai.metarank.rank
 
-import ai.metarank.config.Config.ModelConfig
+import ai.metarank.config.ModelConfig
 import ai.metarank.feature.BaseFeature
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
-import cats.effect.IO
 import io.findify.featury.model.{FeatureValue, Schema}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 

@@ -1,8 +1,7 @@
 package ai.metarank.rank
 
-import ai.metarank.config.Config.ModelConfig
-import ai.metarank.config.Config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
-import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, ModelBackend}
+import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ModelBackend}
+import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
 import ai.metarank.feature.BaseFeature
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
 import ai.metarank.model.Clickthrough.ItemValues
@@ -11,7 +10,6 @@ import ai.metarank.rank.LambdaMARTModel.{Fillrate, LambdaMARTScorer}
 import ai.metarank.rank.Model.Scorer
 import cats.data.NonEmptyMap
 import io.findify.featury.model.{FeatureValue, Schema}
-import io.github.metarank.ltrlib.booster.Booster.BoosterOptions
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART

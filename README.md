@@ -19,7 +19,7 @@
 
 Personalization is showing the *same* items but in *different order* for *different users*.
 
-The order of posts in FB, recommended photos in Instagram, products in Amazon, and search results in Google is *personalized for each visitor*, as it directly affects user engagement: click rate and conversion. We've done **50+ a/b tests** in different ecommerce verticals to confirm it.
+The order of posts in FB, photos in Instagram, products in Amazon, and search results in Google is *personalized for each visitor*, as it directly affects user engagement: click rate and conversion. We've done **50+ a/b tests** in different ecommerce verticals to confirm it.
 
 If you have items that are presented to a user in a specific order, you can personalize this order to improve your product's KPIs.
 

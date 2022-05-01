@@ -19,16 +19,15 @@
 
 Personalization is showing the *same* items but in *different order* for *different users*.
 
-The ordering of products on Amazon, posts in FB, and search results in Google is *personalized for each visitor*, as it directly affects conversion, click rate and engagement, 
-and we've done 50+ a/b tests in different ecommerce verticals to confirm it.
+The order of posts in FB, photos in Instagram, products in Amazon, and search results in Google is *personalized for each visitor*, as it directly affects user engagement: click rate and conversion. We've done **50+ a/b tests** in different ecommerce verticals to confirm it.
 
-If you have items that are presented to a user in a specific order, you can look at personalizing this order to improve your product's KPIs.
+If you have items that are presented to a user in a specific order, you can personalize this order to improve your product's KPIs.
 
 ## Why Metarank?
 
 Metarank can run on-premises or in the cloud, making it easy to get state-of-the-art ML technologies by teams having little to no ML experience. 
 
-Building an in-house personalization solution takes around 6 months by an experienced team, and only large companies can afford it.
+Building an in-house personalization solution can take around 6 months by an experienced team, and only large companies can afford it.
 
 With Metarank, you can get up and running with personalization in *days instead of months* and be in control of **data privacy**, **optimization goals** and how Metarank is integrated into the infrastructure with **minimal vendor-lock**.
 
@@ -61,7 +60,7 @@ We recommend running Metarank with [Docker](doc/deploy/docker.md).
 
 If you would like to try it natively, here are the requirements:
 
-* Linux or MacOS on x86. Windows support is coming soon
+* Linux or MacOS on x86. Apple M1 and Windows support are coming soon.
 * [JVM 11](https://www.oracle.com/java/technologies/downloads/)
 
 

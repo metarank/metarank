@@ -10,28 +10,6 @@ jobs:
   build:
     timeout-minutes: 20
     runs-on: ${{ matrix.platform }}
-    services:
-      kafka:
-        image: docker.io/bitnami/kafka:3.1
-        ports:
-          - "9092:9092"
-        env:
-          KAFKA_ENABLE_KRAFT: yes
-          KAFKA_CFG_PROCESS_ROLES: broker,controller
-          KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-          KAFKA_BROKER_ID: 1
-          KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-          KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://127.0.0.1:9092
-          KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@127.0.0.1:9093
-          ALLOW_PLAINTEXT_LISTENER: yes
-      pulsar:
-        image: apachepulsar/pulsar:2.8.0
-        ports:
-        - 8080:8080
-        - 6650:6650
-        env:
-          PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
-        options: bin/pulsar standalone --wipe-data
     strategy:
       matrix:
         platform: [ubuntu-20.04]
@@ -48,6 +26,7 @@ jobs:
     - uses: actions/checkout@v2
       with:
         lfs: 'true'
+
     - uses: actions/cache@v2
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
@@ -61,6 +40,9 @@ jobs:
     - name: Run formatting tests
       run: sbt scalafmtCheck
 
+    - name:  Run docker-compose
+      run: docker-compose -f docker-compose.yml up -d
+      
     - name: Run tests
       run: sbt -mem 3000 test assembly
 

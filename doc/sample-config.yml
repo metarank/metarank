@@ -1,28 +1,27 @@
-# This is a sample config file you can use as a reference for building your own.
+# This is a sample config file that you can use as a reference for building your own.
 
-# A "features" section describes how to map your input events into ML features Metarank understands.
+# The "features" section describes how to map your input events into ML features that Metarank understands.
 # See doc/feature_extractors.md for a general overview of possible things you can do, and doc/features
-# for a detailed per-extractor configuration options.
+# for detailed per-extractor configuration options.
 
 # These features can be shared between multiple models, so if you have a model A using features 1-2-3 and
-# model B using features 1-2, then all three features will be computed only once. Remember that to make
-# Metarank use a feature defined in this list, you need to explicitly include it in the model configuration
-# in the next session.
+# a model B using features 1-2, then all three features will be computed only once. 
+# You need to explicitely include a feture in the model configuration for Metarank to use it.
 features:
   - name: popularity
     type: number
     scope: item
     source: item.popularity
-    # TTL and refresh fields are part of every feature extractor Metarank supports.
+    # TTL and refresh fields are part of every feature extractor that Metarank supports.
     # The purpose of TTL is to configure data retention period, so in a case when there were no
-    # feature updates for a long time, it will be eventually forgot.
+    # feature updates for a long time, it will eventually be dropped.
     ttl: 60d
-    # Refresh parameter was implemented to downsample the amount of feature updates emitted. As an example,
-    # there is a window_counter feature extractor, which can be used to count number of clicks happened over
-    # an item. Incrementing such a counter for a single day is extremely lightweight operation, but computing
-    # window sums is not. As it's not always required to receive up-to-date counter values in ML model, we can
-    # update these window sums only eventually (like once per hour): it will improve the throughput a lot
-    # (but result in a slightly stale data in the inference process)
+    # Refresh parameter is used to downsample the amount of feature updates emitted. For example,
+    # there is a window_counter feature extractor, which can be used to count a number of clicks that happened for
+    # an item. Incrementing such a counter for a single day is an extremely lightweight operation, but computing
+    # window sums is not. As it's not always required to receive up-to-date counter values in ML models,
+    # these window sums can be updated only eventually (like once per hour), which improves the throughput a lot
+    # (but results in a slightly stale data during the inference process)
     refresh: 1h
 
   - name: genre
@@ -36,14 +35,14 @@ features:
 
 models:
   default: # name of the model, used in the inference process as a part of path, like /rank/default
-    type: lambdamart # as for now, we only support lambdamart
+    type: lambdamart # for now, only lambdamart is supported
     path: /tmp/xgboost.model # schemas like s3:// are also supported
     backend:
       type: xgboost # supported values: xgboost, lightgbm
       iterations: 100 # optional (default 100), number of interations while training the model
       seed: 0 # optional (default = random), a seed to make training deterministic
     weights: # types and weights of interactions used in the model training
-      click: 1 # you can have for example, have purchases with a higher weight to hint model to optimize more for them
+      click: 1 # you can increase the weight of some events to hint model to optimize more for them
     features: # features from the previous section used in the model
       - popularity
       - genre
@@ -63,14 +62,6 @@ bootstrap:
     # groupId: metarank
     # offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
 
-    # offset options are:
-    # earliest - start from the first stored message in the topic
-    # id=<offset id> - start from a specific offset id
-    # latest - consume only events that came recently (after we connected)
-    # ts=<timestamp> - start from a specific absolute timestamp in the past
-    # last=<duration> - consume only events happened within the defined relative duration
-    #   duration supports the following patterns: 1s, 1m, 1h, 1d
-
     # type: pulsar
     # serviceUrl: <pulsar service URL>
     # adminUrl: <pulsar service HTTP admin URL>
@@ -78,6 +69,14 @@ bootstrap:
     # subscriptionName: metarank
     # subscriptionType: exclusive # options are exclusive, shared, failover
     # offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
+
+    # offset options are:
+    # earliest - start from the first stored message in the topic
+    # id=<offset id> - start from a specific offset id
+    # latest - consume only events that came recently (after we connected)
+    # ts=<timestamp> - start from a specific absolute timestamp in the past
+    # last=<duration> - consume only events happened within the defined relative duration
+    #   duration supports the following patterns: 1s, 1m, 1h, 1d
 
 # options to use for the inference process
 inference:
@@ -95,13 +94,14 @@ inference:
     # Local memory
     # A node-local in-memory storage without any persistence. Loads latest feature values from the bootstrap process
     # automatically, so you don't need to run the Upload job with this type of storage.
-    # Suitable only for local testing, as in a case of restart it will loose all the data and start from the values from
-    # the bootstrap.
+    # Suitable only for local testing, as in case of a restart it will loose all the data and start with the values from
+    # the bootstrap stage.
     type: memory
     format: json # Metarank supports json and protobuf: json is human-readable, protobuf is much more compact
 
-    # Remote redis, with persistence. Requires the Upload job to be run to slurp all the historical feature values
-    # computed during the bootstrap.
+    # Remote redis, with persistence. 
+    # Requires the Upload job to be run to upload all the historical feature values
+    # computed during the bootstrap inro Redis.
     # type: redis
     # host: localhost
     # format: json

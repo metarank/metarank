@@ -29,9 +29,8 @@ So a valid file URL example is `file:///data/events` (`file://data/events` means
 
 So file URLs in Metarank should always use triple-slash prefix..
 
-For S3 access, you need to pass credentials to the underlying connector using the following *env* variables:
-* `AWS_ACCESS_KEY_ID` - key id
-* `AWS_SECRET_ACCESS_KEY` - key secret
+#### S3-like data storage
+Check out [AWS S3 source documentation](deploy/aws.md) for reading data from S3-like sources.
 
 
 ### Apache Kafka

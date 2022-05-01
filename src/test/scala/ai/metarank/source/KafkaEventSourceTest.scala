@@ -4,37 +4,41 @@ import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.data.NonEmptyList
-import io.github.embeddedkafka.{EmbeddedK, EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.kafka.common.serialization.{Serializer, StringSerializer}
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
-import scala.util.Random
+import org.apache.kafka.clients.admin.{Admin, AdminClientConfig, NewTopic}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+import java.util.{Collections, Properties}
 
-class KafkaEventSourceTest extends AnyFlatSpec with Matchers with EmbeddedKafka with BeforeAndAfterAll with FlinkTest {
+class KafkaEventSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
   import ai.metarank.mode.TypeInfos._
-  val port                       = 6000 + Random.nextInt(30000)
-  implicit val userDefinedConfig = EmbeddedKafkaConfig(kafkaPort = port, zooKeeperPort = 0)
 
   implicit val serializer: Serializer[String] = new StringSerializer()
   val event: Event                            = TestItemEvent("p1")
 
   it should "receive events from kafka" in {
-    withRunningKafka {
-      {
-        val sourceConfig = KafkaSourceConfig(
-          brokers = NonEmptyList.of(s"localhost:$port"),
-          topic = "events",
-          groupId = "metarank",
-          offset = SourceOffset.Earliest
-        )
-        createCustomTopic("events")
-        publishToKafka("events", event.asJson.noSpaces)
-        val recieved = KafkaSource(sourceConfig).eventStream(env, true).executeAndCollect(10)
-        recieved shouldBe List(event)
-      }
-    }
+
+    val sourceConfig = KafkaSourceConfig(
+      brokers = NonEmptyList.of(s"localhost:9092"),
+      topic = "events",
+      groupId = "metarank",
+      offset = SourceOffset.Earliest
+    )
+    val props = new Properties()
+    props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+    val admin = Admin.create(props)
+    admin.createTopics(Collections.singleton(new NewTopic("events", 1, 1.toShort)))
+    val producer = new KafkaProducer[String, String](props, serializer, serializer)
+    val record   = new ProducerRecord[String, String]("events", null, event.asJson.noSpaces)
+    producer.send(record).get()
+    producer.flush()
+    Thread.sleep(1000)
+    val recieved = KafkaSource(sourceConfig).eventStream(env, true).executeAndCollect(1)
+    recieved shouldBe List(event)
+
   }
 
 }

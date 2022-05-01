@@ -5,13 +5,15 @@ import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import io.findify.featury.model.Timestamp
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.connector.pulsar.source.PulsarSource
+import org.apache.flink.connector.pulsar.source.{PulsarSource, PulsarSourceOptions}
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.{StartCursor, StopCursor}
 import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchema
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import org.apache.flink.util.Collector
 import org.apache.pulsar.client.api.{Message, SubscriptionType}
 import io.circe.parser._
+import org.apache.flink.configuration.Configuration
+import org.apache.flink.connector.pulsar.common.config.PulsarOptions
 
 import java.nio.charset.StandardCharsets
 
@@ -47,6 +49,7 @@ case class PulsarEventSource(conf: PulsarSourceConfig)(implicit ti: TypeInformat
         }
       }
     }
+
     val sourceBuilder = PulsarSource
       .builder[Event]()
       .setTopics(conf.topic)
@@ -56,6 +59,7 @@ case class PulsarEventSource(conf: PulsarSourceConfig)(implicit ti: TypeInformat
       .setSubscriptionType(subscription)
       .setStartCursor(cursor)
       .setDeserializationSchema(deserializer)
+      .setConfig(PulsarSourceOptions.PULSAR_ENABLE_AUTO_ACKNOWLEDGE_MESSAGE, Boolean.box(true))
 
     val source = if (bounded) sourceBuilder.setBoundedStopCursor(StopCursor.latest()).build() else sourceBuilder.build()
     env.fromSource(source, EventWatermarkStrategy(), "pulsar-source")

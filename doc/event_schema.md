@@ -107,7 +107,7 @@ This information is used by personalization algorithms to understand which items
 }
 ```
 
-- `id`: a request identifier later used to join ranking and interaction events. Should match the value that is sent to [ranking API](xx_api_schema.md).
+- `id`: a request identifier later used to join ranking and interaction events. Should match the value that is sent to the [Ranking API](api_schema.md).
 - `user`: unique visitor identifier.
 - `session`: session identifier, a single visitor may have multiple sessions.
 - `fields`: an optional array of extra fields that you can use in your model, as described above.

@@ -109,7 +109,7 @@ the metadata event will have the following structure
 }
 ```
 
-Read more about [sending events in this doc](xx_event_schema.md).
+Read more about [sending events in this doc](event_schema.md).
 
 ## Feature extractor configuration
 

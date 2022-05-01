@@ -47,7 +47,7 @@ Check out the step-by-step **[Tutorial](doc/tutorial_ranklens.md)** of running M
 
 * [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
 * [Configuration](doc/03_configuration.md) walkthrough
-* [API overview](doc/xx_api_schema.md)
+* [API overview](doc/api_schema.md)
 * [Feature extractors](/doc/feature_extractors.md)
 * [CLI Options](doc/deploy/cli-options.md)
 * [Running Metarank in Docker](doc/deploy/docker.md)

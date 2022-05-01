@@ -53,6 +53,7 @@ libraryDependencies ++= Seq(
   "org.apache.flink"     %% "flink-test-utils"            % flinkVersion excludeAll (
     ExclusionRule("org.apache.curator"),
     ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
+    ExclusionRule("org.apache.logging.log4j")
   ),
   "org.apache.flink"          % "flink-s3-fs-hadoop"       % flinkVersion,
   "org.http4s"               %% "http4s-dsl"               % http4sVersion,
@@ -71,7 +72,17 @@ libraryDependencies ++= Seq(
   "org.apache.lucene"         % "lucene-analysis-kuromoji" % luceneVersion,
   "org.apache.lucene"         % "lucene-analysis-stempel"  % luceneVersion,
   "org.apache.httpcomponents" % "httpclient"               % "4.5.13",
-  "io.github.embeddedkafka"  %% "embedded-kafka"           % "3.1.0" % Test
+  "io.github.embeddedkafka"  %% "embedded-kafka"           % "3.1.0"  % Test,
+  "org.apache.pulsar"         % "pulsar-broker"            % "2.10.0" % Test excludeAll (
+    ExclusionRule("com.sun.activation", "javax.activation"),
+    ExclusionRule("javax.ws.rs", "javax.ws.rs-api"),
+    ExclusionRule("net.jcip", "jcip-annotations"),
+    ExclusionRule("org.apache.pulsar", "bouncy-castle-bc-shaded"),
+    ExclusionRule("org.slf4j"),
+    ExclusionRule("org.apache.logging.log4j"),
+    ExclusionRule("commons-logging", "commons-logging"),
+    ExclusionRule("com.sun.activation", "javax.activation")
+  )
 )
 
 enablePlugins(DockerPlugin)

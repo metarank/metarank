@@ -13,10 +13,10 @@ trait EventSource {
 }
 
 object EventSource {
-  def fromConfig(conf: EventSourceConfig): EventSource = conf match {
+  def fromConfig(conf: EventSourceConfig)(implicit ti: TypeInformation[Event]): EventSource = conf match {
     case file: FileSourceConfig     => FileEventSource(file.path)
-    case kafka: KafkaSourceConfig   => ???
-    case pulsar: PulsarSourceConfig => ???
+    case kafka: KafkaSourceConfig   => KafkaSource(kafka)
+    case pulsar: PulsarSourceConfig => PulsarEventSource(pulsar)
     case rest: RestSourceConfig     => RestApiSource(rest.host, rest.port)
   }
 }

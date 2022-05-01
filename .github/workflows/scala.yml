@@ -41,7 +41,7 @@ jobs:
       run: sbt scalafmtCheck
 
     - name:  Run docker-compose
-      run: docker-compose -f docker-compose.yml up -d
+      run: docker-compose -f docker-compose.yaml up -d
       
     - name: Run tests
       run: sbt -mem 3000 test assembly

@@ -1,10 +1,14 @@
 bootstrap:
-  eventPath: src/test/resources/ranklens/events/
+  source:
+    type: file
+    path: src/test/resources/ranklens/events/
   workdir: /tmp/bootstrap
 
 inference:
   port: 8080
   host: "0.0.0.0"
+  source:
+    type: rest
   state:
     type: redis
     host: localhost

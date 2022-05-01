@@ -46,7 +46,7 @@ object EventSourceConfig {
     .withDiscriminator("type")
     .withDefaults
     .copy(transformConstructorNames = {
-      case "FilesSourceConfig"  => "file"
+      case "FileSourceConfig"   => "file"
       case "KafkaSourceConfig"  => "kafka"
       case "PulsarSourceConfig" => "pulsar"
       case "RestSourceConfig"   => "rest"

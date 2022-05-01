@@ -21,11 +21,15 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
   it should "parse example config" in {
     val yaml =
       """bootstrap:
-        |  eventPath: file:///tmp/events
+        |  source:
+        |    type: file
+        |    path: file:///tmp/events
         |  workdir: s3://bucket/prefix
         |inference:
         |  host: localhost
         |  port: 8080
+        |  source:
+        |    type: rest
         |  state:
         |    type: memory
         |    format: json
@@ -65,7 +69,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
           port = 8080,
           host = "localhost",
           state = MemConfig(JsonCodec),
-          source = RestSourceConfig(1000, "localhost", 8080)
+          source = RestSourceConfig(10000, "localhost", 8080)
         )
       )
     )

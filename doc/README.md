@@ -10,6 +10,7 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 
 ## Run and deploy
 
+* [Supported platforms](supported-platforms.md): on which OS/JVM it can run on.
 * [AWS](deploy/aws.md): (Work-in-progress) deploying it to AWS.
 * [Docker](deploy/docker.md): running Metarank from Docker.
 * [CLI Options](deploy/cli-options.md): running Metarank from command-line.

@@ -2,11 +2,14 @@
 
 Metarank official image is published in docker hub as [metarank/metarank](https://hub.docker.com/r/metarank/metarank/tags).
 
+We publish the `:latest` tag, although it's not always recommended to have any production deployments without pinning a specific
+version.
+
 ## Running the docker image
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI options](cli-options.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.2.2 help
+$ docker run metarank/metarank:latest help
 
 12:35:48.228 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
 

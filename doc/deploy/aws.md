@@ -1,6 +1,6 @@
 # Metarank and AWS S3
 
-Metarank can work with the data stored in AWS S3 using the Apache Flink integration. 
+Metarank can work with the data stored in AWS S3 (or S3-like data storage) with existing Apache Flink integration. 
 
 To set it up, define the following environment variables:
 * `AWS_ACCESS_KEY_ID` - key id

@@ -2,12 +2,12 @@ package ai.metarank.source
 
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.model.Event
-import ai.metarank.source.RestApiSource.RestApiSourceFunction
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.effect.{ExitCode, IO, Ref}
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
 import fs2.concurrent.SignallingRef
+import org.apache.flink.api.common.RuntimeExecutionMode
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
 import org.scalatest.BeforeAndAfterAll
@@ -17,7 +17,7 @@ import org.apache.flink.api.scala._
 
 import scala.util.Random
 
-class RestApiSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
+class RestApiEventSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
   val signal = SignallingRef[IO, Boolean](false).unsafeRunSync()
   val exit   = Ref[IO].of(ExitCode.Success).unsafeRunSync()
   val queue  = Queue.bounded[IO, Event](100).unsafeRunSync()
@@ -41,9 +41,10 @@ class RestApiSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll
   }
 
   it should "receive event" in {
+    env.setRuntimeMode(RuntimeExecutionMode.BATCH)
     val event = TestItemEvent("p1")
     queue.offer(event).unsafeRunSync()
-    val received = env.addSource(RestApiSourceFunction(host, port, 1)).executeAndCollect(1)
+    val received = RestApiEventSource(host, port, 1, Some(1)).eventStream(env, true).executeAndCollect(1)
     received shouldBe List(event)
   }
 }

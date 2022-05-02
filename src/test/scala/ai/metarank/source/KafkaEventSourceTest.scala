@@ -5,14 +5,16 @@ import ai.metarank.model.Event
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.data.NonEmptyList
 import org.apache.kafka.common.serialization.{Serializer, StringSerializer}
-import org.scalatest.BeforeAndAfterAll
+import org.scalatest.{BeforeAndAfterAll, Ignore}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
 import org.apache.kafka.clients.admin.{Admin, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
+
 import java.util.{Collections, Properties}
 
+@Ignore
 class KafkaEventSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 

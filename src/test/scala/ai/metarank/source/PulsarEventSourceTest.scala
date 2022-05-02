@@ -7,12 +7,15 @@ import io.circe.syntax._
 import org.apache.pulsar.client.admin.PulsarAdmin
 import org.apache.pulsar.client.api.PulsarClient
 import org.apache.pulsar.common.policies.data.{ClusterData, TenantInfo}
+import org.scalatest.Ignore
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.collection.JavaConverters._
 import java.nio.charset.StandardCharsets
 import java.util.Collections
 
+@Ignore
 class PulsarEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 

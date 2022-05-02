@@ -17,6 +17,6 @@ object EventSource {
     case file: FileSourceConfig     => FileEventSource(file.path)
     case kafka: KafkaSourceConfig   => KafkaSource(kafka)
     case pulsar: PulsarSourceConfig => PulsarEventSource(pulsar)
-    case rest: RestSourceConfig     => RestApiSource(rest.host, rest.port)
+    case rest: RestSourceConfig     => RestApiEventSource(rest.host, rest.port)
   }
 }

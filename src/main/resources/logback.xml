@@ -11,6 +11,7 @@
     <logger name="org.apache.flink.streaming.api.operators.collect.CollectResultFetcher" level="ERROR"/>
     <logger name="akka" level="WARN"/>
     <logger name="io.findify.featury" level="ERROR"/>
+
     <root level="error">
         <appender-ref ref="STDOUT"/>
     </root>

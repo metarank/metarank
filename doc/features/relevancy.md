@@ -12,7 +12,7 @@ Most of these primary sources of input may also have a per-item score: how much 
 * BM25 or TF/IDF score in search
 * cosine difference between embeddings in recommendations
 
-Metarank [ranking event schema](../xx_event_schema.md) has a special field for it, see the example: 
+Metarank [ranking event schema](../event_schema.md) has a special field for it, see the example: 
 ```json
 {
   "event": "ranking",

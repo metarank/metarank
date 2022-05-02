@@ -13,7 +13,7 @@ This tutorial reproduces the system running on [demo.metarank.ai](https://demo.m
 
 For the data input, we are using a repackaged copy of the ranklens dataset [available here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events). 
 The only difference with the original dataset is that we have converted it to a metarank-compatible data model with 
-item/user/interaction/ranking [event format](./xx_event_schema.md).
+item/user/interaction/ranking [event format](./event_schema.md).
 
 ### Configuration
 

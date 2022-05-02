@@ -1,7 +1,7 @@
 # ML Feature extractors
 
 Most common learn-to-rank tasks usually have typical shared set of ML features. As long as you follow the 
-[ingestion event schema](xx_event_schema.md), Metarank tries to automate creation of these features for you.
+[ingestion event schema](event_schema.md), Metarank tries to automate creation of these features for you.
 
 ## Mapping input events into ML features
 

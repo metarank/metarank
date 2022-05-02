@@ -1,7 +1,6 @@
 package ai.metarank.mode.inference
 
-import ai.metarank.config.Config.StateStoreConfig
-import ai.metarank.config.MPath
+import ai.metarank.config.{MPath, StateStoreConfig}
 import ai.metarank.mode.upload.Upload
 import ai.metarank.util.Logging
 import cats.effect.IO

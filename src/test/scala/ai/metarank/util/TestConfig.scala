@@ -2,8 +2,10 @@ package ai.metarank.util
 
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
-import ai.metarank.config.Config.ModelConfig.ShuffleConfig
-import ai.metarank.config.Config.StateStoreConfig.MemConfig
+import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
+import ai.metarank.config.MPath.LocalPath
+import ai.metarank.config.ModelConfig.ShuffleConfig
+import ai.metarank.config.StateStoreConfig.MemConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
@@ -16,13 +18,14 @@ object TestConfig {
     features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
     models = NonEmptyMap.of("shuffle" -> ShuffleConfig(10)),
     bootstrap = BootstrapConfig(
-      eventPath = MPath("/tmp"),
+      source = FileSourceConfig(LocalPath("/tmp/events")),
       workdir = MPath("/tmp")
     ),
     inference = InferenceConfig(
       port = 8080,
       host = "0.0.0.0",
-      state = MemConfig(JsonCodec)
+      state = MemConfig(JsonCodec),
+      source = RestSourceConfig(1000, "localhost", 8080)
     )
   )
 }

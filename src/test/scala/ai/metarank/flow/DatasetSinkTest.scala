@@ -1,9 +1,9 @@
 package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.Config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.config.MPath
+import ai.metarank.config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.FeatureScope.ItemScope

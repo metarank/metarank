@@ -1,11 +1,9 @@
 package ai.metarank.rank
 
-import ai.metarank.config.Config.ModelConfig.NoopConfig
+import ai.metarank.config.ModelConfig.NoopConfig
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.{Clickthrough, Event}
-import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.Model.Scorer
-import cats.effect.IO
 import io.findify.featury.model.{FeatureValue, Schema}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 

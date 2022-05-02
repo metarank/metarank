@@ -23,34 +23,39 @@ scalacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "org.typelevel"        %% "cats-effect"                % "3.3.11",
-  "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
-  "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
-  "org.scalatest"        %% "scalatest"                  % scalatestVersion % Test,
-  "org.scalactic"        %% "scalactic"                  % scalatestVersion % Test,
-  "org.scalatestplus"    %% "scalacheck-1-14"            % "3.2.2.0"        % Test,
-  "ch.qos.logback"        % "logback-classic"            % "1.2.11",
-  "io.circe"             %% "circe-yaml"                 % circeYamlVersion,
-  "io.circe"             %% "circe-core"                 % circeVersion,
-  "io.circe"             %% "circe-generic"              % circeVersion,
-  "io.circe"             %% "circe-generic-extras"       % circeVersion,
-  "io.circe"             %% "circe-parser"               % circeVersion,
-  "com.github.pathikrit" %% "better-files"               % "3.9.1",
-  "com.github.scopt"     %% "scopt"                      % "4.0.1",
-  "redis.clients"         % "jedis"                      % "4.2.2",
-  "com.github.blemale"   %% "scaffeine"                  % "5.1.2",
-  "com.github.fppt"       % "jedis-mock"                 % "1.0.2"          % Test,
-  "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
-  "io.findify"           %% "featury-flink"              % featuryVersion,
-  "io.findify"           %% "featury-redis"              % featuryVersion,
-  "org.apache.flink"     %% "flink-scala"                % flinkVersion,
-  "org.apache.flink"     %% "flink-statebackend-rocksdb" % flinkVersion,
-  "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
-  "org.apache.flink"     %% "flink-runtime-web"          % flinkVersion,
-  "org.apache.flink"     %% "flink-streaming-scala"      % flinkVersion,
-  "org.apache.flink"     %% "flink-test-utils"           % flinkVersion excludeAll (
+  "org.typelevel"        %% "cats-effect"                 % "3.3.11",
+  "org.typelevel"        %% "log4cats-core"               % log4catsVersion,
+  "org.typelevel"        %% "log4cats-slf4j"              % log4catsVersion,
+  "org.scalatest"        %% "scalatest"                   % scalatestVersion % Test,
+  "org.scalactic"        %% "scalactic"                   % scalatestVersion % Test,
+  "org.scalatestplus"    %% "scalacheck-1-14"             % "3.2.2.0"        % Test,
+  "ch.qos.logback"        % "logback-classic"             % "1.2.11",
+  "io.circe"             %% "circe-yaml"                  % circeYamlVersion,
+  "io.circe"             %% "circe-core"                  % circeVersion,
+  "io.circe"             %% "circe-generic"               % circeVersion,
+  "io.circe"             %% "circe-generic-extras"        % circeVersion,
+  "io.circe"             %% "circe-parser"                % circeVersion,
+  "com.github.pathikrit" %% "better-files"                % "3.9.1",
+  "com.github.scopt"     %% "scopt"                       % "4.0.1",
+  "redis.clients"         % "jedis"                       % "4.2.2",
+  "com.github.blemale"   %% "scaffeine"                   % "5.1.2",
+  "com.github.fppt"       % "jedis-mock"                  % "1.0.2"          % Test,
+  "org.scala-lang"        % "scala-reflect"               % scalaVersion.value,
+  "io.findify"           %% "featury-flink"               % featuryVersion,
+  "io.findify"           %% "featury-redis"               % featuryVersion,
+  "org.apache.flink"     %% "flink-scala"                 % flinkVersion,
+  "org.apache.flink"     %% "flink-statebackend-rocksdb"  % flinkVersion,
+  "org.apache.flink"      % "flink-connector-files"       % flinkVersion,
+  "org.apache.flink"     %% "flink-runtime-web"           % flinkVersion,
+  "org.apache.flink"     %% "flink-streaming-scala"       % flinkVersion,
+  "org.apache.flink"      % "flink-connector-kafka_2.12"  % flinkVersion,
+  "org.apache.flink"      % "flink-connector-pulsar_2.12" % flinkVersion excludeAll (
+    ExclusionRule("com.sun.activation", "javax.activation")
+  ),
+  "org.apache.flink" %% "flink-test-utils" % flinkVersion excludeAll (
     ExclusionRule("org.apache.curator"),
     ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
+    ExclusionRule("org.apache.logging.log4j")
   ),
   "org.apache.flink"          % "flink-s3-fs-hadoop"       % flinkVersion,
   "org.http4s"               %% "http4s-dsl"               % http4sVersion,
@@ -121,6 +126,8 @@ val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Co
 ThisBuild / assemblyMergeStrategy := {
   case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy
   case PathList("module-info.class")                                => MergeStrategy.discard
+  case "META-INF/io.netty.versions.properties"                      => MergeStrategy.first
+  case "findbugsExclude.xml"                                        => MergeStrategy.discard
   case x if x.endsWith("/module-info.class")                        => MergeStrategy.discard
   case x =>
     val oldStrategy = (ThisBuild / assemblyMergeStrategy).value

@@ -14,14 +14,15 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 * [AWS](deploy/aws.md): (Work-in-progress) deploying it to AWS.
 * [Docker](deploy/docker.md): running Metarank from Docker.
 * [CLI Options](deploy/cli-options.md): running Metarank from command-line.
-* [API Overview](xx_api_schema.md): sending REST API requests for reranking and feedback ingestion.
+* [API Overview](api_schema.md): sending REST API requests for reranking and feedback ingestion.
 
 ## Configure
 
 * [Configuration](03_configuration.md): config file structure and possible running modes.
 * [Feature extractors](feature_extractors.md): configuring the way events are mapped to ML features.
 * [Feature scopes](scopes.md): ML features can be bound to a specific scope (like count number of clicks per *item* - so item is the scope) 
-* [Event schema overview](xx_event_schema.md): How input events about visitor activity look like.
+* [Event schema overview](event_schema.md): How input events about visitor activity look like.
+* [Event sources](data-sources.md): Which sources Metarank can pull events from.
 
 ## Tutorials
 

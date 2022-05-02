@@ -1,7 +1,6 @@
 package ai.metarank.rank
 
-import ai.metarank.config.Config.ModelConfig.ShuffleConfig
-import ai.metarank.model.Clickthrough.ItemValues
+import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.model.{Clickthrough, Event}
 import ai.metarank.rank.Model.Scorer
 import io.findify.featury.model.{FeatureValue, Schema}

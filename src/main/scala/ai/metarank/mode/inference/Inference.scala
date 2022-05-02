@@ -1,7 +1,7 @@
 package ai.metarank.mode.inference
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
+import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
@@ -10,7 +10,7 @@ import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.ShuffleModel.ShuffleScorer
-import ai.metarank.source.FeedbackApiSource
+import ai.metarank.source.{EventSource, RestApiEventSource}
 import ai.metarank.util.Logging
 import cats.effect.kernel.Ref
 import cats.effect.std.Queue
@@ -58,6 +58,7 @@ object Inference extends IOApp with Logging {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       redis   <- RedisEndpoint.create(config.inference.state, config.bootstrap.workdir)
       _       <- Resource.eval(redis.upload)
+      source  <- Resource.pure(EventSource.fromConfig(config.inference.source))
       _ <- FeedbackFlow.resource(
         cluster,
         mapping,
@@ -65,7 +66,7 @@ object Inference extends IOApp with Logging {
         config.inference.state.port,
         config.bootstrap.workdir.child("savepoint"),
         config.inference.state.format,
-        _.addSource(FeedbackApiSource(config.inference.host, config.inference.port))
+        source.eventStream(_, bounded = false)
       )
       store <- FeatureStoreResource.make(() =>
         RedisStore(RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format))

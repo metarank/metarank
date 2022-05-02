@@ -13,9 +13,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.collection.JavaConverters._
 import java.nio.charset.StandardCharsets
-import java.util.Collections
 
-@Ignore
 class PulsarEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 

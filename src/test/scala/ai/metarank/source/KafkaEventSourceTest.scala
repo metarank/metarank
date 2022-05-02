@@ -14,7 +14,6 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 
 import java.util.{Collections, Properties}
 
-@Ignore
 class KafkaEventSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 

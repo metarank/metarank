@@ -49,8 +49,10 @@ libraryDependencies ++= Seq(
   "org.apache.flink"     %% "flink-runtime-web"           % flinkVersion,
   "org.apache.flink"     %% "flink-streaming-scala"       % flinkVersion,
   "org.apache.flink"      % "flink-connector-kafka_2.12"  % flinkVersion,
-  "org.apache.flink"      % "flink-connector-pulsar_2.12" % flinkVersion,
-  "org.apache.flink"     %% "flink-test-utils"            % flinkVersion excludeAll (
+  "org.apache.flink"      % "flink-connector-pulsar_2.12" % flinkVersion excludeAll (
+    ExclusionRule("com.sun.activation", "javax.activation")
+  ),
+  "org.apache.flink" %% "flink-test-utils" % flinkVersion excludeAll (
     ExclusionRule("org.apache.curator"),
     ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
     ExclusionRule("org.apache.logging.log4j")
@@ -72,9 +74,6 @@ libraryDependencies ++= Seq(
   "org.apache.lucene"         % "lucene-analysis-kuromoji" % luceneVersion,
   "org.apache.lucene"         % "lucene-analysis-stempel"  % luceneVersion,
   "org.apache.httpcomponents" % "httpclient"               % "4.5.13"
-  // "org.apache.pulsar"         % "pulsar-client-all"        % "2.9.2",
-  // "org.apache.pulsar"         % "pulsar-client-api"        % "2.9.2",
-  // "org.apache.pulsar"         % "pulsar-client-admin-api"  % "2.9.2"
 )
 
 enablePlugins(DockerPlugin)
@@ -127,6 +126,8 @@ val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Co
 ThisBuild / assemblyMergeStrategy := {
   case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy
   case PathList("module-info.class")                                => MergeStrategy.discard
+  case "META-INF/io.netty.versions.properties"                      => MergeStrategy.first
+  case "findbugsExclude.xml"                                        => MergeStrategy.discard
   case x if x.endsWith("/module-info.class")                        => MergeStrategy.discard
   case x =>
     val oldStrategy = (ThisBuild / assemblyMergeStrategy).value

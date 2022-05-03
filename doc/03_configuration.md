@@ -37,12 +37,16 @@ models:
       - genre
 
 bootstrap:
-  eventPath: file:///ranklens/events/
+  source:
+    type: file
+    path file:///ranklens/events/
   workdir: file:///tmp/bootstrap
 
 inference:
   port: 8080
   host: "0.0.0.0"
+  source:
+    type: rest
   state:
     type: redis
     host: localhost
@@ -58,16 +62,11 @@ Interaction define the way your users interact with the items you want to person
 Interactions can be used in the feature extractors, for example to calculate the click-through rate and 
 by defining `weight` you can control the optimization goal of your model: do you want to increase the amount of likes or purchases or balance between them.
 
-
 You can define interaction by `name` and set `weight` for how much this interaction affects the model: 
 
 ```yaml
-  - name: click // string
-    weight: 1.0 // floating number
+  click: 1.0
 ```
-
-The `name` of the interaction must be **unique**.
-The `name` is also used in the interaction events that are sent to Metarank and in the feature extractors.
 
 ## Event schema
 

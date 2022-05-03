@@ -32,7 +32,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
     val value = feature.value(
       request = TestRankingEvent(List("p1")).copy(
         fields = List(StringField("ua", "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)")),
-        session = SessionId("s1"),
+        session = Some(SessionId("s1")),
         timestamp = now
       ),
       features = Map.empty
@@ -47,7 +47,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers {
     val k = Key(Tag(SessionScope.scope, "s1"), FeatureName("ua_platform"), Tenant("default"))
     val value = feature.value(
       request = TestRankingEvent(List("p1")).copy(
-        session = SessionId("s1"),
+        session = Some(SessionId("s1")),
         timestamp = now,
         fields = List(StringField("ua", "Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)"))
       ),

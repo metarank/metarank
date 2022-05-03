@@ -43,7 +43,7 @@ object FeatureScope {
   case object UserScope extends FeatureScope {
     val scope = Scope("user")
     override def tags(event: Event): Traversable[Tag] = event match {
-      case e: FeedbackEvent => Some(Tag(scope, e.user.value))
+      case e: FeedbackEvent => e.user.map(user => Tag(scope, user.value))
       case e: UserEvent     => Some(Tag(scope, e.user.value))
       case _                => None
     }
@@ -51,7 +51,7 @@ object FeatureScope {
   case object SessionScope extends FeatureScope {
     val scope = Scope("session")
     override def tags(event: Event): Traversable[Tag] = event match {
-      case e: FeedbackEvent => Some(Tag(scope, e.session.value))
+      case e: FeedbackEvent => e.session.map(session => Tag(scope, session.value))
       case _                => None
     }
   }

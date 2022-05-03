@@ -70,20 +70,21 @@ object EventFileValidator extends Logging {
   }
 
   def checkUsers(ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
-    val interactionUsers = ints.map(_.user.value).toSet
-    val rankingUsers     = rankings.map(_.user.value).toSet
+    val interactionUsers = ints.flatMap(_.user.map(_.value)).toSet
+    val rankingUsers     = rankings.flatMap(_.user.map(_.value)).toSet
     logger.info(s"users: interaction=${interactionUsers.size} ranking=${rankingUsers.size}")
     logger.info(s"users with no ranking: ${interactionUsers.count(x => !rankingUsers.contains(x))} (should be 0)")
   }
 
   def checkClickthroughs(ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
-    val interactionIds = ints.map(_.ranking.value).toSet
+    val interactionIds = ints.flatMap(_.ranking.map(_.value)).toSet
     val rankingIds     = rankings.map(_.id.value).toSet
     logger.info(s"interactions with no ranking: ${interactionIds.count(x => !rankingIds.contains(x))} (should be 0)")
     val rankingMap = rankings.map(r => r.id.value -> r).toMap
     val interactionAfter = for {
       interaction <- ints
-      ranking     <- rankingMap.get(interaction.ranking.value) if (interaction.timestamp.isAfter(ranking.timestamp))
+      rankingId   <- interaction.ranking
+      ranking     <- rankingMap.get(rankingId.value) if (interaction.timestamp.isAfter(ranking.timestamp))
     } yield {
       interaction
     }

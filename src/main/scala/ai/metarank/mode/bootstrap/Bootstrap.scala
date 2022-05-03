@@ -143,7 +143,7 @@ object Bootstrap extends IOApp with Logging {
       .collect { case f: FeedbackEvent => f }
       .id("select-feedback")
       .keyingBy {
-        case int: InteractionEvent => int.ranking
+        case int: InteractionEvent => int.ranking.getOrElse(EventId("0"))
         case rank: RankingEvent    => rank.id
       }
   }

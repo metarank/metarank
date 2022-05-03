@@ -33,8 +33,8 @@ define which model to invoke.
 {
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
   "timestamp": "1599391467000",// required
-  "user": "user1", // required
-  "session": "session1", // required
+  "user": "user1", // optional
+  "session": "session1", // optional
   "fields": [ // optional
     {"name": "query", "value": "jeans"},
     {"name": "source", "value": "search"}
@@ -48,8 +48,8 @@ define which model to invoke.
 ```
 
 - `id`: a request identifier later used to join ranking and interaction events. This will be the same value that you will pass to feedback endpoint for impression and ranking events.
-- `user`: unique visitor identifier.
-- `session`: session identifier, a single visitor may have multiple sessions.
+- `user`: an optional unique visitor identifier.
+- `session`: an optional  session identifier, a single visitor may have multiple sessions.
 - `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](event_schema.md).
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.

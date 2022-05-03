@@ -1,6 +1,5 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
 import ai.metarank.config.MPath.{LocalPath, S3Path}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig

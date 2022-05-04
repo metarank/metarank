@@ -1,41 +1,40 @@
-package ai.metarank.e2e
+package ai.metaranke2e.e2e
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemRelevancy, RankingEvent}
-import ai.metarank.util.{FlinkTest, RanklensEvents}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.common.RuntimeExecutionMode
-import io.findify.flinkadt.api._
 import ai.metarank.flow.DataStreamOps._
 import ai.metarank.mode.FileLoader
-
-import scala.language.higherKinds
 import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Inference}
 import ai.metarank.mode.inference.RedisEndpoint.EmbeddedRedis
 import ai.metarank.mode.inference.api.RankApi
+import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Inference}
 import ai.metarank.mode.train.Train
 import ai.metarank.mode.upload.Upload
-import ai.metarank.model.{Event, EventId}
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.model.{Event, EventId}
 import ai.metarank.rank.LambdaMARTModel
-import better.files.{File, Resource}
+import ai.metarank.util.{FlinkTest, RanklensEvents}
+import better.files.File
 import cats.data.NonEmptyList
-import cats.effect.{IO, Ref}
+import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.format.BulkCodec
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
 import io.findify.featury.model.{FeatureValue, Key, Timestamp}
-import io.findify.featury.values.{FeatureStore, StoreCodec}
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
+import io.findify.featury.values.{FeatureStore, StoreCodec}
+import io.findify.flinkadt.api._
 import org.apache.commons.io.IOUtils
+import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.configuration.Configuration
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.nio.charset.StandardCharsets
+import scala.language.higherKinds
 import scala.util.Random
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
@@ -56,7 +55,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val events = RanklensEvents()
 
     val source = env.fromCollection(events).watermark(_.timestamp.ts)
-    Bootstrap.makeBootstrap(source, mapping, config.bootstrap.workdir)
+    Bootstrap.makeBootstrap(source, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
     env.execute("bootstrap")
   }
 
@@ -86,8 +85,8 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val ranking = RankingEvent(
       id = EventId("event1"),
       timestamp = Timestamp(1636993838000L),
-      user = UserId("u1"),
-      session = SessionId("s1"),
+      user = Some(UserId("u1")),
+      session = Some(SessionId("s1")),
       items = NonEmptyList.of(
         ItemRelevancy(ItemId("7346"), 0.0),
         ItemRelevancy(ItemId("1971"), 0.0),
@@ -104,10 +103,10 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       id = EventId("event2"),
       item = ItemId("69844"),
       timestamp = Timestamp(1636993838000L),
-      user = UserId("u1"),
-      session = SessionId("s1"),
+      user = Some(UserId("u1")),
+      session = Some(SessionId("s1")),
       `type` = "click",
-      ranking = EventId("event1")
+      ranking = Some(EventId("event1"))
     )
     val port  = 1024 + Random.nextInt(10000)
     val redis = EmbeddedRedis.createUnsafe(port)
@@ -136,6 +135,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         redisPort = port,
         savepoint = config.bootstrap.workdir / "savepoint",
         format = StoreCodec.JsonCodec,
+        impress = config.bootstrap.syntheticImpression,
         events = _.fromCollection(List[Event](ranking, interaction))
       )
       .allocated

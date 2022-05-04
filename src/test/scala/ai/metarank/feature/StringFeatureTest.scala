@@ -73,12 +73,12 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val event =
-      TestInteractionEvent("p1", "p0").copy(session = SessionId("s1"), fields = List(StringField("country", "b")))
+      TestInteractionEvent("p1", "p0").copy(session = Some(SessionId("s1")), fields = List(StringField("country", "b")))
     val write = feature.writes(event, FieldStore.empty)
     val key   = Key(feature.states.head, Tenant("default"), "s1")
     write shouldBe List(Put(key, event.timestamp, SStringList(List("b"))))
     val value = feature.value(
-      request = TestRankingEvent(List("p1")).copy(session = SessionId("s1")),
+      request = TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))),
       features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("b")))),
       id = ItemRelevancy(ItemId("p1"))
     )

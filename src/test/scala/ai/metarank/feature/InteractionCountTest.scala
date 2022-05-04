@@ -35,8 +35,9 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
   }
 
   it should "also increment on session key" in {
-    val sf    = InteractionCountFeature(feature.schema.copy(scope = SessionScope))
-    val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"), session = SessionId("s1"))
+    val sf = InteractionCountFeature(feature.schema.copy(scope = SessionScope))
+    val event =
+      TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"), session = Some(SessionId("s1")))
     val write = sf.writes(event, FieldStore.empty)
     write shouldBe List(
       Increment(Key(Tag(SessionScope.scope, "s1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)

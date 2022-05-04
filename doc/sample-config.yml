@@ -50,6 +50,15 @@ models:
 # where to take events from, and where to write intermediate data.
 bootstrap:
   workdir: file:///tmp/bootstrap
+  # how many CPUs use to process the data
+  # parallelism: 1
+
+  # inject synthetic "user examined these items in ranking" impression events
+  # see doc/click-models.md for details, enabled by default
+  # syntheticImpression:
+  #   enabled: true
+  #   eventName: impression # can be customized
+
   source:
     type: file
     path: file:///ranklens/events/

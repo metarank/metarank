@@ -20,9 +20,49 @@ item/user/interaction/ranking [event format](./event_schema.md).
 An example ranklens-compatible config file is available [here](https://github.com/metarank/metarank/blob/master/src/test/resources/ranklens/config.yml),
 but you can write your own based on that template:
 ```yaml
-interactions:
-  - name: click
-    weight: 1.0
+bootstrap:
+  source:
+    type: file
+    path: src/test/resources/ranklens/events/
+  workdir: /tmp/bootstrap
+
+inference:
+  port: 8080
+  host: "0.0.0.0"
+  source:
+    type: rest
+  state:
+    type: redis
+    host: localhost
+    format: json
+
+models:
+  xgboost:
+    type: lambdamart
+    path: /tmp/xgboost.model
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
+    features:
+      - popularity
+      - vote_avg
+      - vote_cnt
+      - budget
+      - release_date
+      - runtime
+      - title_length
+      - genre
+      - ctr
+      - liked_genre
+      - liked_actors
+      - liked_tags
+      - liked_director
+      - visitor_click_count
+      - global_item_click_count
+      - day_item_click_count
 features:
   - name: popularity
     type: number
@@ -83,7 +123,7 @@ features:
   - name: ctr
     type: rate
     top: click
-    bottom: examine
+    bottom: impression
     scope: item
     bucket: 24h
     periods: [7,30]
@@ -119,7 +159,24 @@ features:
     scope: session
     count: 10
     duration: 24h
-```
+
+  - name: visitor_click_count
+    type: interaction_count
+    interaction: click
+    scope: session
+
+  - name: global_item_click_count
+    type: interaction_count
+    interaction: click
+    scope: item
+
+  - name: day_item_click_count
+    type: window_count
+    interaction: click
+    scope: item
+    bucket: 24h
+    periods: [7,30]
+ ```
 
 ### 1. Data Bootstraping
 

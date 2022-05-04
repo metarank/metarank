@@ -73,7 +73,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   it should "emit bounded list appends" in {
     val writes1 =
       feature.writes(
-        TestInteractionEvent("p1", "i1", Nil).copy(session = SessionId("s1"), `type` = "impression"),
+        TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression"),
         FieldStore.map(
           Map(ItemFieldId(Tenant("default"), ItemId("p1"), "color") -> StringField("color", "red"))
         )
@@ -101,7 +101,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
       itemKey3 -> ScalarValue(itemKey3, Timestamp.now, SString("green")),
       sesKey   -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("red"))))
     )
-    val request = TestRankingEvent(List("p1", "p2", "p3")).copy(session = SessionId("s1"))
+    val request = TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
 
     val values2 = feature.value(
       request = request,

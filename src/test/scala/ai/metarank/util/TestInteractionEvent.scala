@@ -11,11 +11,11 @@ object TestInteractionEvent {
   def apply(item: String, parent: String, fields: List[Field] = Nil) = InteractionEvent(
     id = EventId(UUID.randomUUID().toString),
     timestamp = Timestamp.now,
-    user = UserId("u1"),
-    session = SessionId("s1"),
+    user = Some(UserId("u1")),
+    session = Some(SessionId("s1")),
     fields = fields,
     item = ItemId(item),
-    ranking = EventId(parent),
+    ranking = Some(EventId(parent)),
     `type` = "click",
     tenant = "default"
   )

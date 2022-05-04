@@ -46,6 +46,20 @@ To configure the model, use the following snipped:
 * the `path` parameter is used to point metarank where to write model during training, and where to load it from 
 during inference. It can also read-write it to/from S3 filesystem.
 
+### XGBoost and LightGBM training options
+
+* iterations: (default 100) number of trees in the model
+* learningRate: (default 0.1) higher the rate - faster training - less precise model
+* ndcgCutoff: (default 10) only N first items may affect the NDCG
+* maxDepth: (default 8) how deep can be the tree
+* seed: (default random) to make model training deterministic
+
+LightGBM also supports these specific options:
+* numLeaves: (default 16) how many leaves the tree may have
+
+Please consult [LightGBM](https://lightgbm.readthedocs.io/en/latest/Parameters-Tuning.html) and 
+[XGBoost](https://xgboost.readthedocs.io/en/stable/parameter.html) docs about tuning these parameters.
+
 ## Shuffle
 
 A `shuffle` is a baseline model, which maybe used in the a/b tests as a "worst-case" ranking scenario, when

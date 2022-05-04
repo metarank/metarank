@@ -59,11 +59,18 @@ case class LambdaMARTModel(
 
   override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = {
     val booster = conf.backend match {
-      case LightGBMBackend(it, seed) =>
-        val opts = LightGBMOptions(trees = it, numLeaves = 16, randomSeed = seed)
+      case LightGBMBackend(it, lr, ndcg, depth, seed, leaves) =>
+        val opts = LightGBMOptions(
+          trees = it,
+          numLeaves = leaves,
+          randomSeed = seed,
+          learningRate = lr,
+          ndcgCutoff = ndcg,
+          maxDepth = depth
+        )
         LambdaMART(train, opts, LightGBMBooster, Some(test))
-      case XGBoostBackend(it, seed) =>
-        val opts = XGBoostOptions(trees = it, randomSeed = seed)
+      case XGBoostBackend(it, lr, ndcg, depth, seed) =>
+        val opts = XGBoostOptions(trees = it, randomSeed = seed, learningRate = lr, ndcgCutoff = ndcg, maxDepth = depth)
         LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
     val model = booster.fit()

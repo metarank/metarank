@@ -21,10 +21,27 @@ object ModelConfig {
 
   sealed trait ModelBackend {
     def iterations: Int
+    def learningRate: Double
+    def ndcgCutoff: Int
+    def maxDepth: Int
+    def seed: Int
   }
   object ModelBackend {
-    case class LightGBMBackend(iterations: Int = 100, seed: Int = Random.nextInt(Int.MaxValue)) extends ModelBackend
-    case class XGBoostBackend(iterations: Int = 100, seed: Int = Random.nextInt(Int.MaxValue))  extends ModelBackend
+    case class LightGBMBackend(
+        iterations: Int = 100,
+        learningRate: Double = 0.1,
+        ndcgCutoff: Int = 10,
+        maxDepth: Int = 8,
+        seed: Int = Random.nextInt(Int.MaxValue),
+        numLeaves: Int = 16
+    ) extends ModelBackend
+    case class XGBoostBackend(
+        iterations: Int = 100,
+        learningRate: Double = 0.1,
+        ndcgCutoff: Int = 10,
+        maxDepth: Int = 8,
+        seed: Int = Random.nextInt(Int.MaxValue)
+    ) extends ModelBackend
     implicit val conf =
       Configuration.default
         .withDiscriminator("type")

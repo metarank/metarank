@@ -34,6 +34,8 @@ features:
       - thriller
 
 models:
+  # see supported-ranking-models.md for more details on supported ML models
+
   default: # name of the model, used in the inference process as a part of path, like /rank/default
     type: lambdamart # for now, only lambdamart is supported
     path: /tmp/xgboost.model # schemas like s3:// are also supported

@@ -75,3 +75,6 @@ o divide one interaction counter by another. You can configure it in the followi
     refresh: 1h // optional, how frequently we should update the value, 0s by default
     ttl: 90d // optional, how long should we store this field if there were no updates
 ```
+
+In this example, we use a `bottom: impression` type of interaction. It's a special synthetic interaction event generated
+by metarank over the items which were examined by the visitor. See [click models](../click-models.md) for details.

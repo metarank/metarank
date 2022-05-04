@@ -1,5 +1,6 @@
 package ai.metarank.config
 
+import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
 import ai.metarank.config.MPath.{LocalPath, S3Path}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
@@ -78,5 +79,24 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     val yaml = Resource.my.getAsString("/ranklens/config.yml")
     val conf = parse(yaml).flatMap(_.as[Config])
     conf.isRight shouldBe true
+  }
+
+  it should "parse bootstrap config with custom impression inject" in {
+    val yaml = """  source:
+                 |    type: file
+                 |    path: file:///tmp/events
+                 |  workdir: s3://bucket/prefix
+                 |  syntheticImpression:
+                 |    enabled: true
+                 |    eventName: foo
+                 |""".stripMargin
+    val conf = parse(yaml).flatMap(_.as[BootstrapConfig])
+    conf shouldBe Right(
+      BootstrapConfig(
+        source = FileSourceConfig(LocalPath("/tmp/events")),
+        workdir = S3Path("bucket", "prefix"),
+        syntheticImpression = SyntheticImpressionConfig(true, "foo")
+      )
+    )
   }
 }

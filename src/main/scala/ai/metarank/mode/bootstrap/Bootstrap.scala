@@ -1,6 +1,7 @@
 package ai.metarank.mode.bootstrap
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.flow.{
   ClickthroughJoin,
@@ -93,7 +94,7 @@ object Bootstrap extends IOApp with Logging {
 
     val raw: DataStream[Event] =
       EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
-    makeBootstrap(raw, mapping, config.bootstrap.workdir)
+    makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
@@ -104,9 +105,9 @@ object Bootstrap extends IOApp with Logging {
     logger.info("Bootstrap done")
   }
 
-  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: MPath) = {
+  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: MPath, impress: SyntheticImpressionConfig) = {
     val grouped                  = groupFeedback(raw)
-    val (state, fields, updates) = makeUpdates(raw, grouped, mapping)
+    val (state, fields, updates) = makeUpdates(raw, grouped, mapping, impress)
 
     Featury.writeState(state, dir.child("state").flinkPath, Compress.NoCompression).id("write-state")
     Featury
@@ -151,10 +152,15 @@ object Bootstrap extends IOApp with Logging {
   def makeUpdates(
       raw: DataStream[Event],
       grouped: KeyedStream[FeedbackEvent, EventId],
-      mapping: FeatureMapping
+      mapping: FeatureMapping,
+      impress: SyntheticImpressionConfig
   ): (DataStream[State], DataStream[FieldUpdate], DataStream[FeatureValue]) = {
-    val impressions = grouped.process(ImpressionInjectFunction("impression", 30.minutes)).id("impressions")
-    val events      = raw.union(impressions)
+    val events = if (impress.enabled) {
+      val impressions = grouped.process(ImpressionInjectFunction(impress.eventName, 30.minutes)).id("impressions")
+      raw.union(impressions)
+    } else {
+      raw
+    }
 
     val fieldUpdates = raw.flatMap(e => FieldUpdate.fromEvent(e))
 

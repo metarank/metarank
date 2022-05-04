@@ -1,4 +1,4 @@
-package ai.metarank.e2e
+package ai.metaranke2e.e2e
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}

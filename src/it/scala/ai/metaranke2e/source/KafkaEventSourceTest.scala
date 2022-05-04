@@ -1,7 +1,8 @@
-package ai.metarank.source
+package ai.metaranke2e.source
 
 import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
 import ai.metarank.model.Event
+import ai.metarank.source.KafkaSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.data.NonEmptyList
 import io.circe.syntax._

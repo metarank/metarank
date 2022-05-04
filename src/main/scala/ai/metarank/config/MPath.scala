@@ -28,6 +28,9 @@ object MPath {
 
     override def /(next: String): MPath = copy(path = path + "/" + next)
   }
+  object LocalPath {
+    def apply(file: File) = new LocalPath(file.toString())
+  }
 
   val s3Pattern            = "s3://([a-z0-9\\.\\-]{3,})/([ a-zA-Z0-9\\!\\-_\\.\\*'\\(\\)]+)".r
   val localSchemePattern3  = "file:///(.+)".r

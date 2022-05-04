@@ -1,9 +1,11 @@
 package ai.metarank.mode
 
+import ai.metarank.config.MPath.LocalPath
 import ai.metarank.mode.BootstrapSavepointTest.{BootstrapFunction, Keyer}
 import ai.metarank.mode.bootstrap.Bootstrap.{FeatureValueKeySelector, StateKeySelector}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.util.FlinkTest
+import better.files.File
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
 import io.findify.featury.flink.{FeatureBootstrapFunction, Featury}
 import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat}
@@ -27,7 +29,7 @@ class BootstrapSavepointTest extends AnyFlatSpec with Matchers {
   it should "make savepoint" in {
     import io.findify.flinkadt.api._
     import org.apache.flink.DataSetOps._
-
+    val path  = LocalPath(File.newTemporaryDirectory(prefix = "savepoint_").deleteOnExit())
     val batch = ExecutionEnvironment.getExecutionEnvironment
     batch.setParallelism(1)
     val stateSource = batch.fromElements[(String, Int)](
@@ -42,7 +44,7 @@ class BootstrapSavepointTest extends AnyFlatSpec with Matchers {
     Savepoint
       .create(new EmbeddedRocksDBStateBackend(), 32)
       .withOperator("process-stateless-writes", transformStateless)
-      .write(s"file:///tmp/savepoint")
+      .write(path.uri)
 
     batch.execute("savepoint")
 

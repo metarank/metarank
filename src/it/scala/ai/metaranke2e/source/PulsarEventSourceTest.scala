@@ -1,7 +1,8 @@
-package ai.metarank.source
+package ai.metaranke2e.source
 
 import ai.metarank.config.EventSourceConfig.{PulsarSourceConfig, SourceOffset}
 import ai.metarank.model.Event
+import ai.metarank.source.PulsarEventSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import io.circe.syntax._
 import org.apache.pulsar.client.admin.PulsarAdmin

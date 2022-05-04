@@ -129,8 +129,8 @@ object LambdaMARTModel {
 
   object LambdaMARTScorer {
     def apply(backend: ModelBackend, bytes: Array[Byte]): LambdaMARTScorer = backend match {
-      case LightGBMBackend(_, _) => LambdaMARTScorer(LightGBMBooster(bytes))
-      case XGBoostBackend(_, _)  => LambdaMARTScorer(XGBoostBooster(bytes))
+      case _: LightGBMBackend => LambdaMARTScorer(LightGBMBooster(bytes))
+      case _: XGBoostBackend  => LambdaMARTScorer(XGBoostBooster(bytes))
     }
   }
 }

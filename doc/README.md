@@ -7,6 +7,7 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 
 * [Intro](01_intro.md): what Metarank is and which problems are solved by it.
 * [Technical overview](02_tech_overview.md): how Metarank works and how can it be integrated into your system.
+* [Click models](click-models.md): how relevance judgements are mapped from clicks, and how ranking is optimized.
 
 ## Run and deploy
 
@@ -23,6 +24,7 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 * [Feature scopes](scopes.md): ML features can be bound to a specific scope (like count number of clicks per *item* - so item is the scope) 
 * [Event schema overview](event_schema.md): How input events about visitor activity look like.
 * [Event sources](data-sources.md): Which sources Metarank can pull events from.
+* [ML ranking models](supported-ranking-models.md): which ML models can be used for ranking.
 
 ## Tutorials
 

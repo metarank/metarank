@@ -66,6 +66,7 @@ object Inference extends IOApp with Logging {
         config.inference.state.port,
         config.bootstrap.workdir.child("savepoint"),
         config.inference.state.format,
+        config.bootstrap.syntheticImpression,
         source.eventStream(_, bounded = false)
       )
       store <- FeatureStoreResource.make(() =>

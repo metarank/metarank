@@ -1,6 +1,5 @@
 package ai.metarank.config
 
-import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
@@ -8,7 +7,6 @@ import better.files.File
 import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.IO
 import io.circe.Decoder
-import io.circe.generic.extras.Configuration
 import io.circe.generic.semiauto._
 import io.circe.yaml.parser.{parse => parseYaml}
 
@@ -20,26 +18,6 @@ case class Config(
 )
 
 object Config extends Logging {
-
-  case class BootstrapConfig(source: EventSourceConfig, workdir: MPath, parallelism: Int = 1)
-  object BootstrapConfig {
-    import io.circe.generic.extras.semiauto._
-    implicit val config: io.circe.generic.extras.Configuration = Configuration.default.withDefaults
-    implicit val bootstrapDecoder: Decoder[BootstrapConfig]    = deriveConfiguredDecoder[BootstrapConfig]
-  }
-
-  case class InferenceConfig(
-      port: Int = 8080,
-      host: String = "0.0.0.0",
-      state: StateStoreConfig,
-      source: EventSourceConfig,
-      parallelism: Int = 1
-  )
-  object InferenceConfig {
-    import io.circe.generic.extras.semiauto._
-    implicit val config                                     = Configuration.default.withDefaults
-    implicit val inferenceDecoder: Decoder[InferenceConfig] = deriveConfiguredDecoder[InferenceConfig]
-  }
 
   implicit val configDecoder: Decoder[Config] = deriveDecoder[Config].ensure(validateConfig)
 

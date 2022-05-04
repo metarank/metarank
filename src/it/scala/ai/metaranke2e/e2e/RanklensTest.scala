@@ -55,7 +55,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val events = RanklensEvents()
 
     val source = env.fromCollection(events).watermark(_.timestamp.ts)
-    Bootstrap.makeBootstrap(source, mapping, config.bootstrap.workdir)
+    Bootstrap.makeBootstrap(source, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
     env.execute("bootstrap")
   }
 
@@ -135,6 +135,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         redisPort = port,
         savepoint = config.bootstrap.workdir / "savepoint",
         format = StoreCodec.JsonCodec,
+        impress = config.bootstrap.syntheticImpression,
         events = _.fromCollection(List[Event](ranking, interaction))
       )
       .allocated

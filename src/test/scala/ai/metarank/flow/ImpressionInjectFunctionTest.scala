@@ -19,7 +19,7 @@ class ImpressionInjectFunctionTest extends AnyFlatSpec with Matchers with FlinkT
       )
       .keyBy(e =>
         e match {
-          case int: InteractionEvent => int.ranking
+          case int: InteractionEvent => int.ranking.getOrElse(EventId("0"))
           case rank: RankingEvent    => rank.id
         }
       )

@@ -93,8 +93,8 @@ This information is used by personalization algorithms to understand which items
   "event": "ranking",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
   "timestamp": "1599391467000",// required
-  "user": "user1",// required
-  "session": "session1",// required
+  "user": "user1",// optional
+  "session": "session1",// optional
   "fields": [
       {"name": "query", "value": "cat"},
       {"name": "source", "value": "search"}
@@ -108,8 +108,8 @@ This information is used by personalization algorithms to understand which items
 ```
 
 - `id`: a request identifier later used to join ranking and interaction events. Should match the value that is sent to the [Ranking API](api_schema.md).
-- `user`: unique visitor identifier.
-- `session`: session identifier, a single visitor may have multiple sessions.
+- `user`: an optional unique visitor identifier.
+- `session`: an optional session identifier, a single visitor may have multiple sessions.
 - `fields`: an optional array of extra fields that you can use in your model, as described above.
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from metadata event.
@@ -128,10 +128,10 @@ The `type` field must match the `name` provided in the [Configuration](03_config
 {
   "event": "interaction",
   "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",// required
-  "ranking": "81f46c34-a4bb-469c-8708-f8127cd67d27", //required
+  "ranking": "81f46c34-a4bb-469c-8708-f8127cd67d27", //optional
   "timestamp": "1599391467000",// required
-  "user": "user1",// required
-  "session": "session1",// required
+  "user": "user1",// optional
+  "session": "session1",// optional
   "type": "purchase",// required
   "item": "item1",// required
   "fields": [
@@ -142,9 +142,10 @@ The `type` field must match the `name` provided in the [Configuration](03_config
 ```
 
 - `id`: a request identifier.
-- `ranking`: an identifier of the parent ranking event
-- `user`: unique visitor identifier.
-- `session`: session identifier, a single visitor may have multiple sessions.
+- `ranking`: an optional identifier of the parent ranking event. Some interactions may happen outside of the ranking event
+  (for example, likes happened on an item page), so it can be legally empty.
+- `user`: an optional unique visitor identifier.
+- `session`: an optional session identifier, a single visitor may have multiple sessions.
 - `type`: internal name of the event.
 - `item`: id of the content item. Should match the `item` property from metadata event.
 - `fields`: an optional array of extra fields that you can use in your model, as described above.

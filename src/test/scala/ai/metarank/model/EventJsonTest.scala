@@ -136,8 +136,8 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
       RankingEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         timestamp = Timestamp(1599391467000L),
-        user = UserId("user1"),
-        session = SessionId("session1"),
+        user = Some(UserId("user1")),
+        session = Some(SessionId("session1")),
         fields = List(
           StringField("query", "jeans"),
           StringField("source", "search")
@@ -146,6 +146,30 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           ItemRelevancy(ItemId("product3"), 2.0),
           ItemRelevancy(ItemId("product1"), 1.0),
           ItemRelevancy(ItemId("product2"), 0.5)
+        ),
+        tenant = "default"
+      )
+    )
+  }
+  it should "decode ranking with no user/session" in {
+    val json = """{
+                 |  "event": "ranking",
+                 |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+                 |  "timestamp": "1599391467000",
+                 |  "items": [
+                 |    {"id": "product3"}
+                 |  ]
+                 |}
+                 |""".stripMargin
+    decode[Event](json) shouldBe Right(
+      RankingEvent(
+        id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
+        timestamp = Timestamp(1599391467000L),
+        user = None,
+        session = None,
+        fields = Nil,
+        items = NonEmptyList.of(
+          ItemRelevancy(ItemId("product3"), None)
         ),
         tenant = "default"
       )
@@ -170,10 +194,40 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
     decode[Event](json) shouldBe Right(
       InteractionEvent(
         id = EventId("0f4c0036-04fb-4409-b2c6-7163a59f6b7d"),
-        ranking = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
+        ranking = Some(EventId("81f46c34-a4bb-469c-8708-f8127cd67d27")),
         timestamp = Timestamp(1599391467000L),
-        user = UserId("user1"),
-        session = SessionId("session1"),
+        user = Some(UserId("user1")),
+        session = Some(SessionId("session1")),
+        `type` = "purchase",
+        item = ItemId("product1"),
+        fields = List(
+          NumberField("count", 2),
+          StringField("shipping", "DHL")
+        ),
+        tenant = "default"
+      )
+    )
+  }
+
+  it should "decode interactions with no user/session/ranking" in {
+    val json = """{
+                 |  "event": "interaction",
+                 |  "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",
+                 |  "timestamp": "1599391467000",
+                 |  "type": "purchase",
+                 |  "item": "product1",
+                 |  "fields": [
+                 |    {"name": "count", "value": 2},
+                 |    {"name": "shipping", "value": "DHL"}
+                 |  ]
+                 |}""".stripMargin
+    decode[Event](json) shouldBe Right(
+      InteractionEvent(
+        id = EventId("0f4c0036-04fb-4409-b2c6-7163a59f6b7d"),
+        ranking = None,
+        timestamp = Timestamp(1599391467000L),
+        user = None,
+        session = None,
         `type` = "purchase",
         item = ItemId("product1"),
         fields = List(

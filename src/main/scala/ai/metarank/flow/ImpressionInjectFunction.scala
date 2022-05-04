@@ -61,7 +61,7 @@ case class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit
       id = EventId(UUID.randomUUID().toString),
       item = item.id,
       timestamp = maxClick.timestamp,
-      ranking = r.id,
+      ranking = Some(r.id),
       user = r.user,
       session = r.session,
       `type` = tpe,

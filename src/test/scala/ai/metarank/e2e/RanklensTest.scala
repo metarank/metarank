@@ -86,8 +86,8 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val ranking = RankingEvent(
       id = EventId("event1"),
       timestamp = Timestamp(1636993838000L),
-      user = UserId("u1"),
-      session = SessionId("s1"),
+      user = Some(UserId("u1")),
+      session = Some(SessionId("s1")),
       items = NonEmptyList.of(
         ItemRelevancy(ItemId("7346"), 0.0),
         ItemRelevancy(ItemId("1971"), 0.0),
@@ -104,10 +104,10 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
       id = EventId("event2"),
       item = ItemId("69844"),
       timestamp = Timestamp(1636993838000L),
-      user = UserId("u1"),
-      session = SessionId("s1"),
+      user = Some(UserId("u1")),
+      session = Some(SessionId("s1")),
       `type` = "click",
-      ranking = EventId("event1")
+      ranking = Some(EventId("event1"))
     )
     val port  = 1024 + Random.nextInt(10000)
     val redis = EmbeddedRedis.createUnsafe(port)

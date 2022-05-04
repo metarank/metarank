@@ -1,6 +1,7 @@
 package ai.metarank.mode.inference
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
 import ai.metarank.config.MPath
 import ai.metarank.mode.AsyncFlinkJob
 import ai.metarank.mode.bootstrap.Bootstrap
@@ -23,6 +24,7 @@ object FeedbackFlow extends Logging {
       redisPort: Int,
       savepoint: MPath,
       format: StoreCodec,
+      impress: SyntheticImpressionConfig,
       events: StreamExecutionEnvironment => DataStream[Event]
   )(implicit
       eti: TypeInformation[Event],
@@ -33,7 +35,7 @@ object FeedbackFlow extends Logging {
       {
         val source          = events(env).id("local-source")
         val grouped         = Bootstrap.groupFeedback(source)
-        val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping)
+        val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
         updates
           .addSink(
             FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)), 1024)

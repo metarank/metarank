@@ -1,7 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.config.{Config, MPath}
-import ai.metarank.config.Config.{BootstrapConfig, InferenceConfig}
+import ai.metarank.config.{BootstrapConfig, Config, InferenceConfig, MPath}
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
 import ai.metarank.config.MPath.LocalPath
 import ai.metarank.config.ModelConfig.ShuffleConfig

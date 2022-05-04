@@ -20,6 +20,7 @@ import org.apache.flink.api.connector.source.{
 }
 import org.apache.flink.core.io.SimpleVersionedSerializer
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+
 import scala.collection.mutable
 
 case class RestApiEventSource(host: String, port: Int, workers: Int = 1, limit: Option[Long] = None)

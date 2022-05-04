@@ -15,7 +15,7 @@ import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.rank.Model
-import ai.metarank.source.{EventSource, FileEventSource}
+import ai.metarank.source.EventSource
 import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}

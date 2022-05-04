@@ -31,11 +31,11 @@ To map this to actual ML features, there is a predefined set of mappers:
 
 To configure the extractor, use this YAML snippet:
 ```yaml
-  // just a name of this feature
-- name: "platform_feature"
+
+- name: platform_feature // just a name of this feature
+  type: ua
   
   // take the UA field from ranking event
-  // can also be an interaction and depends on your data model
   source: "ranking.ua"
   
   // options: platform, os, browser, bot

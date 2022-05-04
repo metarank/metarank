@@ -62,7 +62,7 @@ libraryDependencies ++= Seq(
   "org.http4s"               %% "http4s-blaze-server"      % http4sVersion,
   "org.http4s"               %% "http4s-blaze-client"      % http4sVersion,
   "org.http4s"               %% "http4s-circe"             % http4sVersion,
-  "io.findify"               %% "flink-adt"                % "0.5.0",
+  "io.findify"               %% "flink-adt"                % "0.4.5",
   "io.github.metarank"       %% "ltrlib"                   % "0.1.11",
   "com.github.ua-parser"      % "uap-java"                 % "1.5.2",
   "com.github.microwww"       % "redis-server"             % "0.3.0",

@@ -38,7 +38,7 @@ object FeedbackFlow extends Logging {
         val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
         updates
           .addSink(
-            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)), 1024)
+            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)), 1)
           )
           .id("write-redis")
       }

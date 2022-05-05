@@ -1,5 +1,6 @@
 package ai.metarank.source.rest
 
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
 import ai.metarank.model.{Event, Field}
 import ai.metarank.util.Logging
 import org.apache.commons.io.IOUtils
@@ -36,29 +37,45 @@ case class RestSourceReader(ctx: SourceReaderContext, host: String, port: Int)
           InputStatus.NOTHING_AVAILABLE
 
         case Success(response) =>
-          if (response.getStatusLine.getStatusCode == 200) {
-            val json = IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8)
-            decode[Event](json) match {
-              case Left(value) =>
-                logger.error(s"cannot decode JSON message: '$json'", value)
-                queue.enqueue(split)
-                InputStatus.NOTHING_AVAILABLE
+          response.getStatusLine.getStatusCode match {
+            case 200 =>
+              val json = IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8)
+              decode[Event](json) match {
+                case Left(value) =>
+                  logger.error(s"cannot decode JSON message: '$json'", value)
+                  queue.enqueue(split)
+                  InputStatus.NOTHING_AVAILABLE
 
-              case Right(decoded) if !split.isFinished =>
-                output.collect(decoded)
-                queue.enqueue(split.decrement(1))
-                InputStatus.MORE_AVAILABLE
-              case Right(decoded) =>
-                output.collect(decoded)
-                logger.info(s"split $split is finished")
-                ctx.sendSplitRequest()
-                InputStatus.END_OF_INPUT
-            }
-
-          } else {
-            logger.warn(s"REST source reader got non-200 response: ${response.getStatusLine}")
-            queue.enqueue(split)
-            InputStatus.NOTHING_AVAILABLE
+                case Right(decoded) if !split.isFinished =>
+                  decoded match {
+                    case item: ItemEvent => logger.info(s"item: id=${item.item.value} fields=${item.fields}")
+                    case user: UserEvent => logger.info(s"user: id=${user.user.value} fields=${user.fields}")
+                    case rank: RankingEvent =>
+                      logger.info(
+                        s"ranking: user=${rank.user.map(_.value).getOrElse("")} items=${rank.items.toList.map(_.id.value)}"
+                      )
+                    case int: InteractionEvent =>
+                      logger.info(
+                        s"interaction: user=${int.user.map(_.value).getOrElse("")} item=${int.item.value} type=${int.`type`}"
+                      )
+                  }
+                  output.collect(decoded)
+                  queue.enqueue(split.decrement(1))
+                  InputStatus.MORE_AVAILABLE
+                case Right(decoded) =>
+                  output.collect(decoded)
+                  logger.info(s"split $split is finished")
+                  ctx.sendSplitRequest()
+                  InputStatus.END_OF_INPUT
+              }
+            case 204 =>
+              // no content
+              queue.enqueue(split)
+              InputStatus.NOTHING_AVAILABLE
+            case _ =>
+              logger.warn(s"REST source reader got non-200 response: ${response.getStatusLine}")
+              queue.enqueue(split)
+              InputStatus.NOTHING_AVAILABLE
           }
       }
     }

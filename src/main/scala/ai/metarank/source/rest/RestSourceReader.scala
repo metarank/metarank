@@ -1,5 +1,6 @@
 package ai.metarank.source.rest
 
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
 import ai.metarank.model.{Event, Field}
 import ai.metarank.util.Logging
 import org.apache.commons.io.IOUtils
@@ -46,6 +47,18 @@ case class RestSourceReader(ctx: SourceReaderContext, host: String, port: Int)
                   InputStatus.NOTHING_AVAILABLE
 
                 case Right(decoded) if !split.isFinished =>
+                  decoded match {
+                    case item: ItemEvent => logger.info(s"item: id=${item.item.value} fields=${item.fields}")
+                    case user: UserEvent => logger.info(s"user: id=${user.user.value} fields=${user.fields}")
+                    case rank: RankingEvent =>
+                      logger.info(
+                        s"ranking: user=${rank.user.map(_.value).getOrElse("")} items=${rank.items.toList.map(_.id.value)}"
+                      )
+                    case int: InteractionEvent =>
+                      logger.info(
+                        s"interaction: user=${int.user.map(_.value).getOrElse("")} item=${int.item.value} type=${int.`type`}"
+                      )
+                  }
                   output.collect(decoded)
                   queue.enqueue(split.decrement(1))
                   InputStatus.MORE_AVAILABLE

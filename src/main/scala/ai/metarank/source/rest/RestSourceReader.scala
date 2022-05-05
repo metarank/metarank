@@ -36,29 +36,33 @@ case class RestSourceReader(ctx: SourceReaderContext, host: String, port: Int)
           InputStatus.NOTHING_AVAILABLE
 
         case Success(response) =>
-          if (response.getStatusLine.getStatusCode == 200) {
-            val json = IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8)
-            decode[Event](json) match {
-              case Left(value) =>
-                logger.error(s"cannot decode JSON message: '$json'", value)
-                queue.enqueue(split)
-                InputStatus.NOTHING_AVAILABLE
+          response.getStatusLine.getStatusCode match {
+            case 200 =>
+              val json = IOUtils.toString(response.getEntity.getContent, StandardCharsets.UTF_8)
+              decode[Event](json) match {
+                case Left(value) =>
+                  logger.error(s"cannot decode JSON message: '$json'", value)
+                  queue.enqueue(split)
+                  InputStatus.NOTHING_AVAILABLE
 
-              case Right(decoded) if !split.isFinished =>
-                output.collect(decoded)
-                queue.enqueue(split.decrement(1))
-                InputStatus.MORE_AVAILABLE
-              case Right(decoded) =>
-                output.collect(decoded)
-                logger.info(s"split $split is finished")
-                ctx.sendSplitRequest()
-                InputStatus.END_OF_INPUT
-            }
-
-          } else {
-            logger.warn(s"REST source reader got non-200 response: ${response.getStatusLine}")
-            queue.enqueue(split)
-            InputStatus.NOTHING_AVAILABLE
+                case Right(decoded) if !split.isFinished =>
+                  output.collect(decoded)
+                  queue.enqueue(split.decrement(1))
+                  InputStatus.MORE_AVAILABLE
+                case Right(decoded) =>
+                  output.collect(decoded)
+                  logger.info(s"split $split is finished")
+                  ctx.sendSplitRequest()
+                  InputStatus.END_OF_INPUT
+              }
+            case 204 =>
+              // no content
+              queue.enqueue(split)
+              InputStatus.NOTHING_AVAILABLE
+            case _ =>
+              logger.warn(s"REST source reader got non-200 response: ${response.getStatusLine}")
+              queue.enqueue(split)
+              InputStatus.NOTHING_AVAILABLE
           }
       }
     }

@@ -9,6 +9,7 @@ import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect._
 import cats.implicits._
+import fs2.Chunk
 import org.http4s.HttpRoutes
 import org.http4s._
 import org.http4s.dsl.io._
@@ -17,6 +18,7 @@ import io.findify.featury.model.Key
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
 import org.http4s.headers.`Content-Type`
 import io.circe.parser._
+
 import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 
@@ -37,7 +39,7 @@ case class RankApi(
       Response[IO](
         Status.Ok,
         headers = Headers(`Content-Type`(MediaType.application.json)),
-        body = fs2.Stream(response.asJson.noSpaces.getBytes(StandardCharsets.UTF_8).toIndexedSeq: _*)
+        entity = Entity.strict(Chunk.array(response.asJson.noSpaces.getBytes(StandardCharsets.UTF_8)))
       )
     }
   }

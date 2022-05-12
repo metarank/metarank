@@ -59,7 +59,7 @@ lazy val root = (project in file("."))
       "io.circe"             %% "circe-parser"         % circeVersion,
       "com.github.pathikrit" %% "better-files"         % "3.9.1",
       "com.github.scopt"     %% "scopt"                % "4.0.1",
-      "redis.clients"         % "jedis"                % "4.2.2",
+      "redis.clients"         % "jedis"                % "4.2.3",
       "com.github.blemale"   %% "scaffeine"            % "5.1.2",
       "com.github.fppt"       % "jedis-mock"           % "1.0.2"          % "test,it",
       "org.scala-lang"        % "scala-reflect"        % scalaVersion.value,

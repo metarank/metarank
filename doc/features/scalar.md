@@ -108,7 +108,7 @@ You can map the `age` field into a feature this way:
 With string values there is no easy way to map them into a finite set of ML features. But in a case when
 the string has low cardinality (so there is a finite and low number of possible values), we have a couple of
 options on how to treat these:
-* (one-hot encoding)[https://en.wikipedia.org/wiki/One-hot] to convert it to a series of numbers.
+* [one-hot encoding](https://en.wikipedia.org/wiki/One-hot) to convert it to a number vector.
 * Index encoding, which may work better when cardinality is high (e.g. > 10).
 
 ### One-hot encoding 
@@ -129,18 +129,17 @@ This snippet will emit the following ML feature group for a `color: "red"` input
 * color_green: 0
 * color_blue: 0
 
-The underlying string field can be also an array of strings like `color: ["red", "blue"]`, which will
-toggle two instead of one bit in the resulting vector.
+The underlying string field can also be an array of strings like `color: ["red", "blue"]`, which will
+toggle two bits instead of one in the resulting vector.
 
 ### Index encoding
 
-The problem with one-hot encoding is the dimensionality of the training dataset may go to sky if cardinality is high.
-Due to this, one-hot encoding categorial values with cardinality of > 10 may be more effective with the index encoding.
+One-hot encoding does not suit the cases, when your list has high cardinality (more than 10 distinct values, e.g. country list) as
+the dimensionality of the training dataset can fly into the sky (you can have tens or even hundreds of model fields that represent just one feature).
 
-You can read the [LightGBM documentation](https://lightgbm.readthedocs.io/en/latest/Features.html#optimal-split-for-categorical-features)
-on how it's implemented from the boosted trees perspective.
+For such use-cases it is much more effective to use index encoding.
 
-* LightGBM backend supports proper split selection for categorial features.
+* LightGBM backend supports proper split selection for categorial features. You can checkout the [LightGBM documentation](https://lightgbm.readthedocs.io/en/latest/Features.html#optimal-split-for-categorical-features) for more details.
 * XGBoost itself supports it, but it's not yet exposed in the Java wrapper, so it will treat index-encoded category as a 
 regular numeric feature.
 
@@ -156,7 +155,7 @@ regular numeric feature.
 This snippet will emit the following ML feature group for a `color: "green"` input:
 * color: 2
 
-Please note a couple of limitations of the index encoder:
-* Index encoder only can deal with singular field values, so in a case if it will spot multiple colors, then only the first 
-one will be used.
-* empty values are encoded as a index of zero, existing - starting from one.
+Please note the **limitations** of the index encoder:
+* Index encoder can only work with singular field values, so if it spots multiple colors, only the first 
+value from the array will be used.
+* empty values are encoded as *zero*, existing - starting from *one*.

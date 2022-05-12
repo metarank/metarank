@@ -96,6 +96,7 @@ case class LambdaMARTModel(
     }
     val expanded = ds.desc.features.flatMap {
       case Feature.SingularFeature(name)     => List(name)
+      case Feature.CategoryFeature(name)     => List(name)
       case Feature.VectorFeature(name, size) => (0 until size).map(i => s"${name}_$i")
     }
     for {

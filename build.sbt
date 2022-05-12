@@ -84,7 +84,7 @@ lazy val root = (project in file("."))
       "org.http4s"      %% "http4s-blaze-server" % http4sVersion,
       "org.http4s"      %% "http4s-blaze-client" % http4sVersion,
       // "org.http4s"               %% "http4s-circe"             % http4sVersion,
-      "io.github.metarank"       %% "ltrlib"                   % "0.1.11",
+      "io.github.metarank"       %% "ltrlib"                   % "0.1.12",
       "com.github.ua-parser"      % "uap-java"                 % "1.5.2",
       "com.github.microwww"       % "redis-server"             % "0.3.0",
       "com.snowplowanalytics"    %% "scala-referer-parser"     % "2.0.0",

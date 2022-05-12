@@ -2,6 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.StringFeature.MethodName.OnehotMethodName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.{FeatureSchema, FieldName}
@@ -29,7 +30,15 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
 
   it should "decode config for string" in {
     decodeYaml("name: price\ntype: string\nscope: item\nsource: metadata.price\nvalues: [\"foo\"]") shouldBe Right(
-      StringFeatureSchema("price", FieldName(Item, "price"), ItemScope, NonEmptyList.one("foo"))
+      StringFeatureSchema("price", FieldName(Item, "price"), ItemScope, None, NonEmptyList.one("foo"))
+    )
+  }
+
+  it should "decode config for string with custom encoder" in {
+    decodeYaml(
+      "name: price\ntype: string\nscope: item\nencode: onehot\nsource: metadata.price\nvalues: [\"foo\"]"
+    ) shouldBe Right(
+      StringFeatureSchema("price", FieldName(Item, "price"), ItemScope, Some(OnehotMethodName), NonEmptyList.one("foo"))
     )
   }
 

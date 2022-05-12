@@ -75,8 +75,8 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
         Map.empty
       )
     result match {
-      case SingleValue(_, value)       => value
-      case MValue.VectorValue(_, _, _) => throw new IllegalStateException("wtf")
+      case SingleValue(_, value) => value
+      case _                     => throw new IllegalStateException("wtf")
     }
   }
 }

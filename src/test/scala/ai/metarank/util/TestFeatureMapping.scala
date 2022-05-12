@@ -26,6 +26,7 @@ object TestFeatureMapping {
         "category",
         FieldName(Item, "category"),
         ItemScope,
+        None,
         NonEmptyList.of("socks", "shirts")
       ),
       RateFeatureSchema("ctr", "impression", "click", 24.hours, List(7, 30), ItemScope),

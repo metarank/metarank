@@ -1,5 +1,6 @@
 package ai.metarank.feature
 
+import ai.metarank.feature.StringFeature.MethodName.IndexMethodName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
@@ -8,7 +9,7 @@ import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.{FieldName, MValue}
-import ai.metarank.model.MValue.VectorValue
+import ai.metarank.model.MValue.{CategoryValue, VectorValue}
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import cats.data.NonEmptyList
 import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
@@ -87,7 +88,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     }
   }
 
-  it should "encode values" in {
+  it should "onehot encode values" in {
     val result = process(
       events = List(TestItemEvent("p1", List(StringField("color", "red")))),
       schema = feature.schema,
@@ -97,6 +98,21 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       case List(List(VectorValue(List("color_red", "color_green", "color_blue"), values, 3)))
           if values.toList == List(1.0, 0, 0) =>
     }
-    val br = 1
+  }
+
+  it should "index encode values" in {
+    val result = process(
+      events = List(TestItemEvent("p1", List(StringField("color", "green")))),
+      schema = StringFeatureSchema(
+        name = "color",
+        source = FieldName(Item, "color"),
+        scope = ItemScope,
+        encode = Some(IndexMethodName),
+        values = NonEmptyList.of("red", "green", "blue")
+      ),
+      TestRankingEvent(List("p1"))
+    )
+    result should matchPattern { case List(List(CategoryValue("color", 2))) =>
+    }
   }
 }

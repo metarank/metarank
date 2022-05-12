@@ -13,6 +13,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
+import ai.metarank.feature.StringFeature.MethodName.IndexMethodName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
@@ -26,7 +27,7 @@ import cats.data.{NonEmptyList, NonEmptyMap}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
-import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
+import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}
 
 case class FeatureMapping(
     features: List[BaseFeature],
@@ -95,8 +96,9 @@ object FeatureMapping {
 
   def makeDatasetDescriptor(features: List[BaseFeature]): DatasetDescriptor = {
     val datasetFeatures = features.map {
-      case f: BaseFeature if f.dim == 1 => SingularFeature(f.schema.name)
-      case f: BaseFeature               => VectorFeature(f.schema.name, f.dim)
+      case f: StringFeature if f.schema.encode.contains(IndexMethodName) => CategoryFeature(f.schema.name)
+      case f: BaseFeature if f.dim == 1                                  => SingularFeature(f.schema.name)
+      case f: BaseFeature                                                => VectorFeature(f.schema.name, f.dim)
     }
     DatasetDescriptor(datasetFeatures)
   }

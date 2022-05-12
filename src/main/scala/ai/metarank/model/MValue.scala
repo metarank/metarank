@@ -13,12 +13,16 @@ object MValue {
   }
 
   case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue
+  case class CategoryValue(name: String, index: Int) extends MValue {
+    override val dim: Int = 1
+  }
 
   object VectorValue {
     def empty(names: List[String], dim: Int) = VectorValue(names, new Array[Double](dim), dim)
   }
 
   implicit val singleCodec: Codec[SingleValue] = deriveCodec
+  implicit val catCodec: Codec[CategoryValue]  = deriveCodec
   implicit val vectorEncoder: Encoder[VectorValue] =
     Encoder.instance(vec =>
       Json.fromJsonObject(
@@ -41,15 +45,21 @@ object MValue {
   )
 
   implicit val mvalueEncoder: Encoder[MValue] = Encoder.instance {
-    case s: SingleValue => singleCodec(s)
-    case v: VectorValue => vectorEncoder(v)
+    case s: SingleValue   => singleCodec(s)
+    case c: CategoryValue => catCodec(c)
+    case v: VectorValue   => vectorEncoder(v)
   }
 
   implicit val mvalueDecoder: Decoder[MValue] = Decoder.instance(c => {
     if (c.downField("names").focus.isDefined) {
       vectorDecoder(c)
     } else {
-      singleCodec(c)
+      if (c.downField("index").focus.isDefined) {
+        catCodec(c)
+      } else {
+        singleCodec(c)
+      }
+
     }
   })
 }

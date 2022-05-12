@@ -22,7 +22,8 @@ lazy val flinkS3Conflicts = List(
   "org/apache/commons/lang3",
   "org/apache/commons/text",
   "org/apache/commons/logging",
-  "org/apache/http"
+  "org/apache/http",
+  "com/fasterxml/jackson/"
 )
 
 val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Conflicts)
@@ -119,6 +120,7 @@ lazy val root = (project in file("."))
       case PathList("module-info.class")                                => MergeStrategy.discard
       case "META-INF/io.netty.versions.properties"                      => MergeStrategy.first
       case "findbugsExclude.xml"                                        => MergeStrategy.discard
+      case "log4j2-test.properties"                                     => MergeStrategy.discard
       case x if x.endsWith("/module-info.class")                        => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value

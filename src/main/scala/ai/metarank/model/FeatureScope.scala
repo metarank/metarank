@@ -11,14 +11,14 @@ import scala.util.Success
 
 sealed trait FeatureScope {
   def scope: Scope
-  def tags(event: Event): Traversable[Tag]
-  def keys(event: Event, feature: FeatureName): Traversable[Key] =
+  def tags(event: Event): Iterable[Tag]
+  def keys(event: Event, feature: FeatureName): Iterable[Key] =
     tags(event).map(tag => Key(tag, feature, Tenant(event.tenant)))
 }
 
 object FeatureScope {
-  def tags(event: Event): Traversable[Tag] = {
-    Traversable.concat(
+  def tags(event: Event): Iterable[Tag] = {
+    Iterable.concat(
       TenantScope.tags(event),
       ItemScope.tags(event),
       UserScope.tags(event),
@@ -26,14 +26,14 @@ object FeatureScope {
     )
   }
   case object TenantScope extends FeatureScope {
-    val scope                                         = Scope("tenant")
-    override def tags(event: Event): Traversable[Tag] = Some(Tag(scope, event.tenant))
+    val scope                                      = Scope("tenant")
+    override def tags(event: Event): Iterable[Tag] = Some(Tag(scope, event.tenant))
   }
 
   case object ItemScope extends FeatureScope {
     val scope = Scope("item")
 
-    override def tags(event: Event): Traversable[Tag] = event match {
+    override def tags(event: Event): Iterable[Tag] = event match {
       case e: RankingEvent     => e.items.toList.map(item => Tag(scope, item.id.value))
       case e: InteractionEvent => Some(Tag(scope, e.item.value))
       case e: ItemEvent        => Some(Tag(scope, e.item.value))
@@ -42,7 +42,7 @@ object FeatureScope {
   }
   case object UserScope extends FeatureScope {
     val scope = Scope("user")
-    override def tags(event: Event): Traversable[Tag] = event match {
+    override def tags(event: Event): Iterable[Tag] = event match {
       case e: FeedbackEvent => e.user.map(user => Tag(scope, user.value))
       case e: UserEvent     => Some(Tag(scope, e.user.value))
       case _                => None
@@ -50,7 +50,7 @@ object FeatureScope {
   }
   case object SessionScope extends FeatureScope {
     val scope = Scope("session")
-    override def tags(event: Event): Traversable[Tag] = event match {
+    override def tags(event: Event): Iterable[Tag] = event match {
       case e: FeedbackEvent => e.session.map(session => Tag(scope, session.value))
       case _                => None
     }

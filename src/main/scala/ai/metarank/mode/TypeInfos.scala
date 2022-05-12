@@ -1,6 +1,6 @@
 package ai.metarank.mode
 
-import ai.metarank.model.{Clickthrough, Event}
+import ai.metarank.model.{Clickthrough, Event, EventId}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import io.findify.featury.model.{FeatureValue, Key, Scalar, ScalarState, State, Write}
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -9,6 +9,7 @@ import scala.language.higherKinds
 import io.findify.flinkadt.api._
 
 object TypeInfos {
+  implicit lazy val eventIdInfo: TypeInformation[EventId]              = deriveTypeInformation[EventId]
   implicit lazy val stateInfo: TypeInformation[State]                  = deriveTypeInformation[State]
   implicit lazy val rankInfo: TypeInformation[RankingEvent]            = deriveTypeInformation[RankingEvent]
   implicit lazy val interactionInfo: TypeInformation[InteractionEvent] = deriveTypeInformation[InteractionEvent]

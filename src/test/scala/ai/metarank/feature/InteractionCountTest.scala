@@ -23,7 +23,7 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "emit item increments on type match" in {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
-    val write = feature.writes(event, FieldStore.empty)
+    val write = feature.writes(event, FieldStore.empty).toList
     write shouldBe List(
       Increment(Key(Tag(ItemScope.scope, "p1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
     )
@@ -38,7 +38,7 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
     val sf = InteractionCountFeature(feature.schema.copy(scope = SessionScope))
     val event =
       TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"), session = Some(SessionId("s1")))
-    val write = sf.writes(event, FieldStore.empty)
+    val write = sf.writes(event, FieldStore.empty).toList
     write shouldBe List(
       Increment(Key(Tag(SessionScope.scope, "s1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
     )

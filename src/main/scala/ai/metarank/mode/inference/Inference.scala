@@ -18,9 +18,7 @@ import cats.effect.{ExitCode, IO, IOApp, Resource}
 import org.http4s._
 import org.http4s.server._
 import org.http4s.dsl.io._
-import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
-import org.http4s.circe._
 import cats.syntax.all._
 import fs2.concurrent.SignallingRef
 import io.findify.featury.connector.redis.RedisStore
@@ -30,7 +28,7 @@ import org.http4s.blaze.server.BlazeServerBuilder
 import io.findify.flinkadt.api._
 
 import java.nio.charset.StandardCharsets
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object Inference extends IOApp with Logging {
   import ai.metarank.mode.TypeInfos._

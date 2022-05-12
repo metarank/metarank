@@ -34,7 +34,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "extract field" in {
     val event  = TestItemEvent("p1", List(StringField("title", "foo, bar, baz!")))
-    val result = feature.writes(event, FieldStore.empty)
+    val result = feature.writes(event, FieldStore.empty).toList
     result shouldBe List(Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(3)))
   }
 

@@ -10,7 +10,7 @@ import org.apache.flink.streaming.api.checkpoint.CheckpointedFunction
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.util.Collector
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration._
 
 case class ClickthroughJoinFunction(ttl: FiniteDuration = 1.hour)(implicit ti: TypeInformation[Event])

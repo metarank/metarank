@@ -9,7 +9,6 @@ import org.apache.flink.connector.file.src.FileSource
 import org.apache.flink.connector.file.src.reader.StreamFormat
 import org.apache.flink.connector.file.src.util.CheckpointedPosition
 import org.apache.flink.core.fs.{FSDataInputStream, Path}
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
 import io.circe.parser._
 
 import java.io.{ByteArrayOutputStream, InputStream}
@@ -17,8 +16,9 @@ import ai.metarank.flow.DataStreamOps._
 import ai.metarank.util.Logging
 import org.apache.flink.connector.file.src.compression.StandardDeCompressors
 import org.apache.flink.connector.file.src.enumerate.NonSplittingRecursiveEnumerator
+import io.findify.flink.api._
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 case class FileEventSource(path: MPath) extends EventSource with Logging {
   val compressedExts = StandardDeCompressors.getCommonSuffixes.asScala.toList.map(ext => s".$ext")

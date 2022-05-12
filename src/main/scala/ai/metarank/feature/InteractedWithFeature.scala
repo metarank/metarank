@@ -55,11 +55,11 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
 
   override def fields: List[FieldName] = List(schema.field)
 
-  override def writes(event: Event, fields: FieldStore): Traversable[Write] =
+  override def writes(event: Event, fields: FieldStore): Iterable[Write] =
     event match {
       case item: ItemEvent =>
         for {
-          field <- item.fieldsMap.get(schema.field.field).toTraversable
+          field <- item.fieldsMap.get(schema.field.field).toSeq
           string <- field match {
             case Field.StringField(_, value)     => List(value)
             case Field.StringListField(_, value) => value
@@ -77,8 +77,8 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
           key <- schema.scope.keys(int, lastValues.name)
           field <- schema.field.event match {
             case EventType.Item =>
-              fields.get(ItemFieldId(Tenant(event.tenant), int.item, schema.field.field)).toTraversable
-            case _ => Traversable.empty
+              fields.get(ItemFieldId(Tenant(event.tenant), int.item, schema.field.field)).toSeq
+            case _ => Iterable.empty
           }
           string <- field match {
             case Field.StringField(_, value)     => List(value)
@@ -88,7 +88,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         } yield {
           Append(key, SString(string), int.timestamp)
         }
-      case _ => Traversable.empty
+      case _ => Iterable.empty
     }
 
   override def value(

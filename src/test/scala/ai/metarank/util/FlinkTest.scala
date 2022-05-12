@@ -2,7 +2,7 @@ package ai.metarank.util
 
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.contrib.streaming.state.EmbeddedRocksDBStateBackend
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import io.findify.flink.api._
 
 trait FlinkTest {
   lazy val env = FlinkTest.env

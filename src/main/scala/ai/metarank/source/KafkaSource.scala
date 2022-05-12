@@ -7,7 +7,7 @@ import io.findify.featury.model.Timestamp
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer
 import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDeserializationSchema
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import io.findify.flink.api._
 import org.apache.flink.util.Collector
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import io.circe.parser._

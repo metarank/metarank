@@ -44,7 +44,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
 
   override def fields: List[FieldName] = Nil
 
-  override def writes(event: Event, fields: FieldStore): Traversable[Write] =
+  override def writes(event: Event, fields: FieldStore): Iterable[Write] =
     event match {
       case e: InteractionEvent if e.`type` == schema.top =>
         Some(

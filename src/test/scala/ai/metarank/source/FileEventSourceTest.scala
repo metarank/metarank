@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.api.scala._
+import ai.metarank.mode.TypeInfos._
 
 class FileEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
 

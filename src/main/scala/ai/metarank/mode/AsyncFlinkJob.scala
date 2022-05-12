@@ -1,15 +1,13 @@
 package ai.metarank.mode
 
-import ai.metarank.mode.inference.FeedbackFlow.logger
 import ai.metarank.mode.inference.FlinkMinicluster
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import org.apache.flink.api.common.JobStatus
 import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import org.apache.flink.streaming.util.TestStreamEnvironment
-
+import io.findify.flink.api._
 import java.util.concurrent.CompletableFuture
 
 object AsyncFlinkJob extends Logging {

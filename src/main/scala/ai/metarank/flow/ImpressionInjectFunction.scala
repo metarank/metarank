@@ -11,7 +11,7 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction
 import org.apache.flink.util.Collector
 
 import java.util.UUID
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.concurrent.duration.FiniteDuration
 
 case class ImpressionInjectFunction(tpe: String, ttl: FiniteDuration)(implicit

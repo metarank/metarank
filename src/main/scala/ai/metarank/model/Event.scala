@@ -69,6 +69,7 @@ object Event {
   }
 
   object EventCodecs {
+    import io.findify.featury.model.json.TimestampJson._
     implicit val conf                                 = Configuration.default.withDefaults
     implicit val relevancyCodec: Codec[ItemRelevancy] = deriveCodec
 

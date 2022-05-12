@@ -7,9 +7,8 @@ import ai.metarank.util.Logging
 import better.files.File
 import org.apache.commons.io.IOUtils
 import io.circe.parser._
-import io.findify.featury.model.Timestamp
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import java.nio.charset.StandardCharsets
 import java.util.zip.GZIPInputStream
 

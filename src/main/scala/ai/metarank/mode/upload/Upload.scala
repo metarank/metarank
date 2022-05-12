@@ -11,16 +11,13 @@ import io.findify.featury.flink.format.FeatureStoreSink
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
-import org.apache.flink.core.fs.Path
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.{JobID, JobStatus}
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
 import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
-import scala.collection.JavaConverters._
-import scala.language.higherKinds
+import scala.jdk.CollectionConverters._
 
 object Upload extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = args match {

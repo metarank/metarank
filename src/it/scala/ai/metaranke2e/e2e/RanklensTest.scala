@@ -28,13 +28,12 @@ import io.findify.featury.values.{FeatureStore, StoreCodec}
 import io.findify.flinkadt.api._
 import org.apache.commons.io.IOUtils
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.api.scala.ExecutionEnvironment
 import org.apache.flink.configuration.Configuration
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
+import io.findify.flink.api._
+import io.findify.flinkadt.api._
 import java.nio.charset.StandardCharsets
-import scala.language.higherKinds
 import scala.util.Random
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
@@ -60,9 +59,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   }
 
   it should "generate savepoint" in {
-    val batch = ExecutionEnvironment.getExecutionEnvironment
-
-    Bootstrap.makeSavepoint(batch, config.bootstrap.workdir, mapping)
+    Bootstrap.makeSavepoint(env, config.bootstrap.workdir, mapping)
   }
 
   it should "train the xgboost model" in {

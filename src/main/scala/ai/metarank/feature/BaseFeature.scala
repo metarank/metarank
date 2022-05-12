@@ -13,7 +13,7 @@ sealed trait BaseFeature {
   def fields: List[FieldName]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
-  def writes(event: Event, fields: FieldStore): Traversable[Write]
+  def writes(event: Event, fields: FieldStore): Iterable[Write]
 
   def keyOf(event: Event, item: Option[ItemId] = None): Option[Key] = (schema.scope, event) match {
     case (TenantScope, _) => Some(keyOf(TenantScope.scope.name, event.tenant, schema.name, event.tenant))

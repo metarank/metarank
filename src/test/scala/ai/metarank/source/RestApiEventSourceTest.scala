@@ -13,7 +13,7 @@ import org.http4s.server.Router
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.scala._
+import ai.metarank.mode.TypeInfos._
 
 import scala.util.Random
 

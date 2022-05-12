@@ -35,7 +35,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       Put(
         Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
-        SDouble(updatedAt.toEpochSecond)
+        SDouble(updatedAt.toEpochSecond.toDouble)
       )
     )
   }
@@ -43,7 +43,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   it should "make puts from unixtime" in {
     val event = TestItemEvent(
       "p1",
-      List(NumberField("updated_at", updatedAt.toEpochSecond))
+      List(NumberField("updated_at", updatedAt.toEpochSecond.toDouble))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
     val puts = feature.writes(event, FieldStore.empty).toList
@@ -51,7 +51,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       Put(
         Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
-        SDouble(updatedAt.toEpochSecond)
+        SDouble(updatedAt.toEpochSecond.toDouble)
       )
     )
   }
@@ -67,7 +67,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       Put(
         Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
-        SDouble(updatedAt.toEpochSecond)
+        SDouble(updatedAt.toEpochSecond.toDouble)
       )
     )
   }
@@ -77,7 +77,9 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val nowts = Timestamp(now.toInstant.toEpochMilli)
     val result = feature.value(
       TestRankingEvent(List("p1")).copy(timestamp = nowts),
-      Map(key -> ScalarValue(key, Timestamp(updatedAt.toInstant.toEpochMilli), SDouble(updatedAt.toEpochSecond))),
+      Map(
+        key -> ScalarValue(key, Timestamp(updatedAt.toInstant.toEpochMilli), SDouble(updatedAt.toEpochSecond.toDouble))
+      ),
       ItemRelevancy(ItemId("p1"))
     )
     result shouldBe SingleValue("itemage", 2332800.0)

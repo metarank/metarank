@@ -38,7 +38,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "extract field from metadata" in {
     val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event, FieldStore.empty)
+    val result = feature.writes(event, FieldStore.empty).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -54,7 +54,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event, FieldStore.empty)
+    val result = feature.writes(event, FieldStore.empty).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -70,7 +70,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     )
 
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
-    val result = feature.writes(event, FieldStore.empty)
+    val result = feature.writes(event, FieldStore.empty).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SDouble(33))
     )

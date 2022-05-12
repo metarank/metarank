@@ -11,7 +11,7 @@ import org.apache.http.impl.client.{CloseableHttpClient, HttpClients}
 import io.circe.parser._
 
 import java.nio.charset.StandardCharsets
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import java.util
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import scala.collection.mutable
@@ -83,7 +83,7 @@ case class RestSourceReader(ctx: SourceReaderContext, host: String, port: Int)
 
   override def addSplits(splits: util.List[RestSplit]): Unit = {
     logger.info(s"received splits ${splits}")
-    queue.enqueue(splits.asScala: _*)
+    queue.enqueueAll(splits.asScala)
   }
 
   override def close(): Unit = {

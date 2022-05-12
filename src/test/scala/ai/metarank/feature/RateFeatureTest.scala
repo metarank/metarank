@@ -30,11 +30,11 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract writes" in {
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
-    feature.writes(click, FieldStore.empty) shouldBe List(
+    feature.writes(click, FieldStore.empty).toList shouldBe List(
       PeriodicIncrement(Key(Tag(Scope("item"), "p1"), FeatureName("ctr_click"), Tenant("default")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
-    feature.writes(impression, FieldStore.empty) shouldBe List(
+    feature.writes(impression, FieldStore.empty).toList shouldBe List(
       PeriodicIncrement(
         Key(Tag(Scope("item"), "p1"), FeatureName("ctr_impression"), Tenant("default")),
         impression.timestamp,

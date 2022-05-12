@@ -88,12 +88,16 @@ object RanklensDatasetGenerator {
             StringField("title", m.title),
             NumberField("popularity", m.tmdbPopularity),
             NumberField("vote_avg", m.tmdbVoteAverage),
-            NumberField("vote_cnt", m.tmdbVoteCount),
-            NumberField("budget", m.budget),
+            NumberField("vote_cnt", m.tmdbVoteCount.toDouble),
+            NumberField("budget", m.budget.toDouble),
             NumberField("runtime", m.runtime),
             NumberField(
               "release_date",
-              LocalDate.parse(m.releaseDate, DateTimeFormatter.ISO_DATE).atTime(0, 0, 0).toEpochSecond(ZoneOffset.UTC)
+              LocalDate
+                .parse(m.releaseDate, DateTimeFormatter.ISO_DATE)
+                .atTime(0, 0, 0)
+                .toEpochSecond(ZoneOffset.UTC)
+                .toDouble
             ),
             StringListField("genres", m.genres.map(_.name.toLowerCase())),
             StringListField("tags", m.tags),

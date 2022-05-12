@@ -1,16 +1,16 @@
 package ai.metarank.flow
 
+import io.findify.flink.api.DataStream
 import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.DataStreamSink
-import org.apache.flink.streaming.api.scala.DataStream
 
 object DataStreamOps {
   implicit class DataStreamGenericOps[T](stream: DataStream[T]) {
     def id(name: String) = stream.uid(name).name(name)
 
     def collect[R: TypeInformation](f: PartialFunction[T, R]): DataStream[R] =
-      stream.flatMap(e => f.lift(e).toTraversable)
+      stream.flatMap(e => f.lift(e))
 
     def watermark(f: T => Long) = stream.assignTimestampsAndWatermarks(
       WatermarkStrategy

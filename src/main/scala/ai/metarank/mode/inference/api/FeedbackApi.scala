@@ -6,9 +6,9 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import org.http4s._
 import io.circe.syntax._
-import org.http4s.circe._
 import cats.implicits._
 import org.http4s.dsl.io._
+import io.circe.parser._
 
 case class FeedbackApi(queue: Queue[IO, Event]) extends Logging {
   val routes = HttpRoutes.of[IO] {
@@ -17,16 +17,17 @@ case class FeedbackApi(queue: Queue[IO, Event]) extends Logging {
         eventOption <- queue.tryTake
         response <- eventOption match {
           case None        => NoContent()
-          case Some(event) => Ok(event.asJson)
+          case Some(event) => Ok(event.asJson.noSpaces)
         }
       } yield {
         response
       }
     case post @ POST -> Root / "feedback" =>
       for {
-        events   <- post.as[Event].map(e => List(e)).handleErrorWith(_ => post.as[List[Event]])
-        _        <- IO { logger.info(s"received event $events") }
-        accepted <- events.map(e => queue.tryOffer(e)).sequence
+        eventsJson <- post.as[String]
+        events     <- IO.fromEither(decodeEvent(eventsJson))
+        _          <- IO { logger.info(s"received event $events") }
+        accepted   <- events.map(e => queue.tryOffer(e)).sequence
       } yield {
         if (accepted.forall(_ == true)) {
           Response(status = Status.Ok)
@@ -36,7 +37,9 @@ case class FeedbackApi(queue: Queue[IO, Event]) extends Logging {
         }
       }
   }
-  implicit val eventDecoder: EntityDecoder[IO, Event]           = jsonOf
-  implicit val eventEncoder: EntityEncoder[IO, Event]           = jsonEncoderOf
-  implicit val eventListDecoder: EntityDecoder[IO, List[Event]] = jsonOf
+
+  def decodeEvent(json: String) = decode[Event](json) match {
+    case Left(value)  => decode[List[Event]](json)
+    case Right(value) => Right(List(value))
+  }
 }

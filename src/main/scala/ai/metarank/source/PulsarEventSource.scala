@@ -8,12 +8,10 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.connector.pulsar.source.{PulsarSource, PulsarSourceOptions}
 import org.apache.flink.connector.pulsar.source.enumerator.cursor.{StartCursor, StopCursor}
 import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchema
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import io.findify.flink.api._
 import org.apache.flink.util.Collector
 import org.apache.pulsar.client.api.{Message, SubscriptionType}
 import io.circe.parser._
-import org.apache.flink.configuration.Configuration
-import org.apache.flink.connector.pulsar.common.config.PulsarOptions
 
 import java.nio.charset.StandardCharsets
 

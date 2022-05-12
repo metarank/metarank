@@ -29,7 +29,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract item field" in {
     val event  = TestItemEvent("p1", List(StringField("color", "green")))
-    val result = feature.writes(event, FieldStore.empty)
+    val result = feature.writes(event, FieldStore.empty).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SStringList(List("green")))
     )
@@ -45,7 +45,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val event  = TestUserEvent("u1", List(StringField("gender", "male")))
-    val result = feature.writes(event, FieldStore.empty)
+    val result = feature.writes(event, FieldStore.empty).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SStringList(List("male")))
     )
@@ -74,7 +74,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
     val event =
       TestInteractionEvent("p1", "p0").copy(session = Some(SessionId("s1")), fields = List(StringField("country", "b")))
-    val write = feature.writes(event, FieldStore.empty)
+    val write = feature.writes(event, FieldStore.empty).toList
     val key   = Key(feature.states.head, Tenant("default"), "s1")
     write shouldBe List(Put(key, event.timestamp, SStringList(List("b"))))
     val value = feature.value(

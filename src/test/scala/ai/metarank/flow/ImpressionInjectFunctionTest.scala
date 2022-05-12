@@ -6,7 +6,7 @@ import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.scala._
+import ai.metarank.mode.TypeInfos._
 
 import scala.concurrent.duration._
 

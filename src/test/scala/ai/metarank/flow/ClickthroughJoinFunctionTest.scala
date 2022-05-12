@@ -5,8 +5,10 @@ import ai.metarank.model.{Clickthrough, EventId}
 import ai.metarank.util.{FlinkTest, TestInteractionEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.scala._
-import org.apache.flink.streaming.api.scala.extensions._
+import io.findify.flink.api._
+import io.findify.flink.api.extensions._
+import io.findify.flinkadt.api._
+import scala.language.higherKinds
 
 class ClickthroughJoinFunctionTest extends AnyFlatSpec with Matchers with FlinkTest {
   import DataStreamOps._

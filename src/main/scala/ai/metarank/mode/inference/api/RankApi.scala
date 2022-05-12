@@ -12,12 +12,12 @@ import cats.implicits._
 import org.http4s.HttpRoutes
 import org.http4s._
 import org.http4s.dsl.io._
-import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import io.circe.syntax._
 import io.findify.featury.model.Key
 import io.findify.featury.model.api.{ReadRequest, ReadResponse}
-import org.http4s.circe._
-
+import org.http4s.headers.`Content-Type`
+import io.circe.parser._
+import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 
 case class RankApi(
@@ -26,14 +26,19 @@ case class RankApi(
     scorers: Map[String, Scorer]
 ) extends Logging {
   import RankApi._
+  import ai.metarank.model.Event.EventCodecs._
 
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
-      request  <- post.as[RankingEvent]
-      response <- rerank(request, model, explain.getOrElse(false))
-      ok       <- Ok(response.asJson)
+      requestJson <- post.as[String]
+      request     <- IO.fromEither(decode[RankingEvent](requestJson))
+      response    <- rerank(request, model, explain.getOrElse(false))
     } yield {
-      ok
+      Response[IO](
+        Status.Ok,
+        headers = Headers(`Content-Type`(MediaType.application.json)),
+        body = fs2.Stream(response.asJson.noSpaces.getBytes(StandardCharsets.UTF_8).toIndexedSeq: _*)
+      )
     }
   }
 
@@ -106,9 +111,6 @@ case class RankApi(
 }
 
 object RankApi {
-  import ai.metarank.model.Event.EventCodecs._
-  implicit val requestDecoder: EntityDecoder[IO, RankingEvent]   = jsonOf[IO, RankingEvent]
-  implicit val itemScoreEncoder: EntityEncoder[IO, RankResponse] = jsonEncoderOf
 
   object ExplainParamDecoder             extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
   case class StateReadError(msg: String) extends Exception(msg)

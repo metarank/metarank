@@ -4,7 +4,7 @@ import ai.metarank.config.EventSourceConfig
 import ai.metarank.config.EventSourceConfig._
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import io.findify.flink.api._
 
 trait EventSource {
   def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit

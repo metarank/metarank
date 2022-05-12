@@ -6,7 +6,7 @@ import cats.effect.unsafe.implicits.global
 import org.apache.flink.configuration.Configuration
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.scala._
+import io.findify.flinkadt.api._
 
 class AsyncFlinkJobTest extends AnyFlatSpec with Matchers {
   it should "not fail on finite jobs" in {

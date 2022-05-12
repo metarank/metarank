@@ -21,9 +21,9 @@ object StateStoreConfig {
     case other      => Failure(new Exception(s"codec $other is not supported"))
   }
 
-  case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec = JsonCodec) extends StateStoreConfig
+  case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec = ProtobufCodec) extends StateStoreConfig
 
-  case class MemConfig(format: StoreCodec = JsonCodec, port: Int = 6379) extends StateStoreConfig {
+  case class MemConfig(format: StoreCodec = ProtobufCodec, port: Int = 6379) extends StateStoreConfig {
     val host = "localhost"
   }
 

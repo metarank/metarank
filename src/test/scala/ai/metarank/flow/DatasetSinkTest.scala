@@ -17,7 +17,8 @@ import cats.data.{NonEmptyList, NonEmptyMap}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.scala._
+import ai.metarank.mode.TypeInfos._
+import scala.language.higherKinds
 
 class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "write cts" in {

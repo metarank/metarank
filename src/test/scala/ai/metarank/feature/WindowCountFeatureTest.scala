@@ -29,7 +29,7 @@ class WindowCountFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "count item clicks" in {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
-    val write = feature.writes(event, FieldStore.empty)
+    val write = feature.writes(event, FieldStore.empty).toList
     write shouldBe List(
       PeriodicIncrement(Key(Tag(ItemScope.scope, "p1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
     )

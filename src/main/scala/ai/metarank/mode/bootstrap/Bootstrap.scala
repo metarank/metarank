@@ -20,33 +20,28 @@ import ai.metarank.util.Logging
 import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
-import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat, CompressedBulkWriter}
+import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat, CompressedBulkReader, CompressedBulkWriter}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
 import io.findify.featury.model.Key.Tenant
 import io.findify.featury.model.{FeatureValue, Key, Schema, State, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.streaming.api.scala.{DataStream, KeyedStream, StreamExecutionEnvironment}
+import io.findify.flink.api.{DataStream, KeyedStream, StreamExecutionEnvironment}
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.functions.KeySelector
-import org.apache.flink.api.scala.ExecutionEnvironment
-import org.apache.flink.contrib.streaming.state.{EmbeddedRocksDBStateBackend, RocksDBOptionsFactory}
-import org.apache.flink.core.fs.Path
 import org.apache.flink.runtime.state.hashmap.HashMapStateBackend
-import org.apache.flink.state.api.{OperatorTransformation, Savepoint}
-import org.apache.flink.streaming.api.scala.extensions.acceptPartialFunctions
-import org.rocksdb.{ColumnFamilyOptions, DBOptions}
+import org.apache.flink.state.api.{OperatorTransformation, Savepoint, SavepointWriter}
 
-import java.util
-import scala.language.higherKinds
 import scala.concurrent.duration._
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+import io.findify.flink.api._
+import io.findify.flinkadt.api._
+import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
 object Bootstrap extends IOApp with Logging {
   import ai.metarank.flow.DataStreamOps._
-  import org.apache.flink.DataSetOps._
   import ai.metarank.mode.TypeInfos._
 
   case object StateKeySelector extends KeySelector[State, Key] { override def getKey(value: State): Key = value.key }
@@ -98,10 +93,8 @@ object Bootstrap extends IOApp with Logging {
     streamEnv.execute("bootstrap")
 
     logger.info("processing done, generating savepoint")
-    val batch = ExecutionEnvironment.getExecutionEnvironment
-    batch.setParallelism(config.bootstrap.parallelism)
 
-    makeSavepoint(batch, config.bootstrap.workdir, mapping)
+    makeSavepoint(streamEnv, config.bootstrap.workdir, mapping)
     logger.info("Bootstrap done")
   }
 
@@ -141,11 +134,19 @@ object Bootstrap extends IOApp with Logging {
 
   def groupFeedback(raw: DataStream[Event]) = {
     raw
-      .collect { case f: FeedbackEvent => f }
+      .flatMap { x =>
+        x match {
+          case f: FeedbackEvent => Some(f)
+          case _                => None
+        }
+      }
+      // .collect { case f: FeedbackEvent => f }
       .id("select-feedback")
-      .keyingBy {
-        case int: InteractionEvent => int.ranking.getOrElse(EventId("0"))
-        case rank: RankingEvent    => rank.id
+      .keyBy { x =>
+        x match {
+          case int: InteractionEvent => int.ranking.getOrElse(EventId("0"))
+          case rank: RankingEvent    => rank.id
+        }
       }
   }
 
@@ -174,55 +175,54 @@ object Bootstrap extends IOApp with Logging {
     (state, fieldUpdates, updates)
   }
 
-  def makeSavepoint(batch: ExecutionEnvironment, dir: MPath, mapping: FeatureMapping) = {
-    val stateSource = Featury.readState(batch, dir.child("state").flinkPath, Compress.NoCompression)
+  def makeSavepoint(env: StreamExecutionEnvironment, dir: MPath, mapping: FeatureMapping) = {
+    val stateSource = env.fromSource(
+      Featury.readState(dir.child("state").flinkPath, Compress.NoCompression),
+      WatermarkStrategy.noWatermarks(),
+      "read-state"
+    )
 
     val valuesPath = dir / "features"
-    val valuesSource = batch
-      .readFile(
-        new BulkInputFormat[FeatureValue](
-          path = valuesPath.flinkPath,
-          codec = BulkCodec.featureValueProtobufCodec,
-          compress = Compress.NoCompression
-        ),
-        valuesPath.uri
-      )
-      .name("read-features")
+    val valuesSource = env.fromSource(
+      Featury.readFeatures(
+        path = valuesPath.flinkPath,
+        codec = BulkCodec.featureValueProtobufCodec,
+        compress = Compress.NoCompression
+      ),
+      WatermarkStrategy.noWatermarks(),
+      "read-features"
+    )
 
     val fieldsPath = dir / "fields"
-    val fieldsSource = batch
-      .readFile(
-        new BulkInputFormat[FieldUpdate](
-          path = fieldsPath.flinkPath,
-          codec = FieldUpdateCodec,
-          compress = Compress.NoCompression
-        ),
-        fieldsPath.uri
+    val fieldsSource = env
+      .fromSource(
+        CompressedBulkReader.readFile(fieldsPath.flinkPath, Compress.NoCompression, FieldUpdateCodec),
+        WatermarkStrategy.noWatermarks(),
+        "read-fields"
       )
-      .name("read-fields")
 
     val transformStateJoin = OperatorTransformation
-      .bootstrapWith(valuesSource.toJava)
+      .bootstrapWith(valuesSource.javaStream)
       .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
       .transform(new FeatureJoinBootstrapFunction())
 
     val transformFeatures = OperatorTransformation
-      .bootstrapWith(stateSource.toJava)
+      .bootstrapWith(stateSource.javaStream)
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
       .transform(new FeatureBootstrapFunction(mapping.schema))
 
     val transformFields = OperatorTransformation
-      .bootstrapWith(fieldsSource.toJava)
+      .bootstrapWith(fieldsSource.javaStream)
       .transform(FieldValueBootstrapFunction(fieldState))
 
     val backend = new HashMapStateBackend()
-    Savepoint
-      .create(backend, 32)
+    SavepointWriter
+      .newSavepoint(backend, 32)
       .withOperator("process-writes", transformFeatures)
       .withOperator("join-state", transformStateJoin)
       .withOperator("process-events", transformFields)
       .write(dir.child("savepoint").uri)
 
-    batch.execute("savepoint")
+    env.execute("savepoint")
   }
 }

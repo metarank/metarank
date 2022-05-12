@@ -19,8 +19,7 @@ import org.apache.flink.api.connector.source.{
   SplitEnumeratorContext
 }
 import org.apache.flink.core.io.SimpleVersionedSerializer
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
-
+import io.findify.flink.api._
 import scala.collection.mutable
 
 case class RestApiEventSource(host: String, port: Int, workers: Int = 1, limit: Option[Long] = None)

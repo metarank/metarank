@@ -59,7 +59,7 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     val file = File.newTemporaryFile("referers", ".json").deleteOnExit()
     file.write(json)
     logger.info("loaded referers.json from resources")
-    CreateParser[Id].create(file.toString()).right.get // YOLO
+    CreateParser[Id].create(file.toString()).toOption.get // YOLO
   }
 
   val conf = MapConfig(
@@ -86,14 +86,14 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
 
   override val states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, fields: FieldStore): Traversable[Write] = event match {
+  override def writes(event: Event, fields: FieldStore): Iterable[Write] = event match {
     case event: UserEvent if schema.source.event == User                             => writeField(event)
     case event: RankingEvent if schema.source.event == Ranking                       => writeField(event)
     case event: InteractionEvent if schema.source.event == Interaction(event.`type`) => writeField(event)
-    case _                                                                           => Traversable.empty
+    case _                                                                           => Iterable.empty
   }
 
-  def writeField(event: Event): Traversable[PutTuple] = {
+  def writeField(event: Event): Iterable[PutTuple] = {
     for {
       key   <- schema.scope.keys(event, conf.name)
       field <- event.fieldsMap.get(schema.source.field)

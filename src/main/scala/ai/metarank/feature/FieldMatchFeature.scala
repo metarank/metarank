@@ -40,7 +40,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
 
   override def fields = List(schema.itemField, schema.rankingField)
 
-  override def writes(event: Event, fields: FieldStore): Traversable[Write] = for {
+  override def writes(event: Event, fields: FieldStore): Iterable[Write] = for {
     key   <- keyOf(event)
     field <- event.fields.find(_.name == schema.itemField.field)
     fieldValue <- field match {

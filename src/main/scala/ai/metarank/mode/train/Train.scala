@@ -12,7 +12,7 @@ import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Que
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object Train extends IOApp with Logging {
   import ai.metarank.flow.DatasetSink.queryCodec

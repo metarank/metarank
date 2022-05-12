@@ -2,7 +2,7 @@ package ai.metarank.source.rest
 
 import ai.metarank.util.Logging
 import org.apache.flink.api.connector.source.{SplitEnumerator, SplitEnumeratorContext}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import java.util
 import scala.collection.mutable
 
@@ -24,7 +24,7 @@ case class RestEnumerator(ctx: SplitEnumeratorContext[RestSplit], queue: mutable
 
   override def addSplitsBack(splits: util.List[RestSplit], subtaskId: Int): Unit = {
     logger.info(s"adding ${splits.size()} splits back to queue")
-    queue.enqueue(splits.asScala: _*)
+    queue.enqueueAll(splits.asScala)
   }
 
   override def snapshotState(checkpointId: Long): List[RestSplit] = queue.toList

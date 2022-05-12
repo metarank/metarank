@@ -28,8 +28,8 @@ object RankResponse {
     }
   }
 
-  import io.findify.featury.model.json.FeatureValueJson._
   case class ItemScore(item: ItemId, score: Double, features: List[MValue])
+  import io.findify.featury.model.json.FeatureValueJson._
   implicit val itemScoreCodec: Codec[ItemScore]       = deriveCodec
   implicit val stateValuesCodec: Codec[StateValues]   = deriveCodec
   implicit val rankResponseCodec: Codec[RankResponse] = deriveCodec

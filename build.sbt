@@ -2,7 +2,7 @@ import Deps._
 import com.typesafe.sbt.packager.docker.{Cmd, DockerPermissionStrategy}
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "2.12.15"
+ThisBuild / scalaVersion := "2.13.8"
 ThisBuild / version      := "0.3.0"
 
 /** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
@@ -41,50 +41,48 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
-      "-Ypartial-unification",
       "-Xfatal-warnings"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"                 % "3.3.11",
-      "org.typelevel"        %% "log4cats-core"               % log4catsVersion,
-      "org.typelevel"        %% "log4cats-slf4j"              % log4catsVersion,
-      "org.scalatest"        %% "scalatest"                   % scalatestVersion % "test,it",
-      "org.scalactic"        %% "scalactic"                   % scalatestVersion % "test,it",
-      "org.scalatestplus"    %% "scalacheck-1-14"             % "3.2.2.0"        % "test,it",
-      "ch.qos.logback"        % "logback-classic"             % "1.2.11",
-      "io.circe"             %% "circe-yaml"                  % circeYamlVersion,
-      "io.circe"             %% "circe-core"                  % circeVersion,
-      "io.circe"             %% "circe-generic"               % circeVersion,
-      "io.circe"             %% "circe-generic-extras"        % circeVersion,
-      "io.circe"             %% "circe-parser"                % circeVersion,
-      "com.github.pathikrit" %% "better-files"                % "3.9.1",
-      "com.github.scopt"     %% "scopt"                       % "4.0.1",
-      "redis.clients"         % "jedis"                       % "4.2.2",
-      "com.github.blemale"   %% "scaffeine"                   % "5.1.2",
-      "com.github.fppt"       % "jedis-mock"                  % "1.0.2"          % "test,it",
-      "org.scala-lang"        % "scala-reflect"               % scalaVersion.value,
-      "io.findify"           %% "featury-flink"               % featuryVersion,
-      "io.findify"           %% "featury-redis"               % featuryVersion,
-      "org.apache.flink"     %% "flink-scala"                 % flinkVersion,
-      "org.apache.flink"     %% "flink-statebackend-rocksdb"  % flinkVersion,
-      "org.apache.flink"      % "flink-connector-files"       % flinkVersion,
-      "org.apache.flink"     %% "flink-runtime-web"           % flinkVersion,
-      "org.apache.flink"     %% "flink-streaming-scala"       % flinkVersion,
-      "org.apache.flink"      % "flink-connector-kafka_2.12"  % flinkVersion,
-      "org.apache.flink"      % "flink-connector-pulsar_2.12" % flinkVersion excludeAll (
+      "org.typelevel"        %% "cats-effect"          % "3.3.11",
+      "org.typelevel"        %% "log4cats-core"        % log4catsVersion,
+      "org.typelevel"        %% "log4cats-slf4j"       % log4catsVersion,
+      "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
+      "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
+      "org.scalatestplus"    %% "scalacheck-1-16"      % "3.2.12.0"       % "test,it",
+      "ch.qos.logback"        % "logback-classic"      % "1.2.11",
+      "io.circe"             %% "circe-yaml"           % circeYamlVersion,
+      "io.circe"             %% "circe-core"           % circeVersion,
+      "io.circe"             %% "circe-generic"        % circeVersion,
+      "io.circe"             %% "circe-generic-extras" % circeVersion,
+      "io.circe"             %% "circe-parser"         % circeVersion,
+      "com.github.pathikrit" %% "better-files"         % "3.9.1",
+      "com.github.scopt"     %% "scopt"                % "4.0.1",
+      "redis.clients"         % "jedis"                % "4.2.2",
+      "com.github.blemale"   %% "scaffeine"            % "5.1.2",
+      "com.github.fppt"       % "jedis-mock"           % "1.0.2"          % "test,it",
+      "org.scala-lang"        % "scala-reflect"        % scalaVersion.value,
+      "io.findify"           %% "featury-flink"        % featuryVersion,
+      "io.findify"           %% "featury-redis"        % featuryVersion,
+      // "org.apache.flink"     %% "flink-scala"                % flinkVersion,
+      "org.apache.flink" % "flink-statebackend-rocksdb" % flinkVersion,
+      "org.apache.flink" % "flink-connector-files"      % flinkVersion,
+      "org.apache.flink" % "flink-runtime-web"          % flinkVersion,
+      "io.findify"      %% "flink-scala-api"            % "1.15-1",
+      "org.apache.flink" % "flink-connector-kafka"      % flinkVersion,
+      "org.apache.flink" % "flink-connector-pulsar"     % flinkVersion excludeAll (
         ExclusionRule("com.sun.activation", "javax.activation")
       ),
-      "org.apache.flink" %% "flink-test-utils" % flinkVersion excludeAll (
+      "org.apache.flink" % "flink-test-utils" % flinkVersion excludeAll (
         ExclusionRule("org.apache.curator"),
         ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
         ExclusionRule("org.apache.logging.log4j")
       ),
-      "org.apache.flink"          % "flink-s3-fs-hadoop"       % flinkVersion,
-      "org.http4s"               %% "http4s-dsl"               % http4sVersion,
-      "org.http4s"               %% "http4s-blaze-server"      % http4sVersion,
-      "org.http4s"               %% "http4s-blaze-client"      % http4sVersion,
-      "org.http4s"               %% "http4s-circe"             % http4sVersion,
-      "io.findify"               %% "flink-adt"                % "0.4.5",
+      "org.apache.flink" % "flink-s3-fs-hadoop"  % flinkVersion,
+      "org.http4s"      %% "http4s-dsl"          % http4sVersion,
+      "org.http4s"      %% "http4s-blaze-server" % http4sVersion,
+      "org.http4s"      %% "http4s-blaze-client" % http4sVersion,
+      // "org.http4s"               %% "http4s-circe"             % http4sVersion,
       "io.github.metarank"       %% "ltrlib"                   % "0.1.11",
       "com.github.ua-parser"      % "uap-java"                 % "1.5.2",
       "com.github.microwww"       % "redis-server"             % "0.3.0",

@@ -35,9 +35,9 @@ case class FeatureMapping(
     models: Map[String, Model]
 ) {
 
-  def keys(ranking: RankingEvent): Traversable[Key] = for {
+  def keys(ranking: RankingEvent): Iterable[Key] = for {
     tag           <- FeatureScope.tags(ranking)
-    scopeFeatures <- schema.scopeNameCache.get(tag.scope).toTraversable
+    scopeFeatures <- schema.scopeNameCache.get(tag.scope).toSeq
     featureName   <- scopeFeatures
   } yield {
     Key(tag, featureName, Tenant(ranking.tenant))

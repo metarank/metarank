@@ -12,7 +12,7 @@ import io.findify.featury.flink.format.FeatureStoreSink
 import io.findify.featury.model.FeatureValue
 import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
-import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment}
+import io.findify.flink.api._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
 object FeedbackFlow extends Logging {
@@ -29,7 +29,8 @@ object FeedbackFlow extends Logging {
   )(implicit
       eti: TypeInformation[Event],
       valti: TypeInformation[FeatureValue],
-      intti: TypeInformation[Int]
+      intti: TypeInformation[Int],
+      lti: TypeInformation[Long]
   ) = {
     AsyncFlinkJob.execute(cluster, Some(savepoint.uri)) { env =>
       {

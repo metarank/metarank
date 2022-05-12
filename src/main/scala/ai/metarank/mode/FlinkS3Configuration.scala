@@ -2,7 +2,7 @@ package ai.metarank.mode
 
 import ai.metarank.util.Logging
 import org.apache.flink.configuration.Configuration
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 object FlinkS3Configuration extends Logging {
   def apply(env: java.util.Map[String, String]): Configuration = apply(env.asScala.toMap)

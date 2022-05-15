@@ -22,6 +22,7 @@ All the feature extractors have a set of common fields:
 * `name`: *required*, *string*. Feature name, should be unique across the whole config.
 * `refresh`: *optional*, *time*, default: *0s* (realtime). How frequently this feature is updated.
 * `ttl`: *optional*, *time*, default: *90d* (3 months). How long should this feature store it's value.
+* `scope`: *optional*. See the [Scopes documentation](scopes.md) for more information.
 
 ## Feature types
 

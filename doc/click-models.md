@@ -7,7 +7,7 @@ ranking optimization.
 ## The clickthrough
 
 During the initial bootstrapping process (when historical visitor activity data is processed), Metarank goes over all
-ranking and interaction events and joins them into clickthroughs: a chains of rankings with the corresponding clicks
+ranking and interaction events and joins them into clickthroughs: a chain of rankings with the corresponding clicks
 attached:
 * each ranking is cached for at least 30 minutes.
 * when interaction with this ranking is received, it is attached to the parent ranking.
@@ -26,15 +26,15 @@ as a metric to optimize for.
 
 In a simple words, NDCG is a number between 0.0 and 1.0:
 * when it's 1.0, then ranking was perfect: all items were sorted according to their true relevancy judgements. It's like
-google search results, but when the page you're looking for is always ranked #1.
-* when it's 0.0, it's the worst possible ranking: all the most relevant items are at the end.
+Google search results, but when the page you're looking for is always ranked #1.
+* when it's 0.0, it's the worst possible ranking: all the most relevant items are in the end.
 
-The question is where can we take these "true relevancy judgements" from? What is 
+The question is where can we take these "true relevancy judgements" from? Here's where the Click model comes into play.
 
 ## Click model
 
-In a [Click Modeling for eCommerce](https://tech.ebayinc.com/engineering/click-modeling-for-ecommerce/) article in eBay
-tech blog, there is a good example given:
+Article [Click Modeling for eCommerce](https://tech.ebayinc.com/engineering/click-modeling-for-ecommerce/) from the eBay
+tech blog provides a good example of different click models:
 
 > The user searched for “Meaning of life”. A search result page (SRP) with 50 results was served back. The user 
 > then clicked on result #2, and we never heard from him again.
@@ -63,21 +63,21 @@ tech blog, there is a good example given:
 > Here the probability of a click depends on the relevance of a result, as well as the irrelevance of all previous 
 > results. This model doesnʼt account for abandoned searches, or searches with multiple clicks. 
 
-Metarank uses a cascade click model to mark which items were "relevant" and which ones "irrelevant":
+Metarank uses a *cascade click model* to mark which items were "relevant" and which ones "irrelevant":
 * An item which was clicked is relevant
 * An item which was examined but not clicked is irrelevant
 * An item which was not examined is ignored
 
 ## Clickthrough within a Cascade model
 
-Applying the idea of cascade model to the clickthroughs Metarank collects, then it can disatinguish between
+Applying the idea of a *cascade model* to the clickthroughs Metarank collects, it can distinguish between
 relevant and irrelevant items and optimize ranking to maximize the relevance. From the ML perspective, the 
 clickthrough looks like this:
 
 <img src="img/ltr-table.png" />
 
 * Each item in the ranking has a set of characterizing feature values.
-* Some items have relevancy judgements we extracted from interactions using the cascade model.
+* Some items have relevancy judgements that were extracted from interactions using the *cascade model*.
 
 The underlying ML model slurps these labelled rankings and learns to distinguish between relevant and irrelevant
 items using only their feature values. 
@@ -85,18 +85,18 @@ items using only their feature values.
 Next time the model sees an item with feature values looking similarly to something in the training dataset, it will
 remember it and may assume how (ir)relevant this item should be based on already seen data.
 
-Metarank supports multiple [ranking models](./supported-ranking-models.md), but the LambdaMART is probably a good start.
+Metarank supports multiple [ranking models](./supported-ranking-models.md), but the LambdaMART model is probably a good start.
 
 ## Cascade model and Click-Through-Rate
 
-Another perk of cascade model is that it can be used for a more precise [CTR calculation](features/counters.md):
-* CTR is literally clicks divided to impressions
+Another perk of a *cascade model* is that it can be used for a more precise [CTR calculation](features/counters.md):
+* CTR is literally clicks divided by impressions.
 * It's obvious where you can take clicks from: there may be a special type of interaction.
 * But what about the number of impressions?
 
-When you presented a list of 100 items to the visitor, and they clicked on #5, can we assume that items #6-#100 were
+When you presented a list of 100 items to the visitor, and the visitor clicked on #5, can we assume that items #6-#100 were
 examined? According to the cascade model - it's unlikely, so CTR value may be significantly off for items rarely ranked
-on the top.
+in the top.
 
 To overcome this issue, Metarank can emit a synthetic impression event for items which were definitely examined by
 the visitor:
@@ -107,13 +107,16 @@ bootstrap:
     eventName: impression # can be customized
 ```
 
-It is enabled by default and generates interactions of type=impression after the clickthrough can be finalized. You can
-disable it in a case when you're able to generate impression events on the application side:
-* A good example is a viewport tracking in browser/mobile.
-* When an item goes into the viewport, then you emit the impression event manually and don't rely on Metarank heuristics.
-* It can also be disabled if you're not using an impression anywhere across your feature set.
+It is enabled by default and generates interactions of type=impression after the clickthrough is finalized. You can
+disable it in a case when you're able to generate impression events on the application side.
 
-Interactions are generated properly even for multiple clicks happened over a single ranking:
+For example using *viewport tracking* in browser/mobile:
+* When an item goes into the viewport, you emit the impression event manually 
+* Specify the name of the event in `eventName` parameter and don't rely on Metarank heuristics.
+
+Synthetic *impression* event generation can also be disabled if you're not using an impression anywhere across your feature set.
+
+Interactions are generated properly even for multiple clicks that happened for a single ranking:
 * ranking shown items A-B-C-D-E-F
 * visitor clicked items B and D
-* when the clickthroug would be finalized, Metarank will emit impression interactions for items A-B-C-D.
+* when the clickthrough is finalized, Metarank will emit impression interactions for items A-B-C-D.

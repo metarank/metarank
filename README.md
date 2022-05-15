@@ -45,12 +45,10 @@ Check out the step-by-step **[Tutorial](doc/tutorial_ranklens.md)** of running M
 
 ## Running Metarank
 
-* [Technical overview](doc/02_tech_overview.md) of the way it can be integrated in your existing tech stack.
-* [Configuration](doc/03_configuration.md) walkthrough
-* [API overview](doc/api_schema.md)
-* [Feature extractors](/doc/feature_extractors.md)
-* [CLI Options](doc/deploy/cli-options.md)
-* [Running Metarank in Docker](doc/deploy/docker.md)
+* [Overview](doc/README.md#overview) of the way it can be integrated in your existing tech stack.
+* [Configuration](doc/README.md#configure)
+* [Run & Deploy](doc/README.md#run-and-deploy)
+* [Tutorials](doc/README.md#tutorials)
 * [Contribution guide](CONTRIBUTING.md)
 * [License](LICENSE)
 

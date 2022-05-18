@@ -119,7 +119,7 @@ it can be either red, green or blue. So we can do the actual mapping in the foll
 - name: color
   type: string
   scope: item
-  encode: onehot // optional, default = onehot, options = onehot | index
+  encode: onehot // optional, default = index, options = onehot | index
   values: [red, green, blue]
   field: item.color // must be either a string, or array of strings
 ```
@@ -139,7 +139,7 @@ the dimensionality of the training dataset can fly into the sky (you can have te
 
 For such use-cases it is much more effective to use index encoding.
 
-* LightGBM backend supports proper split selection for categorial features. You can checkout the [LightGBM documentation](https://lightgbm.readthedocs.io/en/latest/Features.html#optimal-split-for-categorical-features) for more details.
+* LightGBM backend supports proper split selection for categorical features. You can check out the [LightGBM documentation](https://lightgbm.readthedocs.io/en/latest/Features.html#optimal-split-for-categorical-features) for more details.
 * XGBoost itself supports it, but it's not yet exposed in the Java wrapper, so it will treat index-encoded category as a 
 regular numeric feature.
 
@@ -159,3 +159,13 @@ Please note the **limitations** of the index encoder:
 * Index encoder can only work with singular field values, so if it spots multiple colors, only the first 
 value from the array will be used.
 * empty values are encoded as *zero*, existing - starting from *one*.
+
+### Index vs one-hot, what to choose?
+
+In common scenarios:
+* index encoding is always faster than one-hot one due to lower dataset dimensionality on tree-based backends
+  (e.g. LightGBM and XGBoost)
+* index encoding results in same or better NDCG metric on LightGBM backend, compared to one-hot
+* on XGBoost usually results in the similar NDCG, but better result is not guaranteed.
+
+If you're not sure what to choose - prefer index encoding, the default option.

@@ -1,36 +1,42 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.feature.StringFeature.MethodName.{IndexMethodName, OnehotMethodName}
-import ai.metarank.feature.StringFeature.{EncodeMethod, IndexEncodeMethod, OnehotEncodeMethod, StringFeatureSchema}
+import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
+import ai.metarank.feature.StringFeature.{
+  CategoricalEncoder,
+  IndexCategoricalEncoder,
+  OnehotCategoricalEncoder,
+  StringFeatureSchema
+}
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
-import ai.metarank.model.Identifier._
 import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
 import io.circe.Decoder
+import io.circe.generic.extras.Configuration
 import io.circe.generic.semiauto.deriveDecoder
 import io.findify.featury.model.FeatureConfig.ScalarConfig
 import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
 import io.findify.featury.model.Write.Put
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SString, SStringList, ScalarValue}
+import io.circe.generic.extras.semiauto._
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with Logging {
   val encoder = schema.encode match {
-    case Some(OnehotMethodName) | None =>
-      OnehotEncodeMethod(
+    case OnehotEncoderName =>
+      OnehotCategoricalEncoder(
         names = schema.values.toList.map(value => s"${schema.name}_$value"),
         possibleValues = schema.values.toList,
         dim = schema.values.size
       )
-    case Some(IndexMethodName) =>
-      IndexEncodeMethod(
+    case IndexEncoderName =>
+      IndexCategoricalEncoder(
         name = schema.name,
         possibleValues = schema.values.toList
       )
@@ -85,16 +91,17 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
 object StringFeature {
   import ai.metarank.util.DurationJson._
 
-  sealed trait EncodeMethod {
+  sealed trait CategoricalEncoder {
     def dim: Int
     def encode(values: Seq[String]): MValue
   }
 
-  case class OnehotEncodeMethod(names: List[String], possibleValues: List[String], dim: Int) extends EncodeMethod {
+  case class OnehotCategoricalEncoder(names: List[String], possibleValues: List[String], dim: Int)
+      extends CategoricalEncoder {
     override def encode(values: Seq[String]): VectorValue =
       VectorValue(names, OneHotEncoder.fromValues(values, possibleValues, dim), dim)
   }
-  case class IndexEncodeMethod(name: String, possibleValues: List[String]) extends EncodeMethod {
+  case class IndexCategoricalEncoder(name: String, possibleValues: List[String]) extends CategoricalEncoder {
     override val dim = 1
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {
@@ -107,13 +114,13 @@ object StringFeature {
     }
   }
 
-  sealed trait MethodName
-  object MethodName {
-    case object OnehotMethodName extends MethodName
-    case object IndexMethodName  extends MethodName
-    implicit val methodNameDecoder: Decoder[MethodName] = Decoder.decodeString.emapTry {
-      case "index"  => Success(IndexMethodName)
-      case "onehot" => Success(OnehotMethodName)
+  sealed trait EncoderName
+  object EncoderName {
+    case object OnehotEncoderName extends EncoderName
+    case object IndexEncoderName  extends EncoderName
+    implicit val methodNameDecoder: Decoder[EncoderName] = Decoder.decodeString.emapTry {
+      case "index"  => Success(IndexEncoderName)
+      case "onehot" => Success(OnehotEncoderName)
       case other    => Failure(new Exception(s"string encoding method $other is not supported"))
     }
   }
@@ -122,12 +129,15 @@ object StringFeature {
       name: String,
       source: FieldName,
       scope: FeatureScope,
-      encode: Option[MethodName] = None,
+      encode: EncoderName = IndexEncoderName,
       values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = deriveDecoder
+  object StringFeatureSchema {
+    implicit val conf: Configuration                               = Configuration.default.withDefaults
+    implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = deriveConfiguredDecoder
+  }
 
 }

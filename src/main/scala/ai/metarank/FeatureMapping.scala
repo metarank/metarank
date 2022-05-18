@@ -13,7 +13,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
-import ai.metarank.feature.StringFeature.MethodName.IndexMethodName
+import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowCountFeature.WindowCountSchema
@@ -96,9 +96,9 @@ object FeatureMapping {
 
   def makeDatasetDescriptor(features: List[BaseFeature]): DatasetDescriptor = {
     val datasetFeatures = features.map {
-      case f: StringFeature if f.schema.encode.contains(IndexMethodName) => CategoryFeature(f.schema.name)
-      case f: BaseFeature if f.dim == 1                                  => SingularFeature(f.schema.name)
-      case f: BaseFeature                                                => VectorFeature(f.schema.name, f.dim)
+      case f: StringFeature if f.schema.encode == IndexEncoderName => CategoryFeature(f.schema.name)
+      case f: BaseFeature if f.dim == 1                            => SingularFeature(f.schema.name)
+      case f: BaseFeature                                          => VectorFeature(f.schema.name, f.dim)
     }
     DatasetDescriptor(datasetFeatures)
   }

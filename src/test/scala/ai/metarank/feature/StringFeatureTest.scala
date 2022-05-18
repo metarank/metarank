@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.StringFeature.MethodName.IndexMethodName
+import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
@@ -59,9 +59,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
       id = ItemRelevancy(ItemId("p1"))
     )
-    result should matchPattern {
-      case VectorValue(List("color_red", "color_green", "color_blue"), values, 3) if values.toList == List(0, 1, 0) =>
-    }
+    result shouldBe CategoryValue("color", 2)
   }
 
   it should "scope value to user" in {
@@ -83,15 +81,13 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("b")))),
       id = ItemRelevancy(ItemId("p1"))
     )
-    value should matchPattern {
-      case VectorValue(List("country_a", "country_b", "country_c"), values, 3) if values.toList == List(0, 1, 0) =>
-    }
+    value shouldBe CategoryValue("country", 2)
   }
 
   it should "onehot encode values" in {
     val result = process(
       events = List(TestItemEvent("p1", List(StringField("color", "red")))),
-      schema = feature.schema,
+      schema = feature.schema.copy(encode = OnehotEncoderName),
       TestRankingEvent(List("p1"))
     )
     result should matchPattern {
@@ -107,7 +103,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
         name = "color",
         source = FieldName(Item, "color"),
         scope = ItemScope,
-        encode = Some(IndexMethodName),
+        encode = IndexEncoderName,
         values = NonEmptyList.of("red", "green", "blue")
       ),
       TestRankingEvent(List("p1"))

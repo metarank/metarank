@@ -2,6 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
+import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
@@ -14,7 +15,7 @@ import org.scalatest.matchers.should.Matchers
 
 class ConfigTest extends AnyFlatSpec with Matchers {
   it should "fail on duplicates" in {
-    val dupe = StringFeatureSchema("foo", FieldName(Item, "foo"), ItemScope, None, NonEmptyList.of("x"))
+    val dupe = StringFeatureSchema("foo", FieldName(Item, "foo"), ItemScope, IndexEncoderName, NonEmptyList.of("x"))
     val conf = TestConfig().copy(features = NonEmptyList.of(dupe, dupe))
     Config.validateConfig(conf) shouldBe List("non-unique feature 'foo' is defined more than once")
   }

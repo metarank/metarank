@@ -1,11 +1,11 @@
 <h1 align="center">
     <a style="text-decoration: none" href="https://www.metarank.ai">
-      <img width="120" src="https://raw.githubusercontent.com/metarank/metarank/master/doc/img/logo.svg" />
+      <img width="120" src="https://media.githubusercontent.com/media/metarank/metarank/master/doc/img/logo.svg" />
       <p align="center">Metarank: real time personalization as a service</p>
     </a>
 </h1>
 <h2 align="center">
-  <a href="https://metarank.ai">Website</a> | <a href="https://metarank.ai/slack">Community Slack</a> | <a href="https://medium.com/metarank">Blog</a> | <a href="https://demo.metarank.ai">Demo</a>
+  <a href="https://github.com/metarank/metarank/tree/master/doc">Docs</a> | <a href="https://metarank.ai">Website</a> | <a href="https://metarank.ai/slack">Community Slack</a> | <a href="https://medium.com/metarank">Blog</a> | <a href="https://demo.metarank.ai">Demo</a>
 </h2>
 
 [![CI Status](https://github.com/metarank/metarank/workflows/Scala%20CI/badge.svg)](https://github.com/metarank/metarank/actions)

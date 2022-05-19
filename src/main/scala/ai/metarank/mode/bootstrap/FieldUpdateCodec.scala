@@ -14,29 +14,29 @@ case object FieldUpdateCodec extends BulkCodec[FieldUpdate] {
   override def bucket(value: FieldUpdate): String = s"${value.id.tenant.value}/${value.id.field}"
 
   override def read(stream: InputStream): Option[FieldUpdate] = {
-    if (stream.available() > 0) {
-      val view = new DataInputStream(stream)
-      val idOption = view.readByte() match {
-        case 0 => Some(ItemFieldId(Tenant(view.readUTF()), ItemId(view.readUTF()), view.readUTF()))
-        case 1 => Some(UserFieldId(Tenant(view.readUTF()), UserId(view.readUTF()), view.readUTF()))
-        case _ => None
-      }
-      val valueOption = view.readByte() match {
-        case 0 => Some(StringField(view.readUTF(), view.readUTF()))
-        case 1 => Some(BooleanField(view.readUTF(), view.readBoolean()))
-        case 2 => Some(NumberField(view.readUTF(), view.readDouble()))
-        case 3 => Some(StringListField(view.readUTF(), readList(view, _.readUTF())))
-        case 4 => Some(NumberListField(view.readUTF(), readList(view, _.readDouble())))
-        case _ => None
-      }
-      for {
-        id    <- idOption
-        value <- valueOption
-      } yield {
-        FieldUpdate(id, value)
-      }
-    } else {
-      None
+    stream.read() match {
+      case -1 => None
+      case id =>
+        val view = new DataInputStream(stream)
+        val idOption = id match {
+          case 0 => Some(ItemFieldId(Tenant(view.readUTF()), ItemId(view.readUTF()), view.readUTF()))
+          case 1 => Some(UserFieldId(Tenant(view.readUTF()), UserId(view.readUTF()), view.readUTF()))
+          case _ => None
+        }
+        val valueOption = view.readByte() match {
+          case 0 => Some(StringField(view.readUTF(), view.readUTF()))
+          case 1 => Some(BooleanField(view.readUTF(), view.readBoolean()))
+          case 2 => Some(NumberField(view.readUTF(), view.readDouble()))
+          case 3 => Some(StringListField(view.readUTF(), readList(view, _.readUTF())))
+          case 4 => Some(NumberListField(view.readUTF(), readList(view, _.readDouble())))
+          case _ => None
+        }
+        for {
+          id    <- idOption
+          value <- valueOption
+        } yield {
+          FieldUpdate(id, value)
+        }
     }
   }
 

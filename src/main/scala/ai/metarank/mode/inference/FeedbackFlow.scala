@@ -5,15 +5,19 @@ import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
 import ai.metarank.config.MPath
 import ai.metarank.mode.AsyncFlinkJob
 import ai.metarank.mode.bootstrap.Bootstrap
+import ai.metarank.mode.upload.WindowBatchFunction
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.format.FeatureStoreSink
 import io.findify.featury.model.FeatureValue
+import io.findify.featury.model.Key.Tenant
 import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import io.findify.flink.api._
 import org.apache.flink.api.common.typeinfo.TypeInformation
+
+import scala.concurrent.duration._
 
 object FeedbackFlow extends Logging {
   import ai.metarank.flow.DataStreamOps._
@@ -25,12 +29,15 @@ object FeedbackFlow extends Logging {
       savepoint: MPath,
       format: StoreCodec,
       impress: SyntheticImpressionConfig,
-      events: StreamExecutionEnvironment => DataStream[Event]
+      events: StreamExecutionEnvironment => DataStream[Event],
+      batchPeriod: FiniteDuration
   )(implicit
       eti: TypeInformation[Event],
       valti: TypeInformation[FeatureValue],
+      vallistti: TypeInformation[List[FeatureValue]],
       intti: TypeInformation[Int],
-      lti: TypeInformation[Long]
+      lti: TypeInformation[Long],
+      tti: TypeInformation[Tenant]
   ) = {
     AsyncFlinkJob.execute(cluster, Some(savepoint.uri)) { env =>
       {
@@ -38,8 +45,11 @@ object FeedbackFlow extends Logging {
         val grouped         = Bootstrap.groupFeedback(source)
         val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
         updates
-          .addSink(
-            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)), 1)
+          .keyBy(_.key.tenant)
+          .process(WindowBatchFunction(batchPeriod, 128))
+          .id("make-batch")
+          .sinkTo(
+            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)))
           )
           .id("write-redis")
       }

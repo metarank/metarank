@@ -34,6 +34,8 @@ case class RandomFeatureStore(mapping: FeatureMapping, seed: Int = 0) extends Fe
   val random                                              = new Random(seed)
   override def write(batch: List[FeatureValue]): IO[Unit] = IO.unit
 
+  override def writeSync(batch: List[FeatureValue]): Unit = {}
+
   override def read(request: ReadRequest): IO[ReadResponse] = IO {
     val values: List[FeatureValue] = for {
       key     <- request.keys
@@ -53,5 +55,8 @@ case class RandomFeatureStore(mapping: FeatureMapping, seed: Int = 0) extends Fe
     ReadResponse(values)
   }
 
-  override def close(): IO[Unit] = ???
+  override def close(): IO[Unit] = IO.unit
+
+  override def closeSync(): Unit = {}
+
 }

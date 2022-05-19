@@ -14,6 +14,7 @@ object FlinkTest {
     e.setParallelism(1)
     e.setRestartStrategy(RestartStrategies.noRestart())
     e.setStateBackend(new EmbeddedRocksDBStateBackend())
+    e.getConfig.enableObjectReuse()
     e
   }
 }

@@ -26,7 +26,7 @@ import io.findify.featury.values.FeatureStore
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
 import io.findify.flinkadt.api._
-
+import scala.concurrent.duration._
 import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 
@@ -65,7 +65,8 @@ object Inference extends IOApp with Logging {
         config.bootstrap.workdir.child("savepoint"),
         config.inference.state.format,
         config.bootstrap.syntheticImpression,
-        source.eventStream(_, bounded = false)
+        source.eventStream(_, bounded = false),
+        batchPeriod = 100.millis
       )
       store <- FeatureStoreResource.make(() =>
         RedisStore(RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format))

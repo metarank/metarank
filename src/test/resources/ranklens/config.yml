@@ -12,7 +12,7 @@ inference:
   state:
     type: redis
     host: localhost
-    format: json
+    format: protobuf
 
 models:
 #  lightgbm:

@@ -18,7 +18,7 @@ case class EventProcessFunction(desc: MapStateDescriptor[FieldId, Field], mappin
       ctx: BroadcastProcessFunction[Event, FieldUpdate, Write]#Context,
       out: Collector[Write]
   ): Unit = {
-    logger.debug(s"field update: ${value.id}=${value.value}")
+    // logger.debug(s"field update: ${value.id}=${value.value}")
     val state = ctx.getBroadcastState(desc)
     state.put(value.id, value.value)
   }
@@ -30,7 +30,7 @@ case class EventProcessFunction(desc: MapStateDescriptor[FieldId, Field], mappin
   ): Unit = {
     val state  = FlinkFieldStore(ctx.getBroadcastState(desc))
     val writes = mapping.features.flatMap(_.writes(value, state))
-    logger.debug(s"feedback event: $value, expanded to ${writes.size} writes: $writes")
+    // logger.debug(s"feedback event: $value, expanded to ${writes.size} writes: $writes")
     writes.foreach(w => out.collect(w))
   }
 }

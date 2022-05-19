@@ -7,6 +7,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import com.github.microwww.redis.RedisServer
 import io.findify.featury.values.StoreCodec
+import scala.concurrent.duration._
 
 sealed trait RedisEndpoint {
   def host: String
@@ -22,7 +23,7 @@ object RedisEndpoint {
 
   case class EmbeddedRedis(host: String, port: Int, format: StoreCodec, service: RedisServer, dir: MPath)
       extends RedisEndpoint {
-    override def upload: IO[Unit] = Upload.upload(dir, host, port, format).use(_ => IO.unit)
+    override def upload: IO[Unit] = Upload.upload(dir, host, port, format, 100.millis).use(_ => IO.unit)
 
     override def close: IO[Unit] = IO { service.close() }
   }

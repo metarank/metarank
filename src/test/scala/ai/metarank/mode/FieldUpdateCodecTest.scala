@@ -11,7 +11,8 @@ import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import java.io.ByteArrayInputStream
+
+import java.io.{BufferedInputStream, ByteArrayInputStream}
 
 class FieldUpdateCodecTest extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks {
   it should "not fail on EOF" in {
@@ -86,7 +87,7 @@ class FieldUpdateCodecTest extends AnyFlatSpec with Matchers with ScalaCheckProp
       {
         val out = new ByteArrayOutputStream()
         FieldUpdateCodec.write(update, out)
-        val decoded = FieldUpdateCodec.read(new ByteArrayInputStream(out.toByteArray))
+        val decoded = FieldUpdateCodec.read(new BufferedInputStream(new ByteArrayInputStream(out.toByteArray), 10))
         decoded shouldBe Some(update)
       }
     }

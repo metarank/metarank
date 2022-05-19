@@ -35,6 +35,7 @@ import io.findify.flink.api._
 import io.findify.flinkadt.api._
 import java.nio.charset.StandardCharsets
 import scala.util.Random
+import scala.concurrent.duration._
 
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
@@ -43,7 +44,8 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     .unsafeRunSync()
 
   val config = baseConfig.copy(
-    bootstrap = baseConfig.bootstrap.copy(workdir = MPath(File.newTemporaryDirectory()))
+    bootstrap =
+      baseConfig.bootstrap.copy(workdir = MPath(File.newTemporaryDirectory(prefix = "bootstrap_").deleteOnExit()))
   )
 
   val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
@@ -109,12 +111,12 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val redis = EmbeddedRedis.createUnsafe(port)
 
     val store = FeatureStoreResource
-      .unsafe(() => RedisStore(RedisConfig("localhost", port, StoreCodec.JsonCodec)))
+      .unsafe(() => RedisStore(RedisConfig("localhost", port, config.inference.state.format)))
       .unsafeRunSync()
 
     val uploaded =
       Upload
-        .upload(config.bootstrap.workdir / "features", "localhost", port, StoreCodec.JsonCodec)
+        .upload(config.bootstrap.workdir / "features", "localhost", port, config.inference.state.format, 100.millis)
         .allocated
         .unsafeRunSync()
 
@@ -131,15 +133,16 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         redisHost = "localhost",
         redisPort = port,
         savepoint = config.bootstrap.workdir / "savepoint",
-        format = StoreCodec.JsonCodec,
+        format = config.inference.state.format,
         impress = config.bootstrap.syntheticImpression,
-        events = _.fromCollection(List[Event](ranking, interaction))
+        events = _.fromCollection(List[Event](ranking, interaction)),
+        batchPeriod = 0.millis
       )
       .allocated
       .unsafeRunSync()
       ._1
     Upload.blockUntilFinished(cluster, flow).unsafeRunSync()
-
+    Thread.sleep(2000) // YOLO sync!
     val response2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response2.state.session should not be empty
     response1.items.map(_.score) shouldNot be(response2.items.map(_.score))
@@ -163,9 +166,13 @@ object RanklensTest {
       ReadResponse(values)
     }
 
-    override def write(batch: List[FeatureValue]): IO[Unit] = ???
+    override def write(batch: List[FeatureValue]): IO[Unit] = IO.unit
+
+    override def writeSync(batch: List[FeatureValue]): Unit = {}
 
     override def close(): IO[Unit] = IO.unit
+
+    override def closeSync(): Unit = {}
   }
 
   object DiskStore {

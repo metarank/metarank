@@ -62,8 +62,10 @@ class RankApiTest extends AnyFlatSpec with Matchers {
 object RankApiTest {
   class BrokenStore extends FeatureStore {
     override def read(request: ReadRequest): IO[ReadResponse] = IO.raiseError(StateReadError("oops"))
+    override def writeSync(batch: List[FeatureValue]): Unit   = ???
     override def write(batch: List[FeatureValue]): IO[Unit]   = IO.raiseError(StateReadError("oops"))
     override def close(): IO[Unit]                            = IO.raiseError(StateReadError("oops"))
+    override def closeSync(): Unit                            = ???
   }
 
   class CountingStore extends FeatureStore {
@@ -75,9 +77,13 @@ object RankApiTest {
       featureReads += request.keys.size
       ReadResponse(Nil)
     }
-    override def write(batch: List[FeatureValue]): IO[Unit] = IO {
+    override def write(batch: List[FeatureValue]): IO[Unit] = IO { writeSync(batch) }
+
+    override def writeSync(batch: List[FeatureValue]): Unit = {
       writes += 1
     }
     override def close(): IO[Unit] = IO.unit
+
+    override def closeSync(): Unit = {}
   }
 }

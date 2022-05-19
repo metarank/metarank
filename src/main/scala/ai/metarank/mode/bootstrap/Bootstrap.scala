@@ -24,7 +24,7 @@ import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat, CompressedBu
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
 import io.findify.featury.model.Key.Tenant
-import io.findify.featury.model.{FeatureValue, Key, Schema, State, Write}
+import io.findify.featury.model.{FeatureValue, Key, Schema, State, Timestamp, Write}
 import org.apache.flink.api.common.RuntimeExecutionMode
 import io.findify.flink.api.{DataStream, KeyedStream, StreamExecutionEnvironment}
 import io.findify.flinkadt.api._
@@ -102,9 +102,13 @@ object Bootstrap extends IOApp with Logging {
     val grouped                  = groupFeedback(raw)
     val (state, fields, updates) = makeUpdates(raw, grouped, mapping, impress)
 
-    Featury.writeState(state, dir.child("state").flinkPath, Compress.NoCompression).id("write-state")
+    val lastState    = selectLast[State, Key](state, _.key, _.ts).id("last-state")
+    val lastFeatures = selectLast[FeatureValue, Key](updates, _.key, _.ts).id("last-features")
+    // val lastFields = selectLast[FieldUpdate, FieldId](fields, _.id, )
+
+    Featury.writeState(lastState, dir.child("state").flinkPath, Compress.NoCompression).id("write-state")
     Featury
-      .writeFeatures(updates, dir.child("features").flinkPath, Compress.NoCompression)
+      .writeFeatures(lastFeatures, dir.child("features").flinkPath, Compress.NoCompression)
       .id("write-features")
     val fieldsPath = dir.child("fields").flinkPath
     fields
@@ -130,6 +134,10 @@ object Bootstrap extends IOApp with Logging {
         .id(s"$name-write-train")
 
     }
+  }
+
+  def selectLast[T, K: TypeInformation](stream: DataStream[T], key: T => K, ts: T => Timestamp): DataStream[T] = {
+    stream.keyBy(event => key(event)).reduce((a, b) => if (ts(a).isAfter(ts(b))) a else b)
   }
 
   def groupFeedback(raw: DataStream[Event]) = {
@@ -163,7 +171,7 @@ object Bootstrap extends IOApp with Logging {
       raw
     }
 
-    val fieldUpdates = raw.flatMap(e => FieldUpdate.fromEvent(e))
+    val fieldUpdates = raw.flatMap(e => FieldUpdate.fromEvent(e)).id("field-updates")
 
     val writes: DataStream[Write] =
       events
@@ -176,6 +184,14 @@ object Bootstrap extends IOApp with Logging {
   }
 
   def makeSavepoint(env: StreamExecutionEnvironment, dir: MPath, mapping: FeatureMapping) = {
+    val fieldsPath = dir / "fields"
+    val fieldsSource = env
+      .fromSource(
+        CompressedBulkReader.readFile(fieldsPath.flinkPath, Compress.NoCompression, FieldUpdateCodec),
+        WatermarkStrategy.noWatermarks(),
+        "read-fields"
+      )
+
     val stateSource = env.fromSource(
       Featury.readState(dir.child("state").flinkPath, Compress.NoCompression),
       WatermarkStrategy.noWatermarks(),
@@ -192,14 +208,6 @@ object Bootstrap extends IOApp with Logging {
       WatermarkStrategy.noWatermarks(),
       "read-features"
     )
-
-    val fieldsPath = dir / "fields"
-    val fieldsSource = env
-      .fromSource(
-        CompressedBulkReader.readFile(fieldsPath.flinkPath, Compress.NoCompression, FieldUpdateCodec),
-        WatermarkStrategy.noWatermarks(),
-        "read-fields"
-      )
 
     val transformStateJoin = OperatorTransformation
       .bootstrapWith(valuesSource.javaStream)

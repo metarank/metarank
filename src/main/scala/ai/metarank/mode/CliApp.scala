@@ -2,7 +2,6 @@ package ai.metarank.mode
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
-import ai.metarank.mode.standalone.Standalone.{cluster, loadModels, logger}
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}
 

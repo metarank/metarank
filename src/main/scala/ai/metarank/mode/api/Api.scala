@@ -4,7 +4,6 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.mode.standalone.{FeatureStoreResource, Logo}
-import ai.metarank.mode.standalone.Standalone.loadModels
 import ai.metarank.mode.standalone.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.mode.{CliApp, FileLoader}
 import ai.metarank.model.Event

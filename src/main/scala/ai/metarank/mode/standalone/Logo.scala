@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference
+package ai.metarank.mode.standalone
 
 object Logo {
   def lines =

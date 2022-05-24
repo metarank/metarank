@@ -11,7 +11,7 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
-import ai.metarank.mode.{FileLoader, FlinkS3Configuration}
+import ai.metarank.mode.{CliApp, FileLoader, FlinkS3Configuration}
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.rank.Model
@@ -40,7 +40,7 @@ import io.findify.flink.api._
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
-object Bootstrap extends IOApp with Logging {
+object Bootstrap extends CliApp {
   import ai.metarank.flow.DataStreamOps._
   import ai.metarank.mode.TypeInfos._
 
@@ -55,28 +55,24 @@ object Bootstrap extends IOApp with Logging {
     implicitly[TypeInformation[Field]]
   )
 
-  override def run(args: List[String]): IO[ExitCode] = for {
-    env <- IO { System.getenv().asScala.toMap }
-    configContents <- args match {
-      case configPath :: Nil => FileLoader.read(MPath(configPath), env)
-      case _                 => IO.raiseError(new IllegalArgumentException("usage: metarank <config path>"))
-    }
-    config <- Config.load(new String(configContents))
-    _      <- IO { logger.info("Performing bootstap.") }
-    _      <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
-    _      <- run(config)
-  } yield {
-    ExitCode.Success
-  }
+  override val usage = "usage: metarank bootstrap <config path>"
 
-  def run(config: Config) = IO {
+  override def run(
+      args: List[String],
+      env: Map[String, String],
+      config: Config,
+      mapping: FeatureMapping
+  ): IO[ExitCode] = for {
+    _ <- IO { logger.info("Performing bootstap.") }
+    _ <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
+
+  } yield {
     config.bootstrap.workdir match {
       case path: MPath.LocalPath if path.file.notExists =>
         logger.info(s"local dir $path does not exist, creating")
         path.file.createDirectoryIfNotExists(createParents = true)
       case _ => // none
     }
-    val mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
 
     val streamEnv =
       StreamExecutionEnvironment.createLocalEnvironment(
@@ -96,6 +92,7 @@ object Bootstrap extends IOApp with Logging {
 
     makeSavepoint(streamEnv, config.bootstrap.workdir, mapping)
     logger.info("Bootstrap done")
+    ExitCode.Success
   }
 
   def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: MPath, impress: SyntheticImpressionConfig) = {

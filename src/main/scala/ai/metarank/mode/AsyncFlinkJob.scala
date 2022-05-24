@@ -1,6 +1,6 @@
 package ai.metarank.mode
 
-import ai.metarank.mode.inference.FlinkMinicluster
+import ai.metarank.mode.standalone.FlinkMinicluster
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource

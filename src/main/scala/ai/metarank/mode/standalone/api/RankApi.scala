@@ -1,9 +1,9 @@
-package ai.metarank.mode.inference.api
+package ai.metarank.mode.standalone.api
 
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
-import ai.metarank.mode.inference.{FeatureStoreResource, RankResponse}
-import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
+import ai.metarank.mode.standalone.{FeatureStoreResource, RankResponse}
+import ai.metarank.mode.standalone.RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging

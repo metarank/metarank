@@ -1,8 +1,8 @@
 package ai.metarank.mode
 
 import ai.metarank.FeatureMapping
-import ai.metarank.mode.inference.FeatureStoreResource
-import ai.metarank.mode.inference.api.RankApi
+import ai.metarank.mode.standalone.FeatureStoreResource
+import ai.metarank.mode.standalone.api.RankApi
 import ai.metarank.util.{RandomFeatureStore, RandomScorer, TestFeatureMapping, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec

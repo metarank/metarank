@@ -1,6 +1,6 @@
 package ai.metarank.mode
 
-import ai.metarank.mode.inference.FlinkMinicluster
+import ai.metarank.mode.standalone.FlinkMinicluster
 import ai.metarank.mode.upload.Upload
 import cats.effect.unsafe.implicits.global
 import org.apache.flink.configuration.Configuration

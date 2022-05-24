@@ -16,7 +16,7 @@ java -jar $JAR upload src/test/resources/ranklens/config.yml
 
 echo "Upload done"
 
-java -jar $JAR inference src/test/resources/ranklens/config.yml & echo $! > /tmp/inference.pid
+java -jar $JAR standalone src/test/resources/ranklens/config.yml & echo $! > /tmp/inference.pid
 
 PID=$(cat /tmp/inference.pid)
 

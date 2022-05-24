@@ -22,8 +22,8 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <!--root level="debug">
+    <root level="debug">
         <appender-ref ref="STDOUT"/>
-    </root-->
+    </root>
 
 </configuration>

@@ -1,9 +1,9 @@
 package ai.metarank.api
 
 import ai.metarank.api.RankApiTest.{BrokenStore, CountingStore}
-import ai.metarank.mode.inference.FeatureStoreResource
-import ai.metarank.mode.inference.api.RankApi
-import ai.metarank.mode.inference.api.RankApi.StateReadError
+import ai.metarank.mode.standalone.FeatureStoreResource
+import ai.metarank.mode.standalone.api.RankApi
+import ai.metarank.mode.standalone.api.RankApi.StateReadError
 import ai.metarank.util.{RandomFeatureStore, RandomScorer, TestFeatureMapping, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import cats.effect.{IO, Ref}

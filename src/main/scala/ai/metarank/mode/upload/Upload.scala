@@ -1,8 +1,9 @@
 package ai.metarank.mode.upload
 
+import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
-import ai.metarank.mode.inference.FlinkMinicluster
-import ai.metarank.mode.{AsyncFlinkJob, FileLoader, FlinkS3Configuration}
+import ai.metarank.mode.standalone.FlinkMinicluster
+import ai.metarank.mode.{AsyncFlinkJob, CliApp, FileLoader, FlinkS3Configuration}
 import ai.metarank.source.FeatureValueWatermarkStrategy
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp, Resource}
@@ -24,26 +25,26 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
-object Upload extends IOApp with Logging {
+object Upload extends CliApp {
   import ai.metarank.flow.DataStreamOps._
-  override def run(args: List[String]): IO[ExitCode] = args match {
-    case configPath :: Nil =>
-      for {
-        env          <- IO { System.getenv().asScala.toMap }
-        confContents <- FileLoader.read(MPath(configPath), env)
-        config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
-        _ <- upload(
-          config.bootstrap.workdir.child("features"),
-          config.inference.state.host,
-          config.inference.state.port,
-          config.inference.state.format,
-          buffer = 1.second
-        ).use { _ => IO { logger.info("Upload done") } }
-      } yield {
-        ExitCode.Success
-      }
-    case _ =>
-      IO { logger.error("usage: metarank upload <config path>") } *> IO.pure(ExitCode.Success)
+
+  override def usage: String = "usage: metarank upload <config path>"
+
+  override def run(
+      args: List[String],
+      env: Map[String, String],
+      config: Config,
+      mapping: FeatureMapping
+  ): IO[ExitCode] = for {
+    _ <- upload(
+      config.bootstrap.workdir.child("features"),
+      config.inference.state.host,
+      config.inference.state.port,
+      config.inference.state.format,
+      buffer = 1.second
+    ).use { _ => IO { logger.info("Upload done") } }
+  } yield {
+    ExitCode.Success
   }
 
   def upload(dir: MPath, host: String, port: Int, format: StoreCodec, buffer: FiniteDuration) =

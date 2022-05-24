@@ -2,7 +2,7 @@ package ai.metarank.mode.train
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
-import ai.metarank.mode.FileLoader
+import ai.metarank.mode.{CliApp, FileLoader}
 import ai.metarank.rank.{LambdaMARTModel, Model}
 import ai.metarank.util.Logging
 import better.files.File
@@ -14,28 +14,27 @@ import java.nio.charset.StandardCharsets
 import scala.util.Random
 import scala.jdk.CollectionConverters._
 
-object Train extends IOApp with Logging {
+object Train extends CliApp {
   import ai.metarank.flow.DatasetSink.queryCodec
-  override def run(args: List[String]): IO[ExitCode] =
-    args match {
-      case configPath :: modelName :: Nil =>
-        for {
-          env          <- IO { System.getenv().asScala.toMap }
-          confContents <- FileLoader.read(MPath(configPath), env)
-          config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
-          mapping      <- IO { FeatureMapping.fromFeatureSchema(config.features, config.models) }
-          ranker <- mapping.models.get(modelName) match {
-            case Some(value: LambdaMARTModel) => IO.pure(value)
-            case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
-          }
-          data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName)
-          _    <- train(data, ranker, ranker.conf.path, env)
-        } yield {
-          ExitCode.Success
-        }
-      case _ =>
-        IO(logger.error("usage: metarank train <config path> <model name>")) *> IO.pure(ExitCode.Success)
+
+  override def usage: String = "usage: metarank train <config path> <model name>"
+
+  override def run(
+      args: List[String],
+      env: Map[String, String],
+      config: Config,
+      mapping: FeatureMapping
+  ): IO[ExitCode] = for {
+    modelName <- IO.fromOption(args.lift(1))(new IllegalArgumentException(s"invalid params, $usage"))
+    ranker <- mapping.models.get(modelName) match {
+      case Some(value: LambdaMARTModel) => IO.pure(value)
+      case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
     }
+    data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName)
+    _    <- train(data, ranker, ranker.conf.path, env)
+  } yield {
+    ExitCode.Success
+  }
 
   def loadData(path: MPath, desc: DatasetDescriptor, modelName: String) = {
     for {

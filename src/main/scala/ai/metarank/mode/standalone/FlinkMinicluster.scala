@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference
+package ai.metarank.mode.standalone
 
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -11,9 +11,9 @@ import org.apache.flink.test.util.MiniClusterWithClientResource
 case class FlinkMinicluster(cluster: MiniClusterWithClientResource, client: ClusterClient[_])
 
 object FlinkMinicluster {
-  def resource(conf: Configuration) = Resource.make(createCluster(conf))(shutdown)
+  def resource(conf: Configuration) = Resource.make(IO(createCluster(conf)))(c => IO(shutdown(c)))
 
-  def createCluster(conf: Configuration) = IO {
+  def createCluster(conf: Configuration) = {
     val cluster = new MiniClusterWithClientResource(
       new MiniClusterResourceConfiguration.Builder()
         .setNumberTaskManagers(1)
@@ -26,7 +26,7 @@ object FlinkMinicluster {
     new FlinkMinicluster(cluster, client)
   }
 
-  def shutdown(cluster: FlinkMinicluster) = IO {
+  def shutdown(cluster: FlinkMinicluster) = {
     cluster.client.close()
     cluster.cluster.after()
   }

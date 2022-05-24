@@ -9,7 +9,7 @@ object Deps {
   lazy val fs2Version       = "3.2.2"
   lazy val flinkVersion     = "1.15.0"
   lazy val featuryVersion   = "0.3.0-M14-SNAPSHOT"
-  lazy val luceneVersion    = "9.1.0"
+  lazy val luceneVersion    = "9.2.0"
 
   val httpsDeps = Seq(
     "org.http4s" %% "http4s-dsl"          % http4sVersion,

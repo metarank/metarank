@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference
+package ai.metarank.mode.standalone
 
 import ai.metarank.config.{MPath, StateStoreConfig}
 import ai.metarank.mode.upload.Upload

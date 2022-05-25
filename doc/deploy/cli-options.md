@@ -7,16 +7,18 @@ To run the main app, download the [latest jar file](https://github.com/metarank/
 ```shell
 $ java -jar metarank-x.x.x.jar
 
-15:35:35.252 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
+12:33:57.337 INFO  ai.metarank.Main$ - Usage: metarank <command> <config file> <options>
 
-15:35:35.257 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
-15:35:35.258 INFO  ai.metarank.Main$ - Run 'metarank <command>' for extra options. 
-15:35:35.259 INFO  ai.metarank.Main$ - - bootstrap: import historical data
-15:35:35.261 INFO  ai.metarank.Main$ - - train: train the ranking ML model
-15:35:35.262 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
-15:35:35.263 INFO  ai.metarank.Main$ - - inference: run the inference API
-15:35:35.263 INFO  ai.metarank.Main$ - - validate: check config and data files for consistency
-15:35:35.265 INFO  ai.metarank.Main$ - - help: this help
+12:33:57.342 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
+12:33:57.346 INFO  ai.metarank.Main$ - Run 'metarank <command> for extra options. 
+12:33:57.347 INFO  ai.metarank.Main$ - - bootstrap: import historical data
+12:33:57.348 INFO  ai.metarank.Main$ - - train: train the ranking ML model
+12:33:57.350 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
+12:33:57.351 INFO  ai.metarank.Main$ - - api: run the inference API
+12:33:57.352 INFO  ai.metarank.Main$ - - update: run the Flink update job
+12:33:57.352 INFO  ai.metarank.Main$ - - standalone: run the Flink update job, embedded redis and API in the same JVM
+12:33:57.353 INFO  ai.metarank.Main$ - - validate: check config and data files for consistency
+12:33:57.354 INFO  ai.metarank.Main$ - - help: this help
 
 ```
 
@@ -31,38 +33,16 @@ Originally Metarank used a very complicated set of command line switches to cont
 supported, more obscure the switches become. So for now metarank is configured using a separate config file. See
 a [sample config file](../sample-config.yml) for a source of inspiration and basic options description.
 
-### Bootstrap
 
-```shell
-$ java -jar metarank.jar bootstrap <config file>
-```
+## Running modes
 
-### Inference
+Metarank CLI has a set of different running modes:
+* `bootstrap`: import and process historical data, build a state snapshot for the `update`/`standalone` jobs and training
+data for the `train` job.
+* `train`: train the ML model with XGBoost/LightGBM.
+* `upload`: push the latest state snapshot to remote Redis server for the `update` job.
+* `api`: run the inference API to do realtime reranking
+* `update`: run the ML feature update job
+* `standalone`: run `upload`, `api`, `update` tasks at once with the embedded redis server.
+* `validate`: check the historical data for typical problems.
 
-```shell
-$ java -jar metarank.jar inference <config file>
-```
-
-### Train
-
-```shell
-$ java -jar metarank.jar train <config file> <model name from config>
-```
-
-### Upload
-
-```shell
-$ java -jar metarank.jar upload <config file>
-```
-
-### Validate
-
-A useful tool to check your config file and data files for sanity.
-
-```shell
-Usage: $ java -jar metarank.jar metarank validate <options>
-Possible options:
-  --config <path>       - Validate feature configuration file
-  --data <path>         - Validate historical events dataset
-  --help                - This is help
-```

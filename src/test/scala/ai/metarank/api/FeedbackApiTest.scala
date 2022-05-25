@@ -1,6 +1,6 @@
 package ai.metarank.api
 
-import ai.metarank.mode.inference.api.FeedbackApi
+import ai.metarank.mode.standalone.api.FeedbackApi
 import ai.metarank.model.Event
 import ai.metarank.util.TestInteractionEvent
 import cats.effect.IO

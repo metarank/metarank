@@ -1,6 +1,6 @@
 package ai.metarank.source
 
-import ai.metarank.mode.inference.api.{FeedbackApi, HealthApi, RankApi}
+import ai.metarank.mode.standalone.api.{FeedbackApi, HealthApi, RankApi}
 import ai.metarank.model.Event
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.effect.{ExitCode, IO, Ref}

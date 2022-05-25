@@ -4,10 +4,11 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.flow.DataStreamOps._
 import ai.metarank.mode.FileLoader
+import ai.metarank.mode.api.Api
 import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.inference.RedisEndpoint.EmbeddedRedis
-import ai.metarank.mode.inference.api.RankApi
-import ai.metarank.mode.inference.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Inference}
+import ai.metarank.mode.standalone.RedisEndpoint.EmbeddedRedis
+import ai.metarank.mode.standalone.api.RankApi
+import ai.metarank.mode.standalone.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Standalone}
 import ai.metarank.mode.train.Train
 import ai.metarank.mode.upload.Upload
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
@@ -33,6 +34,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.flink.api._
 import io.findify.flinkadt.api._
+
 import java.nio.charset.StandardCharsets
 import scala.util.Random
 import scala.concurrent.duration._
@@ -120,12 +122,12 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
         .allocated
         .unsafeRunSync()
 
-    val rankers   = Inference.loadModels(config).unsafeRunSync()
+    val rankers   = Api.loadModels(config).unsafeRunSync()
     val ranker    = RankApi(mapping, store, rankers)
     val response1 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     response1.state.session shouldBe empty
 
-    val cluster = FlinkMinicluster.createCluster(new Configuration()).unsafeRunSync()
+    val cluster = FlinkMinicluster.createCluster(new Configuration())
     val flow = FeedbackFlow
       .resource(
         cluster = cluster,

@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference.api
+package ai.metarank.mode.standalone.api
 
 import cats.effect.IO
 import org.http4s._

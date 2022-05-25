@@ -188,13 +188,8 @@ The bootstrap job will process your incoming events based on a config file and p
 Run the following command with Metarank CLI and provide the [`events.json.gz`](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events) and `config.yml` files locations as it's parameters:
 
 ```shell
-java -cp metarank.jar ai.metarank.mode.bootstrap.Bootstrap \
-  --events <dir with events.json.gz> \
-  --out <output directory> \
-  --config <path to config.yml>
+java -jar metarank.jar bootstrap <config file>
 ```
-
-
 
 ### 2. Training the Machine Learning model
 
@@ -202,37 +197,16 @@ When the Bootstrap job is finished, you can train the model using the `config.ym
 The Training job will parse the input data, do the actual training and produce the model file:
 
 ```shell
-java -cp metarank.jar ai.metarank.mode.train.Train \
-  --input <bootstrap output directory>/dataset \
-  --config <path to config.yml> \
-  --model-type lambdamart-lightgbm \
-  --model-file <output model file> 
+java -jar metarank.jar train <config file> xgboost
 ```
 
-### 3. Upload
-
-Metarank is using Redis for inference (real-time data processing for online personalization), so you need to load 
-the current versions of feature values there after the Bootstrap job. Use your Redis instance url as the `host` parameter:
-
-```shell
-java -cp metarank.jar ai.metarank.mode.upload.Upload \
-  --features-dir <bootstrap output directory>/features \
-  --host localhost \
-  --format json
-```
-
-### 4. Inference
+### 3. Inference
 
 Run Metarank REST API service to process feedback events and re-rank in real-time. 
 By default Metarank will be available on `localhost:8080` and you can send feedback events to `http://<ip>:8080/feedback` 
 and get personalized ranking from `http://<ip>:8080/rank`. 
 ```shell
-java -cp metarank.jar  ai.metarank.mode.inference.Inference \
-  --config <path to config.yml>\
-  --model <model file>\
-  --redis-host localhost\
-  --format json\
-  --savepoint-dir <bootstrap output directory>/savepoint
+java -jar metarank.jar standalone <config file>
 ```
 
 ## Playing with it

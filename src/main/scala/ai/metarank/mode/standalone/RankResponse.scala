@@ -1,6 +1,6 @@
-package ai.metarank.mode.inference
+package ai.metarank.mode.standalone
 
-import ai.metarank.mode.inference.RankResponse.{ItemScore, StateValues}
+import ai.metarank.mode.standalone.RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.MValue
 import ai.metarank.model.Identifier._

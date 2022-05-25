@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference
+package ai.metarank.mode.standalone
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
@@ -16,6 +16,7 @@ import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import io.findify.flink.api._
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.streaming.api.datastream.DataStreamSink
 
 import scala.concurrent.duration._
 
@@ -40,19 +41,37 @@ object FeedbackFlow extends Logging {
       tti: TypeInformation[Tenant]
   ) = {
     AsyncFlinkJob.execute(cluster, Some(savepoint.uri)) { env =>
-      {
-        val source          = events(env).id("local-source")
-        val grouped         = Bootstrap.groupFeedback(source)
-        val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
-        updates
-          .keyBy(_.key.tenant)
-          .process(WindowBatchFunction(batchPeriod, 128))
-          .id("make-batch")
-          .sinkTo(
-            FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)))
-          )
-          .id("write-redis")
-      }
+      job(env, mapping, redisHost, redisPort, format, impress, events, batchPeriod)
     }
+  }
+
+  def job(
+      env: StreamExecutionEnvironment,
+      mapping: FeatureMapping,
+      redisHost: String,
+      redisPort: Int,
+      format: StoreCodec,
+      impress: SyntheticImpressionConfig,
+      events: StreamExecutionEnvironment => DataStream[Event],
+      batchPeriod: FiniteDuration
+  )(implicit
+      eti: TypeInformation[Event],
+      valti: TypeInformation[FeatureValue],
+      vallistti: TypeInformation[List[FeatureValue]],
+      intti: TypeInformation[Int],
+      lti: TypeInformation[Long],
+      tti: TypeInformation[Tenant]
+  ): DataStreamSink[List[FeatureValue]] = {
+    val source          = events(env).id("local-source")
+    val grouped         = Bootstrap.groupFeedback(source)
+    val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
+    updates
+      .keyBy(_.key.tenant)
+      .process(WindowBatchFunction(batchPeriod, 128))
+      .id("make-batch")
+      .sinkTo(
+        FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)))
+      )
+      .id("write-redis")
   }
 }

@@ -16,6 +16,7 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 * [Docker](deploy/docker.md): running Metarank from Docker.
 * [CLI Options](deploy/cli-options.md): running Metarank from command-line.
 * [API Overview](api_schema.md): sending REST API requests for reranking and feedback ingestion.
+* [Using different data sources](data-sources.md) like Kafka and Pulsar 
 
 ## Configure
 

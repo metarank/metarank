@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference.api
+package ai.metarank.mode.standalone.api
 
 import ai.metarank.model.Event
 import ai.metarank.util.Logging

@@ -1,4 +1,4 @@
-package ai.metarank.mode.inference
+package ai.metarank.mode.standalone
 
 import cats.effect.{IO, Ref, Resource}
 import io.findify.featury.values.FeatureStore

@@ -15,7 +15,7 @@ trait CliApp extends IOApp with Logging {
 
   override def run(args: List[String]): IO[ExitCode] = {
     args match {
-      case configPath :: Nil =>
+      case configPath :: _ =>
         for {
           env          <- IO { System.getenv().asScala.toMap }
           confContents <- FileLoader.read(MPath(configPath), env)

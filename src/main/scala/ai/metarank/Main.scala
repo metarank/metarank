@@ -31,7 +31,7 @@ object Main extends IOApp with Logging {
 
   def printHelp() = for {
     _ <- IO(logger.info("Usage: metarank <command> <options>\n"))
-    _ <- IO(logger.info("Supported commands: bootstrap, inference, train, upload, help."))
+    _ <- IO(logger.info("Supported commands: bootstrap, train, upload, api, update, standalone, validate, help."))
     _ <- IO(logger.info("Run 'metarank <command> for extra options. "))
     _ <- IO(logger.info("- bootstrap: import historical data"))
     _ <- IO(logger.info("- train: train the ranking ML model"))

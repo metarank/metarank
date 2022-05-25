@@ -11,15 +11,18 @@ All metarank sub-commands are wrapped into a single command-line API. To see the
 ```shell
 $ docker run metarank/metarank:latest help
 
-12:35:48.228 INFO  ai.metarank.Main$ - Usage: metarank <command> <options>
+12:33:57.337 INFO  ai.metarank.Main$ - Usage: metarank <command> <config file> <options>
 
-12:35:48.232 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
-12:35:48.232 INFO  ai.metarank.Main$ - Run 'metarank <command>' for extra options. 
-12:35:48.233 INFO  ai.metarank.Main$ - - bootstrap: import historical data
-12:35:48.234 INFO  ai.metarank.Main$ - - train: train the ranking ML model
-12:35:48.234 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
-12:35:48.235 INFO  ai.metarank.Main$ - - inference: run the inference API
-12:35:48.236 INFO  ai.metarank.Main$ - - help: this help
+12:33:57.342 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
+12:33:57.346 INFO  ai.metarank.Main$ - Run 'metarank <command> for extra options. 
+12:33:57.347 INFO  ai.metarank.Main$ - - bootstrap: import historical data
+12:33:57.348 INFO  ai.metarank.Main$ - - train: train the ranking ML model
+12:33:57.350 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
+12:33:57.351 INFO  ai.metarank.Main$ - - api: run the inference API
+12:33:57.352 INFO  ai.metarank.Main$ - - update: run the Flink update job
+12:33:57.352 INFO  ai.metarank.Main$ - - standalone: run the Flink update job, embedded redis and API in the same JVM
+12:33:57.353 INFO  ai.metarank.Main$ - - validate: check config and data files for consistency
+12:33:57.354 INFO  ai.metarank.Main$ - - help: this help
 
 ```
 

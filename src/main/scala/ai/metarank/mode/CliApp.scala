@@ -14,18 +14,17 @@ trait CliApp extends IOApp with Logging {
   def run(args: List[String], env: Map[String, String], config: Config, mapping: FeatureMapping): IO[ExitCode]
 
   override def run(args: List[String]): IO[ExitCode] = {
-    args match {
-      case configPath :: _ =>
-        for {
-          env          <- IO { System.getenv().asScala.toMap }
-          confContents <- FileLoader.read(MPath(configPath), env)
-          config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
-          mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.models) }
-          result       <- run(args, env, config, mapping)
-        } yield {
-          result
-        }
-      case _ => IO(logger.info(usage)) *> IO.pure(ExitCode.Error)
+    val env = System.getenv().asScala.toMap
+    for {
+      confPath <- IO.fromOption(args.headOption.orElse(env.get("METARANK_CONFIG")))(
+        new Exception(s"config cannot be loaded. $usage")
+      )
+      confContents <- FileLoader.read(MPath(confPath), env)
+      config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
+      mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.models) }
+      result       <- run(args, env, config, mapping)
+    } yield {
+      result
     }
   }
 

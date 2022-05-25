@@ -3,10 +3,9 @@ package ai.metarank.mode.upload
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.standalone.FlinkMinicluster
-import ai.metarank.mode.{AsyncFlinkJob, CliApp, FileLoader, FlinkS3Configuration}
+import ai.metarank.mode.{AsyncFlinkJob, CliApp, FlinkS3Configuration}
 import ai.metarank.source.FeatureValueWatermarkStrategy
-import ai.metarank.util.Logging
-import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.effect.{ExitCode, IO, Resource}
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.Featury
 import io.findify.featury.flink.format.FeatureStoreSink
@@ -15,15 +14,7 @@ import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.{JobID, JobStatus}
-import org.apache.flink.api.common.eventtime.WatermarkStrategy
-import org.apache.flink.streaming.api.windowing.assigners.{TumblingEventTimeWindows, TumblingProcessingTimeWindows}
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.{CountTrigger, Trigger}
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow
-
-import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
 
 object Upload extends CliApp {
   import ai.metarank.flow.DataStreamOps._

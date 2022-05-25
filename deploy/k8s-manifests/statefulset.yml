@@ -14,14 +14,15 @@ spec:
     spec:
       containers:
         - name: api
-          image: metarank/metarank:0.2.1
+          image: metarank/metarank:0.3.1
           resources:
             limits:
               memory: 600Mi
             requests:
               memory: 600Mi
           args:
-            - inference
+            - api
+            -
           env:
             - name: METARANK_SAVEPOINT_DIR
               value: "s3://<bucket>/<path>"

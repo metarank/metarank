@@ -11,7 +11,7 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
-import ai.metarank.mode.{CliApp, FileLoader, FlinkJob, FlinkS3Configuration}
+import ai.metarank.mode.{CliApp, FileLoader, FlinkS3Configuration}
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.rank.Model
@@ -40,7 +40,9 @@ import io.findify.flink.api._
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
-object Bootstrap extends FlinkJob with CliApp {
+import java.nio.charset.StandardCharsets
+
+object Bootstrap extends CliApp {
   import ai.metarank.flow.DataStreamOps._
   import ai.metarank.mode.TypeInfos._
 
@@ -57,7 +59,19 @@ object Bootstrap extends FlinkJob with CliApp {
 
   def usage = "usage: metarank bootstrap <config path>"
 
-  override def job(config: Config, mapping: FeatureMapping, streamEnv: StreamExecutionEnvironment): Unit = {
+  override def run(
+      args: List[String],
+      env: Map[String, String],
+      config: Config,
+      mapping: FeatureMapping
+  ): IO[ExitCode] = for {
+    _ <- IO { logger.info("Performing bootstap.") }
+    _ <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
+
+  } yield {
+    val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
+    config.bootstrap.parallelism.foreach(streamEnv.setParallelism)
+
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
@@ -71,31 +85,6 @@ object Bootstrap extends FlinkJob with CliApp {
 
     makeSavepoint(streamEnv, config.bootstrap.workdir, mapping)
     logger.info("Bootstrap done")
-  }
-
-  override def run(
-      args: List[String],
-      env: Map[String, String],
-      config: Config,
-      mapping: FeatureMapping
-  ): IO[ExitCode] = for {
-    _ <- IO { logger.info("Performing bootstap.") }
-    _ <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
-
-  } yield {
-    config.bootstrap.workdir match {
-      case path: MPath.LocalPath if path.file.notExists =>
-        logger.info(s"local dir $path does not exist, creating")
-        path.file.createDirectoryIfNotExists(createParents = true)
-      case _ => // none
-    }
-
-    val streamEnv =
-      StreamExecutionEnvironment.createLocalEnvironment(
-        config.bootstrap.parallelism.getOrElse(1),
-        FlinkS3Configuration(System.getenv())
-      )
-    job(config, mapping, streamEnv)
     ExitCode.Success
   }
 

@@ -19,7 +19,7 @@ object Main extends IOApp with Logging {
     case "upload" :: tail     => Upload.run(tail)
     case "validate" :: tail   => Validate.run(tail)
     case "api" :: tail        => Api.run(tail)
-    case "update" :: tail     => IO { Update.main(tail.toArray) } *> IO.pure(ExitCode.Success)
+    case "update" :: tail     => Update.run(tail)
     case "help" :: _          => printHelp()
     case Nil                  => printHelp()
 

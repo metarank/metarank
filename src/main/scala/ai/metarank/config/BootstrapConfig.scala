@@ -7,7 +7,7 @@ import io.circe.generic.extras.Configuration
 case class BootstrapConfig(
     source: EventSourceConfig,
     workdir: MPath,
-    parallelism: Int = 1,
+    parallelism: Option[Int],
     syntheticImpression: SyntheticImpressionConfig = SyntheticImpressionConfig()
 )
 object BootstrapConfig {

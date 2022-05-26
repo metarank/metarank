@@ -11,7 +11,7 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
-import ai.metarank.mode.{CliApp, FileLoader, FlinkS3Configuration}
+import ai.metarank.mode.{CliApp, FileLoader, FlinkJob, FlinkS3Configuration}
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.rank.Model
@@ -40,7 +40,7 @@ import io.findify.flink.api._
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
-object Bootstrap extends CliApp {
+object Bootstrap extends FlinkJob with CliApp {
   import ai.metarank.flow.DataStreamOps._
   import ai.metarank.mode.TypeInfos._
 
@@ -55,7 +55,23 @@ object Bootstrap extends CliApp {
     implicitly[TypeInformation[Field]]
   )
 
-  override val usage = "usage: metarank bootstrap <config path>"
+  def usage = "usage: metarank bootstrap <config path>"
+
+  override def job(config: Config, mapping: FeatureMapping, streamEnv: StreamExecutionEnvironment): Unit = {
+    streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
+    streamEnv.getConfig.enableObjectReuse()
+    logger.info("starting historical data processing")
+
+    val raw: DataStream[Event] =
+      EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
+    makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
+    streamEnv.execute("metarank-bootstrap")
+
+    logger.info("processing done, generating savepoint")
+
+    makeSavepoint(streamEnv, config.bootstrap.workdir, mapping)
+    logger.info("Bootstrap done")
+  }
 
   override def run(
       args: List[String],
@@ -76,22 +92,10 @@ object Bootstrap extends CliApp {
 
     val streamEnv =
       StreamExecutionEnvironment.createLocalEnvironment(
-        config.bootstrap.parallelism,
+        config.bootstrap.parallelism.getOrElse(1),
         FlinkS3Configuration(System.getenv())
       )
-    streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
-    streamEnv.getConfig.enableObjectReuse()
-    logger.info("starting historical data processing")
-
-    val raw: DataStream[Event] =
-      EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
-    makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
-    streamEnv.execute("bootstrap")
-
-    logger.info("processing done, generating savepoint")
-
-    makeSavepoint(streamEnv, config.bootstrap.workdir, mapping)
-    logger.info("Bootstrap done")
+    job(config, mapping, streamEnv)
     ExitCode.Success
   }
 

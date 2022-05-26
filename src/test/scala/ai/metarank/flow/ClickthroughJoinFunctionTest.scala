@@ -7,11 +7,10 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.findify.flink.api._
 import io.findify.flink.api.extensions._
-import io.findify.flinkadt.api._
-import scala.language.higherKinds
 
 class ClickthroughJoinFunctionTest extends AnyFlatSpec with Matchers with FlinkTest {
   import DataStreamOps._
+  import ai.metarank.mode.TypeInfos._
 
   it should "collapse rank+click" in {
     val result = env

@@ -53,7 +53,7 @@ models:
 bootstrap:
   workdir: file:///tmp/bootstrap
   # how many CPUs use to process the data
-  # parallelism: 1
+  # parallelism: 1 # default - take from the runtime env (like flink k8s job params)
 
   # inject synthetic "user examined these items in ranking" impression events
   # see doc/click-models.md for details, enabled by default

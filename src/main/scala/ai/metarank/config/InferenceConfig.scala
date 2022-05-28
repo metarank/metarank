@@ -8,7 +8,7 @@ case class InferenceConfig(
     host: String = "0.0.0.0",
     state: StateStoreConfig,
     source: EventSourceConfig,
-    parallelism: Int = 1
+    parallelism: Option[Int] = None
 )
 object InferenceConfig {
   import io.circe.generic.extras.semiauto._

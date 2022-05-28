@@ -40,6 +40,8 @@ import io.findify.flink.api._
 import io.findify.flinkadt.api._
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 
+import java.nio.charset.StandardCharsets
+
 object Bootstrap extends CliApp {
   import ai.metarank.flow.DataStreamOps._
   import ai.metarank.mode.TypeInfos._
@@ -55,7 +57,7 @@ object Bootstrap extends CliApp {
     implicitly[TypeInformation[Field]]
   )
 
-  override val usage = "usage: metarank bootstrap <config path>"
+  def usage = "usage: metarank bootstrap <config path>"
 
   override def run(
       args: List[String],
@@ -67,18 +69,9 @@ object Bootstrap extends CliApp {
     _ <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
 
   } yield {
-    config.bootstrap.workdir match {
-      case path: MPath.LocalPath if path.file.notExists =>
-        logger.info(s"local dir $path does not exist, creating")
-        path.file.createDirectoryIfNotExists(createParents = true)
-      case _ => // none
-    }
+    val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
+    config.bootstrap.parallelism.foreach(streamEnv.setParallelism)
 
-    val streamEnv =
-      StreamExecutionEnvironment.createLocalEnvironment(
-        config.bootstrap.parallelism,
-        FlinkS3Configuration(System.getenv())
-      )
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
@@ -86,7 +79,7 @@ object Bootstrap extends CliApp {
     val raw: DataStream[Event] =
       EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
     makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
-    streamEnv.execute("bootstrap")
+    streamEnv.execute("metarank-bootstrap")
 
     logger.info("processing done, generating savepoint")
 

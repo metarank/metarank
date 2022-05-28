@@ -1,9 +1,8 @@
 import Deps._
-import com.typesafe.sbt.packager.docker.{Cmd, DockerPermissionStrategy}
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / version      := "0.3.1"
+ThisBuild / version      := "0.3.1-k8s"
 
 /** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
   * building. With this approach we have a custom MergeStrategy, which drops all files from flink-s3-fs-hadoop jar if
@@ -29,7 +28,7 @@ lazy val flinkS3Conflicts = List(
 val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Conflicts)
 
 lazy val root = (project in file("."))
-  .enablePlugins(DockerPlugin, JavaServerAppPackaging)
+  .enablePlugins(DockerPlugin)
   .configs(IntegrationTest extend Test)
   .settings(
     Defaults.itSettings,
@@ -45,33 +44,32 @@ lazy val root = (project in file("."))
       "-Xfatal-warnings"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"          % "3.3.12",
-      "org.typelevel"        %% "log4cats-core"        % log4catsVersion,
-      "org.typelevel"        %% "log4cats-slf4j"       % log4catsVersion,
-      "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
-      "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
-      "org.scalatestplus"    %% "scalacheck-1-16"      % "3.2.12.0"       % "test,it",
-      "ch.qos.logback"        % "logback-classic"      % "1.2.11",
-      "io.circe"             %% "circe-yaml"           % circeYamlVersion,
-      "io.circe"             %% "circe-core"           % circeVersion,
-      "io.circe"             %% "circe-generic"        % circeVersion,
-      "io.circe"             %% "circe-generic-extras" % circeVersion,
-      "io.circe"             %% "circe-parser"         % circeVersion,
-      "com.github.pathikrit" %% "better-files"         % "3.9.1",
-      "com.github.scopt"     %% "scopt"                % "4.0.1",
-      "redis.clients"         % "jedis"                % "4.2.3",
-      "com.github.blemale"   %% "scaffeine"            % "5.2.0",
-      "com.github.fppt"       % "jedis-mock"           % "1.0.2"          % "test,it",
-      "org.scala-lang"        % "scala-reflect"        % scalaVersion.value,
-      "io.findify"           %% "featury-flink"        % featuryVersion,
-      "io.findify"           %% "featury-redis"        % featuryVersion,
-      // "org.apache.flink"     %% "flink-scala"                % flinkVersion,
-      "org.apache.flink" % "flink-statebackend-rocksdb" % flinkVersion,
-      "org.apache.flink" % "flink-connector-files"      % flinkVersion,
-      "org.apache.flink" % "flink-runtime-web"          % flinkVersion,
-      "io.findify"      %% "flink-scala-api"            % "1.15-2",
-      "org.apache.flink" % "flink-connector-kafka"      % flinkVersion,
-      "org.apache.flink" % "flink-connector-pulsar"     % flinkVersion excludeAll (
+      "org.typelevel"        %% "cats-effect"                % "3.3.12",
+      "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
+      "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
+      "org.scalatest"        %% "scalatest"                  % scalatestVersion % "test,it",
+      "org.scalactic"        %% "scalactic"                  % scalatestVersion % "test,it",
+      "org.scalatestplus"    %% "scalacheck-1-16"            % "3.2.12.0"       % "test,it",
+      "ch.qos.logback"        % "logback-classic"            % "1.2.11",
+      "io.circe"             %% "circe-yaml"                 % circeYamlVersion,
+      "io.circe"             %% "circe-core"                 % circeVersion,
+      "io.circe"             %% "circe-generic"              % circeVersion,
+      "io.circe"             %% "circe-generic-extras"       % circeVersion,
+      "io.circe"             %% "circe-parser"               % circeVersion,
+      "com.github.pathikrit" %% "better-files"               % "3.9.1",
+      "com.github.scopt"     %% "scopt"                      % "4.0.1",
+      "redis.clients"         % "jedis"                      % "4.2.3",
+      "com.github.blemale"   %% "scaffeine"                  % "5.2.0",
+      "com.github.fppt"       % "jedis-mock"                 % "1.0.2"          % "test,it",
+      "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
+      "io.findify"           %% "featury-flink"              % featuryVersion,
+      "io.findify"           %% "featury-redis"              % featuryVersion,
+      "org.apache.flink"      % "flink-statebackend-rocksdb" % flinkVersion,
+      "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
+      "org.apache.flink"      % "flink-runtime-web"          % flinkVersion,
+      "io.findify"           %% "flink-scala-api"            % "1.15-2",
+      "org.apache.flink"      % "flink-connector-kafka"      % flinkVersion,
+      "org.apache.flink"      % "flink-connector-pulsar"     % flinkVersion excludeAll (
         ExclusionRule("com.sun.activation", "javax.activation")
       ),
       "org.apache.flink" % "flink-test-utils" % flinkVersion excludeAll (
@@ -97,23 +95,37 @@ lazy val root = (project in file("."))
     ),
     Compile / mainClass             := Some("ai.metarank.Main"),
     Compile / discoveredMainClasses := Seq(),
-    maintainer                      := "Metarank team",
-    dockerExposedPorts ++= Seq(8080, 6123),
-    dockerPermissionStrategy := DockerPermissionStrategy.Run,
-    dockerBaseImage          := "openjdk:11.0.14.1-jdk",
-    dockerExposedVolumes     := List("/data"),
-    dockerAliases := List(
-      DockerAlias(None, Some("metarank"), "metarank", Some("latest")),
-      DockerAlias(None, Some("metarank"), "metarank", Some(version.value))
-    ),
-    dockerCommands := dockerCommands.value.flatMap {
-      case Cmd("USER", args @ _*) if args.contains("1001:0") =>
-        Seq(
-          Cmd("RUN", "apt-get update && apt-get -y install libgomp1"),
-          Cmd("USER", args: _*)
-        )
-      case cmd => Seq(cmd)
+    docker / dockerfile := {
+      val artifact: File     = assembly.value
+      val artifactTargetPath = s"/app/${artifact.name}"
+
+      new Dockerfile {
+        from("flink:1.15")
+        add(artifact, artifactTargetPath)
+        add(new File("deploy/metarank.sh"), "/metarank.sh")
+        entryPoint("/metarank.sh")
+      }
     },
+    docker / imageNames := Seq(
+      ImageName("metarank/metarank:latest"),
+      ImageName(s"metarank/metarank:${version.value}")
+    ),
+//    dockerExposedPorts ++= Seq(8080, 6123),
+//    dockerPermissionStrategy := DockerPermissionStrategy.Run,
+//    dockerBaseImage          := "flink:1.15",
+//    dockerExposedVolumes     := List("/data"),
+//    dockerAliases := List(
+//      DockerAlias(None, Some("metarank"), "metarank", Some("latest")),
+//      DockerAlias(None, Some("metarank"), "metarank", Some(version.value))
+//    ),
+//    dockerCommands := dockerCommands.value.flatMap {
+//      case Cmd("USER", args @ _*) if args.contains("1001:0") =>
+//        Seq(
+//          Cmd("RUN", "apt-get update && apt-get -y install libgomp1"),
+//          Cmd("USER", args: _*)
+//        )
+//      case cmd => Seq(cmd)
+//    },
     ThisBuild / assemblyMergeStrategy := {
       case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy
       case PathList("module-info.class")                                => MergeStrategy.discard

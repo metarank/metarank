@@ -101,8 +101,13 @@ lazy val root = (project in file("."))
 
       new Dockerfile {
         from("flink:1.15")
-        add(artifact, artifactTargetPath)
+        run("mkdir", "/opt/flink/plugins/s3-fs-hadoop")
+        run("cp", "/opt/flink/opt/flink-s3-fs-hadoop-1.15.0.jar", "/opt/flink/plugins/s3-fs-hadoop/")
+        run("rm", "/opt/flink/lib/flink-scala_2.12-1.15.0.jar")
+        run("apt-get", "update")
+        run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping", "openjdk-11-jdk-headless")
         add(new File("deploy/metarank.sh"), "/metarank.sh")
+        add(artifact, artifactTargetPath)
         entryPoint("/metarank.sh")
       }
     },
@@ -110,22 +115,6 @@ lazy val root = (project in file("."))
       ImageName("metarank/metarank:latest"),
       ImageName(s"metarank/metarank:${version.value}")
     ),
-//    dockerExposedPorts ++= Seq(8080, 6123),
-//    dockerPermissionStrategy := DockerPermissionStrategy.Run,
-//    dockerBaseImage          := "flink:1.15",
-//    dockerExposedVolumes     := List("/data"),
-//    dockerAliases := List(
-//      DockerAlias(None, Some("metarank"), "metarank", Some("latest")),
-//      DockerAlias(None, Some("metarank"), "metarank", Some(version.value))
-//    ),
-//    dockerCommands := dockerCommands.value.flatMap {
-//      case Cmd("USER", args @ _*) if args.contains("1001:0") =>
-//        Seq(
-//          Cmd("RUN", "apt-get update && apt-get -y install libgomp1"),
-//          Cmd("USER", args: _*)
-//        )
-//      case cmd => Seq(cmd)
-//    },
     ThisBuild / assemblyMergeStrategy := {
       case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy
       case PathList("module-info.class")                                => MergeStrategy.discard

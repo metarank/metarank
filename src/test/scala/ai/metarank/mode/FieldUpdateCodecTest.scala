@@ -6,6 +6,7 @@ import ai.metarank.model.{FieldId, FieldUpdate}
 import ai.metarank.model.FieldId.{ItemFieldId, UserFieldId}
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import io.findify.featury.model.Key.Tenant
+import io.findify.featury.model.Timestamp
 import org.apache.commons.io.output.ByteArrayOutputStream
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
@@ -78,8 +79,9 @@ class FieldUpdateCodecTest extends AnyFlatSpec with Matchers with ScalaCheckProp
   val fieldUpdateGen = for {
     id    <- idGen
     value <- fieldGen
+    ts    <- Gen.posNum[Long]
   } yield {
-    FieldUpdate(id, value)
+    FieldUpdate(id, value, Timestamp(ts))
   }
 
   it should "process events" in {

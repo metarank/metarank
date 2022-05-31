@@ -6,6 +6,7 @@ import ai.metarank.model.FieldUpdate
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import io.findify.featury.flink.format.BulkCodec
 import io.findify.featury.model.Key.Tenant
+import io.findify.featury.model.Timestamp
 
 import java.io.{DataInputStream, DataOutputStream, InputStream, OutputStream}
 
@@ -35,7 +36,7 @@ case object FieldUpdateCodec extends BulkCodec[FieldUpdate] {
           id    <- idOption
           value <- valueOption
         } yield {
-          FieldUpdate(id, value)
+          FieldUpdate(id, value, Timestamp(view.readLong()))
         }
     }
   }
@@ -83,5 +84,6 @@ case object FieldUpdateCodec extends BulkCodec[FieldUpdate] {
         view.writeInt(value.size)
         value.foreach(view.writeDouble)
     }
+    view.writeLong(value.ts.ts)
   }
 }

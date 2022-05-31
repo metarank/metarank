@@ -11,12 +11,13 @@ import org.apache.flink.connector.file.src.util.CheckpointedPosition
 import org.apache.flink.core.fs.{FSDataInputStream, Path}
 import io.circe.parser._
 
-import java.io.{ByteArrayOutputStream, InputStream}
+import java.io.{BufferedInputStream, ByteArrayOutputStream, InputStream}
 import ai.metarank.flow.DataStreamOps._
 import ai.metarank.util.Logging
 import org.apache.flink.connector.file.src.compression.StandardDeCompressors
 import org.apache.flink.connector.file.src.enumerate.NonSplittingRecursiveEnumerator
 import io.findify.flink.api._
+import org.apache.hadoop.fs.BufferedFSInputStream
 
 import scala.jdk.CollectionConverters._
 
@@ -80,7 +81,7 @@ object FileEventSource {
     override def getProducedType: TypeInformation[Event] = ti
   }
 
-  case class EventReader(stream: FSDataInputStream) extends StreamFormat.Reader[Event] with Logging {
+  case class EventReader(raw: FSDataInputStream, stream: InputStream) extends StreamFormat.Reader[Event] with Logging {
     override def read(): Event = {
       val line = readLine(stream)
       if (line != null) decode[Event](line) match {
@@ -95,13 +96,14 @@ object FileEventSource {
 
     override def close(): Unit = stream.close()
 
-    override def getCheckpointedPosition: CheckpointedPosition = new CheckpointedPosition(stream.getPos, 0)
+    override def getCheckpointedPosition: CheckpointedPosition = new CheckpointedPosition(raw.getPos, 0)
   }
 
   object EventReader {
-    def apply(stream: FSDataInputStream, offset: Long) = {
+    def apply(stream: FSDataInputStream, offset: Long = 0L) = {
       stream.seek(offset)
-      new EventReader(stream)
+      val buffered = new BufferedInputStream(stream, 1024 * 1024)
+      new EventReader(stream, buffered)
     }
   }
 

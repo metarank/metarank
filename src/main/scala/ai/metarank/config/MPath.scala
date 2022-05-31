@@ -32,7 +32,7 @@ object MPath {
     def apply(file: File) = new LocalPath(file.toString())
   }
 
-  val s3Pattern            = "s3://([a-z0-9\\.\\-]{3,})/([ a-zA-Z0-9\\!\\-_\\.\\*'\\(\\)]+)".r
+  val s3Pattern            = "s3://([a-z0-9\\.\\-]{3,})/([ a-zA-Z0-9\\!\\-_\\.\\*'\\(\\)/]+)".r
   val localSchemePattern3  = "file:///(.+)".r
   val localSchemePattern2  = "file://(.+)".r
   val localAbsolutePattern = "/(.+)".r
@@ -40,13 +40,16 @@ object MPath {
 
   implicit val decoder: Decoder[MPath] = Decoder.decodeString.map[MPath](string => MPath(string))
 
-  def apply(path: String): MPath = path match {
-    case s3Pattern(bucket, path)    => S3Path(bucket, path)
-    case localSchemePattern3(path)  => LocalPath("/" + path)
-    case localSchemePattern2(path)  => LocalPath("/" + path)
-    case localAbsolutePattern(path) => LocalPath("/" + path)
-    case localRelativePattern(path) => LocalPath((cwd / path).toString())
-    case other                      => LocalPath((cwd / other).toString())
+  def apply(path: String): MPath = {
+    val br = 1
+    path match {
+      case s3Pattern(bucket, path)    => S3Path(bucket, path)
+      case localSchemePattern3(path)  => LocalPath("/" + path)
+      case localSchemePattern2(path)  => LocalPath("/" + path)
+      case localAbsolutePattern(path) => LocalPath("/" + path)
+      case localRelativePattern(path) => LocalPath((cwd / path).toString())
+      case other                      => LocalPath((cwd / other).toString())
+    }
   }
 
   def apply(file: File) = LocalPath(file.toString())

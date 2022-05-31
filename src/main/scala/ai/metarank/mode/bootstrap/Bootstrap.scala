@@ -70,7 +70,8 @@ object Bootstrap extends CliApp {
 
   } yield {
     val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
-    config.bootstrap.parallelism.foreach(streamEnv.setParallelism)
+    streamEnv.setParallelism(2)
+    // config.bootstrap.parallelism.foreach(streamEnv.setParallelism)
 
     streamEnv.setRuntimeMode(RuntimeExecutionMode.BATCH)
     streamEnv.getConfig.enableObjectReuse()
@@ -80,10 +81,6 @@ object Bootstrap extends CliApp {
       EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
     makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
     streamEnv.execute("metarank-bootstrap")
-
-    logger.info("processing done, generating savepoint")
-
-    makeSavepoint(streamEnv, config.bootstrap.workdir, mapping)
     logger.info("Bootstrap done")
     ExitCode.Success
   }
@@ -94,23 +91,12 @@ object Bootstrap extends CliApp {
 
     val lastState    = selectLast[State, Key](state, _.key, _.ts).id("last-state")
     val lastFeatures = selectLast[FeatureValue, Key](updates, _.key, _.ts).id("last-features")
-    // val lastFields = selectLast[FieldUpdate, FieldId](fields, _.id, )
+    val lastFields   = selectLast[FieldUpdate, FieldId](fields, _.id, _.ts).id("last-fields")
 
-    Featury.writeState(lastState, dir.child("state").flinkPath, Compress.NoCompression).id("write-state")
     Featury
       .writeFeatures(lastFeatures, dir.child("features").flinkPath, Compress.NoCompression)
       .id("write-features")
-    val fieldsPath = dir.child("fields").flinkPath
-    fields
-      .sinkTo(
-        CompressedBulkWriter.writeFile(
-          path = fieldsPath,
-          compress = Compress.NoCompression,
-          codec = FieldUpdateCodec,
-          prefix = "fields"
-        )
-      )
-      .id("write-fields")
+
     val clickthroughs = grouped.process(ClickthroughJoinFunction()).id(s"clickthroughs")
     val joined = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
 
@@ -124,6 +110,8 @@ object Bootstrap extends CliApp {
         .id(s"$name-write-train")
 
     }
+
+    makeSavepoint(lastState, lastFields, lastFeatures, mapping, dir)
   }
 
   def selectLast[T, K: TypeInformation](stream: DataStream[T], key: T => K, ts: T => Timestamp): DataStream[T] = {
@@ -173,32 +161,13 @@ object Bootstrap extends CliApp {
     (state, fieldUpdates, updates)
   }
 
-  def makeSavepoint(env: StreamExecutionEnvironment, dir: MPath, mapping: FeatureMapping) = {
-    val fieldsPath = dir / "fields"
-    val fieldsSource = env
-      .fromSource(
-        CompressedBulkReader.readFile(fieldsPath.flinkPath, Compress.NoCompression, FieldUpdateCodec),
-        WatermarkStrategy.noWatermarks(),
-        "read-fields"
-      )
-
-    val stateSource = env.fromSource(
-      Featury.readState(dir.child("state").flinkPath, Compress.NoCompression),
-      WatermarkStrategy.noWatermarks(),
-      "read-state"
-    )
-
-    val valuesPath = dir / "features"
-    val valuesSource = env.fromSource(
-      Featury.readFeatures(
-        path = valuesPath.flinkPath,
-        codec = BulkCodec.featureValueProtobufCodec,
-        compress = Compress.NoCompression
-      ),
-      WatermarkStrategy.noWatermarks(),
-      "read-features"
-    )
-
+  def makeSavepoint(
+      stateSource: DataStream[State],
+      fieldsSource: DataStream[FieldUpdate],
+      valuesSource: DataStream[FeatureValue],
+      mapping: FeatureMapping,
+      dir: MPath
+  ) = {
     val transformStateJoin = OperatorTransformation
       .bootstrapWith(valuesSource.javaStream)
       .keyBy(FeatureValueKeySelector, deriveTypeInformation[Tenant])
@@ -220,7 +189,5 @@ object Bootstrap extends CliApp {
       .withOperator("join-state", transformStateJoin)
       .withOperator("process-events", transformFields)
       .write(dir.child("savepoint").uri)
-
-    env.execute("savepoint")
   }
 }

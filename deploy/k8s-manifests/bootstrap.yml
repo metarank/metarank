@@ -1,0 +1,57 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: metarank-bootstrap
+spec:
+  image: metarank:0.3.1-k8s
+  serviceAccount: flink
+  flinkVersion: v1_15
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "1"
+    state.savepoints.dir: s3://metarank-tmp/flink/savepoints
+    state.checkpoints.dir: s3://metarank-tmp/flink/checkpoints
+    high-availability: org.apache.flink.kubernetes.highavailability.KubernetesHaServicesFactory
+    high-availability.storageDir: s3://metarank-tmp/flink/ha
+  podTemplate:
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: pod-template
+    spec:
+      containers:
+        # Do not change the main container name
+        - name: flink-main-container
+          volumeMounts:
+            - name: config
+              mountPath: /config/
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: metarank-keys
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: metarank-keys
+                  key: AWS_SECRET_ACCESS_KEY
+      volumes:
+        - name: config
+          configMap:
+            name: metarank-config
+  jobManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "2048m"
+      cpu: 1
+  job:
+    jarURI: local:///app/metarank.jar
+    entryClass: ai.metarank.mode.bootstrap.Bootstrap
+    args:
+      - "/config/metarank.conf"
+    parallelism: 2
+    upgradeMode: savepoint
+    state: running

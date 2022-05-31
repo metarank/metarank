@@ -14,8 +14,8 @@ trait CliApp extends IOApp with Logging {
   def run(args: List[String], env: Map[String, String], config: Config, mapping: FeatureMapping): IO[ExitCode]
 
   override def run(args: List[String]): IO[ExitCode] = {
-    val env = System.getenv().asScala.toMap
     for {
+      env <- IO { System.getenv().asScala.toMap }
       confPath <- IO.fromOption(args.headOption.orElse(env.get("METARANK_CONFIG")))(
         new Exception(s"config cannot be loaded. $usage")
       )

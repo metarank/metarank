@@ -2,17 +2,16 @@ package ai.metarank.mode.train
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
-import ai.metarank.mode.{CliApp, FileLoader}
+import ai.metarank.mode.CliApp
 import ai.metarank.rank.{LambdaMARTModel, Model}
-import ai.metarank.util.Logging
-import better.files.File
-import cats.effect.{ExitCode, IO, IOApp}
+import ai.metarank.util.fs.{FS, LineReader}
+import cats.implicits._
+import cats.effect.{ExitCode, IO}
 import io.circe.parser._
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
-import scala.jdk.CollectionConverters._
 
 object Train extends CliApp {
   import ai.metarank.flow.DatasetSink.queryCodec
@@ -30,19 +29,15 @@ object Train extends CliApp {
       case Some(value: LambdaMARTModel) => IO.pure(value)
       case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
     }
-    data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName)
+    data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName, env)
     _    <- train(data, ranker, ranker.conf.path, env)
   } yield {
     ExitCode.Success
   }
 
-  def loadData(path: MPath, desc: DatasetDescriptor, modelName: String) = {
+  def loadData(path: MPath, desc: DatasetDescriptor, modelName: String, env: Map[String, String]) = {
     for {
-      dataPath <- path / s"dataset-$modelName" match {
-        case MPath.S3Path(_, _)    => IO.raiseError(new Exception(s"training works yet only with local datasets"))
-        case MPath.LocalPath(path) => IO(File(path))
-      }
-      files <- IO { dataPath.listRecursively().filter(_.extension(includeDot = false).contains("json")).toList }
+      files <- FS.listRecursive(path / s"dataset-$modelName", env).map(_.filter(_.path.endsWith(".json")))
       filesNel <- files match {
         case Nil =>
           IO.raiseError(
@@ -50,11 +45,12 @@ object Train extends CliApp {
           )
         case nel => IO(logger.info(s"found training dataset files: $files")) *> IO.pure(nel)
       }
+      contents <- filesNel.map(file => IO(logger.info(s"reading $file")) *> FS.read(file, env)).sequence
       queries <- IO {
         for {
-          file  <- filesNel
-          line  <- file.lineIterator(StandardCharsets.UTF_8)
-          query <- decode[Query](line).toOption
+          fileBytes <- contents
+          line      <- LineReader.lines(fileBytes)
+          query     <- decode[Query](line).toOption
         } yield {
           query
         }
@@ -87,7 +83,7 @@ object Train extends CliApp {
     val (train, test) = split(data, 80)
     ranker.train(train, test) match {
       case Some(modelBytes) =>
-        FileLoader.write(path, env, modelBytes) *> IO(logger.info(s"model written to $path"))
+        FS.write(path, modelBytes, env) *> IO(logger.info(s"model written to $path"))
       case None =>
         IO(logger.info("model is empty"))
     }

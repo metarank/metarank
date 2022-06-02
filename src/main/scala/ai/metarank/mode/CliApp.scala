@@ -3,6 +3,7 @@ package ai.metarank.mode
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.util.Logging
+import ai.metarank.util.fs.FS
 import cats.effect.{ExitCode, IO, IOApp}
 
 import scala.jdk.CollectionConverters._
@@ -18,7 +19,7 @@ trait CliApp extends IOApp with Logging {
       case configPath :: _ =>
         for {
           env          <- IO { System.getenv().asScala.toMap }
-          confContents <- FileLoader.read(MPath(configPath), env)
+          confContents <- FS.read(MPath(configPath), env)
           config       <- Config.load(new String(confContents, StandardCharsets.UTF_8))
           mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.models) }
           result       <- run(args, env, config, mapping)

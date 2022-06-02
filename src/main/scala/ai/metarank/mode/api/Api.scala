@@ -5,12 +5,13 @@ import ai.metarank.config.Config
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.mode.standalone.{FeatureStoreResource, Logo}
 import ai.metarank.mode.standalone.api.{FeedbackApi, HealthApi, RankApi}
-import ai.metarank.mode.{CliApp, FileLoader}
+import ai.metarank.mode.CliApp
 import ai.metarank.model.Event
 import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.ShuffleModel.ShuffleScorer
+import ai.metarank.util.fs.FS
 import cats.effect.kernel.Ref
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, Resource}
@@ -55,7 +56,7 @@ object Api extends CliApp {
     config.models.toNel.toList
       .map {
         case (name, LambdaMARTConfig(path, backend, _, _)) =>
-          FileLoader.read(path, env).map(file => name -> LambdaMARTScorer(backend, file))
+          FS.read(path, env).map(file => name -> LambdaMARTScorer(backend, file))
         case (name, ShuffleConfig(maxPositionChange)) =>
           IO.pure(name -> ShuffleScorer(maxPositionChange))
         case (name, _: NoopConfig) =>

@@ -50,6 +50,6 @@ class TrainTest extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks 
 //  }
 
   it should "fail on empty dir" in {
-    Try(Train.loadData(MPath(File("/no/such/dir")), desc, "foo").unsafeRunSync()).isFailure shouldBe true
+    Try(Train.loadData(MPath(File("/no/such/dir")), desc, "foo", Map.empty).unsafeRunSync()).isFailure shouldBe true
   }
 }

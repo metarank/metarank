@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
-import ai.metarank.config.MPath.{LocalPath, S3Path}
+import MPath.{LocalPath, S3Path}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.config.StateStoreConfig.MemConfig

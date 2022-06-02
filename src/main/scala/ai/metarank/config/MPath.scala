@@ -1,11 +1,9 @@
 package ai.metarank.config
 
-import io.circe.Decoder
 import better.files.Dsl.cwd
 import better.files.File
+import io.circe.Decoder
 import org.apache.flink.core.fs.Path
-
-import scala.util.Random
 
 sealed trait MPath {
   def path: String
@@ -41,7 +39,6 @@ object MPath {
   implicit val decoder: Decoder[MPath] = Decoder.decodeString.map[MPath](string => MPath(string))
 
   def apply(path: String): MPath = {
-    val br = 1
     path match {
       case s3Pattern(bucket, path)    => S3Path(bucket, path)
       case localSchemePattern3(path)  => LocalPath("/" + path)

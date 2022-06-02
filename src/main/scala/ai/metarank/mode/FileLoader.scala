@@ -1,7 +1,7 @@
 package ai.metarank.mode
 
 import ai.metarank.config.MPath
-import ai.metarank.config.MPath.LocalPath
+import MPath.LocalPath
 import better.files.File
 import cats.effect.{IO, Resource}
 import com.amazonaws.auth.{AWSCredentials, AWSStaticCredentialsProvider, BasicAWSCredentials}

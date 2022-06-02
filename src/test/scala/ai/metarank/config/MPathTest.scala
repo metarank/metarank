@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.config.MPath.{LocalPath, S3Path}
+import MPath.{LocalPath, S3Path}
 import ai.metarank.config.MPathTest.Something
 import io.circe.Decoder
 import org.scalatest.flatspec.AnyFlatSpec

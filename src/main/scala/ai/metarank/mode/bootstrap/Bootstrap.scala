@@ -11,13 +11,10 @@ import ai.metarank.flow.{
   EventStateJoin,
   ImpressionInjectFunction
 }
-import ai.metarank.mode.{CliApp, FileLoader, FlinkS3Configuration}
+import ai.metarank.mode.CliApp
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
-import ai.metarank.rank.Model
 import ai.metarank.source.EventSource
-import ai.metarank.util.Logging
-import better.files.File
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
 import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat, CompressedBulkReader, CompressedBulkWriter}

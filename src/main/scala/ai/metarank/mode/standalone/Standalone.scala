@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.api.Api
-import ai.metarank.mode.{CliApp, FileLoader, FlinkS3Configuration}
+import ai.metarank.mode.{CliApp, FlinkS3Configuration}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.source.EventSource
 import cats.effect.{ExitCode, IO, IOApp, Resource}

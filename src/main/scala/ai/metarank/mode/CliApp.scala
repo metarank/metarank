@@ -4,6 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.EventSourceConfig.FileSourceConfig
 import ai.metarank.config.{Config, EventSourceConfig, MPath}
 import ai.metarank.util.Logging
+import ai.metarank.util.fs.FS
 import cats.effect.{ExitCode, IO, IOApp}
 
 import scala.jdk.CollectionConverters._
@@ -20,7 +21,7 @@ trait CliApp extends IOApp with Logging {
       confPath <- IO.fromOption(args.headOption.orElse(env.get("METARANK_CONFIG")))(
         new Exception(s"config cannot be loaded. $usage")
       )
-      confContents <- FileLoader.read(MPath(confPath), env)
+      confContents <- FS.read(MPath(confPath), env)
       configRaw    <- Config.load(new String(confContents, StandardCharsets.UTF_8))
       config       <- IO { confOverride(configRaw, env) }
       mapping      <- IO.pure { FeatureMapping.fromFeatureSchema(config.features, config.models) }

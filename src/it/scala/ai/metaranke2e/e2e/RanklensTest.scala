@@ -3,7 +3,6 @@ package ai.metaranke2e.e2e
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.flow.DataStreamOps._
-import ai.metarank.mode.FileLoader
 import ai.metarank.mode.api.Api
 import ai.metarank.mode.bootstrap.Bootstrap
 import ai.metarank.mode.standalone.RedisEndpoint.EmbeddedRedis
@@ -15,6 +14,7 @@ import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId}
 import ai.metarank.rank.LambdaMARTModel
+import ai.metarank.util.fs.FS
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import better.files.File
 import cats.data.NonEmptyList
@@ -72,10 +72,11 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
 //  }
 
   def train(modelName: String) = {
-    val model         = mapping.models(modelName).asInstanceOf[LambdaMARTModel]
-    val dataset       = Train.loadData(config.bootstrap.workdir, model.datasetDescriptor, modelName).unsafeRunSync()
+    val model = mapping.models(modelName).asInstanceOf[LambdaMARTModel]
+    val dataset =
+      Train.loadData(config.bootstrap.workdir, model.datasetDescriptor, modelName, Map.empty).unsafeRunSync()
     val (train, test) = Train.split(dataset, 80)
-    FileLoader.write(model.conf.path, Map.empty, model.train(train, test).get).unsafeRunSync()
+    FS.write(model.conf.path, model.train(train, test).get, Map.empty).unsafeRunSync()
   }
 
   it should "rerank things" in {

@@ -36,6 +36,7 @@ Windowed counter has the same semantics as the interaction one, but is configure
   type: window_count
   interaction: click
   scope: item
+  count: 10 // optional, take only the last 10 clicks performed by the user
   bucket_size: 24h // make a counter for each 24h rolling window
   windows: [7, 14, 30, 60] // on each refresh, aggregate to 1-2-4-8 week counts
   refresh: 60s // optional, how frequently we should update the value, 0s by default

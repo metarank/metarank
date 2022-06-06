@@ -10,12 +10,15 @@ Both of these stages require event data stream and Metarank provides several sou
 
 ## Bootstrapping data sources
 
+### Common options
+
 ### File
 
 Config file definition example:
 ```yaml
 type: file
 path: file:///ranklens/events/
+offset: earliest|latest|ts=<unixtime>|last=<duration>
 ```
 
 The *path* parameter supports the following possible access scheme formats:

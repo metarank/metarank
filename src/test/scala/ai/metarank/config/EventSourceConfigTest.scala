@@ -66,6 +66,48 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "decode kinesis config with options" in {
+    val yaml = """type: kinesis
+                 |topic: events
+                 |offset: earliest
+                 |region: us-east-1
+                 |options:
+                 |  foo.baz: bar
+                 |  foo.qux: '8'
+                 |""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      KinesisSourceConfig(
+        topic = "events",
+        offset = SourceOffset.Earliest,
+        region = "us-east-1",
+        options = Some(
+          Map(
+            "foo.baz" -> "bar",
+            "foo.qux" -> "8"
+          )
+        )
+      )
+    )
+  }
+
+  it should "decode kinesis config without options" in {
+    val yaml = """type: kinesis
+                 |topic: events
+                 |offset: earliest
+                 |region: us-east-1
+                 |""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      KinesisSourceConfig(
+        topic = "events",
+        offset = SourceOffset.Earliest,
+        region = "us-east-1",
+        options = None
+      )
+    )
+  }
+
   it should "decode rest config" in {
     val yaml    = "type: rest"
     val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])

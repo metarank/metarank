@@ -6,7 +6,24 @@ and all the ML features. It's a one-time batch offline job, used for generating 
 * *inference*: loads the snapshot from the bootstrapping phase and continues processing live events that come realtime. It's
 a continuous realtime online job.
 
-Both of these stages require event data stream and Metarank provides several sources that Metarank can use to read these events.
+An overview diagram of event flow during inference/bootstrap is shown below:
+![bootstrap and inference event flow](img/connectors.png)
+
+Metarank supports the following list of connectors:
+[Apache Kafka](data-sources.md#)
+
+| Name                                                       | Bootstrap              | Inference |
+|------------------------------------------------------------|------------------------|-----------|
+| [Apache Kafka](data-sources.md#apache-kafka)               | yes                    | yes       |
+| [Apache Pulsar](data-sources.md#apache-pulsar)             | yes                    | yes       |
+| [AWS Kinesis Streams](data-sources.md#aws-kinesis-streams) | yes, but actually no * | yes       |
+| [RESTful API](data-sources.md#rest-api)                    | no                     | yes       |
+| [Files](data-sources.md#files)                             | yes                    | no        |
+
+AWS Kinesis has a strict max 7 days retention period, so if you want to store more than 7
+days of historical clickthrough events, choose something else (for example, add AWS 
+Kinesis Firehose to write events from Kinesis topic to S3 files to pick them with `Files` 
+connector).
 
 ## Bootstrapping data sources
 
@@ -88,6 +105,40 @@ following patterns: `1s`, `1m`, `1h`, `1d`)
 
 Both [Pulsar](#apache-pulsar) and [Kafka](#apache-kafka) datasources can be used in the inference process as a source of real-time events. 
 We recommend setting `offset` parameter to `latest` (or another value not too far back in time).
+
+### AWS Kinesis Streams
+
+[AWS Kinesis Streams](https://aws.amazon.com/kinesis/) is a fully-managed event streaming platform.
+Metarank uses a connector for [Apache Flink](https://flink.apache.org) which is well-maintained and
+feature complete.
+
+To configure the connector, use this reference YAML block:
+```yaml
+type: kinesis
+region: us-east-1
+topic: events
+offset: earliest|latest|ts=<unixtime>|last=<duration>
+options: # optional custom options for Flink connector, map<string,string>
+```
+
+Important things to note when using AWS Kinesis connector for bootstrap:
+* AWS Kinesis has a hard limit on [max retention time of 7 days](https://docs.aws.amazon.com/streams/latest/dev/service-sizes-and-limits.html).
+If you want to store more data there, use AWS Firehose to offload these events to S3 and pick them with the `File` connector.
+* AWS limits max throughput per shard to 2Mb/s, so it may take some time to pull large dataset
+from kinesis. You may need to consider using an EFO consumer for a dedicated throughput.
+
+To use an AWS EFO consumer with custom per-consumer dedicated throughput, check out the
+[Flink AWS Kinesis Connector docs](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/kinesis/#using-enhanced-fan-out).
+But in short, you need to set two separate extra options for the connector:
+```yaml
+type: kinesis
+topic: events
+region: us-east-1
+offset: earliest|latest|ts=<unixtime>|last=<duration>
+options: # optional custom options for Flink connector, map<string,string>
+  flink.stream.recordpublisher: EFO # EFO | POLLING
+  flink.stream.efo.consumername: metarank # custom consumer name 
+```
 
 ### REST API
 

@@ -1,6 +1,14 @@
 version: '2'
 
 services:
+  kinesis:
+    image: ghcr.io/etspaceman/kinesis-mock:0.2.3
+    environment:
+      - INITIALIZE_STREAMS=events:1
+    ports:
+      - '4568:4568'
+      - '4567:4567'
+
   kafka:
     image: docker.io/bitnami/kafka:3.1
     ports:

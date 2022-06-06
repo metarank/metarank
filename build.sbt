@@ -68,6 +68,7 @@ lazy val root = (project in file("."))
       "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
       "org.apache.flink"      % "flink-runtime-web"          % flinkVersion,
       "io.findify"           %% "flink-scala-api"            % "1.15-2",
+      "org.apache.flink"      % "flink-connector-kinesis"    % flinkVersion,
       "org.apache.flink"      % "flink-connector-kafka"      % flinkVersion,
       "org.apache.flink"      % "flink-connector-pulsar"     % flinkVersion excludeAll (
         ExclusionRule("com.sun.activation", "javax.activation")

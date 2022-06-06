@@ -1,0 +1,80 @@
+package ai.metarank.source
+
+import ai.metarank.config.EventSourceConfig.{KinesisSourceConfig, SourceOffset}
+import ai.metarank.model.Event
+import ai.metarank.source.KinesisSource.KinesisEventSchema
+import ai.metarank.util.Logging
+import io.findify.featury.model.Timestamp
+import io.findify.flink.api.{DataStream, StreamExecutionEnvironment}
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.kinesis.shaded.org.apache.flink.connector.aws.config.AWSConfigConstants
+import org.apache.flink.streaming.connectors.kinesis.FlinkKinesisConsumer
+import org.apache.flink.streaming.connectors.kinesis.config.ConsumerConfigConstants
+import org.apache.flink.streaming.connectors.kinesis.serialization.KinesisDeserializationSchema
+
+import java.nio.charset.StandardCharsets
+import java.util.Properties
+
+case class KinesisSource(conf: KinesisSourceConfig) extends EventSource with Logging {
+  import ai.metarank.flow.DataStreamOps._
+  override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
+      ti: TypeInformation[Event]
+  ): DataStream[Event] = {
+    val props = new Properties()
+    props.put(AWSConfigConstants.AWS_REGION, conf.region)
+    props.put(AWSConfigConstants.AWS_CREDENTIALS_PROVIDER, "AUTO")
+    conf.offset match {
+      case SourceOffset.Latest   => props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "LATEST")
+      case SourceOffset.Earliest => props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "TRIM_HORIZON")
+      case SourceOffset.ExactTimestamp(ts) =>
+        props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "AT_TIMESTAMP")
+        props.put(ConsumerConfigConstants.STREAM_INITIAL_TIMESTAMP, (ts / 1000.0).toString)
+      case SourceOffset.RelativeDuration(duration) =>
+        props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "AT_TIMESTAMP")
+        props.put(
+          ConsumerConfigConstants.STREAM_INITIAL_TIMESTAMP,
+          (Timestamp.now.minus(duration).ts / 1000.0).toString
+        )
+    }
+    conf.options match {
+      case Some(options) =>
+        logger.info("AWS Kinesis Connector has option overrides")
+        options.foreach { case (key, value) =>
+          logger.info(s"'$key' = '$value'")
+          props.put(key, value)
+        }
+      case None => //
+    }
+    val consumer = new FlinkKinesisConsumer(conf.topic, KinesisEventSchema(ti), props)
+    env
+      .addSource(consumer)
+      .id("kinesis-source")
+      .assignTimestampsAndWatermarks(EventWatermarkStrategy())
+      .id("kinesis-watermarks")
+  }
+}
+
+object KinesisSource {
+  import io.circe.parser._
+  case class KinesisEventSchema(ti: TypeInformation[Event]) extends KinesisDeserializationSchema[Event] with Logging {
+    override def deserialize(
+        recordValue: Array[Byte],
+        partitionKey: String,
+        seqNum: String,
+        approxArrivalTimestamp: Long,
+        stream: String,
+        shardId: String
+    ): Event = {
+      val json = new String(recordValue, StandardCharsets.UTF_8)
+      decode[Event](json) match {
+        case Left(value) =>
+          logger.error(s"cannot parse event $json", value)
+          null
+        case Right(value) =>
+          value
+      }
+    }
+
+    override def getProducedType: TypeInformation[Event] = ti
+  }
+}

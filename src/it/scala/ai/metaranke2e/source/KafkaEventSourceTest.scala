@@ -15,7 +15,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.util.{Collections, Properties}
 
-class KafkaEventSourceTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll with FlinkTest {
+class KafkaEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 
   implicit val serializer: Serializer[String] = new StringSerializer()

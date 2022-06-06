@@ -30,9 +30,10 @@ trait EventSource extends Logging {
 
 object EventSource {
   def fromConfig(conf: EventSourceConfig)(implicit ti: TypeInformation[Event]): EventSource = conf match {
-    case file: FileSourceConfig     => FileEventSource(file)
-    case kafka: KafkaSourceConfig   => KafkaSource(kafka)
-    case pulsar: PulsarSourceConfig => PulsarEventSource(pulsar)
-    case rest: RestSourceConfig     => RestApiEventSource(rest.host, rest.port)
+    case file: FileSourceConfig       => FileEventSource(file)
+    case kafka: KafkaSourceConfig     => KafkaSource(kafka)
+    case pulsar: PulsarSourceConfig   => PulsarEventSource(pulsar)
+    case rest: RestSourceConfig       => RestApiEventSource(rest.host, rest.port)
+    case kinesis: KinesisSourceConfig => KinesisSource(kinesis)
   }
 }

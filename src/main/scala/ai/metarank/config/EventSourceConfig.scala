@@ -46,16 +46,23 @@ object EventSourceConfig {
       offset: SourceOffset,
       options: Option[Map[String, String]] = None
   ) extends EventSourceConfig
+  case class KinesisSourceConfig(
+      topic: String,
+      offset: SourceOffset,
+      region: String,
+      options: Option[Map[String, String]] = None
+  ) extends EventSourceConfig
   case class RestSourceConfig(bufferSize: Int = 10000, host: String = "localhost", port: Int = 8080)
       extends EventSourceConfig
   implicit val conf = Configuration.default
     .withDiscriminator("type")
     .withDefaults
     .copy(transformConstructorNames = {
-      case "FileSourceConfig"   => "file"
-      case "KafkaSourceConfig"  => "kafka"
-      case "PulsarSourceConfig" => "pulsar"
-      case "RestSourceConfig"   => "rest"
+      case "FileSourceConfig"    => "file"
+      case "KafkaSourceConfig"   => "kafka"
+      case "PulsarSourceConfig"  => "pulsar"
+      case "RestSourceConfig"    => "rest"
+      case "KinesisSourceConfig" => "kinesis"
     })
   implicit val eventSourceDecoder: Decoder[EventSourceConfig] = deriveConfiguredDecoder
 

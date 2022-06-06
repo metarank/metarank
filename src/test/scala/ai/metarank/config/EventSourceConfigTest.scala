@@ -3,7 +3,7 @@ package ai.metarank.config
 import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
 import ai.metarank.config.EventSourceConfig.SourceOffset._
 import ai.metarank.config.EventSourceConfigTest.Source
-import ai.metarank.config.MPath.LocalPath
+import MPath.LocalPath
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import org.scalatest.flatspec.AnyFlatSpec

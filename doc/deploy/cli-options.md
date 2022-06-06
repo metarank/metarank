@@ -24,7 +24,7 @@ $ java -jar metarank-x.x.x.jar
 
 The command-line argument structure is:
 ```shell
-$ java -jar metarank.jar <command> <args>
+$ java -jar metarank.jar <command> <config file> <args>
 ```
 
 ## CLI Options
@@ -46,3 +46,8 @@ data for the `train` job.
 * `standalone`: run `upload`, `api`, `update` tasks at once with the embedded redis server.
 * `validate`: check the historical data for typical problems.
 
+## Environment variables
+
+Config file can be passed to the Metarank not only as a command-line argument, but also as an environment variable.
+This is typically used in docker and k8s-based deployments:
+* `METARANK_CONFIG`: path to config file, for example `s3://bucket/prefix/config.yml`

@@ -8,4 +8,4 @@ You can run Metarank locally (OK for testing and development, not OK for product
 
 ## Kubernetes
 
-todo
+See the [Kubernetes](./kubernetes) integration chapter for details.

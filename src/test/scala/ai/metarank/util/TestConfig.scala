@@ -2,7 +2,7 @@ package ai.metarank.util
 
 import ai.metarank.config.{BootstrapConfig, Config, InferenceConfig, MPath}
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, RestSourceConfig}
-import ai.metarank.config.MPath.LocalPath
+import MPath.LocalPath
 import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.config.StateStoreConfig.MemConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema

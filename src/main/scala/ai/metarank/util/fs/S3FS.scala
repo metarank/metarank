@@ -14,7 +14,7 @@ case class S3FS(client: AmazonS3) extends FS[S3Path] {
   override def read(path: S3Path): IO[Array[Byte]] = IO {
     val request  = new GetObjectRequest(path.bucket, path.path)
     val response = client.getObject(request)
-    val bytes    = IOUtils.readFully(response.getObjectContent, Int.MaxValue)
+    val bytes    = IOUtils.toByteArray(response.getObjectContent)
     bytes
   }
   override def write(path: S3Path, bytes: Array[Byte]): IO[Unit] = IO {

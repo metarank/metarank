@@ -62,10 +62,6 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     env.execute("bootstrap")
   }
 
-  it should "generate savepoint" in {
-    Bootstrap.makeSavepoint(env, config.bootstrap.workdir, mapping)
-  }
-
   it should "train the xgboost model" in {
     train("xgboost")
   }

@@ -5,8 +5,7 @@ import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.standalone.FlinkMinicluster
 import ai.metarank.mode.{AsyncFlinkJob, CliApp, FlinkS3Configuration}
 import ai.metarank.source.FeatureValueWatermarkStrategy
-import ai.metarank.util.Logging
-import cats.effect.{ExitCode, IO, IOApp, Resource}
+import cats.effect.{ExitCode, IO, Resource}
 import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.Featury
 import io.findify.featury.flink.format.FeatureStoreSink

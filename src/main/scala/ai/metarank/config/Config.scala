@@ -33,7 +33,6 @@ object Config extends Logging {
     for {
       yaml    <- IO.fromEither(parseYaml(contents))
       decoded <- IO.fromEither(yaml.as[Config])
-      _       <- IO(logger.info(s"features: ${decoded.features.map(_.name)}"))
     } yield {
       decoded
     }

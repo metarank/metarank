@@ -50,19 +50,23 @@ object Api extends CliApp {
       .withBanner(Logo.lines)
   }
 
-  override def usage: String = "usage: metarank inference <config path>"
+  override def usage: String = "usage: metarank api <config path>"
 
   def loadModels(config: Config, env: Map[String, String] = Map.empty): IO[Map[String, Scorer]] = {
     config.models.toNel.toList
       .map {
         case (name, LambdaMARTConfig(path, backend, _, _)) =>
-          FS.read(path, env).map(file => name -> LambdaMARTScorer(backend, file))
+          FS.read(path, env)
+            .flatTap(bytes => IO { logger.info(s"loaded model $name file, size=${bytes.length}b") })
+            .map(file => name -> LambdaMARTScorer(backend, file))
+            .onError(err => IO { logger.error(s"cannot load ranking model: ${err.getMessage}", err) })
         case (name, ShuffleConfig(maxPositionChange)) =>
           IO.pure(name -> ShuffleScorer(maxPositionChange))
         case (name, _: NoopConfig) =>
           IO.pure(name -> NoopScorer)
       }
       .sequence
+      .flatTap(models => IO { logger.info(s"initialized scorers for models ${models.map(_._1)}") })
       .map(_.toMap)
   }
 

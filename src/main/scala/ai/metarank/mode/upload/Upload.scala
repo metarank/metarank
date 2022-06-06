@@ -18,6 +18,7 @@ import scala.concurrent.duration._
 
 object Upload extends CliApp {
   import ai.metarank.flow.DataStreamOps._
+  import ai.metarank.mode.TypeInfos._
 
   override def usage: String = "usage: metarank upload <config path>"
 

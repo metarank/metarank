@@ -133,6 +133,20 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
       )
     )
   }
+
+  it should "decode file config with retention" in {
+    val yaml = """type: file
+                 |path: file:///ranklens/events/
+                 |offset: earliest
+                 |""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      FileSourceConfig(
+        path = LocalPath("/ranklens/events/"),
+        offset = SourceOffset.Earliest
+      )
+    )
+  }
 }
 
 object EventSourceConfigTest {

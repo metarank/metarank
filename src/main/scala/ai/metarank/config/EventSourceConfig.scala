@@ -29,7 +29,6 @@ object EventSourceConfig {
     }
   }
 
-  case class FileSourceConfig(path: MPath) extends EventSourceConfig
   case class KafkaSourceConfig(
       brokers: NonEmptyList[String],
       topic: String,
@@ -37,6 +36,7 @@ object EventSourceConfig {
       offset: SourceOffset,
       options: Option[Map[String, String]] = None
   ) extends EventSourceConfig
+  case class FileSourceConfig(path: MPath, offset: SourceOffset = SourceOffset.Earliest) extends EventSourceConfig
   case class PulsarSourceConfig(
       serviceUrl: String,
       adminUrl: String,

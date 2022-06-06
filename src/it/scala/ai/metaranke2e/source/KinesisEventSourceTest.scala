@@ -15,7 +15,8 @@ import io.circe.syntax._
 import org.apache.flink.kinesis.shaded.com.amazonaws.auth.{
   AWSCredentials,
   AWSCredentialsProvider,
-  AnonymousAWSCredentials
+  AnonymousAWSCredentials,
+  BasicAWSCredentials
 }
 
 import java.nio.ByteBuffer
@@ -38,7 +39,7 @@ class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
       )
     )
     val creds = new AWSCredentialsProvider {
-      override def getCredentials: AWSCredentials = new AnonymousAWSCredentials()
+      override def getCredentials: AWSCredentials = new BasicAWSCredentials("1", "1")
       override def refresh(): Unit                = {}
     }
     val prodConf =

@@ -40,8 +40,10 @@ case class WindowBatchFunction(period: FiniteDuration, size: Int)
       out: Collector[List[FeatureValue]]
   ): Unit = {
     val now = ctx.timerService().currentProcessingTime()
-    flush(now, out)
-    logger.info(s"flushed buffer of ${buffer.size} events (on timer)")
+    if (buffer.nonEmpty) {
+      flush(now, out)
+      logger.info(s"flushed buffer of ${buffer.size} events (on timer)")
+    }
     ctx.timerService().registerProcessingTimeTimer(now + period.toMillis)
   }
 

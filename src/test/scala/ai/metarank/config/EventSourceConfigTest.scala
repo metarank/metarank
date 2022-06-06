@@ -27,7 +27,7 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
     parse("last=60").isLeft shouldBe true
   }
 
-  it should "decode kafka config" in {
+  it should "decode kafka config without options" in {
     val yaml = """type: kafka
                  |brokers: [broker1, broker2]
                  |topic: events
@@ -40,6 +40,26 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
         topic = "events",
         groupId = "metarank",
         offset = SourceOffset.Earliest
+      )
+    )
+  }
+
+  it should "decode kafka config with options" in {
+    val yaml = """type: kafka
+                 |brokers: [broker1, broker2]
+                 |topic: events
+                 |groupId: metarank
+                 |offset: earliest
+                 |options:
+                 |  foo.bar: baz""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      KafkaSourceConfig(
+        brokers = NonEmptyList.of("broker1", "broker2"),
+        topic = "events",
+        groupId = "metarank",
+        offset = SourceOffset.Earliest,
+        options = Some(Map("foo.bar" -> "baz"))
       )
     )
   }
@@ -108,6 +128,31 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "decode pulsar config with options" in {
+    val yaml = """type: pulsar
+                 |serviceUrl: service
+                 |adminUrl: admin
+                 |topic: events
+                 |subscriptionName: metarank
+                 |subscriptionType: exclusive 
+                 |offset: earliest
+                 |options:
+                 |  foo.bar: baz
+                 |""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      PulsarSourceConfig(
+        serviceUrl = "service",
+        adminUrl = "admin",
+        topic = "events",
+        subscriptionName = "metarank",
+        subscriptionType = "exclusive",
+        offset = SourceOffset.Earliest,
+        options = Some(Map("foo.bar" -> "baz"))
+      )
+    )
+  }
+
   it should "decode rest config" in {
     val yaml    = "type: rest"
     val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
@@ -127,6 +172,20 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
     decoded shouldBe Right(
       FileSourceConfig(
         path = LocalPath("/ranklens/events/")
+      )
+    )
+  }
+
+  it should "decode file config with retention" in {
+    val yaml = """type: file
+                 |path: file:///ranklens/events/
+                 |offset: earliest
+                 |""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      FileSourceConfig(
+        path = LocalPath("/ranklens/events/"),
+        offset = SourceOffset.Earliest
       )
     )
   }

@@ -27,12 +27,40 @@ connector).
 
 ## Bootstrapping data sources
 
+### Common options for bootstrapping connectors
+
+All supported connectors have some shared options:
+* offset: a time window in which events are read
+  * `earliest` - start from the first stored message in the topic
+  * `latest` - consume only events that came recently (after Metarank connection)
+  * `ts=\<timestamp\>` - start from a specific absolute timestamp in the past
+  * `last=\<duration\>` - consume only events that happened within a defined relative duration (duration supports the
+  following patterns: `1s`, `1m`, `1h`, `1d`)
+* options (for kinesis/pulsar/kafka connectors): raw flink custom connector options to override default behavior:
+  * kafka: [KafkaSourceOptions](https://github.com/apache/flink/blob/master/flink-connectors/flink-connector-kafka/src/main/java/org/apache/flink/connector/kafka/source/KafkaSourceOptions.java)
+  and [ConsumerConfig](https://kafka.apache.org/24/javadoc/org/apache/kafka/clients/consumer/ConsumerConfig.html)
+  * pulsar: [PulsarOptions](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/pulsar/#source-configurable-options)
+  * kinesis: [AWSConfigConstants](https://github.com/apache/flink/blob/master/flink-connectors/flink-connector-aws-base/src/main/java/org/apache/flink/connector/aws/config/AWSConfigConstants.java) and
+  [ConsumerConfigConstants](https://github.com/apache/flink/blob/master/flink-connectors/flink-connector-kinesis/src/main/java/org/apache/flink/streaming/connectors/kinesis/config/ConsumerConfigConstants.java)
+
+An example of custom connector options:
+```yaml
+type: kinesis
+options:
+  flink.stream.efo.consumername: helloworld
+  flink.stream.describe.backoff.base: '1000'
+```
+
+Please note that custom options are expected to be a string->string mapping, so numeric
+options should be quoted according to YAML spec.
+
 ### File
 
 Config file definition example:
 ```yaml
 type: file
 path: file:///ranklens/events/
+offset: earliest|latest|ts=<unixtime>|last=<duration>
 ```
 
 The *path* parameter supports the following possible access scheme formats:
@@ -65,13 +93,8 @@ brokers: [broker1, broker2]
 topic: events
 groupId: metarank
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+options: # optional flink connector raw parameters, map<string,string>
 ```
-Offset options are:
-* `earliest` - start from the first stored message in the topic
-* `latest` - consume only events that came recently (after Metarank connection)
-* `ts=\<timestamp\>` - start from a specific absolute timestamp in the past
-* `last=\<duration\>` - consume only events that happened within a defined relative duration (duration supports the 
-following patterns: `1s`, `1m`, `1h`, `1d`)
 
 ### Apache Pulsar
 
@@ -92,14 +115,8 @@ topic: events
 subscriptionName: metarank
 subscriptionType: exclusive # options are exclusive, shared, failover
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+options: # optional flink connector parameters, map<string,string>
 ```
-
-Offset options are:
-* `earliest` - start from the first stored message in the topic
-* `latest` - consume only events that came recently (after Metarank connection)
-* `ts=\<timestamp\>` - start from a specific absolute timestamp in the past
-* `last=\<duration\>` - consume only events that happened within a defined relative duration (duration supports the 
-following patterns: `1s`, `1m`, `1h`, `1d`)
 
 ## Inference data sources
 

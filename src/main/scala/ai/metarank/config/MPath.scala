@@ -18,13 +18,15 @@ object MPath {
   case class S3Path(bucket: String, path: String) extends MPath {
     def uri = s"s3://$bucket/$path"
 
-    override def /(next: String): MPath = copy(path = path + "/" + next)
+    override def /(next: String): MPath =
+      if (path.endsWith("/")) copy(path = path + next) else copy(path = path + "/" + next)
   }
   case class LocalPath(path: String) extends MPath {
     def file = File(path)
     def uri  = s"file://$path"
 
-    override def /(next: String): MPath = copy(path = path + "/" + next)
+    override def /(next: String): MPath =
+      if (path.endsWith("/")) copy(path = path + next) else copy(path = path + "/" + next)
   }
   object LocalPath {
     def apply(file: File) = new LocalPath(file.toString())

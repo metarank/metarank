@@ -12,8 +12,7 @@ simplifies the process of creating session Flink clusters in k8s:
 Check the [flink-k8s-operator helm installation instructions](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/operations/helm/),
 but TLDR version is:
 ```bash
-# use the latest RC3 version, until 1.0.0 is releases
-user@node ~ $ helm repo add flink-operator-repo https://dist.apache.org/repos/dist/dev/flink/flink-kubernetes-operator-1.0.0-rc3/
+user@node ~ $ helm repo add flink-operator-repo https://dist.apache.org/repos/dist/release/flink/flink-kubernetes-operator-1.0.0/
 
 "flink-operator-repo" has been added to your repositories
 

@@ -10,7 +10,10 @@ Both of these stages require event data stream and Metarank provides several sou
 
 ## Bootstrapping data sources
 
-### Common options
+### Common options for bootstrapping connectors
+
+All supported connectors have some shared options:
+* offset: a time window in which events are read
 
 ### File
 

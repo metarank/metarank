@@ -12,6 +12,11 @@ import org.apache.flink.kinesis.shaded.com.amazonaws.services.kinesis.producer.{
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
+import org.apache.flink.kinesis.shaded.com.amazonaws.auth.{
+  AWSCredentials,
+  AWSCredentialsProvider,
+  AnonymousAWSCredentials
+}
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -32,12 +37,17 @@ class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
         )
       )
     )
+    val creds = new AWSCredentialsProvider {
+      override def getCredentials: AWSCredentials = new AnonymousAWSCredentials()
+      override def refresh(): Unit                = {}
+    }
     val prodConf =
       new KinesisProducerConfiguration()
         .setKinesisEndpoint("localhost")
         .setKinesisPort(4567)
         .setRegion("us-east-1")
         .setVerifyCertificate(false)
+        .setCredentialsProvider(creds)
 
     val producer     = new KinesisProducer(prodConf)
     val event: Event = TestItemEvent("p1")

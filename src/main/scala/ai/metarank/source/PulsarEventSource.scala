@@ -15,9 +15,7 @@ import io.circe.parser._
 
 import java.nio.charset.StandardCharsets
 
-case class PulsarEventSource(conf: PulsarSourceConfig)(implicit ti: TypeInformation[Event])
-    extends EventSource
-    with Logging {
+case class PulsarEventSource(conf: PulsarSourceConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
       ti: TypeInformation[Event]
   ): DataStream[Event] = {
@@ -58,6 +56,7 @@ case class PulsarEventSource(conf: PulsarSourceConfig)(implicit ti: TypeInformat
       .setStartCursor(cursor)
       .setDeserializationSchema(deserializer)
       .setConfig(PulsarSourceOptions.PULSAR_ENABLE_AUTO_ACKNOWLEDGE_MESSAGE, Boolean.box(true))
+      .setProperties(customProperties(conf.options))
 
     val source = if (bounded) sourceBuilder.setBoundedStopCursor(StopCursor.latest()).build() else sourceBuilder.build()
     env.fromSource(source, EventWatermarkStrategy(), "pulsar-source")

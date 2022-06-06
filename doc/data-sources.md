@@ -48,6 +48,7 @@ brokers: [broker1, broker2]
 topic: events
 groupId: metarank
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+options: # optional flink connector raw parameters, map<string,string>
 ```
 Offset options are:
 * `earliest` - start from the first stored message in the topic
@@ -75,6 +76,7 @@ topic: events
 subscriptionName: metarank
 subscriptionType: exclusive # options are exclusive, shared, failover
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+options: # optional flink connector parameters, map<string,string>
 ```
 
 Offset options are:

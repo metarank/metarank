@@ -14,7 +14,7 @@ import io.circe.parser._
 
 import java.nio.charset.StandardCharsets
 
-case class KafkaSource(conf: KafkaSourceConfig)(implicit ti: TypeInformation[Event]) extends EventSource with Logging {
+case class KafkaSource(conf: KafkaSourceConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
 
   override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
       ti: TypeInformation[Event]
@@ -47,6 +47,7 @@ case class KafkaSource(conf: KafkaSourceConfig)(implicit ti: TypeInformation[Eve
       .setBootstrapServers(conf.brokers.toList.mkString(","))
       .setStartingOffsets(offset)
       .setDeserializer(deserializer)
+      .setProperties(customProperties(conf.options))
     val source = if (bounded) sourceBuilder.setBounded(OffsetsInitializer.latest()).build() else sourceBuilder.build()
     env.fromSource(source, EventWatermarkStrategy(), "kafka-source")
   }

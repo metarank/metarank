@@ -30,15 +30,21 @@ object EventSourceConfig {
   }
 
   case class FileSourceConfig(path: MPath) extends EventSourceConfig
-  case class KafkaSourceConfig(brokers: NonEmptyList[String], topic: String, groupId: String, offset: SourceOffset)
-      extends EventSourceConfig
+  case class KafkaSourceConfig(
+      brokers: NonEmptyList[String],
+      topic: String,
+      groupId: String,
+      offset: SourceOffset,
+      options: Option[Map[String, String]] = None
+  ) extends EventSourceConfig
   case class PulsarSourceConfig(
       serviceUrl: String,
       adminUrl: String,
       topic: String,
       subscriptionName: String,
       subscriptionType: String,
-      offset: SourceOffset
+      offset: SourceOffset,
+      options: Option[Map[String, String]] = None
   ) extends EventSourceConfig
   case class RestSourceConfig(bufferSize: Int = 10000, host: String = "localhost", port: Int = 8080)
       extends EventSourceConfig

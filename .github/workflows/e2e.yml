@@ -1,4 +1,4 @@
-name: Linux end-to-end
+name: End-to-end tests
 
 on:
   push:

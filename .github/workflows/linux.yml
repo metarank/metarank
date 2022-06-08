@@ -1,4 +1,4 @@
-name: Linux tests
+name: Tests
 
 on:
   push:
@@ -32,18 +32,5 @@ jobs:
     - name: Run formatting tests
       run: sbt scalafmtCheck
 
-    - name:  Run docker-compose
-      run: docker-compose -f docker-compose.yaml up -d
-      
     - name: Run tests
-      run: sbt -mem 3000 test assembly
-
-    - name: Run integration tests
-      run: sbt -mem 3000 IntegrationTest/test
-
-    - name: Run e2e test
-      run: ./run_e2e.sh target/scala-2.13/metarank.jar
-
-    - name: Run docker 
-      run: sbt docker && docker run metarank/metarank:latest
-      if: runner.os == 'Linux'
+      run: sbt -mem 3000 test

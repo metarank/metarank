@@ -1,4 +1,4 @@
-name: Linux connector integration tests
+name: Connector integration tests
 
 on:
   push:

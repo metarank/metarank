@@ -18,9 +18,6 @@ jobs:
       - name: install libomp
         run: brew install libomp
 
-      - name: install docker
-        uses: docker-practice/actions-setup-docker@master
-
       - uses: actions/checkout@v2
         with:
           lfs: 'true'

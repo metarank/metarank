@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euxo pipefail
+
 # Metarank docker image entrypoint.
 # Wraps flink one and extends it with metarank-specific ones.
 

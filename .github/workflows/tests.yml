@@ -1,0 +1,37 @@
+name: Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    timeout-minutes: 20
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12]
+
+    steps:
+    - name: install libomp
+      run: brew install libomp
+      if: runner.os == 'macOS'
+
+    - uses: actions/checkout@v2
+      with:
+        lfs: 'true'
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
+        key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        distribution: 'adopt-hotspot'
+        java-version: '11'
+
+    - name: Run tests
+      run: sbt -mem 3000 scalafmtCheck test

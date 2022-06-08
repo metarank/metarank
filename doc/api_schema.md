@@ -14,7 +14,7 @@ Feedback endpoint receives several types of events: item, user, interaction, ran
 Integrating these events is crucial for personalization to operate properly and provide relevant results. 
 
 ### Payload format
-You can find events and their description on the [Supported events](event_schema.md).
+You can find events and their description on the [Supported events](event-schema.md).
 
 ## Ranking
 
@@ -50,7 +50,7 @@ define which model to invoke.
 - `id`: a request identifier later used to join ranking and interaction events. This will be the same value that you will pass to feedback endpoint for impression and ranking events.
 - `user`: an optional unique visitor identifier.
 - `session`: an optional  session identifier, a single visitor may have multiple sessions.
-- `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](event_schema.md).
+- `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](event-schema.md).
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.
 - `items.relevancy`: a score which was used to rank these items. For example, it can be BM25/tfidf score coming from ElasticSearch. If your system doesn't return any relevancy score, just use `1` as a value.

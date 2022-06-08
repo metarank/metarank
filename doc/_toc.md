@@ -2,13 +2,13 @@
 
 ## Introduction
 
-* [What is Metarank?](01_intro.md)
-* [Technical overview](02_tech_overview.md)
-* [Configuration](03_configuration.md)
+* [What is Metarank?](intro.md)
+* [Technical overview](tech-overview.md)
+* [Configuration](configuration.md)
   * [API Schema](api_schema.md)
   * [Data Sources](data-sources.md)
   * [Scopes](scopes.md)
-* [Feature extractors](feature_extractors.md)
+* [Feature extractors](feature-extractors.md)
   * [Counters](features/counters.md)
   * [Date and Time](features/datetime.md)
   * [Generic](features/generic.md)
@@ -33,3 +33,7 @@
 
 * [Click models](click-models.md)
 * [Ranking models](supported-ranking-models.md)
+
+## Development
+
+* [Changelog](changelog.md)

@@ -51,7 +51,7 @@ In eCommerce, for example, it can be product title, price, color, sizes and so o
 * A set of fields describing the item.
 
 Metarank uses a strict predefined schema for item metadata fields, that must be defined beforehand in the config file. 
-See the [configuration](03_configuration.md) section of the docs on how to implement it. 
+See the [configuration](configuration.md) section of the docs on how to implement it. 
 
 Here is an example JSON for the metadata event:
 ```json
@@ -130,7 +130,7 @@ Here is an example JSON for the feedback event:
   "item": "product1"
 }
 ```
-Interaction type must be predefined in the [schema file](03_configuration.md).
+Interaction type must be predefined in the [schema file](configuration.md).
 
 ## API
 

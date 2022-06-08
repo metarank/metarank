@@ -1,6 +1,6 @@
 # Click models
 
-You may wonder why Metarank needs a `ranking` event (see [event schema](./event_schema.md) for details), compared to
+You may wonder why Metarank needs a `ranking` event (see [event schema](./event-schema.md) for details), compared to
 other recommendation services only needing just interactions? The answer lies in the way Metarank does the 
 ranking optimization.
 

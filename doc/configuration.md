@@ -108,11 +108,11 @@ the metadata event will have the following structure
 }
 ```
 
-Read more about [sending events in this doc](event_schema.md).
+Read more about [sending events in this doc](event-schema.md).
 
 ## Feature extractor configuration
 
 Feature extractor configuration defines the way fields are mapped to features.
 
-You can follow the [feature extractors](feature_extractors.md) section of docs for more details on configuring 
+You can follow the [feature extractors](feature-extractors.md) section of docs for more details on configuring 
 extractors.

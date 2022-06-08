@@ -47,7 +47,7 @@ To configure the model, use the following snippet:
 during inference. It can also read-write it to/from S3-like filesystem.
 * `backend`: *required*, *xgboost* or *lightgbm*, specifies the backend and it's configuration.
 * `weights`: *required*, *list of string:number pairs*, specifies what interaction events are used for training. You can specify multiple events with different weights.
-* `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature_extractors.md) documentation.
+* `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature-extractors.md) documentation.
 
 ### XGBoost and LightGBM backend options
 

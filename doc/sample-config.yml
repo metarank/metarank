@@ -1,7 +1,7 @@
 # This is a sample config file that you can use as a reference for building your own.
 
 # The "features" section describes how to map your input events into ML features that Metarank understands.
-# See doc/feature_extractors.md for a general overview of possible things you can do, and doc/features
+# See doc/feature-extractors.md for a general overview of possible things you can do, and doc/features
 # for detailed per-extractor configuration options.
 
 # These features can be shared between multiple models, so if you have a model A using features 1-2-3 and

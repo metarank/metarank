@@ -23,11 +23,6 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
 
-  redis:
-    image: 'redis:7.0.0'
-    ports:
-      - '6379:6379'
-
   pulsar:
     image: apachepulsar/pulsar:2.8.0
     ports:

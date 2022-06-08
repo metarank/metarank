@@ -1,4 +1,4 @@
-name: Scala CI
+name: Linux tests
 
 on:
   push:
@@ -12,21 +12,9 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-20.04]
+        platform: [ubuntu-20.04, ubuntu-22.04]
 
     steps:
-    - name: install libomp
-      run: brew install libomp
-      if: runner.os == 'macOS'
-
-    - name: install docker
-      uses: docker-practice/actions-setup-docker@master
-      if: runner.os == 'macOS'
-
-    - name: install haveged
-      run: sudo apt-get install haveged && sudo haveged && cat /proc/cpuinfo && ls -l /dev/
-      if: runner.os == 'Linux'
-
     - uses: actions/checkout@v2
       with:
         lfs: 'true'

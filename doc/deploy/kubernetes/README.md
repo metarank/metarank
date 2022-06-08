@@ -4,6 +4,7 @@
 
 This document describes how you can run Metarank inside Kubernetes. In the following diagram an overall system
 structure is shown:
+
 ![system diagram](../../img/data-flow.png)
 
 Metarank deployment is a multi-stage process, consisting of these steps:

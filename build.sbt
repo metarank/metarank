@@ -2,7 +2,7 @@ import Deps._
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / version      := "0.4.0"
+ThisBuild / version      := "0.4.1-SNAPSHOT"
 
 /** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
   * building. With this approach we have a custom MergeStrategy, which drops all files from flink-s3-fs-hadoop jar if
@@ -114,6 +114,7 @@ lazy val root = (project in file("."))
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
         entryPoint("/metarank.sh")
+        cmd("help") // entrypoint unsets it from the parent flink image
       }
     },
     docker / imageNames := Seq(

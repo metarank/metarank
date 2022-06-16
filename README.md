@@ -1,6 +1,6 @@
 <h1 align="center">
     <a style="text-decoration: none" href="https://www.metarank.ai">
-      <img width="120" src="https://media.githubusercontent.com/media/metarank/metarank/master/doc/img/logo.svg" />
+      <img width="120" src="https://raw.githubusercontent.com/metarank/metarank/master/doc/img/logo.svg" />
       <p align="center">Metarank: real time personalization as a service</p>
     </a>
 </h1>

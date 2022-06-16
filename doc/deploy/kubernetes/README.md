@@ -226,7 +226,7 @@ spec:
     resource:
       memory: 2048m
       cpu: 1.0
-  image: metarank/metarank:0.4.0
+  image: metarank/metarank:0.4.1
   jobManager:
     resource:
       memory: 2048m

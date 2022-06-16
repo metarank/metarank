@@ -73,7 +73,7 @@ o divide one interaction counter by another. You can configure it in the followi
     scope: item
     bucket: 24h
     periods: [7,30]
-    refresh: 1h // optional, how frequently we should update the value, 0s by default
+    refresh: 1h // optional, how frequently we should update the value, 1h by default
     ttl: 90d // optional, how long should we store this field if there were no updates
 ```
 

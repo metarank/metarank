@@ -56,8 +56,8 @@ and there are as many separate time buckets as max window size. As counters are 
 expensive to refresh them on each interaction, so it's usually worth it to limit the refresh rate to something reasonable
 like 10 minutes.
 
-There is also a way to combine multiple windowed counters into a (rate)[./rate.md] to make streaming computation of CTR/Conversion rates
-easier.
+There is also a way to combine multiple windowed counters into a [rate](counters.md#rate) to make streaming computation 
+of CTR/Conversion rates easier.
 
 ## Rate
 

@@ -9,13 +9,15 @@
   * [Data Sources](data-sources.md)
   * [Scopes](scopes.md)
 * [Feature extractors](feature-extractors.md)
-  * [Counters](features/counters.md)
-  * [Date and Time](features/datetime.md)
-  * [Generic](features/generic.md)
-  * [Relevancy](features/relevancy.md)
-  * [Scalars](features/scalar.md)
-  * [Text](features/text.md)
-  * [User Profile](features/user-session.md)
+  * Types 
+    * [Counters](features/counters.md)
+    * [Date and Time](features/datetime.md)
+    * [Generic](features/generic.md)
+    * [Relevancy](features/relevancy.md)
+    * [Scalars](features/scalar.md)
+    * [Text](features/text.md)
+    * [User Profile](features/user-session.md)
+  * [How features are updated](features/delayed-refresh.md)
 
 ## Use cases
 * [Personalized recommendations](https://medium.com/metarank/personalizing-recommendations-with-metarank-f2644112536b)

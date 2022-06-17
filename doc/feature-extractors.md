@@ -20,7 +20,7 @@ extractors take this view as an input and emit feature values in the following o
 
 All the feature extractors have a set of common fields:
 * `name`: *required*, *string*. Feature name, should be unique across the whole config.
-* `refresh`: *optional*, *time*, default: *0s* (realtime). How frequently this feature is updated.
+* `refresh`: *optional*, *time*, default value is specific to the extractor. How frequently this feature is updated.
 * `ttl`: *optional*, *time*, default: *90d* (3 months). How long should this feature store it's value.
 * `scope`: *optional*. See the [Scopes documentation](scopes.md) for more information.
 

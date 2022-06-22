@@ -47,7 +47,7 @@ Item metadata is needed for Metarank to know as much as possible about the thing
 
 In eCommerce, for example, it can be product title, price, color, sizes and so on. From the developer perspective, this event contains the following fields:
 * Unique item identifier.
-* Timestamp of the update.
+* Timestamp of the update (see [timestamp format description](timestamp-formats.md) on which formats are supported)
 * A set of fields describing the item.
 
 Metarank uses a strict predefined schema for item metadata fields, that must be defined beforehand in the config file. 
@@ -56,7 +56,7 @@ See the [configuration](configuration.md) section of the docs on how to implemen
 Here is an example JSON for the metadata event:
 ```json
 {
-  "type": "item",
+  "event": "item",
   "id": "product1",
   "timestamp": "1599391467000",
   "fields": [
@@ -73,14 +73,14 @@ Here is an example JSON for the metadata event:
 To help train the ML model, we need to show it which items were presented to the customer. This event consists of 
 the following fields:
 * Unique request identifier, so we can later track all the feedback events followed by this ranking.
-* Timestamp of the event.
+* Timestamp of the event (see [timestamp format description](timestamp-formats.md) on which formats are supported).
 * Ranking scope.
 * Ordered list of items shown to the customer.
 
 Here is an example JSON for the ranking event:
 ```json
 {
-  "type": "ranking",
+  "event": "ranking",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
   "timestamp": "1599391467000",
   "scope": {
@@ -140,7 +140,7 @@ needed for the ML model, feeds it with the numbers and emits the final ranking.
 
 The API schema is **not yet completely defined**, but the general idea is to have it in the following way:
 * User/session identifier.
-* Timestamp.
+* Timestamp (see [timestamp format description](timestamp-formats.md) on which formats are supported)
 * Ranking scope.
 * List of items with their external relevancy.
 

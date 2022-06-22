@@ -238,4 +238,11 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
       )
     )
   }
+
+  it should "decode timestamp as long/string/iso" in {
+    import Event.EventCodecs._
+    decode[Timestamp]("123") shouldBe Right(Timestamp(123L))
+    decode[Timestamp]("\"123\"") shouldBe Right(Timestamp(123L))
+    decode[Timestamp]("\"2022-06-22T11:21:39Z\"") shouldBe Right(Timestamp(1655896899000L))
+  }
 }

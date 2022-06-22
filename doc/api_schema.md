@@ -49,7 +49,8 @@ define which model to invoke.
 
 - `id`: a request identifier later used to join ranking and interaction events. This will be the same value that you will pass to feedback endpoint for impression and ranking events.
 - `user`: an optional unique visitor identifier.
-- `session`: an optional  session identifier, a single visitor may have multiple sessions.
+- `session`: an optional session identifier, a single visitor may have multiple sessions.
+- `timestamp`: when this event happened. (see [timestamp format description](timestamp-formats.md) on which formats are supported)
 - `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](event-schema.md).
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.

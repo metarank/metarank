@@ -6,6 +6,8 @@
 * [Technical overview](tech-overview.md)
 * [Configuration](configuration.md)
   * [API Schema](api_schema.md)
+  * [Tracking event schema](event-schema.md)
+    * [Timestamp formats](timestamp-formats.md) 
   * [Data Sources](data-sources.md)
   * [Scopes](scopes.md)
 * [Feature extractors](feature-extractors.md)

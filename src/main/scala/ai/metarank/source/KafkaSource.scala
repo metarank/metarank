@@ -1,7 +1,9 @@
 package ai.metarank.source
 
 import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
+import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
+import ai.metarank.source.KafkaSource.EventDeserializationSchema
 import ai.metarank.util.Logging
 import io.findify.featury.model.Timestamp
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -25,20 +27,6 @@ case class KafkaSource(conf: KafkaSourceConfig)(implicit ti: TypeInformation[Eve
       case SourceOffset.ExactTimestamp(ts)         => OffsetsInitializer.timestamp(ts)
       case SourceOffset.RelativeDuration(duration) => OffsetsInitializer.timestamp(Timestamp.now.minus(duration).ts)
     }
-    val deserializer = new KafkaRecordDeserializationSchema[Event] {
-      override def getProducedType: TypeInformation[Event] = ti
-
-      override def deserialize(record: ConsumerRecord[Array[Byte], Array[Byte]], out: Collector[Event]): Unit = {
-        val json    = new String(record.value(), StandardCharsets.UTF_8)
-        val decoded = decode[Event](json)
-        decoded match {
-          case Left(value) =>
-            logger.error(s"cannot deserialize record $json: ${value.getMessage}", value)
-            throw value
-          case Right(value) => out.collect(value)
-        }
-      }
-    }
     logger.info(s"KafkaSource initialized for brokers=${conf.brokers.toList.mkString(",")} topic=${conf.topic}")
     val sourceBuilder = org.apache.flink.connector.kafka.source.KafkaSource
       .builder[Event]()
@@ -46,9 +34,29 @@ case class KafkaSource(conf: KafkaSourceConfig)(implicit ti: TypeInformation[Eve
       .setGroupId(conf.groupId)
       .setBootstrapServers(conf.brokers.toList.mkString(","))
       .setStartingOffsets(offset)
-      .setDeserializer(deserializer)
+      .setDeserializer(EventDeserializationSchema(conf.format, ti))
       .setProperties(customProperties(conf.options))
     val source = if (bounded) sourceBuilder.setBounded(OffsetsInitializer.latest()).build() else sourceBuilder.build()
     env.fromSource(source, EventWatermarkStrategy(), "kafka-source")
+  }
+}
+
+object KafkaSource {
+  case class EventDeserializationSchema(format: SourceFormat, ti: TypeInformation[Event])
+      extends KafkaRecordDeserializationSchema[Event]
+      with Logging {
+    override def getProducedType: TypeInformation[Event] = ti
+
+    override def deserialize(record: ConsumerRecord[Array[Byte], Array[Byte]], out: Collector[Event]): Unit = {
+      format.transform(record.value()) match {
+        case Left(error) =>
+          val string = new String(record.value(), StandardCharsets.UTF_8)
+          logger.error(s"cannot deserialize record $string", error)
+        case Right(Some(value)) =>
+          out.collect(value)
+        case Right(None) =>
+        // do nothing
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 package ai.metarank.source
 
 import ai.metarank.config.EventSourceConfig.{KinesisSourceConfig, SourceOffset}
+import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
 import ai.metarank.source.KinesisSource.KinesisEventSchema
 import ai.metarank.util.Logging
@@ -45,7 +46,7 @@ case class KinesisSource(conf: KinesisSourceConfig) extends EventSource with Log
         }
       case None => //
     }
-    val consumer = new FlinkKinesisConsumer(conf.topic, KinesisEventSchema(ti), props)
+    val consumer = new FlinkKinesisConsumer(conf.topic, KinesisEventSchema(conf.format, ti), props)
     env
       .addSource(consumer)
       .id("kinesis-source")
@@ -55,8 +56,9 @@ case class KinesisSource(conf: KinesisSourceConfig) extends EventSource with Log
 }
 
 object KinesisSource {
-  import io.circe.parser._
-  case class KinesisEventSchema(ti: TypeInformation[Event]) extends KinesisDeserializationSchema[Event] with Logging {
+  case class KinesisEventSchema(format: SourceFormat, ti: TypeInformation[Event])
+      extends KinesisDeserializationSchema[Event]
+      with Logging {
     override def deserialize(
         recordValue: Array[Byte],
         partitionKey: String,
@@ -65,13 +67,15 @@ object KinesisSource {
         stream: String,
         shardId: String
     ): Event = {
-      val json = new String(recordValue, StandardCharsets.UTF_8)
-      decode[Event](json) match {
+      format.transform(recordValue) match {
         case Left(value) =>
-          logger.error(s"cannot parse event $json", value)
+          val string = new String(recordValue, StandardCharsets.UTF_8)
+          logger.error(s"cannot parse event $string", value)
           null
-        case Right(value) =>
+        case Right(Some(value)) =>
           value
+        case Right(None) =>
+          null
       }
     }
 

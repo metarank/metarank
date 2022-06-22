@@ -8,6 +8,9 @@ import io.circe.generic.semiauto._
 import io.circe.generic.extras.semiauto.{deriveConfiguredCodec, deriveConfiguredDecoder, deriveConfiguredEncoder}
 import ai.metarank.model.Identifier._
 
+import java.time.format.DateTimeFormatter
+import scala.util.Try
+
 sealed trait Event {
   def id: EventId
   def timestamp: Timestamp
@@ -69,7 +72,18 @@ object Event {
   }
 
   object EventCodecs {
-    import io.findify.featury.model.json.TimestampJson._
+    val dateTimeFormat = DateTimeFormatter.ISO_DATE_TIME
+    implicit val timestampCodec: Codec[Timestamp] = Codec.from(
+      decodeA = Decoder.decodeLong
+        .or(
+          Decoder
+            .decodeZonedDateTimeWithFormatter(dateTimeFormat)
+            .map(_.toInstant.toEpochMilli)
+            .or(Decoder.decodeString.emapTry(str => Try(str.toLong)))
+        )
+        .map(Timestamp.apply),
+      encodeA = Encoder.encodeString.contramap(_.ts.toString)
+    )
     implicit val conf                                 = Configuration.default.withDefaults
     implicit val relevancyCodec: Codec[ItemRelevancy] = deriveCodec
 

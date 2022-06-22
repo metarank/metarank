@@ -56,7 +56,7 @@ See the [configuration](configuration.md) section of the docs on how to implemen
 Here is an example JSON for the metadata event:
 ```json
 {
-  "type": "item",
+  "event": "item",
   "id": "product1",
   "timestamp": "1599391467000",
   "fields": [
@@ -80,7 +80,7 @@ the following fields:
 Here is an example JSON for the ranking event:
 ```json
 {
-  "type": "ranking",
+  "event": "ranking",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
   "timestamp": "1599391467000",
   "scope": {

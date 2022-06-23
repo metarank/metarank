@@ -110,7 +110,8 @@ A good example is item metadata (like tags, titles and price - they are usually 
 back-office system and not directly exposed to the front-end). In this case it can be useful to
 generate such events on the backend side.
 
-For a sample Java backend application, you can track an item update event with a sample code:
+For a sample Java backend application, you can track an item update event with a sample code,
+using the [Snowplow Java Tracker SDK](https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/java-tracker/):
 ```java
 import com.snowplowanalytics.snowplow.tracker.*;
 import com.snowplowanalytics.snowplow.tracker.emitter.*;

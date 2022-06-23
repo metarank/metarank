@@ -27,6 +27,10 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 * [Event sources](data-sources.md): Which sources Metarank can pull events from.
 * [ML ranking models](supported-ranking-models.md): which ML models can be used for ranking.
 
+## Integrations
+
+* [Snowplow](integrations/snowplow.md): use [Snowplow Analytics](https://snowplowanalytics.com/) for collecting events needed by Metarank.
+
 ## Tutorials
 
 * [Demo tutorial](tutorial_ranklens.md): a shorter version of 

@@ -2,34 +2,38 @@
 
 ![snowplow logo](../img/snowplow_logo.png)
 
-Metarank can be integrated into the existing [Snowplow Analytics](https://snowplowanalytics.com/) setup. With this approach:
-* existing [Snowplow Analytics SDK](https://docs.snowplowanalytics.com/docs/modeling-your-data/analytics-sdk/)
-can be used for application instrumentation.
+Metarank can be integrated into existing [Snowplow Analytics](https://snowplowanalytics.com/) setup.
+
+We provide a set of [Iglu Schemes](#schema-registry) that you will use to track metadata and interaction events that can
+later on be read from Snowplow's enriched event stream by Metarank.
+
+* [Snowplow Trackers](https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/)
+are used to track Metarank-specific events.
 * Metarank will use Snowplow's enriched event stream as a source of events.
 
 ## Typical Snowplow architecture
 
-Typical Snowplow Analytics setup consists of these parts:
-* Using Analytics SDK, front-end emits a clickstream telemetry to the Collector
-* Collector writes all incoming events into the raw stream
-* Enrich validates these events according to the predefined schemas from the Schema Registry
-* Validated and enriched events then written to the enriched stream
+Typical Snowplow Analytics setup consists of the following parts:
+* Using [Snowplow Trackers](https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/), your application emits a clickstream telemetry to the [Stream Collector](https://docs.snowplowanalytics.com/docs/pipeline-components-and-applications/stream-collector/)
+* Stream Collector writes all incoming events into the raw stream
+* [Enrichment](https://docs.snowplowanalytics.com/docs/pipeline-components-and-applications/enrichment-components/) validates these events according to the predefined schemas from the Schema Registry
+* Validated and enriched events are written to the enriched stream
 * Enriched events are delivered to the Analytics DB
 
 Metarank exposes a set of Snowplow-compatible event schemas, and can read events
-directly from the enriched stream, like shown on the diagram below:
+directly from the enriched stream, as shown on the diagram below:
 
 ![snowplow typical setup](../img/snowplow-setup.png)
 
-###  Schema registry
+### Schema registry
 
-All incoming raw events have a strict JSON schema, consisting of the following parts:
+All incoming raw events have a strict JSON schema, that consists of the following parts:
 * predefined fields according to the [Snowplow Tracker Protocol](https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/snowplow-tracker-protocol/)
 * unstructured payload with user-defined schema
 * multiple context payloads with user-defined schemas
 
 These user-defined schemas are pulled from the [Iglu Registry](https://docs.snowplowanalytics.com/docs/pipeline-components-and-applications/iglu/), 
-and these schemas are just normal [JSON Schema](https://json-schema.org/specification.html) definitions,
+and these schemas are standard [JSON Schema](https://json-schema.org/specification.html) definitions,
 describing the payload structure.
 
 There are four different Metarank event types with the corresponding schemas:
@@ -39,27 +43,28 @@ There are four different Metarank event types with the corresponding schemas:
 4. `ai.metarank/interaction/1-0-0`: [interaction event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/interaction/1-0-0)
 
 These schemas are describing native [Metarank event types](../event-schema.md) without any modifications. 
-Check out [github.com/metarank/metarank-snowplow](https://github.com/metarank/metarank-snowplow) repo for more details on Metarank schemas.
+
+Check out [github.com/metarank/metarank-snowplow](https://github.com/metarank/metarank-snowplow) for more details about Metarank schemas.
 
 ### Stream transport types
 
-Snowplow supports [multiple streaming platforms](https://docs.snowplowanalytics.com/docs/pipeline-components-and-applications/stream-collector/setup/) for event delivery:
-* [AWS Kinesis](https://aws.amazon.com/kinesis/): supported by Metarank
-* [GCP Pubsub](https://cloud.google.com/pubsub): support is [planned in future](https://github.com/metarank/metarank/issues/477)
-* [Kafka](https://kafka.apache.org/): supported by Metarank
-* [NSQ](https://nsq.io/): not supported
+Snowplow supports [multiple streaming platforms](https://docs.snowplowanalytics.com/docs/pipeline-components-and-applications/stream-collector/) for event delivery:
+* [AWS Kinesis](https://aws.amazon.com/kinesis/): **supported by Metarank**
+* [Kafka](https://kafka.apache.org/): **supported by Metarank**
+* [GCP Pubsub](https://cloud.google.com/pubsub): *support is [planned in the future](https://github.com/metarank/metarank/issues/477)*
+* [NSQ](https://nsq.io/): *not supported*
+* [Amazon SQS](https://aws.amazon.com/sqs/): *not supported*
+* [stdout]: *not supported*
 
 ## Setting up event tracking 
 
-Metarank needs to receive 4 types of events, describing items and how visitors interact with them:
-* item metadata: like titles, inventory and prices
-* user metadata: country, age
-* ranking: what items were displayed to a visitor
-* interaction: how visitor interacted with the ranking
+Metarank needs to receive 4 types of [events](../event-schema.md), describing items, users and how users interact with items:
+* [item metadata](../event-schema.md#item-metadata-event): like titles, inventory, tags
+* [user metadata](../event-schema.md#user-metadata-event): country, age, location
+* [ranking](../event-schema.md#ranking-event): what items and in what order were displayed to a visitor
+* [interaction](../event-schema.md#interaction-event): how visitor interacted with the ranking
 
-There is a [more detailed spec of event formats](../event-schema.md) available. These events can be
-generated both on front-end side, and on backend side, and it depends on your preferred setup
-and data availability on front and back ends.
+These events can be generated both on the frontend side, and on the backend side, depending on your setup and data availability on the front and back ends.
 
 ![snowplow trackers](../img/snowplow-trackers.png)
 
@@ -69,7 +74,7 @@ Using [Snowplow JS Tracker SDK](https://docs.snowplowanalytics.com/docs/collecti
 you can track [self-describing events](http://snowplowanalytics.com/blog/2014/05/15/introducing-self-describing-jsons/), which
 are JSONs with attached schema references.
 
-An example of tracking a ranking:
+An example of tracking a ranking event:
 
 ```js
 import { trackSelfDescribingEvent } from '@snowplow/browser-tracker';
@@ -97,7 +102,7 @@ trackSelfDescribingEvent({
 ```
 
 Check out the [JSON-Schema definitions for events](https://github.com/metarank/metarank-snowplow/) and 
-[event format](../event-schema.md) article for details on fields, event types and their meaning.
+[event format](../event-schema.md) articles for details on fields, event types and their meaning.
 
 Metarank schemas are language-agnostic and you can instrument your app using any supported
 [Snowplow Tracker SDK](https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/) 
@@ -105,12 +110,13 @@ for your favourite language/framework of choice.
 
 #### Backend tracking
 
-Often happens, when front-end doesn't have all the required information to generate such events.
-A good example is item metadata (like tags, titles and price - they are usually altered in some
-back-office system and not directly exposed to the front-end). In this case it can be useful to
-generate such events on the backend side.
+It Often happens that the frontend doesn't have all the required information to generate events.
+A good example is item metadata event (usually tags, titles and price are altered in some
+back-office system and are not directly exposed to the frontend). 
 
-For a sample Java backend application, you can track an item update event with a sample code,
+In this case you can generate such events on the backend side.
+
+For a sample Java backend application, you can track an item update event with the following code,
 using the [Snowplow Java Tracker SDK](https://docs.snowplowanalytics.com/docs/collecting-data/collecting-from-own-applications/java-tracker/):
 ```java
 import com.snowplowanalytics.snowplow.tracker.*;
@@ -182,8 +188,9 @@ Both `http` and `https` schemas are supported, but `https` is recommended.
 ## Connecting Metarank with Snowplow
 
 Snowplow enrich emits processed records in [TSV format](https://docs.snowplowanalytics.com/docs/understanding-your-pipeline/canonical-event/understanding-the-enriched-tsv-format/)
-into the downstream Kinesis/Pubsub/etc. topic. This topic usually later monitored by 
+into the downstream Kinesis/Pubsub/etc. topic. This topic is usually later monitored by 
 "Loaders", like a Snowflake loader, or [S3 Loader](https://docs.snowplowanalytics.com/docs/pipeline-components-and-applications/loaders-storage-targets/s3-loader).
+
 An example loader integration diagram is shown below:
 
 ![snowplow loaders](../img/snowplow-s3loader.png)
@@ -192,7 +199,9 @@ Snowplow is flexible enough to use different data loading destinations (Redshift
 Snowflake, S3, etc.), but to access both live and historical enriched event data, Metarank needs
 an access to:
 * Enriched event stream
-* Historical enriched stream dumps done with S3 loader
+* Historical enriched stream dumps done with S3 Loader
+
+**At the moment Metarank supports loading historical events only from S3 Loader.**
 
 ### Realtime events from AWS Kinesis
 
@@ -292,12 +301,5 @@ bootstrap:
 ## Validating the setup
 
 With Metarank configured to pick live events from the enriched stream, and historical events
-from the offloaded files on S3, it should be straightforward to do the usual routine of
-setting Metarank up:
-* Bootstrap: process historical events
-* Train: build the ML model according to the historical data
-* Upload: push the latest ML feature values to Redis
-* Update: run the realtime ML feature update job
-* API: run the inference API
-
-Check out the [main doc](../tech-overview.md) on general setup instructions.
+from the offloaded files in S3, it should be straightforward to do the usual routine of
+[setting up](../configuration.md) and [running it](../deploy/README.md) Metarank.

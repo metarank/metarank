@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters._
 
 case class FileEventSource(conf: FileSourceConfig) extends EventSource with Logging {
   val compressedExts = StandardDeCompressors.getCommonSuffixes.asScala.toList.map(ext => s".$ext")
-  val commonExts     = List(".json", ".jsonl")
+  val commonExts     = List(".json", ".jsonl", ".tsv")
 
   def selectFile(path: Path): Boolean = {
     val fs     = path.getFileSystem

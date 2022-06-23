@@ -165,7 +165,7 @@ for details.
 
 TLDR version for impatient:
 * Use IAM roles when possible
-* 
+* add AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars to manually supply the keys.
 
 ### REST API
 

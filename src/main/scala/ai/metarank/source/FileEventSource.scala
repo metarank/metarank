@@ -2,7 +2,7 @@ package ai.metarank.source
 
 import FileEventSource.EventStreamFormat
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, SourceOffset}
-import ai.metarank.config.MPath
+import ai.metarank.config.{MPath, SourceFormat}
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.configuration.Configuration
@@ -24,7 +24,7 @@ import scala.jdk.CollectionConverters._
 
 case class FileEventSource(conf: FileSourceConfig) extends EventSource with Logging {
   val compressedExts = StandardDeCompressors.getCommonSuffixes.asScala.toList.map(ext => s".$ext")
-  val commonExts     = List(".json", ".jsonl")
+  val commonExts     = List(".json", ".jsonl", ".tsv")
 
   def selectFile(path: Path): Boolean = {
     val fs     = path.getFileSystem
@@ -53,7 +53,7 @@ case class FileEventSource(conf: FileSourceConfig) extends EventSource with Logg
     env
       .fromSource(
         source = FileSource
-          .forRecordStreamFormat(EventStreamFormat(), conf.path.flinkPath)
+          .forRecordStreamFormat(EventStreamFormat(conf.format), conf.path.flinkPath)
           .processStaticFileSet()
           .setFileEnumerator(() => new NonSplittingRecursiveEnumerator(selectFile))
           .build(),
@@ -65,14 +65,15 @@ case class FileEventSource(conf: FileSourceConfig) extends EventSource with Logg
 }
 
 object FileEventSource {
-  case class EventStreamFormat()(implicit val ti: TypeInformation[Event]) extends StreamFormat[Event] {
+  case class EventStreamFormat(format: SourceFormat)(implicit val ti: TypeInformation[Event])
+      extends StreamFormat[Event] {
     override def isSplittable: Boolean = false
     override def createReader(
         config: Configuration,
         stream: FSDataInputStream,
         fileLen: Long,
         splitEnd: Long
-    ): StreamFormat.Reader[Event] = EventReader(stream)
+    ): StreamFormat.Reader[Event] = EventReader(stream, format)
 
     override def restoreReader(
         config: Configuration,
@@ -80,22 +81,24 @@ object FileEventSource {
         restoredOffset: Long,
         fileLen: Long,
         splitEnd: Long
-    ): StreamFormat.Reader[Event] = EventReader(stream, restoredOffset)
+    ): StreamFormat.Reader[Event] = EventReader(stream, format, restoredOffset)
 
     override def getProducedType: TypeInformation[Event] = ti
   }
 
-  case class EventReader(raw: FSDataInputStream, stream: InputStream) extends StreamFormat.Reader[Event] with Logging {
+  case class EventReader(raw: FSDataInputStream, stream: InputStream, format: SourceFormat)
+      extends StreamFormat.Reader[Event]
+      with Logging {
     override def read(): Event = {
-      val line = readLine(stream)
-      if (line != null) decode[Event](line) match {
-        case Left(value) =>
-          logger.error(s"cannot decode line ${line}", value)
-          throw new IllegalArgumentException(s"json decoding error '$value' on line '${line}'")
-        case Right(value) =>
+      format.transform(stream) match {
+        case Left(error) =>
+          logger.error(s"cannot decode event", error)
+          null
+        case Right(None) =>
+          null
+        case Right(Some(value)) =>
           value
       }
-      else null
     }
 
     override def close(): Unit = stream.close()
@@ -104,27 +107,10 @@ object FileEventSource {
   }
 
   object EventReader {
-    def apply(stream: FSDataInputStream, offset: Long = 0L) = {
+    def apply(stream: FSDataInputStream, format: SourceFormat, offset: Long = 0L) = {
       stream.seek(offset)
       val buffered = new BufferedInputStream(stream, 1024 * 1024)
-      new EventReader(stream, buffered)
+      new EventReader(stream, buffered, format)
     }
-  }
-
-  def readLine(stream: InputStream): String = {
-    val buffer = new ByteArrayOutputStream(32)
-    var count  = 0
-    var next   = stream.read()
-    if ((next == -1) && (count == 0)) {
-      null
-    } else {
-      while ((next != -1) && (next != '\n')) {
-        buffer.write(next)
-        next = stream.read()
-        count += 1
-      }
-      new String(buffer.toByteArray)
-    }
-
   }
 }

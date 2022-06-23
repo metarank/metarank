@@ -157,6 +157,16 @@ options: # optional custom options for Flink connector, map<string,string>
   flink.stream.efo.consumername: metarank # custom consumer name 
 ```
 
+#### AWS Authentication
+
+Kinesis source uses a default auth chain from the AWS SDK, so all the possible ways of
+authentication are supported, see the upstream [Flink Kinesis connector docs](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/kinesis/)
+for details.
+
+TLDR version for impatient:
+* Use IAM roles when possible
+* add AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars to manually supply the keys.
+
 ### REST API
 
 It's possible to ingest real-time feedback events directly using the REST API of Metarank. Under the hood, the API has 

@@ -20,6 +20,9 @@
     * [Text](features/text.md)
     * [User Profile](features/user-session.md)
   * [How features are updated](features/delayed-refresh.md)
+* [Event collection](integrations/README.md)
+  * [API](integrations/api.md)
+  * [Snowplow](integrations/snowplow.md)
 
 ## Use cases
 * [Personalized recommendations](https://medium.com/metarank/personalizing-recommendations-with-metarank-f2644112536b)

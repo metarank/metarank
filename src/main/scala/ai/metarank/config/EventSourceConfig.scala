@@ -1,5 +1,7 @@
 package ai.metarank.config
 
+import ai.metarank.config.SourceFormat.NativeJson
+import ai.metarank.model.Event
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
@@ -34,9 +36,16 @@ object EventSourceConfig {
       topic: String,
       groupId: String,
       offset: SourceOffset,
-      options: Option[Map[String, String]] = None
+      options: Option[Map[String, String]] = None,
+      format: SourceFormat = NativeJson
   ) extends EventSourceConfig
-  case class FileSourceConfig(path: MPath, offset: SourceOffset = SourceOffset.Earliest) extends EventSourceConfig
+
+  case class FileSourceConfig(
+      path: MPath,
+      offset: SourceOffset = SourceOffset.Earliest,
+      format: SourceFormat = NativeJson
+  ) extends EventSourceConfig
+
   case class PulsarSourceConfig(
       serviceUrl: String,
       adminUrl: String,
@@ -44,16 +53,24 @@ object EventSourceConfig {
       subscriptionName: String,
       subscriptionType: String,
       offset: SourceOffset,
-      options: Option[Map[String, String]] = None
+      options: Option[Map[String, String]] = None,
+      format: SourceFormat = NativeJson
   ) extends EventSourceConfig
+
   case class KinesisSourceConfig(
       topic: String,
       offset: SourceOffset,
       region: String,
-      options: Option[Map[String, String]] = None
+      options: Option[Map[String, String]] = None,
+      format: SourceFormat = NativeJson
   ) extends EventSourceConfig
-  case class RestSourceConfig(bufferSize: Int = 10000, host: String = "localhost", port: Int = 8080)
-      extends EventSourceConfig
+
+  case class RestSourceConfig(
+      bufferSize: Int = 10000,
+      host: String = "localhost",
+      port: Int = 8080
+  ) extends EventSourceConfig
+
   implicit val conf = Configuration.default
     .withDiscriminator("type")
     .withDefaults

@@ -4,6 +4,8 @@ ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.8"
 ThisBuild / version      := "0.4.1"
 
+lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("linux/amd64")
+
 /** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
   * building. With this approach we have a custom MergeStrategy, which drops all files from flink-s3-fs-hadoop jar if
   * there is a conflict (so probably there is a newer version of dependency in fat-jar classpath)
@@ -84,7 +86,7 @@ lazy val root = (project in file("."))
       "org.http4s"                %% "http4s-dsl"               % http4sVersion,
       "org.http4s"                %% "http4s-blaze-server"      % http4sVersion,
       "org.http4s"                %% "http4s-blaze-client"      % http4sVersion,
-      "io.github.metarank"        %% "ltrlib"                   % "0.1.12",
+      "io.github.metarank"        %% "ltrlib"                   % "0.1.13",
       "com.github.ua-parser"       % "uap-java"                 % "1.5.2",
       "com.github.microwww"        % "redis-server"             % "0.3.0",
       "com.snowplowanalytics"     %% "scala-referer-parser"     % "2.0.0",
@@ -120,6 +122,11 @@ lazy val root = (project in file("."))
     docker / imageNames := Seq(
       ImageName("metarank/metarank:latest"),
       ImageName(s"metarank/metarank:${version.value}")
+    ),
+    docker / buildOptions := BuildOptions(
+      additionalArguments = Seq("--platform", DOCKER_PLATFORM),
+      removeIntermediateContainers = BuildOptions.Remove.Always,
+      pullBaseImage = BuildOptions.Pull.Always
     ),
     ThisBuild / assemblyMergeStrategy := {
       case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy

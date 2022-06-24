@@ -1,21 +1,22 @@
 package ai.metarank.format
 
-import ai.metarank.config.SourceFormat.{SnowplowJSON, SnowplowTSV}
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent, eventCodec}
 import ai.metarank.model.EventId
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.source.format.SnowplowFormat.{SnowplowJsonFormat, SnowplowTSVFormat}
 import better.files.Resource
 import cats.data.NonEmptyList
 import io.findify.featury.model.Timestamp
-import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.nio.charset.StandardCharsets
+
 class SnowplowFormatTest extends AnyFlatSpec with Matchers {
   it should "decode items metadata" in {
-    val event = Resource.my.getAsStream("/snowplow/item.tsv")
-    SnowplowTSV.transform(event) shouldBe Right(
+    val event = Resource.my.getAsString("/snowplow/item.tsv").getBytes(StandardCharsets.UTF_8)
+    SnowplowTSVFormat.parse(event) shouldBe Right(
       Some(
         ItemEvent(
           id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
@@ -32,8 +33,8 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode users metadata" in {
-    val event = Resource.my.getAsStream("/snowplow/user.tsv")
-    SnowplowTSV.transform(event) shouldBe Right(
+    val event = Resource.my.getAsString("/snowplow/user.tsv").getBytes(StandardCharsets.UTF_8)
+    SnowplowTSVFormat.parse(event) shouldBe Right(
       Some(
         UserEvent(
           id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
@@ -49,8 +50,8 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode ranking" in {
-    val event = Resource.my.getAsStream("/snowplow/ranking.tsv")
-    SnowplowTSV.transform(event) shouldBe Right(
+    val event = Resource.my.getAsString("/snowplow/ranking.tsv").getBytes(StandardCharsets.UTF_8)
+    SnowplowTSVFormat.parse(event) shouldBe Right(
       Some(
         RankingEvent(
           id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
@@ -86,22 +87,22 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
   )
 
   it should "decode interactions in TSV" in {
-    val event = Resource.my.getAsStream("/snowplow/interaction.tsv")
-    SnowplowTSV.transform(event) shouldBe Right(Some(expectedInteraction))
+    val event = Resource.my.getAsString("/snowplow/interaction.tsv").getBytes(StandardCharsets.UTF_8)
+    SnowplowTSVFormat.parse(event) shouldBe Right(Some(expectedInteraction))
   }
 
   it should "decode interactions in JSON" in {
-    val event = Resource.my.getAsStream("/snowplow/interaction.json")
-    SnowplowJSON.transform(event) shouldBe Right(Some(expectedInteraction))
+    val event = Resource.my.getAsString("/snowplow/interaction.json").getBytes(StandardCharsets.UTF_8)
+    SnowplowJsonFormat.parse(event) shouldBe Right(Some(expectedInteraction))
   }
 
   it should "decode events without unstruct field" in {
-    val event = Resource.my.getAsStream("/snowplow/empty.tsv")
-    SnowplowTSV.transform(event) shouldBe Right(None)
+    val event = Resource.my.getAsString("/snowplow/empty.tsv").getBytes(StandardCharsets.UTF_8)
+    SnowplowTSVFormat.parse(event) shouldBe Right(None)
   }
 
   it should "decode events with other schema" in {
-    val event = Resource.my.getAsStream("/snowplow/other.tsv")
-    SnowplowTSV.transform(event) shouldBe Right(None)
+    val event = Resource.my.getAsString("/snowplow/other.tsv").getBytes(StandardCharsets.UTF_8)
+    SnowplowTSVFormat.parse(event) shouldBe Right(None)
   }
 }

@@ -58,7 +58,7 @@ object PulsarEventSource {
     override def getProducedType: TypeInformation[Event] = ti
 
     override def deserialize(message: Message[Array[Byte]], out: Collector[Event]): Unit = {
-      format.transform(message.getData) match {
+      format.parse(message.getData) match {
         case Left(value) =>
           val string = new String(message.getData, StandardCharsets.UTF_8)
           logger.error(s"cannot parse message $string", value)

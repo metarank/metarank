@@ -2,6 +2,7 @@ package ai.metarank.source
 
 import FileEventSource.EventStreamFormat
 import ai.metarank.config.EventSourceConfig.{FileSourceConfig, SourceOffset}
+import ai.metarank.config.SourceFormat.FormatReader
 import ai.metarank.config.{MPath, SourceFormat}
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -86,11 +87,11 @@ object FileEventSource {
     override def getProducedType: TypeInformation[Event] = ti
   }
 
-  case class EventReader(raw: FSDataInputStream, stream: InputStream, format: SourceFormat)
+  case class EventReader(raw: FSDataInputStream, stream: InputStream, format: FormatReader)
       extends StreamFormat.Reader[Event]
       with Logging {
     override def read(): Event = {
-      format.transform(stream) match {
+      format.next() match {
         case Left(error) =>
           logger.error(s"cannot decode event", error)
           null
@@ -110,7 +111,7 @@ object FileEventSource {
     def apply(stream: FSDataInputStream, format: SourceFormat, offset: Long = 0L) = {
       stream.seek(offset)
       val buffered = new BufferedInputStream(stream, 1024 * 1024)
-      new EventReader(stream, buffered, format)
+      new EventReader(stream, buffered, format.reader(buffered))
     }
   }
 }

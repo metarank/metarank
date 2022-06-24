@@ -75,5 +75,6 @@ object WindowCountFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val windowCountDecoder: Decoder[WindowCountSchema] = deriveDecoder
+  implicit val windowCountDecoder: Decoder[WindowCountSchema] =
+    deriveDecoder[WindowCountSchema].withErrorMessage("cannot parse a feature definition of type 'window_count'")
 }

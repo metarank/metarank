@@ -85,6 +85,8 @@ object ItemAgeFeature {
   }
 
   implicit val itemAgeDecoder: Decoder[ItemAgeSchema] =
-    deriveDecoder[ItemAgeSchema].ensure(_.source.event == Item, "can only work with fields from metadata events")
+    deriveDecoder[ItemAgeSchema]
+      .ensure(_.source.event == Item, "can only work with fields from metadata events")
+      .withErrorMessage("cannot parse a feature definition of type 'item_age'")
 
 }

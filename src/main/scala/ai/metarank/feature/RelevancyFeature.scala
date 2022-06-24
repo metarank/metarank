@@ -39,5 +39,6 @@ object RelevancyFeature {
     lazy val scope: FeatureScope             = ItemScope
   }
 
-  implicit val relDecoder: Decoder[RelevancySchema] = deriveDecoder
+  implicit val relDecoder: Decoder[RelevancySchema] =
+    deriveDecoder[RelevancySchema].withErrorMessage("cannot parse a feature definition of type 'relevancy'")
 }

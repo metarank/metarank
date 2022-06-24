@@ -95,9 +95,11 @@ object LocalDateTimeFeature {
   }
 
   implicit val timeDayDecoder: Decoder[LocalDateTimeSchema] =
-    deriveDecoder[LocalDateTimeSchema].ensure(
-      _.source.event == EventType.Ranking,
-      "can only work with ranking event fields"
-    )
+    deriveDecoder[LocalDateTimeSchema]
+      .ensure(
+        _.source.event == EventType.Ranking,
+        "can only work with ranking event fields"
+      )
+      .withErrorMessage("cannot parse a feature definition of type 'local_time'")
 
 }

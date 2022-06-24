@@ -68,5 +68,8 @@ object InteractionCountFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val interCountDecoder: Decoder[InteractionCountSchema] = deriveDecoder
+  implicit val interCountDecoder: Decoder[InteractionCountSchema] =
+    deriveDecoder[InteractionCountSchema].withErrorMessage(
+      "cannot parse a feature definition of type 'interaction_count'"
+    )
 }

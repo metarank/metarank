@@ -118,8 +118,10 @@ object FieldMatchFeature {
     }
   )
 
-  implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema].ensure(
-    pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
-    message = "ranking field can only be read from ranking event, and item field - only from metadata"
-  )
+  implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema]
+    .ensure(
+      pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
+      message = "ranking field can only be read from ranking event, and item field - only from metadata"
+    )
+    .withErrorMessage("cannot parse a feature definition of type 'field_match'")
 }

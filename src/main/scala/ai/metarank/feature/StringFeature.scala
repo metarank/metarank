@@ -136,8 +136,11 @@ object StringFeature {
   ) extends FeatureSchema
 
   object StringFeatureSchema {
-    implicit val conf: Configuration                               = Configuration.default.withDefaults
-    implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = deriveConfiguredDecoder
+    implicit val conf: Configuration = Configuration.default.withDefaults
+    implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] =
+      deriveConfiguredDecoder[StringFeatureSchema].withErrorMessage(
+        "cannot parse a feature definition of type 'string'"
+      )
   }
 
 }

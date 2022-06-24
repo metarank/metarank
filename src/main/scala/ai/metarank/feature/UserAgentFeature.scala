@@ -72,6 +72,7 @@ object UserAgentFeature {
     }
   )
 
-  implicit val uaDecoder: Decoder[UserAgentSchema] = deriveDecoder
+  implicit val uaDecoder: Decoder[UserAgentSchema] =
+    deriveDecoder[UserAgentSchema].withErrorMessage("cannot parse a feature definition of type 'ua'")
 
 }

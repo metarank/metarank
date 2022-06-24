@@ -96,5 +96,6 @@ object RateFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val rateSchema: Decoder[RateFeatureSchema] = deriveDecoder
+  implicit val rateSchema: Decoder[RateFeatureSchema] =
+    deriveDecoder[RateFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'rate'")
 }

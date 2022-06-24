@@ -70,5 +70,6 @@ object WordCountFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val wcSchema: Decoder[WordCountSchema] = deriveDecoder
+  implicit val wcSchema: Decoder[WordCountSchema] =
+    deriveDecoder[WordCountSchema].withErrorMessage("cannot parse a feature definition of type 'word_count'")
 }

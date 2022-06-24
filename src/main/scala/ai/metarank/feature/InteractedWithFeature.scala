@@ -135,6 +135,7 @@ object InteractedWithFeature {
     deriveDecoder[InteractedWithSchema]
       .ensure(onlyItem, "can only be applied to item fields")
       .ensure(onlyUserSession, "can only be scoped to user/session")
+      .withErrorMessage("cannot parse a feature definition of type 'interacted_with'")
 
   def onlyItem(schema: InteractedWithSchema) = schema.field.event match {
     case EventType.Item => true

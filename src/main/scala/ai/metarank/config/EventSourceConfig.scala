@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.source.format.JsonLineFormat
+import ai.metarank.source.format.JsonFormat
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
@@ -36,13 +36,13 @@ object EventSourceConfig {
       groupId: String,
       offset: SourceOffset,
       options: Option[Map[String, String]] = None,
-      format: SourceFormat = JsonLineFormat
+      format: SourceFormat = JsonFormat
   ) extends EventSourceConfig
 
   case class FileSourceConfig(
       path: MPath,
       offset: SourceOffset = SourceOffset.Earliest,
-      format: SourceFormat = JsonLineFormat
+      format: SourceFormat = JsonFormat
   ) extends EventSourceConfig
 
   case class PulsarSourceConfig(
@@ -53,7 +53,7 @@ object EventSourceConfig {
       subscriptionType: String,
       offset: SourceOffset,
       options: Option[Map[String, String]] = None,
-      format: SourceFormat = JsonLineFormat
+      format: SourceFormat = JsonFormat
   ) extends EventSourceConfig
 
   case class KinesisSourceConfig(
@@ -61,7 +61,7 @@ object EventSourceConfig {
       offset: SourceOffset,
       region: String,
       options: Option[Map[String, String]] = None,
-      format: SourceFormat = JsonLineFormat
+      format: SourceFormat = JsonFormat
   ) extends EventSourceConfig
 
   case class RestSourceConfig(

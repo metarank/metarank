@@ -111,7 +111,7 @@ object Event {
   implicit val eventEncoder: Encoder[Event] = deriveConfiguredEncoder
   implicit val eventDecoder: Decoder[Event] = Decoder.instance(c =>
     c.downField("event").as[String] match {
-      case Left(error)                       => Left(error)
+      case Left(error) => Left(DecodingFailure(s"required field 'event' missing in JSON", c.history))
       case Right("metadata") | Right("item") => itemCodec.tryDecode(c)
       case Right("user")                     => userCodec.tryDecode(c)
       case Right("ranking")                  => rankingCodec.tryDecode(c)

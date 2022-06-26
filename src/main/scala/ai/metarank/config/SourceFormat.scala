@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.SourceFormat.FormatReader
 import ai.metarank.model.Event
-import ai.metarank.source.format.JsonLineFormat
+import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJsonFormat, SnowplowTSVFormat}
 import io.circe.{Codec, Decoder, Json}
 
@@ -36,7 +36,7 @@ object SourceFormat {
   }
 
   implicit val sourceFormatDecoder: Decoder[SourceFormat] = Decoder.decodeString.emapTry {
-    case "jsonl"         => Success(JsonLineFormat)
+    case "json"          => Success(JsonFormat)
     case "snowplow"      => Success(SnowplowTSVFormat)
     case "snowplow:tsv"  => Success(SnowplowTSVFormat)
     case "snowplow:json" => Success(SnowplowJsonFormat)

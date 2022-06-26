@@ -67,7 +67,7 @@ object KinesisSource {
         stream: String,
         shardId: String
     ): Event = {
-      format.transform(recordValue) match {
+      format.parse(recordValue) match {
         case Left(value) =>
           val string = new String(recordValue, StandardCharsets.UTF_8)
           logger.error(s"cannot parse event $string", value)

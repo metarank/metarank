@@ -10,7 +10,6 @@ An overview diagram of event flow during inference/bootstrap is shown below:
 ![bootstrap and inference event flow](img/connectors.png)
 
 Metarank supports the following list of connectors:
-[Apache Kafka](data-sources.md#)
 
 | Name                                                       | Bootstrap              | Inference |
 |------------------------------------------------------------|------------------------|-----------|
@@ -20,7 +19,7 @@ Metarank supports the following list of connectors:
 | [RESTful API](data-sources.md#rest-api)                    | no                     | yes       |
 | [Files](data-sources.md#files)                             | yes                    | no        |
 
-AWS Kinesis has a strict max 7 days retention period, so if you want to store more than 7
+`*` AWS Kinesis has a strict max 7 days retention period, so if you want to store more than 7
 days of historical clickthrough events, choose something else (for example, add AWS 
 Kinesis Firehose to write events from Kinesis topic to S3 files to pick them with `Files` 
 connector).
@@ -33,9 +32,13 @@ All supported connectors have some shared options:
 * offset: a time window in which events are read
   * `earliest` - start from the first stored message in the topic
   * `latest` - consume only events that came recently (after Metarank connection)
-  * `ts=\<timestamp\>` - start from a specific absolute timestamp in the past
-  * `last=\<duration\>` - consume only events that happened within a defined relative duration (duration supports the
+  * `ts=<timestamp>` - start from a specific absolute timestamp in the past
+  * `last=<duration>` - consume only events that happened within a defined relative duration (duration supports the
   following patterns: `1s`, `1m`, `1h`, `1d`)
+* format: event record encoding format, possible options:
+  * `json`: Both Json-line (newline separated records) and Json-array (`[{event:1}, {event:2}]`) formats are supported.
+  * `snowplow:tsv|snowplow:json` - Snowplow-native format, see [Snowplow integration](integrations/snowplow.md) for details
+  on how to set it up
 * options (for kinesis/pulsar/kafka connectors): raw flink custom connector options to override default behavior:
   * kafka: [KafkaSourceOptions](https://github.com/apache/flink/blob/master/flink-connectors/flink-connector-kafka/src/main/java/org/apache/flink/connector/kafka/source/KafkaSourceOptions.java)
   and [ConsumerConfig](https://kafka.apache.org/24/javadoc/org/apache/kafka/clients/consumer/ConsumerConfig.html)
@@ -61,6 +64,7 @@ Config file definition example:
 type: file
 path: file:///ranklens/events/
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+format: <json|snowplow:tsv|snowplow:json>
 ```
 
 The *path* parameter supports the following possible access scheme formats:
@@ -93,6 +97,7 @@ brokers: [broker1, broker2]
 topic: events
 groupId: metarank
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+format: <json|snowplow:tsv|snowplow:json>
 options: # optional flink connector raw parameters, map<string,string>
 ```
 
@@ -115,6 +120,7 @@ topic: events
 subscriptionName: metarank
 subscriptionType: exclusive # options are exclusive, shared, failover
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+format: <json|snowplow:tsv|snowplow:json>
 options: # optional flink connector parameters, map<string,string>
 ```
 
@@ -135,6 +141,7 @@ type: kinesis
 region: us-east-1
 topic: events
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+format: <json|snowplow:tsv|snowplow:json>
 options: # optional custom options for Flink connector, map<string,string>
 ```
 
@@ -152,6 +159,7 @@ type: kinesis
 topic: events
 region: us-east-1
 offset: earliest|latest|ts=<unixtime>|last=<duration>
+format: <json|snowplow:tsv|snowplow:json>
 options: # optional custom options for Flink connector, map<string,string>
   flink.stream.recordpublisher: EFO # EFO | POLLING
   flink.stream.efo.consumername: metarank # custom consumer name 

@@ -4,6 +4,7 @@ import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
 import ai.metarank.config.EventSourceConfig.SourceOffset._
 import ai.metarank.config.EventSourceConfigTest.Source
 import MPath.LocalPath
+import ai.metarank.source.format.SnowplowFormat.SnowplowTSVFormat
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import org.scalatest.flatspec.AnyFlatSpec
@@ -107,6 +108,24 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
             "foo.qux" -> "8"
           )
         )
+      )
+    )
+  }
+
+  it should "decode kinesis config with explicit format" in {
+    val yaml = """type: kinesis
+                 |topic: events
+                 |offset: earliest
+                 |region: us-east-1
+                 |format: snowplow:tsv
+                 |""".stripMargin
+    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    decoded shouldBe Right(
+      KinesisSourceConfig(
+        topic = "events",
+        offset = SourceOffset.Earliest,
+        region = "us-east-1",
+        format = SnowplowTSVFormat
       )
     )
   }

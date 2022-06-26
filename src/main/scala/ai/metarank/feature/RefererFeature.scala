@@ -152,6 +152,7 @@ object RefererFeature {
   implicit val refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
     .ensure(validType, "source type can be only user, interaction or ranking")
     .ensure(validScope, "scope can be only user or session")
+    .withErrorMessage("cannot parse a feature definition of type 'referer'")
 
   private def validType(schema: RefererSchema) = schema.source.event match {
     case EventType.Item           => false

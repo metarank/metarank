@@ -67,5 +67,6 @@ object BooleanFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = deriveDecoder
+  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] =
+    deriveDecoder[BooleanFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'boolean'")
 }

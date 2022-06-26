@@ -68,5 +68,6 @@ object NumberFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val nfDecoder: Decoder[NumberFeatureSchema] = deriveDecoder
+  implicit val nfDecoder: Decoder[NumberFeatureSchema] =
+    deriveDecoder[NumberFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'number'")
 }

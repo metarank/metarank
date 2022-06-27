@@ -1,4 +1,4 @@
-name: Connector integration tests
+name: Snowplow integration tests
 
 on:
   push:
@@ -9,10 +9,7 @@ on:
 jobs:
   build:
     timeout-minutes: 20
-    runs-on: ${{ matrix.platform }}
-    strategy:
-      matrix:
-        platform: [ubuntu-20.04, ubuntu-22.04]
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v2
@@ -23,6 +20,7 @@ jobs:
         with:
           path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
           key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
+
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
@@ -30,7 +28,7 @@ jobs:
           java-version: '11'
 
       - name:  Run docker-compose
-        run: docker-compose -f .github/compose-connectors.yaml up -d
+        run: docker-compose -f .github/compose-snowplow.yaml up -d
 
       - name: Run integration tests
-        run: sbt -mem 3000 "IntegrationTest/testOnly * -- -n ai.metaranke2e.tags.RanklensTag -n ai.metaranke2e.tags.ConnectorTag"
+        run: sbt -mem 3000 IntegrationTest/testOnly * -- -n ai.metaranke2e.tags.SnowplowTag

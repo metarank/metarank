@@ -1,9 +1,9 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "$comment": "User metadata event",
+    "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+    "$comment": "Item metadata event",
     "self": {
         "vendor": "ai.metarank",
-        "name": "user",
+        "name": "item",
         "format": "jsonschema",
         "version": "1-0-0"
     },
@@ -12,7 +12,7 @@
         "event": {
             "$comment": "Type of the event",
             "type": "string",
-            "enum": ["user"]
+            "enum": ["item"]
         },
         "id": {
             "type": "string",
@@ -22,7 +22,7 @@
             "$comment": "for supported formats, see https://docs.metarank.ai/introduction/configuration/event-schema/timestamp-formats",
             "type": ["string", "number"]
         },
-        "user": {
+        "item": {
             "type": "string",
             "minLength": 1
         },
@@ -56,6 +56,6 @@
             }
         }
     },
-    "required": ["event", "id", "user", "timestamp"],
+    "required": ["event", "id", "item", "timestamp"],
     "additionalProperties": false
 }

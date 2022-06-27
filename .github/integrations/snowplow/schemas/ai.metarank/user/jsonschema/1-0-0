@@ -1,9 +1,9 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "$comment": "Interaction event",
+    "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+    "$comment": "User metadata event",
     "self": {
         "vendor": "ai.metarank",
-        "name": "interaction",
+        "name": "user",
         "format": "jsonschema",
         "version": "1-0-0"
     },
@@ -12,7 +12,7 @@
         "event": {
             "$comment": "Type of the event",
             "type": "string",
-            "enum": ["interaction"]
+            "enum": ["user"]
         },
         "id": {
             "type": "string",
@@ -22,23 +22,7 @@
             "$comment": "for supported formats, see https://docs.metarank.ai/introduction/configuration/event-schema/timestamp-formats",
             "type": ["string", "number"]
         },
-        "item": {
-            "type": "string",
-            "minLength": 1
-        },
         "user": {
-            "type": "string",
-            "minLength": 1
-        },
-        "session": {
-            "type": "string",
-            "minLength": 1
-        },
-        "type": {
-            "type": "string",
-            "minLength": 1
-        },
-        "ranking": {
             "type": "string",
             "minLength": 1
         },
@@ -48,13 +32,12 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string",
-                        "minLength": 1
+                        "type": "string"
                     },
                     "value": {
                         "oneOf": [
                             { "type": "string" },
-                            { "type": "number"},
+                            { "type": "number" },
                             { "type": "boolean" },
                             {
                                 "type": "array",
@@ -73,6 +56,6 @@
             }
         }
     },
-    "required": ["event", "id", "item", "type"],
+    "required": ["event", "id", "user", "timestamp"],
     "additionalProperties": false
 }

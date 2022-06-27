@@ -4,16 +4,19 @@ import ai.metarank.config.EventSourceConfig.{PulsarSourceConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.PulsarEventSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
+import ai.metaranke2e.tags.ConnectorTag
 import io.circe.syntax._
 import org.apache.pulsar.client.admin.PulsarAdmin
 import org.apache.pulsar.client.api.PulsarClient
 import org.apache.pulsar.common.policies.data.TenantInfo
+import org.scalatest.TagAnnotation
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 
+@ConnectorTag
 class PulsarEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 

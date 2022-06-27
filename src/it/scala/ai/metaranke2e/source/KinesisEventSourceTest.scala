@@ -5,6 +5,7 @@ import ai.metarank.model.Event
 import ai.metarank.source.KinesisSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import ai.metaranke2e.source.KinesisEventSourceTest.createProducer
+import ai.metaranke2e.tags.ConnectorTag
 import org.apache.flink.kinesis.shaded.com.amazonaws.services.kinesis.producer.{
   KinesisProducer,
   KinesisProducerConfiguration,
@@ -19,10 +20,12 @@ import org.apache.flink.kinesis.shaded.com.amazonaws.auth.{
   AnonymousAWSCredentials,
   BasicAWSCredentials
 }
+import org.scalatest.TagAnnotation
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+@ConnectorTag
 class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
   it should "read from kinesis" in {
@@ -32,14 +35,14 @@ class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
       region = "us-east-1",
       options = Some(
         Map(
-          "aws.endpoint"                               -> "http://localstack:4566",
+          "aws.endpoint"                               -> "http://localhost:4568",
           "aws.credentials.provider"                   -> "BASIC",
           "aws.credentials.provider.basic.accesskeyid" -> "1",
           "aws.credentials.provider.basic.secretkey"   -> "1"
         )
       )
     )
-    val producer     = createProducer("localhost", 4566)
+    val producer     = createProducer("localhost", 4567)
     val event: Event = TestItemEvent("p1")
     val eventRecord =
       new UserRecord("events", "ye", ByteBuffer.wrap(event.asJson.noSpaces.getBytes(StandardCharsets.UTF_8)))

@@ -1,9 +1,9 @@
 {
-    "$schema": "http://json-schema.org/schema#",
-    "$comment": "Item metadata event",
+    "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+    "$comment": "Interaction event",
     "self": {
         "vendor": "ai.metarank",
-        "name": "item",
+        "name": "interaction",
         "format": "jsonschema",
         "version": "1-0-0"
     },
@@ -12,7 +12,7 @@
         "event": {
             "$comment": "Type of the event",
             "type": "string",
-            "enum": ["item"]
+            "enum": ["interaction"]
         },
         "id": {
             "type": "string",
@@ -26,18 +26,35 @@
             "type": "string",
             "minLength": 1
         },
+        "user": {
+            "type": "string",
+            "minLength": 1
+        },
+        "session": {
+            "type": "string",
+            "minLength": 1
+        },
+        "type": {
+            "type": "string",
+            "minLength": 1
+        },
+        "ranking": {
+            "type": "string",
+            "minLength": 1
+        },
         "fields": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1
                     },
                     "value": {
                         "oneOf": [
                             { "type": "string" },
-                            { "type": "number" },
+                            { "type": "number"},
                             { "type": "boolean" },
                             {
                                 "type": "array",
@@ -56,6 +73,6 @@
             }
         }
     },
-    "required": ["event", "id", "item", "timestamp"],
+    "required": ["event", "id", "item", "type"],
     "additionalProperties": false
 }

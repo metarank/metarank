@@ -1,41 +1,76 @@
 package ai.metaranke2e.e2e
 
-import ai.metarank.config.SourceFormat.SnowplowTSV
+import ai.metarank.source.format.SnowplowFormat.SnowplowTSVFormat
 import ai.metaranke2e.SnowplowJavaTracker
-import better.files.Resource
-import cats.data.Validated
+import ai.metaranke2e.tags.SnowplowTag
 import org.apache.flink.kinesis.shaded.software.amazon.awssdk.regions.Region
 import org.apache.flink.kinesis.shaded.software.amazon.awssdk.services.kinesis.KinesisClient
-import org.apache.flink.kinesis.shaded.software.amazon.awssdk.services.kinesis.model.{GetRecordsRequest, GetShardIteratorRequest, ShardIteratorType}
+import org.apache.flink.kinesis.shaded.software.amazon.awssdk.services.kinesis.model.{
+  GetRecordsRequest,
+  GetShardIteratorRequest,
+  ShardIteratorType
+}
+import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
 
 import scala.jdk.CollectionConverters._
 import java.net.URI
 
-class SnowplowIntegrationTest extends AnyFlatSpec with Matchers {
-  it should "emit events into the collector " in {
-    SnowplowJavaTracker.track()
+@SnowplowTag
+class SnowplowIntegrationTest extends AnyFlatSpec with Matchers with Eventually {
+  override implicit val patienceConfig = PatienceConfig(
+    timeout = scaled(Span(180, Seconds)),
+    interval = scaled(Span(1, Seconds))
+  )
+
+  def withKinesisClient[T](code: KinesisClient => T) = {
     val client = KinesisClient
       .builder()
       .endpointOverride(new URI("http://localhost:4566"))
       .region(Region.US_EAST_1)
       .build()
 
+    val result = code(client)
+    client.close()
+    result
+  }
+
+  def pollTopic(topic: String, client: KinesisClient): List[Array[Byte]] = {
     val iterator = client.getShardIterator(
       GetShardIteratorRequest
         .builder()
         .shardIteratorType(ShardIteratorType.TRIM_HORIZON)
         .shardId("shardId-000000000000")
-        .streamName("enriched")
+        .streamName(topic)
         .build()
     )
-
     val records = client.getRecords(GetRecordsRequest.builder().shardIterator(iterator.shardIterator()).build())
-    val events  = records.records().asScala.map(r => new String(r.data().asByteArray())).toList
-    val parsed = events.map(SnowplowTSV.parse).collect { case Validated.Valid(a) =>
-      a
-    }
+    records.records().asScala.map(r => r.data().asByteArray()).toList
+  }
 
+  it should "send tracked event" in {
+    SnowplowJavaTracker.track("http://localhost:8082")
+  }
+
+  it should "receive event from good stream" in withKinesisClient { client =>
+    eventually {
+      val events = pollTopic("good", client)
+      events shouldNot be(empty)
+    }
+  }
+
+  it should "receive events from enrich stream" in withKinesisClient { client =>
+    eventually {
+      val events = pollTopic("enrich", client)
+      val parsed = events.flatMap(e =>
+        SnowplowTSVFormat.parse(e) match {
+          case Right(Some(value)) => Some(value)
+          case _                  => None
+        }
+      )
+      parsed shouldNot be(empty)
+    }
   }
 }

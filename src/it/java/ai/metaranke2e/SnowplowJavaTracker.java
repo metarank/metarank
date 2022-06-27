@@ -4,19 +4,19 @@ import com.snowplowanalytics.snowplow.tracker.Tracker;
 import com.snowplowanalytics.snowplow.tracker.emitter.BatchEmitter;
 import com.snowplowanalytics.snowplow.tracker.events.Unstructured;
 import com.snowplowanalytics.snowplow.tracker.payload.SelfDescribingJson;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SnowplowJavaTracker {
     public static void main(String[] args) {
-        track();
+        track("http://localhost:8082");
     }
 
-    public static void track() {
+    public static void track(String host) {
         BatchEmitter emitter = BatchEmitter.builder()
-                .url("http://localhost:8082")
+                .url(host)
                 .build();
 
         Tracker tracker = new Tracker
@@ -29,9 +29,11 @@ public class SnowplowJavaTracker {
         payload.put("timestamp", String.valueOf(System.currentTimeMillis()));
         payload.put("item", "item1");
 
-        Map<String, Object> fields = new HashMap<>();
-        fields.put("title", "your cat");
-        fields.put("color", List.of("white", "black"));
+        List<Object> fields = new ArrayList<>();
+        Map<String, Object> title = new HashMap<>();
+        title.put("name", "title");
+        title.put("value", "your cat");
+        fields.add(title);
         payload.put("fields", fields);
 
         Unstructured unstructured = Unstructured.builder()

@@ -3,6 +3,7 @@ package ai.metaranke2e.e2e
 import ai.metarank.source.format.SnowplowFormat.SnowplowTSVFormat
 import ai.metaranke2e.SnowplowJavaTracker
 import ai.metaranke2e.tags.SnowplowTag
+import org.apache.flink.kinesis.shaded.software.amazon.awssdk.auth.credentials.{AwsCredentials, AwsCredentialsProvider}
 import org.apache.flink.kinesis.shaded.software.amazon.awssdk.regions.Region
 import org.apache.flink.kinesis.shaded.software.amazon.awssdk.services.kinesis.KinesisClient
 import org.apache.flink.kinesis.shaded.software.amazon.awssdk.services.kinesis.model.{
@@ -29,6 +30,12 @@ class SnowplowIntegrationTest extends AnyFlatSpec with Matchers with Eventually 
     val client = KinesisClient
       .builder()
       .endpointOverride(new URI("http://localhost:4566"))
+      .credentialsProvider(new AwsCredentialsProvider {
+        override def resolveCredentials(): AwsCredentials = new AwsCredentials {
+          override def accessKeyId(): String     = "default"
+          override def secretAccessKey(): String = "default"
+        }
+      })
       .region(Region.US_EAST_1)
       .build()
 

@@ -1,0 +1,308 @@
+{
+  # Where to read collector payloads from
+  "input": {
+    "type": "Kinesis"
+
+    # Name of the Kinesis stream to read from
+    "streamName": "good"
+
+    "region": "us-east-1"
+
+    # Optional, set the initial position to consume the Kinesis stream
+    # Must be TRIM_HORIZON, LATEST or AT_TIMESTAMP
+    # LATEST: most recent data.
+    # TRIM_HORIZON: oldest available data.
+    # AT_TIMESTAMP: start from the record at or after the specified timestamp
+    "initialPosition": {
+      "type": "TRIM_HORIZON"
+    }
+
+    # Optional, set the mode for retrieving records.
+    "retrievalMode": {
+      "type": "Polling"
+
+      # Maximum size of a batch returned by a call to getRecords.
+      # Records are checkpointed after a batch has been fully processed,
+      # thus the smaller maxRecords, the more often records can be checkpointed
+      # into DynamoDb, but possibly reducing the throughput.
+      "maxRecords": 10000
+    }
+
+    # Optional. Size of the internal buffer used when reading messages from Kinesis,
+    # each buffer holding up to maxRecords from above
+    "bufferSize": 3
+
+    # Optional. Settings for backoff policy for checkpointing.
+    # Records are checkpointed after all the records of the same chunk have been enriched
+    "checkpointBackoff": {
+      "minBackoff": 100 milliseconds
+      "maxBackoff": 10 seconds
+      "maxRetries": 10
+    }
+
+    # Optional, endpoint url configuration to override aws kinesis endpoints
+    # Can be used to specify local endpoint when using localstack
+    "customEndpoint": "http://localstack:4566"
+    "dynamodbCustomEndpoint": "http://localstack:4566"
+    "cloudwatchCustomEndpoint": "http://localstack:4566"
+  }
+
+  "output": {
+    # Enriched events output
+    "good": {
+      "type": "Kinesis"
+
+      # Name of the Kinesis stream to write to
+      "streamName": "enrich"
+
+      # Optional. Region where the Kinesis stream is located
+      # This field is optional if it can be resolved with AWS region provider chain.
+      # It checks places like env variables, system properties, AWS profile file.
+      # https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/regions/providers/DefaultAwsRegionProviderChain.html
+      "region": "us-east-1"
+
+      # Optional. Policy for cats-retry to retry after failures writing to kinesis
+      "backoffPolicy": {
+        "minBackoff": 100 milliseconds
+        "maxBackoff": 10 seconds
+        "maxRetries": 10
+      }
+
+      # Optional. Maximum amount of time an enriched event may spend being buffered before it gets sent
+      "maxBufferedTime": 100 millis
+
+      # Optional. The KPL will consider a record failed if it cannot be sent within this deadline.
+      # The KPL then yields back to the JVM, which will log the error, and might retry sending.
+      "recordTtl": 20 seconds
+
+      # Optional. See https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html
+      "collection": {
+        # Maximum number of Kinesis records to pack into a PutRecords request
+        "maxCount": 500
+
+        # Maximum amount of data to send with a PutRecords request
+        "maxSize": 5242880
+      }
+
+      # Optional. See https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html
+      # If not specified, aggregation is deactivated
+      #"aggregation": {
+      #  # Maximum number of enriched events to pack into an aggregated Kinesis record
+      #  "maxCount": 4294967295
+      #
+      #  # Maximum number of bytes to pack into an aggregated Kinesis record
+      #  "maxSize": 51200
+      #}
+
+      # Optional. Maximum number of connections to open in the backend.
+      # HTTP requests are sent in parallel over multiple connections.
+      # Setting this too high may impact latency and consume additional resources
+      # without increasing throughput
+      "maxConnections": 24
+
+      # Optional. Minimum level of logs for the native KPL daemon.
+      # Logs show up on stderr
+      # Possible values: trace | debug | info | warning | error
+      "logLevel": "warning"
+
+      # Optional. Use a custom Kinesis endpoint.
+      # Note this does not accept protocols or paths, only host names or ip addresses.
+      # There is no way to disable TLS.
+      # Needs to be specified along with customPort
+      "customEndpoint": localstack
+
+      # Optional. Server port to connect to for Kinesis.
+      # Needs to be specified along with customEndpoint
+      "customPort": 4566
+
+      "verifyCertificates": false
+
+      # Optional. Use a custom Cloudwatch endpoint.
+      # Note this does not accept protocols or paths, only host names or ip addresses.
+      # There is no way to disable TLS
+      # Needs to be specified along with cloudwatchPort
+      "cloudwatchEndpoint": "localstack"
+
+      # Optional. Server port to connect to for CloudWatch.
+      # Needs to be specified along with cloudwatchPort
+      "cloudwatchPort": 4566
+    }
+
+    # Pii events output
+    "pii": {
+      "type": "Kinesis"
+
+      # Name of the Kinesis stream to write to
+      "streamName": "pii"
+
+      # Optional. Region where the Kinesis stream is located
+      # This field is optional if it can be resolved with AWS region provider chain.
+      # It checks places like env variables, system properties, AWS profile file.
+      # https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/regions/providers/DefaultAwsRegionProviderChain.html
+      "region": "us-east-1"
+
+      # Optional. How the output stream/topic will be partitioned in Kinesis
+      # Possible partition keys are: event_id, event_fingerprint, domain_userid, network_userid,
+      # user_ipaddress, domain_sessionid, user_fingerprint
+      # Refer to https://github.com/snowplow/snowplow/wiki/canonical-event-model to know what the
+      # possible parittion keys correspond to.
+      # Otherwise, the partition key will be a random UUID.
+      # "partitionKey": "user_id"
+
+      # Optional. Policy for cats-retry to retry after failures writing to kinesis
+      "backoffPolicy": {
+        "minBackoff": 100 milliseconds
+        "maxBackoff": 10 seconds
+        "maxRetries": 10
+      }
+
+      # Optional. Maximum amount of time an enriched event may spend being buffered before it gets sent
+      "maxBufferedTime": 100 millis
+
+      # Optional. The KPL will consider a record failed if it cannot be sent within this deadline.
+      # The KPL then yields back to the JVM, which will log the error, and might retry sending.
+      "recordTtl": 20 seconds
+
+      # Optional. See https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html
+      "collection": {
+        # Maximum number of Kinesis records to pack into a PutRecords request
+        "maxCount": 500
+
+        # Maximum amount of data to send with a PutRecords request
+        "maxSize": 5242880
+      }
+
+      # Optional. See https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html
+      # If not specified, aggregation is deactivated
+      #"aggregation": {
+      #  # Maximum number of enriched events to pack into an aggregated Kinesis record
+      #  "maxCount": 4294967295
+      #
+      #  # Maximum number of bytes to pack into an aggregated Kinesis record
+      #  "maxSize": 51200
+      #}
+
+      # Optional. Maximum number of connections to open in the backend.
+      # HTTP requests are sent in parallel over multiple connections.
+      # Setting this too high may impact latency and consume additional resources
+      # without increasing throughput
+      "maxConnections": 24
+
+      # Optional. Minimum level of logs for the native KPL daemon.
+      # Logs show up on stderr
+      # Possible values: trace | debug | info | warning | error
+      "logLevel": "warning"
+
+      # Optional. Use a custom Kinesis endpoint.
+      # Note this does not accept protocols or paths, only host names or ip addresses.
+      # There is no way to disable TLS.
+      # Needs to be specified along with customPort
+      "customEndpoint": "localstack"
+
+      # Optional. Server port to connect to for Kinesis.
+      # Needs to be specified along with customEndpoint
+      "customPort": 4566
+      "verifyCertificates": false
+
+      # Optional. Use a custom Cloudwatch endpoint.
+      # Note this does not accept protocols or paths, only host names or ip addresses.
+      # There is no way to disable TLS
+      # Needs to be specified along with cloudwatchPort
+      "cloudwatchEndpoint": "localstack"
+
+      # Optional. Server port to connect to for CloudWatch.
+      # Needs to be specified along with cloudwatchPort
+      "cloudwatchPort": 4566
+    }
+
+    # Bad rows output
+    "bad": {
+      "type": "Kinesis"
+
+      # Name of the Kinesis stream to write to
+      "streamName": "enrichbad"
+
+      # Optional. Region where the Kinesis stream is located
+      # This field is optional if it can be resolved with AWS region provider chain.
+      # It checks places like env variables, system properties, AWS profile file.
+      # https://sdk.amazonaws.com/java/api/latest/software/amazon/awssdk/regions/providers/DefaultAwsRegionProviderChain.html
+      "region": "us-east-1"
+
+      # Optional. Policy for cats-retry to retry after failures writing to kinesis
+      "backoffPolicy": {
+        "minBackoff": 100 milliseconds
+        "maxBackoff": 10 seconds
+        "maxRetries": 10
+      }
+
+      # Optional. Maximum amount of time an enriched event may spend being buffered before it gets sent
+      "maxBufferedTime": 100 millis
+
+      # Optional. The KPL will consider a record failed if it cannot be sent within this deadline.
+      # The KPL then yields back to the JVM, which will log the error, and might retry sending.
+      "recordTtl": 20 seconds
+
+      # Optional. See https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html
+      "collection": {
+        # Maximum number of Kinesis records to pack into a PutRecords request
+        "maxCount": 500
+
+        # Maximum amount of data to send with a PutRecords request
+        "maxSize": 5242880
+      }
+
+      # Optional. See https://docs.aws.amazon.com/streams/latest/dev/kinesis-kpl-concepts.html
+      # If not specified, aggregation is deactivated
+      #"aggregation": {
+      #  # Maximum number of enriched events to pack into an aggregated Kinesis record
+      #  "maxCount": 4294967295
+      #
+      #  # Maximum number of bytes to pack into an aggregated Kinesis record
+      #  "maxSize": 51200
+      #}
+
+      # Optional. Maximum number of connections to open in the backend.
+      # HTTP requests are sent in parallel over multiple connections.
+      # Setting this too high may impact latency and consume additional resources
+      # without increasing throughput
+      "maxConnections": 24
+
+      # Optional. Minimum level of logs for the native KPL daemon.
+      # Logs show up on stderr
+      # Possible values: trace | debug | info | warning | error
+      "logLevel": "warning"
+
+      # Optional. Use a custom Kinesis endpoint.
+      # Note this does not accept protocols or paths, only host names or ip addresses.
+      # There is no way to disable TLS.
+      # Needs to be specified along with customPort
+      "customEndpoint": "localstack"
+
+      # Optional. Server port to connect to for Kinesis.
+      # Needs to be specified along with customEndpoint
+      "customPort": 4566
+      "verifyCertificates": false
+
+      # Optional. Use a custom Cloudwatch endpoint.
+      # Note this does not accept protocols or paths, only host names or ip addresses.
+      # There is no way to disable TLS
+      # Needs to be specified along with cloudwatchPort
+      "cloudwatchEndpoint": "localstack"
+
+      # Optional. Server port to connect to for CloudWatch.
+      # Needs to be specified along with cloudwatchPort
+      "cloudwatchPort": 4566
+    }
+  }
+
+
+  # Optional, period after which enrich assets should be checked for updates
+  # no assets will be updated if the key is absent
+  "assetsUpdatePeriod": "7 days"
+
+  "monitoring": {
+
+  }
+
+
+}

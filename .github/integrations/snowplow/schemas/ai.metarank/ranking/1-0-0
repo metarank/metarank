@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "$comment": "Ranking event",
+    "self": {
+        "vendor": "ai.metarank",
+        "name": "ranking",
+        "format": "jsonschema",
+        "version": "1-0-0"
+    },
+    "type": "object",
+    "properties": {
+        "event": {
+            "$comment": "Type of the event",
+            "type": "string",
+            "enum": ["ranking"]
+        },
+        "id": {
+            "type": "string",
+            "minLength": 1
+        },
+        "timestamp": {
+            "$comment": "for supported formats, see https://docs.metarank.ai/introduction/configuration/event-schema/timestamp-formats",
+            "type": ["string", "number"]
+        },
+        "user": {
+            "type": "string",
+            "minLength": 1
+        },
+        "session": {
+            "type": "string",
+            "minLength": 1
+        },
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "relevancy": {
+                        "type": "number"
+                    }
+                },
+                "required": ["id"]
+            }
+        }
+    },
+    "required": ["event", "id", "items", "timestamp"],
+    "additionalProperties": false
+}

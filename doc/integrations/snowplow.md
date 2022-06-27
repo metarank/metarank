@@ -37,10 +37,10 @@ and these schemas are standard [JSON Schema](https://json-schema.org/specificati
 describing the payload structure.
 
 There are four different Metarank event types with the corresponding schemas:
-1. `ai.metarank/item/1-0-0`: [item metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/1-0-0)
-2. `ai.metarank/user/1-0-0`: [user metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/user/1-0-0)
-3. `ai.metarank/ranking/1-0-0`: [ranking event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/1-0-0)
-4. `ai.metarank/interaction/1-0-0`: [interaction event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/interaction/1-0-0)
+1. `ai.metarank/item/jsonschema/1-0-0`: [item metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/1-0-0)
+2. `ai.metarank/user/jsonschema/1-0-0`: [user metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/user/1-0-0)
+3. `ai.metarank/ranking/jsonschema/1-0-0`: [ranking event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/1-0-0)
+4. `ai.metarank/interaction/jsonschema/1-0-0`: [interaction event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/interaction/1-0-0)
 
 These schemas are describing native [Metarank event types](../event-schema.md) without any modifications. 
 
@@ -150,7 +150,7 @@ public class JavaTrackerExample {
         payload.put("fields", fields);
 
         Unstructured unstructured = Unstructured.builder()
-                .eventData(new SelfDescribingJson("iglu:ai.metarank/item/1-0-0", payload))
+                .eventData(new SelfDescribingJson("iglu:ai.metarank/item/jsonschema/1-0-0", payload))
                 .build();
 
         tracker.track(unstructured);

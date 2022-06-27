@@ -1,0 +1,27 @@
+collector {
+  interface = "0.0.0.0"
+  port = 8080
+
+
+  streams {
+    good = "good"
+    bad = "bad"
+    sink {
+      enabled = kinesis
+      region = "us-east-1"
+      customEndpoint = "http://localstack:4566"
+      aws {
+        accessKey = default
+        secretKey = default
+      }
+    }
+
+    buffer {
+      byteLimit = 1
+      recordLimit = 1
+      timeLimit = 1
+    }
+  }
+
+}
+

@@ -4,6 +4,8 @@ import ai.metarank.config.EventSourceConfig.{KinesisSourceConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KinesisSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
+import ai.metaranke2e.source.KinesisEventSourceTest.createProducer
+import ai.metaranke2e.tags.ConnectorTag
 import org.apache.flink.kinesis.shaded.com.amazonaws.services.kinesis.producer.{
   KinesisProducer,
   KinesisProducerConfiguration,
@@ -18,10 +20,12 @@ import org.apache.flink.kinesis.shaded.com.amazonaws.auth.{
   AnonymousAWSCredentials,
   BasicAWSCredentials
 }
+import org.scalatest.TagAnnotation
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+@ConnectorTag
 class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
   it should "read from kinesis" in {
@@ -38,19 +42,7 @@ class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
         )
       )
     )
-    val creds = new AWSCredentialsProvider {
-      override def getCredentials: AWSCredentials = new BasicAWSCredentials("1", "1")
-      override def refresh(): Unit                = {}
-    }
-    val prodConf =
-      new KinesisProducerConfiguration()
-        .setKinesisEndpoint("localhost")
-        .setKinesisPort(4567)
-        .setRegion("us-east-1")
-        .setVerifyCertificate(false)
-        .setCredentialsProvider(creds)
-
-    val producer     = new KinesisProducer(prodConf)
+    val producer     = createProducer("localhost", 4567)
     val event: Event = TestItemEvent("p1")
     val eventRecord =
       new UserRecord("events", "ye", ByteBuffer.wrap(event.asJson.noSpaces.getBytes(StandardCharsets.UTF_8)))
@@ -59,5 +51,23 @@ class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
     producer.destroy()
     val received = KinesisSource(conf).eventStream(env, true).executeAndCollect(1)
     received shouldBe List(event)
+  }
+}
+
+object KinesisEventSourceTest {
+  def createProducer(host: String, port: Int) = {
+    val creds = new AWSCredentialsProvider {
+      override def getCredentials: AWSCredentials = new BasicAWSCredentials("1", "1")
+      override def refresh(): Unit                = {}
+    }
+    val prodConf =
+      new KinesisProducerConfiguration()
+        .setKinesisEndpoint(host)
+        .setKinesisPort(port)
+        .setRegion("us-east-1")
+        .setVerifyCertificate(false)
+        .setCredentialsProvider(creds)
+
+    new KinesisProducer(prodConf)
   }
 }

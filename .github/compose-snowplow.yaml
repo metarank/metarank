@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      - AWS_DEFAULT_REGION=us-east-1
+      - EDGE_PORT=4566
+      - SERVICES=dynamodb,cloudwatch,kinesis
+      - KINESIS_PROVIDER=kinesis-mock
+      - AWS_CBOR_DISABLE=true
+      - KINESIS_INITIALIZE_STREAMS=events:1:us-east-1,good:1:us-east-1,bad:1:us-east-1,enrich:1:us-east-1,pii:1:us-east-1,enrichbad:1:us-east-1
+    ports:
+      - '4566:4566'
+
+  iglu:
+    image: nginx:latest
+    ports:
+      - '8083:80'
+    volumes:
+      - ./integrations/snowplow/:/usr/share/nginx/html/
+
+  collect:
+    image: snowplow/scala-stream-collector-kinesis:2.6.1-focal
+    ports:
+      - '8082:8080'
+    command: --config /snowplow/collect.hocon
+    environment:
+      - AWS_SECRET_ACCESS_KEY=default
+      - AWS_ACCESS_KEY=default
+      - AWS_CBOR_DISABLE=true
+    depends_on:
+      - localstack
+    volumes:
+      - ./integrations/snowplow/:/snowplow/
+
+  enrich:
+    #image: snowplow/snowplow-enrich-kinesis:3.1.5 # broken, see https://github.com/snowplow/enrich/pull/632
+    image: metarank/snowplow-enrich-kinesis:3.1.5-ssl
+    command: --config /snowplow/enrich.hocon --iglu-config /snowplow/iglu.json --enrichments /snowplow/enrichments
+    depends_on:
+      - collect
+      - localstack
+    volumes:
+      - ./integrations/snowplow:/snowplow
+    environment:
+      - AWS_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=default
+      - AWS_SECRET_ACCESS_KEY=default
+      - AWS_CBOR_DISABLE=true

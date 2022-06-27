@@ -16,6 +16,7 @@ import ai.metarank.model.{Event, EventId}
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.util.fs.FS
 import ai.metarank.util.{FlinkTest, RanklensEvents}
+import ai.metaranke2e.tags.{ConnectorTag, RanklensTag}
 import better.files.File
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -39,6 +40,7 @@ import java.nio.charset.StandardCharsets
 import scala.util.Random
 import scala.concurrent.duration._
 
+@RanklensTag
 class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
   val baseConfig = Config

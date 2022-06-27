@@ -37,10 +37,10 @@ and these schemas are standard [JSON Schema](https://json-schema.org/specificati
 describing the payload structure.
 
 There are four different Metarank event types with the corresponding schemas:
-1. `ai.metarank/item/1-0-0`: [item metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/1-0-0)
-2. `ai.metarank/user/1-0-0`: [user metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/user/1-0-0)
-3. `ai.metarank/ranking/1-0-0`: [ranking event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/1-0-0)
-4. `ai.metarank/interaction/1-0-0`: [interaction event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/interaction/1-0-0)
+1. `ai.metarank/item/jsonschema/1-0-0`: [item metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/jsonschema/1-0-0)
+2. `ai.metarank/user/jsonschema/1-0-0`: [user metadata event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/user/jsonschema/1-0-0)
+3. `ai.metarank/ranking/jsonschema/1-0-0`: [ranking event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/item/jsonschema/1-0-0)
+4. `ai.metarank/interaction/jsonschema/1-0-0`: [interaction event](https://github.com/metarank/metarank-snowplow/blob/master/schemas/ai.metarank/interaction/jsonschema/1-0-0)
 
 These schemas are describing native [Metarank event types](../event-schema.md) without any modifications. 
 
@@ -138,25 +138,33 @@ public class JavaTrackerExample {
                 .TrackerBuilder(emitter, "trackerNamespace", "appId")
                 .build();
 
+        Tracker tracker = new Tracker
+                .TrackerBuilder(emitter, "trackerNamespace", "appId")
+                .build();
+
         Map<String, Object> payload = new HashMap<>();
         payload.put("event", "item");
         payload.put("id", "81f46c34-a4bb-469c-8708-f8127cd67d27");
         payload.put("timestamp", String.valueOf(System.currentTimeMillis()));
         payload.put("item", "item1");
 
-        Map<String, Object> fields = new HashMap<>();
-        fields.put("title", "your cat");
-        fields.put("color", List.of("white", "black"));
+        List<Object> fields = new ArrayList<>();
+        Map<String, Object> title = new HashMap<>();
+        title.put("name", "title");
+        title.put("value", "your cat");
+        fields.add(title);
         payload.put("fields", fields);
 
         Unstructured unstructured = Unstructured.builder()
-                .eventData(new SelfDescribingJson("iglu:ai.metarank/item/1-0-0", payload))
+                .eventData(new SelfDescribingJson("iglu:ai.metarank/item/jsonschema/1-0-0", payload))
                 .build();
 
         tracker.track(unstructured);
     }
 }
 ```
+
+A [full example](../../src/it/java/ai/metaranke2e/SnowplowJavaTracker.java) can be seen in snowplow e2e tests. 
 
 ## Installing ai.metarank schemas
 

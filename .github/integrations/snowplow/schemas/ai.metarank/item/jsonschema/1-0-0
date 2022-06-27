@@ -1,0 +1,61 @@
+{
+    "$schema": "http://iglucentral.com/schemas/com.snowplowanalytics.self-desc/schema/jsonschema/1-0-0#",
+    "$comment": "Item metadata event",
+    "self": {
+        "vendor": "ai.metarank",
+        "name": "item",
+        "format": "jsonschema",
+        "version": "1-0-0"
+    },
+    "type": "object",
+    "properties": {
+        "event": {
+            "$comment": "Type of the event",
+            "type": "string",
+            "enum": ["item"]
+        },
+        "id": {
+            "type": "string",
+            "minLength": 1
+        },
+        "timestamp": {
+            "$comment": "for supported formats, see https://docs.metarank.ai/introduction/configuration/event-schema/timestamp-formats",
+            "type": ["string", "number"]
+        },
+        "item": {
+            "type": "string",
+            "minLength": 1
+        },
+        "fields": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "value": {
+                        "oneOf": [
+                            { "type": "string" },
+                            { "type": "number" },
+                            { "type": "boolean" },
+                            {
+                                "type": "array",
+                                "$comment": "only arrays of strings and numbers are supported",
+                                "items": {
+                                    "oneOf": [
+                                        { "type": "string" },
+                                        { "type": "number" }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "required": ["name", "value"]
+            }
+        }
+    },
+    "required": ["event", "id", "item", "timestamp"],
+    "additionalProperties": false
+}

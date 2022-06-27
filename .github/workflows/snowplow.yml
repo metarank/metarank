@@ -31,4 +31,4 @@ jobs:
         run: docker-compose -f .github/compose-snowplow.yaml up -d
 
       - name: Run integration tests
-        run: sbt -mem 3000 IntegrationTest/testOnly * -- -n ai.metaranke2e.tags.SnowplowTag
+        run: 'sbt -mem 3000 "IntegrationTest/testOnly * -- -n ai.metaranke2e.tags.SnowplowTag"'

@@ -33,4 +33,4 @@ jobs:
         run: docker-compose -f .github/compose-connectors.yaml up -d
 
       - name: Run integration tests
-        run: sbt -mem 3000 "IntegrationTest/testOnly * -- -n ai.metaranke2e.tags.RanklensTag -n ai.metaranke2e.tags.ConnectorTag"
+        run: 'sbt -mem 3000 "IntegrationTest/testOnly * -- -n ai.metaranke2e.tags.RanklensTag -n ai.metaranke2e.tags.ConnectorTag"'

@@ -148,7 +148,6 @@ object ListSource {
   object ListEnumerator {
     def apply[T](values: List[T], ctx: SplitEnumeratorContext[ListSplit[T]]) = {
       val splitSize = math.ceil(values.size.toDouble / ctx.currentParallelism()).toInt
-      val br        = 1
       new ListEnumerator[T](
         queue = mutable.Queue(values.grouped(splitSize).toList.map(list => ListSplit(list)): _*),
         ctx = ctx
@@ -162,7 +161,6 @@ object ListSource {
     val splitQueue = mutable.Queue[ListSplit[T]]()
 
     override def pollNext(output: ReaderOutput[T]): InputStatus = {
-      val b     = 1
       val items = splitQueue.toList.flatMap(x => x.values)
       items match {
         case Nil if assigned  => InputStatus.END_OF_INPUT
@@ -178,7 +176,6 @@ object ListSource {
     }
 
     override def addSplits(splits: util.List[ListSplit[T]]): Unit = {
-      val b = 1
       assigned = true
       splitQueue.enqueueAll(splits.asScala)
     }

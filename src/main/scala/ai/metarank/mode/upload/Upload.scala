@@ -56,7 +56,7 @@ object Upload extends CliApp {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       job <- AsyncFlinkJob.execute(cluster) { env =>
         {
-          // env.setRuntimeMode(RuntimeExecutionMode.BATCH)
+          env.setRuntimeMode(RuntimeExecutionMode.BATCH)
           val features = env
             .fromSource[FeatureValue](
               source,

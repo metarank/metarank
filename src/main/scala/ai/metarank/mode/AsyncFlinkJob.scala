@@ -21,16 +21,15 @@ object AsyncFlinkJob extends Logging {
       IO {
         val env = new StreamExecutionEnvironment(new TestStreamEnvironment(cluster.cluster.getMiniCluster, 1))
         job(env)
-        val graph       = env.getStreamGraph.getJobGraph
         val streamGraph = env.getStreamGraph
         name match {
           case Some(realName) => streamGraph.setJobName(realName)
           case None           => streamGraph.setJobName(s"metarank-async-job-${math.abs(Random.nextInt())}")
         }
 
-        savepoint.foreach(s => graph.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(s, true)))
-        logger.info(s"submitted job ${graph} to local cluster")
-        cluster.client.submitJob(graph)
+        savepoint.foreach(s => streamGraph.setSavepointRestoreSettings(SavepointRestoreSettings.forPath(s, true)))
+        logger.info(s"submitted job $name to local cluster")
+        cluster.client.submitJob(streamGraph.getJobGraph)
       }
     })(job =>
       eval { cluster.client.getJobStatus(job) }.flatMap {

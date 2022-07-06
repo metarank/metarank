@@ -10,10 +10,13 @@ import io.findify.featury.connector.redis.RedisStore
 import io.findify.featury.flink.Featury
 import io.findify.featury.flink.format.FeatureStoreSink
 import io.findify.featury.flink.util.Compress
+import io.findify.featury.model.FeatureValue
 import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import io.findify.flinkadt.api._
-import org.apache.flink.api.common.{JobID, JobStatus}
+import org.apache.flink.api.common.{JobID, JobStatus, RuntimeExecutionMode}
+import org.apache.flink.api.connector.source.{Source, SourceSplit}
+
 import scala.concurrent.duration._
 
 object Upload extends CliApp {
@@ -39,14 +42,24 @@ object Upload extends CliApp {
     ExitCode.Success
   }
 
-  def upload(dir: MPath, host: String, port: Int, format: StoreCodec, buffer: FiniteDuration) =
+  def upload(dir: MPath, host: String, port: Int, format: StoreCodec, buffer: FiniteDuration): Resource[IO, Unit] =
+    upload(Featury.readFeatures(dir.flinkPath, Compress.NoCompression), host, port, format, buffer)
+
+  def upload(
+      source: Source[FeatureValue, _ <: SourceSplit, _],
+      host: String,
+      port: Int,
+      format: StoreCodec,
+      buffer: FiniteDuration
+  ): Resource[IO, Unit] =
     for {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
       job <- AsyncFlinkJob.execute(cluster) { env =>
         {
+          env.setRuntimeMode(RuntimeExecutionMode.BATCH)
           val features = env
-            .fromSource(
-              Featury.readFeatures(dir.flinkPath, Compress.NoCompression),
+            .fromSource[FeatureValue](
+              source,
               FeatureValueWatermarkStrategy(),
               "read"
             )

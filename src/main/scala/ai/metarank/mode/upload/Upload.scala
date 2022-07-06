@@ -54,7 +54,7 @@ object Upload extends CliApp {
   ): Resource[IO, Unit] =
     for {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
-      job <- AsyncFlinkJob.execute(cluster) { env =>
+      job <- AsyncFlinkJob.execute(cluster, name = Some("metarank-upload")) { env =>
         {
           env.setRuntimeMode(RuntimeExecutionMode.BATCH)
           val features = env

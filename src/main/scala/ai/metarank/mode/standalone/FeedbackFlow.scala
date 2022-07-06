@@ -40,7 +40,7 @@ object FeedbackFlow extends Logging {
       lti: TypeInformation[Long],
       tti: TypeInformation[Tenant]
   ) = {
-    AsyncFlinkJob.execute(cluster, Some(savepoint.uri)) { env =>
+    AsyncFlinkJob.execute(cluster, Some(savepoint.uri), name = Some("metarank-update")) { env =>
       job(env, mapping, redisHost, redisPort, format, impress, events, batchPeriod)
     }
   }

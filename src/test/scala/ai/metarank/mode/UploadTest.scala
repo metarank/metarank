@@ -13,7 +13,7 @@ import org.scalatest.matchers.should.Matchers
 import redis.clients.jedis.Jedis
 
 import scala.concurrent.duration._
-import scala.util.Random
+import scala.util.{Random, Try}
 
 class UploadTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   var service: RedisServer = _
@@ -21,7 +21,7 @@ class UploadTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   val port = 1024 + Random.nextInt(60000)
 
   override def beforeAll() = {
-    val service = new RedisServer()
+    service = new RedisServer()
     service.listener("localhost", port)
   }
 

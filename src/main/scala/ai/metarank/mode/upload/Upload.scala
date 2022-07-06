@@ -13,7 +13,8 @@ import io.findify.featury.flink.util.Compress
 import io.findify.featury.values.StoreCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import io.findify.flinkadt.api._
-import org.apache.flink.api.common.{JobID, JobStatus}
+import org.apache.flink.api.common.{JobID, JobStatus, RuntimeExecutionMode}
+
 import scala.concurrent.duration._
 
 object Upload extends CliApp {
@@ -42,7 +43,7 @@ object Upload extends CliApp {
   def upload(dir: MPath, host: String, port: Int, format: StoreCodec, buffer: FiniteDuration) =
     for {
       cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
-      job <- AsyncFlinkJob.execute(cluster) { env =>
+      job <- AsyncFlinkJob.execute(cluster, name = Some("metarank-upload")) { env =>
         {
           val features = env
             .fromSource(

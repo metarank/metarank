@@ -48,7 +48,7 @@ lazy val root = (project in file("."))
       "-Xfatal-warnings"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"                % "3.3.12",
+      "org.typelevel"        %% "cats-effect"                % "3.3.13",
       "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
       "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
       "org.scalatest"        %% "scalatest"                  % scalatestVersion % "test,it",

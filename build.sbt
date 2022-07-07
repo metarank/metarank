@@ -97,7 +97,7 @@ lazy val root = (project in file("."))
       "org.apache.lucene"          % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"          % "lucene-analysis-stempel"  % luceneVersion,
       "org.apache.httpcomponents"  % "httpclient"               % "4.5.13",
-      "com.fasterxml.jackson.core" % "jackson-annotations"      % "2.12.4" // should match flink's version
+      "com.fasterxml.jackson.core" % "jackson-annotations"      % "2.12.7" // should match flink's version
     ),
     Compile / mainClass             := Some("ai.metarank.Main"),
     Compile / discoveredMainClasses := Seq(),

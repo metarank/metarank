@@ -17,6 +17,8 @@ import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.EventSource
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
+import io.findify.featury.flink.feature.FlinkPersistence
+import io.findify.featury.flink.feature.FlinkPersistence.FlinkPersistenceFactory
 import io.findify.featury.flink.format.{BulkCodec, BulkInputFormat, CompressedBulkReader, CompressedBulkWriter}
 import io.findify.featury.flink.util.Compress
 import io.findify.featury.flink.{FeatureBootstrapFunction, FeatureProcessFunction, Featury}
@@ -153,7 +155,7 @@ object Bootstrap extends CliApp {
         .connect(fieldUpdates.broadcast(fieldState))
         .process(EventProcessFunction(fieldState, mapping))
         .id("process-events")
-    val updates = Featury.process(writes, mapping.schema, 20.seconds).id("process-writes")
+    val updates = Featury.process(writes, mapping.schema, 20.seconds, FlinkPersistenceFactory()).id("process-writes")
     val state   = updates.getSideOutput(FeatureProcessFunction.stateTag)
     (state, fieldUpdates, updates)
   }
@@ -173,7 +175,7 @@ object Bootstrap extends CliApp {
     val transformFeatures = OperatorTransformation
       .bootstrapWith(stateSource.javaStream)
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
-      .transform(new FeatureBootstrapFunction(mapping.schema))
+      .transform(new FeatureBootstrapFunction(mapping.schema, FlinkPersistenceFactory()))
 
     val transformFields = OperatorTransformation
       .bootstrapWith(fieldsSource.javaStream)

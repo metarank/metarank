@@ -2,28 +2,31 @@ package ai.metarank.config
 
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
+import io.findify.featury.model.FeatureValue
 import io.findify.featury.values.StoreCodec
-import io.findify.featury.values.StoreCodec.{JsonCodec, ProtobufCodec}
+import io.findify.featury.values.StoreCodec.{FeatureValueJsonCodec, FeatureValueProtobufCodec}
 
 import scala.util.{Failure, Success}
 
 sealed trait StateStoreConfig {
   def port: Int
   def host: String
-  def format: StoreCodec
+  def format: StoreCodec[FeatureValue]
 }
 object StateStoreConfig {
   import io.circe.generic.extras.semiauto._
 
-  implicit val formatDecoder: Decoder[StoreCodec] = Decoder.decodeString.emapTry {
-    case "json"     => Success(JsonCodec)
-    case "protobuf" => Success(ProtobufCodec)
+  implicit val formatDecoder: Decoder[StoreCodec[FeatureValue]] = Decoder.decodeString.emapTry {
+    case "json"     => Success(FeatureValueJsonCodec)
+    case "protobuf" => Success(FeatureValueProtobufCodec)
     case other      => Failure(new Exception(s"codec $other is not supported"))
   }
 
-  case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec = ProtobufCodec) extends StateStoreConfig
+  case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec[FeatureValue] = FeatureValueProtobufCodec)
+      extends StateStoreConfig
 
-  case class MemConfig(format: StoreCodec = ProtobufCodec, port: Int = 6379) extends StateStoreConfig {
+  case class MemConfig(format: StoreCodec[FeatureValue] = FeatureValueProtobufCodec, port: Int = 6379)
+      extends StateStoreConfig {
     val host = "localhost"
   }
 

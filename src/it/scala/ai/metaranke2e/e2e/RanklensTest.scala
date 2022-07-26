@@ -110,7 +110,7 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
     val redis = EmbeddedRedis.createUnsafe(port)
 
     val store = FeatureStoreResource
-      .unsafe(() => RedisStore(RedisConfig("localhost", port, config.inference.state.format)))
+      .unsafe(() => RedisStore(RedisConfig("localhost", port, config.inference.state.format, 0)))
       .unsafeRunSync()
 
     val uploaded =

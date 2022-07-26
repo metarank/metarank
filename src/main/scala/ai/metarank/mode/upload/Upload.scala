@@ -42,14 +42,20 @@ object Upload extends CliApp {
     ExitCode.Success
   }
 
-  def upload(dir: MPath, host: String, port: Int, format: StoreCodec, buffer: FiniteDuration): Resource[IO, Unit] =
+  def upload(
+      dir: MPath,
+      host: String,
+      port: Int,
+      format: StoreCodec[FeatureValue],
+      buffer: FiniteDuration
+  ): Resource[IO, Unit] =
     upload(Featury.readFeatures(dir.flinkPath, Compress.NoCompression), host, port, format, buffer)
 
   def upload(
       source: Source[FeatureValue, _ <: SourceSplit, _],
       host: String,
       port: Int,
-      format: StoreCodec,
+      format: StoreCodec[FeatureValue],
       buffer: FiniteDuration
   ): Resource[IO, Unit] =
     for {
@@ -67,7 +73,7 @@ object Upload extends CliApp {
             .process(WindowBatchFunction(buffer, 1024))
             .id("make-batches")
 
-          features.sinkTo(FeatureStoreSink(RedisStore(RedisConfig(host, port, format))))
+          features.sinkTo(FeatureStoreSink(RedisStore(RedisConfig(host, port, format, 0))))
         }
       }
       _ <- Resource.eval(blockUntilFinished(cluster, job))

@@ -6,7 +6,9 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import com.github.microwww.redis.RedisServer
+import io.findify.featury.model.FeatureValue
 import io.findify.featury.values.StoreCodec
+
 import scala.concurrent.duration._
 
 sealed trait RedisEndpoint {
@@ -21,7 +23,7 @@ object RedisEndpoint {
     override def close: IO[Unit]  = IO.unit
   }
 
-  case class EmbeddedRedis(host: String, port: Int, format: StoreCodec, service: RedisServer, dir: MPath)
+  case class EmbeddedRedis(host: String, port: Int, format: StoreCodec[FeatureValue], service: RedisServer, dir: MPath)
       extends RedisEndpoint {
     override def upload: IO[Unit] = Upload.upload(dir, host, port, format, 100.millis).use(_ => IO.unit)
 

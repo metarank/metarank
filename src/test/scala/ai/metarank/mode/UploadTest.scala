@@ -42,7 +42,8 @@ class UploadTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
         )
         .toList
     )
-    val (_, close) = Upload.upload(source, "localhost", port, StoreCodec.JsonCodec, 1.second).allocated.unsafeRunSync()
+    val (_, close) =
+      Upload.upload(source, "localhost", port, StoreCodec.FeatureValueJsonCodec, 1.second).allocated.unsafeRunSync()
     close.unsafeRunSync()
 
     val jedis = new Jedis("localhost", port)

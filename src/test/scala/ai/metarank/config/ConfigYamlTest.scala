@@ -13,7 +13,7 @@ import ai.metarank.model.FieldName.EventType._
 import better.files.Resource
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.circe.yaml.parser.parse
-import io.findify.featury.values.StoreCodec.JsonCodec
+import io.findify.featury.values.StoreCodec.{FeatureValueJsonCodec, JsonCodec}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -68,7 +68,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         inference = InferenceConfig(
           port = 8080,
           host = "localhost",
-          state = MemConfig(JsonCodec),
+          state = MemConfig(FeatureValueJsonCodec),
           source = RestSourceConfig(10000, "localhost", 8080)
         )
       )

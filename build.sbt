@@ -48,7 +48,7 @@ lazy val root = (project in file("."))
       "-Xfatal-warnings"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"                % "3.3.12",
+      "org.typelevel"        %% "cats-effect"                % "3.3.14",
       "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
       "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
       "org.scalatest"        %% "scalatest"                  % scalatestVersion % "test,it",
@@ -61,13 +61,13 @@ lazy val root = (project in file("."))
       "io.circe"             %% "circe-generic-extras"       % circeVersion,
       "io.circe"             %% "circe-parser"               % circeVersion,
       "com.github.pathikrit" %% "better-files"               % "3.9.1",
-      "com.github.scopt"     %% "scopt"                      % "4.0.1",
+      "com.github.scopt"     %% "scopt"                      % "4.1.0",
       "redis.clients"         % "jedis"                      % "4.2.3",
       "com.github.blemale"   %% "scaffeine"                  % "5.2.0",
       "com.github.fppt"       % "jedis-mock"                 % "1.0.3"          % "test,it",
       "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
-      "io.findify"           %% "featury-flink"              % featuryVersion,
-      "io.findify"           %% "featury-redis"              % featuryVersion,
+      "io.github.metarank"   %% "featury-flink"              % featuryVersion,
+      "io.github.metarank"   %% "featury-redis"              % featuryVersion,
       "org.apache.flink"      % "flink-statebackend-rocksdb" % flinkVersion,
       "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
       "org.apache.flink"      % "flink-runtime-web"          % flinkVersion,
@@ -106,10 +106,10 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from("flink:1.15")
+        from(s"flink:$flinkVersion")
         run("mkdir", "/opt/flink/plugins/s3-fs-hadoop")
-        run("cp", "/opt/flink/opt/flink-s3-fs-hadoop-1.15.0.jar", "/opt/flink/plugins/s3-fs-hadoop/")
-        run("rm", "/opt/flink/lib/flink-scala_2.12-1.15.0.jar")
+        run("cp", s"/opt/flink/opt/flink-s3-fs-hadoop-$flinkVersion.jar", "/opt/flink/plugins/s3-fs-hadoop/")
+        run("rm", s"/opt/flink/lib/flink-scala_2.12-$flinkVersion.jar")
         run("apt-get", "update")
         run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping", "openjdk-11-jdk-headless")
         run("apt-get", "-y", "install", "libgomp1")

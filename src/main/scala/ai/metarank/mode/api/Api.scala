@@ -36,7 +36,9 @@ object Api extends CliApp {
   def httpResource(config: Config, env: Map[String, String]) = for {
     models <- Resource.eval(loadModels(config, env))
     store <- FeatureStoreResource.make(() =>
-      RedisStore(RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format))
+      RedisStore(
+        RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format, 0)
+      )
     )
     storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
     mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)

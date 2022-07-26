@@ -28,7 +28,7 @@ object FeedbackFlow extends Logging {
       redisHost: String,
       redisPort: Int,
       savepoint: MPath,
-      format: StoreCodec,
+      format: StoreCodec[FeatureValue],
       impress: SyntheticImpressionConfig,
       events: StreamExecutionEnvironment => DataStream[Event],
       batchPeriod: FiniteDuration
@@ -50,7 +50,7 @@ object FeedbackFlow extends Logging {
       mapping: FeatureMapping,
       redisHost: String,
       redisPort: Int,
-      format: StoreCodec,
+      format: StoreCodec[FeatureValue],
       impress: SyntheticImpressionConfig,
       events: StreamExecutionEnvironment => DataStream[Event],
       batchPeriod: FiniteDuration
@@ -70,7 +70,7 @@ object FeedbackFlow extends Logging {
       .process(WindowBatchFunction(batchPeriod, 128))
       .id("make-batch")
       .sinkTo(
-        FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format)))
+        FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format, 0)))
       )
       .id("write-redis")
   }

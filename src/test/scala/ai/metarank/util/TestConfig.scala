@@ -10,7 +10,7 @@ import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import cats.data.{NonEmptyList, NonEmptyMap}
-import io.findify.featury.values.StoreCodec.JsonCodec
+import io.findify.featury.values.StoreCodec.{FeatureValueJsonCodec, JsonCodec}
 
 object TestConfig {
   def apply() = new Config(
@@ -23,7 +23,7 @@ object TestConfig {
     inference = InferenceConfig(
       port = 8080,
       host = "0.0.0.0",
-      state = MemConfig(JsonCodec),
+      state = MemConfig(FeatureValueJsonCodec),
       source = RestSourceConfig(1000, "localhost", 8080)
     )
   )

@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent, UserEvent}
 import ai.metarank.model.FeatureScope.SessionScope
 import ai.metarank.model.Field.StringField

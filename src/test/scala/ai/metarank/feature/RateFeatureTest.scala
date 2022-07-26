@@ -1,13 +1,12 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.FeatureSchema
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.VectorValue
+import ai.metarank.util.persistence.field.MapFieldStore
 import ai.metarank.util.{TestInteractionEvent, TestRankingEvent}
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.{Key, PeriodicCounterValue, Timestamp}
@@ -30,11 +29,11 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract writes" in {
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
-    feature.writes(click, FieldStore.empty).toList shouldBe List(
+    feature.writes(click, MapFieldStore()).toList shouldBe List(
       PeriodicIncrement(Key(Tag(Scope("item"), "p1"), FeatureName("ctr_click"), Tenant("default")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
-    feature.writes(impression, FieldStore.empty).toList shouldBe List(
+    feature.writes(impression, MapFieldStore()).toList shouldBe List(
       PeriodicIncrement(
         Key(Tag(Scope("item"), "p1"), FeatureName("ctr_impression"), Tenant("default")),
         impression.timestamp,
@@ -42,7 +41,7 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val dummy = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "dummy")
-    feature.writes(dummy, FieldStore.empty) shouldBe empty
+    feature.writes(dummy, MapFieldStore()) shouldBe empty
   }
 
   it should "compute value" in {

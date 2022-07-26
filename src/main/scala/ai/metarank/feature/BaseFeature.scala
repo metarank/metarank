@@ -1,10 +1,10 @@
 package ai.metarank.feature
 
-import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, TenantScope, UserScope}
 import ai.metarank.model.Identifier._
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.util.persistence.field.FieldStore
 import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
 import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, Write}
 

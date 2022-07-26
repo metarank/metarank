@@ -1,12 +1,12 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.RefererFeature.RefererSchema
-import ai.metarank.flow.FieldStore
 import ai.metarank.model.FeatureScope.UserScope
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.{Ranking, User}
 import ai.metarank.model.MValue.VectorValue
+import ai.metarank.util.persistence.field.MapFieldStore
 import ai.metarank.util.{TestRankingEvent, TestUserEvent}
 import io.findify.featury.model.{FeatureValue, Key, MapValue, SBoolean, SString, ScalarValue, Timestamp}
 import io.findify.featury.model.Key.Tenant
@@ -26,7 +26,7 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "extract referer field" in {
     val event = TestUserEvent("u1", List(StringField("ref", "http://www.google.com")))
-    val write = feature.writes(event, FieldStore.empty)
+    val write = feature.writes(event, MapFieldStore())
     write shouldBe List(
       PutTuple(Key(feature.conf, Tenant("default"), "u1"), event.timestamp, "search", Some(SBoolean(true)))
     )

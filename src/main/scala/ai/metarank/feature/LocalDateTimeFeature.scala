@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.MValue.SingleValue

@@ -1,7 +1,6 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
@@ -10,6 +9,7 @@ import ai.metarank.model.{FieldId, FieldName}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.MValue.SingleValue
+import ai.metarank.util.persistence.field.MapFieldStore
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -44,7 +44,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
   it should "emit writes on meta field" in {
     val writes1 =
-      feature.writes(TestItemEvent("p1", List(StringField("color", "red"))), FieldStore.empty)
+      feature.writes(TestItemEvent("p1", List(StringField("color", "red"))), MapFieldStore())
 
     writes1.collect {
       case Put(
@@ -58,7 +58,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
   it should "emit writes on meta list field" in {
     val event   = TestItemEvent("p1", List(StringListField("color", List("red"))))
-    val writes1 = feature.writes(event, FieldStore.empty)
+    val writes1 = feature.writes(event, MapFieldStore())
     val result = writes1.collect {
       case Put(
             Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
@@ -74,7 +74,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     val writes1 =
       feature.writes(
         TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression"),
-        FieldStore.map(
+        MapFieldStore(
           Map(ItemFieldId(Tenant("default"), ItemId("p1"), "color") -> StringField("color", "red"))
         )
       )

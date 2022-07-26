@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}

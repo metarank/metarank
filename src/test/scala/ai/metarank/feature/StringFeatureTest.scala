@@ -2,7 +2,6 @@ package ai.metarank.feature
 
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
@@ -10,6 +9,7 @@ import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.{FieldName, MValue}
 import ai.metarank.model.MValue.{CategoryValue, VectorValue}
+import ai.metarank.util.persistence.field.MapFieldStore
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import cats.data.NonEmptyList
 import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
@@ -30,7 +30,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract item field" in {
     val event  = TestItemEvent("p1", List(StringField("color", "green")))
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, MapFieldStore()).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SStringList(List("green")))
     )
@@ -46,7 +46,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val event  = TestUserEvent("u1", List(StringField("gender", "male")))
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, MapFieldStore()).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SStringList(List("male")))
     )
@@ -73,7 +73,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
     val event =
       TestInteractionEvent("p1", "p0").copy(session = Some(SessionId("s1")), fields = List(StringField("country", "b")))
-    val write = feature.writes(event, FieldStore.empty).toList
+    val write = feature.writes(event, MapFieldStore()).toList
     val key   = Key(feature.states.head, Tenant("default"), "s1")
     write shouldBe List(Put(key, event.timestamp, SStringList(List("b"))))
     val value = feature.value(

@@ -15,6 +15,7 @@ import ai.metarank.mode.CliApp
 import ai.metarank.model.{Clickthrough, Event, EventId, EventState, Field, FieldId, FieldUpdate}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.source.EventSource
+import ai.metarank.util.persistence.field.FlinkFieldStore.FlinkFieldStoreFactory
 import cats.effect.{ExitCode, IO, IOApp}
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction
 import io.findify.featury.flink.feature.FlinkPersistence
@@ -49,12 +50,6 @@ object Bootstrap extends CliApp {
   case object FeatureValueKeySelector extends KeySelector[FeatureValue, Tenant] {
     override def getKey(value: FeatureValue): Tenant = value.key.tenant
   }
-
-  lazy val fieldState = new MapStateDescriptor[FieldId, Field](
-    "fields",
-    implicitly[TypeInformation[FieldId]],
-    implicitly[TypeInformation[Field]]
-  )
 
   def usage = "usage: metarank bootstrap <config path>"
 
@@ -152,8 +147,9 @@ object Bootstrap extends CliApp {
 
     val writes: DataStream[Write] =
       events
-        .connect(fieldUpdates.broadcast(fieldState))
-        .process(EventProcessFunction(fieldState, mapping))
+        .connect(fieldUpdates)
+        .keyBy[Tenant]((event: Event) => Tenant(event.tenant), (fu: FieldUpdate) => fu.id.tenant)
+        .process(EventProcessFunction(mapping, FlinkFieldStoreFactory()))
         .id("process-events")
     val updates = Featury.process(writes, mapping.schema, 20.seconds, FlinkPersistenceFactory()).id("process-writes")
     val state   = updates.getSideOutput(FeatureProcessFunction.stateTag)
@@ -177,9 +173,13 @@ object Bootstrap extends CliApp {
       .keyBy(StateKeySelector, deriveTypeInformation[Key])
       .transform(new FeatureBootstrapFunction(mapping.schema, FlinkPersistenceFactory()))
 
+    val tenantSelector = new KeySelector[FieldUpdate, Tenant] {
+      override def getKey(value: FieldUpdate): Tenant = value.id.tenant
+    }
     val transformFields = OperatorTransformation
       .bootstrapWith(fieldsSource.javaStream)
-      .transform(FieldValueBootstrapFunction(fieldState))
+      .keyBy(tenantSelector)
+      .transform(FieldValueBootstrapFunction(FlinkFieldStoreFactory()))
 
     val backend = new HashMapStateBackend()
     SavepointWriter

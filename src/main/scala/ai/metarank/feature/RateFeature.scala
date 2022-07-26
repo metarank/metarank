@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.MValue.VectorValue

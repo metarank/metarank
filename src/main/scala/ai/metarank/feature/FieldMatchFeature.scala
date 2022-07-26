@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher}
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.FeatureScope.ItemScope
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.EventType._

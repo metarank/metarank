@@ -8,7 +8,7 @@ import ai.metarank.feature.StringFeature.{
   OnehotCategoricalEncoder,
   StringFeatureSchema
 }
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}

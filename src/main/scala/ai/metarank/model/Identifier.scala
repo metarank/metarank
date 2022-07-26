@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import io.circe.{Decoder, Encoder}
+import io.circe.{Codec, Decoder, Encoder}
 
 sealed trait Identifier {
   def value: String
@@ -13,7 +13,7 @@ object Identifier {
     implicit val userEncoder: Encoder[UserId] = Encoder.encodeString.contramap(_.value)
     implicit val userDecoder: Decoder[UserId] =
       Decoder.decodeString.ensure(_.nonEmpty, "user id cannot be empty").map(UserId.apply)
-
+    implicit val userCodec: Codec[UserId] = Codec.from(userDecoder, userEncoder)
   }
 
   case class ItemId(value: String) extends Identifier
@@ -22,7 +22,7 @@ object Identifier {
     implicit val itemEncoder: Encoder[ItemId] = Encoder.encodeString.contramap(_.value)
     implicit val itemDecoder: Decoder[ItemId] =
       Decoder.decodeString.ensure(_.nonEmpty, "item id cannot be empty").map(ItemId.apply)
-
+    implicit val itemCodec: Codec[ItemId] = Codec.from(itemDecoder, itemEncoder)
   }
 
   case class SessionId(value: String) extends Identifier

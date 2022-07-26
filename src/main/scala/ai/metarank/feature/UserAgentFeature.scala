@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
 import ai.metarank.model.MValue.VectorValue

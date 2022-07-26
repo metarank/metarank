@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.MValue.SingleValue

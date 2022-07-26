@@ -3,10 +3,9 @@ package ai.metarank.feature
 import ai.metarank.FeatureMapping
 import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.feature.FeatureTest.FeaturyMock
-import ai.metarank.flow.FieldStore.MapFieldStore
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{Event, FeatureSchema, Field, FieldId, FieldUpdate, MValue}
-import ai.metarank.rank.ShuffleModel
+import ai.metarank.util.persistence.field.MapFieldStore
 import cats.data.{NonEmptyList, NonEmptyMap}
 import com.github.blemale.scaffeine.Scaffeine
 import io.findify.featury.model.Feature._

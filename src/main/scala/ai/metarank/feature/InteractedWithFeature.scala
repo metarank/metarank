@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.flow.FieldStore
+import ai.metarank.util.persistence.field.FieldStore
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
 import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.FieldId.ItemFieldId

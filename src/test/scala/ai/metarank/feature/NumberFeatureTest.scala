@@ -1,7 +1,6 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.flow.FieldStore
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.FeatureScope.{ItemScope, UserScope}
@@ -9,6 +8,7 @@ import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
+import ai.metarank.util.persistence.field.MapFieldStore
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import io.circe.yaml.parser.parse
 import io.findify.featury.model.Key.Tenant
@@ -38,7 +38,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "extract field from metadata" in {
     val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, MapFieldStore()).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -54,7 +54,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, MapFieldStore()).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
     )
@@ -70,7 +70,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     )
 
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, MapFieldStore()).toList
     result shouldBe List(
       Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SDouble(33))
     )

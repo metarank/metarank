@@ -69,8 +69,8 @@ object Bootstrap extends CliApp {
     streamEnv.getConfig.enableObjectReuse()
     logger.info("starting historical data processing")
 
-    val raw: DataStream[Event] =
-      EventSource.fromConfig(config.input).eventStream(streamEnv, bounded = true).id("load")
+    val raw: DataStream[Event] = ???
+    // EventSource.fromConfig(config.input).eventStream(streamEnv, bounded = true).id("load")
     // makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
     streamEnv.execute("metarank-bootstrap")
     logger.info("Bootstrap done")

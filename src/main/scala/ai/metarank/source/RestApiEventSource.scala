@@ -9,6 +9,7 @@ import ai.metarank.source.rest.{
   RestSplitCheckpointSerializer,
   RestSplitSerializer
 }
+import cats.effect.IO
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.connector.source.{
   Boundedness,
@@ -20,20 +21,22 @@ import org.apache.flink.api.connector.source.{
 }
 import org.apache.flink.core.io.SimpleVersionedSerializer
 import io.findify.flink.api._
+
 import scala.collection.mutable
 
 case class RestApiEventSource(host: String, port: Int, workers: Int = 1, limit: Option[Long] = None)
     extends EventSource {
-  override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
-      ti: TypeInformation[Event]
-  ): DataStream[Event] = {
-    val lim = (bounded, limit) match {
-      case (true, None)        => Some(Long.MaxValue)
-      case (true, Some(value)) => Some(value)
-      case (false, _)          => None
-    }
-    env.fromSource(RestApiSource(host, port, workers, lim), EventWatermarkStrategy(), "rest-source")
-  }
+  override def stream: fs2.Stream[IO, Event] = ???
+//  override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
+//      ti: TypeInformation[Event]
+//  ): DataStream[Event] = {
+//    val lim = (bounded, limit) match {
+//      case (true, None)        => Some(Long.MaxValue)
+//      case (true, Some(value)) => Some(value)
+//      case (false, _)          => None
+//    }
+//    env.fromSource(RestApiSource(host, port, workers, lim), EventWatermarkStrategy(), "rest-source")
+//  }
 }
 
 object RestApiEventSource extends {

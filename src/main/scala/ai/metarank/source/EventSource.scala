@@ -4,15 +4,14 @@ import ai.metarank.config.InputConfig
 import ai.metarank.config.InputConfig._
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
+import cats.effect.IO
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import io.findify.flink.api._
+import fs2.Stream
 
 import java.util.Properties
 
 trait EventSource extends Logging {
-  def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
-      ti: TypeInformation[Event]
-  ): DataStream[Event]
+  def stream: Stream[IO, Event]
 
   protected def customProperties(options: Option[Map[String, String]]): Properties = {
     val props = new Properties()
@@ -33,7 +32,7 @@ object EventSource {
     case file: FileInputConfig       => FileEventSource(file)
     case kafka: KafkaInputConfig     => KafkaSource(kafka)
     case pulsar: PulsarInputConfig   => PulsarEventSource(pulsar)
-    case api: ApiInputConfig        => RestApiEventSource("none", 0)
+    case api: ApiInputConfig         => RestApiEventSource("none", 0)
     case kinesis: KinesisInputConfig => KinesisSource(kinesis)
   }
 }

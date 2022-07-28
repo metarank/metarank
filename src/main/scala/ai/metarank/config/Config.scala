@@ -14,7 +14,7 @@ case class Config(
     features: NonEmptyList[FeatureSchema],
     models: NonEmptyMap[String, ModelConfig],
     api: ApiConfig,
-    state: StateConfig,
+    state: StateStoreConfig,
     input: InputConfig
 )
 

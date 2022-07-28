@@ -47,16 +47,17 @@ object KafkaSource {
       with Logging {
     override def getProducedType: TypeInformation[Event] = ti
 
-    override def deserialize(record: ConsumerRecord[Array[Byte], Array[Byte]], out: Collector[Event]): Unit = {
-      format.parse(record.value()) match {
-        case Left(error) =>
-          val string = new String(record.value(), StandardCharsets.UTF_8)
-          logger.error(s"cannot deserialize record $string", error)
-        case Right(Some(value)) =>
-          out.collect(value)
-        case Right(None) =>
-        // do nothing
-      }
-    }
+    override def deserialize(record: ConsumerRecord[Array[Byte], Array[Byte]], out: Collector[Event]): Unit = ???
+//    {
+//      format.parse(record.value()) match {
+//        case Left(error) =>
+//          val string = new String(record.value(), StandardCharsets.UTF_8)
+//          logger.error(s"cannot deserialize record $string", error)
+//        case Right(Some(value)) =>
+//          out.collect(value)
+//        case Right(None) =>
+//        // do nothing
+//      }
+//    }
   }
 }

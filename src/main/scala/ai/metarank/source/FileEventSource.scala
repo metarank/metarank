@@ -2,7 +2,6 @@ package ai.metarank.source
 
 import FileEventSource.EventStreamFormat
 import ai.metarank.config.InputConfig.{FileInputConfig, SourceOffset}
-import ai.metarank.config.SourceFormat.FormatReader
 import ai.metarank.config.{MPath, SourceFormat}
 import ai.metarank.model.Event
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -74,7 +73,7 @@ object FileEventSource {
         stream: FSDataInputStream,
         fileLen: Long,
         splitEnd: Long
-    ): StreamFormat.Reader[Event] = EventReader(stream, format)
+    ): StreamFormat.Reader[Event] = ??? // EventReader(stream, format)
 
     override def restoreReader(
         config: Configuration,
@@ -82,36 +81,36 @@ object FileEventSource {
         restoredOffset: Long,
         fileLen: Long,
         splitEnd: Long
-    ): StreamFormat.Reader[Event] = EventReader(stream, format, restoredOffset)
+    ): StreamFormat.Reader[Event] = ??? // EventReader(stream, format, restoredOffset)
 
     override def getProducedType: TypeInformation[Event] = ti
   }
 
-  case class EventReader(raw: FSDataInputStream, stream: InputStream, format: FormatReader)
-      extends StreamFormat.Reader[Event]
-      with Logging {
-    override def read(): Event = {
-      format.next() match {
-        case Left(error) =>
-          logger.error(s"cannot decode event", error)
-          null
-        case Right(None) =>
-          null
-        case Right(Some(value)) =>
-          value
-      }
-    }
+//  case class EventReader(raw: FSDataInputStream, stream: InputStream, format: FormatReader)
+//      extends StreamFormat.Reader[Event]
+//      with Logging {
+//    override def read(): Event = {
+//      format.next() match {
+//        case Left(error) =>
+//          logger.error(s"cannot decode event", error)
+//          null
+//        case Right(None) =>
+//          null
+//        case Right(Some(value)) =>
+//          value
+//      }
+//    }
+//
+//    override def close(): Unit = stream.close()
+//
+//    override def getCheckpointedPosition: CheckpointedPosition = new CheckpointedPosition(raw.getPos, 0)
+//  }
 
-    override def close(): Unit = stream.close()
-
-    override def getCheckpointedPosition: CheckpointedPosition = new CheckpointedPosition(raw.getPos, 0)
-  }
-
-  object EventReader {
-    def apply(stream: FSDataInputStream, format: SourceFormat, offset: Long = 0L) = {
-      stream.seek(offset)
-      val buffered = new BufferedInputStream(stream, 1024 * 1024)
-      new EventReader(stream, buffered, format.reader(buffered))
-    }
-  }
+//  object EventReader {
+//    def apply(stream: FSDataInputStream, format: SourceFormat, offset: Long = 0L) = {
+//      stream.seek(offset)
+//      val buffered = new BufferedInputStream(stream, 1024 * 1024)
+//      new EventReader(stream, buffered, format.reader(buffered))
+//    }
+//  }
 }

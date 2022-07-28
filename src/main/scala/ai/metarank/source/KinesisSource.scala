@@ -66,18 +66,19 @@ object KinesisSource {
         approxArrivalTimestamp: Long,
         stream: String,
         shardId: String
-    ): Event = {
-      format.parse(recordValue) match {
-        case Left(value) =>
-          val string = new String(recordValue, StandardCharsets.UTF_8)
-          logger.error(s"cannot parse event $string", value)
-          null
-        case Right(Some(value)) =>
-          value
-        case Right(None) =>
-          null
-      }
-    }
+    ): Event = ???
+//    {
+//      format.parse(recordValue) match {
+//        case Left(value) =>
+//          val string = new String(recordValue, StandardCharsets.UTF_8)
+//          logger.error(s"cannot parse event $string", value)
+//          null
+//        case Right(Some(value)) =>
+//          value
+//        case Right(None) =>
+//          null
+//      }
+//    }
 
     override def getProducedType: TypeInformation[Event] = ti
   }

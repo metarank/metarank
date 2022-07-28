@@ -38,12 +38,13 @@ object RedisEndpoint {
     }
   }
 
-  def create(store: StateStoreConfig) = store match {
-    case StateStoreConfig.RedisConfig(host, port) =>
-      Resource.make(IO.pure(RemoteRedis(host)))(_ => IO.unit)
-    case StateStoreConfig.MemConfig(port) => ???
-//      Resource.make(IO {
-//        EmbeddedRedis("localhost", port, format, EmbeddedRedis.createUnsafe(port), workdir / "features")
-//      })(_.close)
-  }
+  def create(store: StateStoreConfig): Resource[IO, RemoteRedis] = ???
+//    store match {
+//    case StateStoreConfig.RedisStateConfig(host, port, db) =>
+//      Resource.make(IO.pure(RemoteRedis(host)))(_ => IO.unit)
+//    case StateStoreConfig.MemConfig(port) => ???
+////      Resource.make(IO {
+////        EmbeddedRedis("localhost", port, format, EmbeddedRedis.createUnsafe(port), workdir / "features")
+////      })(_.close)
+//  }
 }

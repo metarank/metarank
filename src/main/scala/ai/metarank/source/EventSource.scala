@@ -33,7 +33,7 @@ object EventSource {
     case file: FileInputConfig       => FileEventSource(file)
     case kafka: KafkaInputConfig     => KafkaSource(kafka)
     case pulsar: PulsarInputConfig   => PulsarEventSource(pulsar)
-    case rest: ApiInputConfig        => RestApiEventSource("none", 0)
+    case api: ApiInputConfig        => RestApiEventSource("none", 0)
     case kinesis: KinesisInputConfig => KinesisSource(kinesis)
   }
 }

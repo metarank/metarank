@@ -60,8 +60,6 @@ object Bootstrap extends CliApp {
       mapping: FeatureMapping
   ): IO[ExitCode] = for {
     _ <- IO { logger.info("Performing bootstap.") }
-    _ <- IO { logger.info(s"  workdir dir URL: ${config.bootstrap.workdir}") }
-
   } yield {
     val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
     streamEnv.setParallelism(2)
@@ -72,41 +70,41 @@ object Bootstrap extends CliApp {
     logger.info("starting historical data processing")
 
     val raw: DataStream[Event] =
-      EventSource.fromConfig(config.bootstrap.source).eventStream(streamEnv, bounded = true).id("load")
-    makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
+      EventSource.fromConfig(config.input).eventStream(streamEnv, bounded = true).id("load")
+    // makeBootstrap(raw, mapping, config.bootstrap.workdir, config.bootstrap.syntheticImpression)
     streamEnv.execute("metarank-bootstrap")
     logger.info("Bootstrap done")
     ExitCode.Success
   }
 
-  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: MPath, impress: SyntheticImpressionConfig) = {
-    val grouped                  = groupFeedback(raw)
-    val (state, fields, updates) = makeUpdates(raw, grouped, mapping, impress)
-
-    val lastState    = selectLast[State, Key](state, _.key, _.ts).id("last-state")
-    val lastFeatures = selectLast[FeatureValue, Key](updates, _.key, _.ts).id("last-features")
-    val lastFields   = selectLast[FieldUpdate, FieldId](fields, _.id, _.ts).id("last-fields")
-
-    Featury
-      .writeFeatures(lastFeatures, dir.child("features").flinkPath, Compress.NoCompression)
-      .id("write-features")
-
-    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id(s"clickthroughs")
-    val joined = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
-
-    mapping.models.foreach { case (name, model) =>
-      val computed =
-        joined
-          .map(ct => ct.copy(values = model.featureValues(ct.ranking, ct.features, ct.interactions)))
-          .id(s"$name-values")
-      computed
-        .sinkTo(DatasetSink.json(model.datasetDescriptor, dir.child(s"dataset-$name").uri))
-        .id(s"$name-write-train")
-
-    }
-
-    makeSavepoint(lastState, lastFields, lastFeatures, mapping, dir)
-  }
+//  def makeBootstrap(raw: DataStream[Event], mapping: FeatureMapping, dir: MPath, impress: SyntheticImpressionConfig) = {
+//    val grouped                  = groupFeedback(raw)
+//    val (state, fields, updates) = makeUpdates(raw, grouped, mapping, impress)
+//
+//    val lastState    = selectLast[State, Key](state, _.key, _.ts).id("last-state")
+//    val lastFeatures = selectLast[FeatureValue, Key](updates, _.key, _.ts).id("last-features")
+//    val lastFields   = selectLast[FieldUpdate, FieldId](fields, _.id, _.ts).id("last-fields")
+//
+//    Featury
+//      .writeFeatures(lastFeatures, dir.child("features").flinkPath, Compress.NoCompression)
+//      .id("write-features")
+//
+//    val clickthroughs = grouped.process(ClickthroughJoinFunction()).id(s"clickthroughs")
+//    val joined = Featury.join[Clickthrough](updates, clickthroughs, ClickthroughJoin, mapping.schema).id("join-state")
+//
+//    mapping.models.foreach { case (name, model) =>
+//      val computed =
+//        joined
+//          .map(ct => ct.copy(values = model.featureValues(ct.ranking, ct.features, ct.interactions)))
+//          .id(s"$name-values")
+//      computed
+//        .sinkTo(DatasetSink.json(model.datasetDescriptor, dir.child(s"dataset-$name").uri))
+//        .id(s"$name-write-train")
+//
+//    }
+//
+//    makeSavepoint(lastState, lastFields, lastFeatures, mapping, dir)
+//  }
 
   def selectLast[T, K: TypeInformation](stream: DataStream[T], key: T => K, ts: T => Timestamp): DataStream[T] = {
     stream.keyBy(event => key(event)).reduce((a, b) => if (ts(a).isAfter(ts(b))) a else b)

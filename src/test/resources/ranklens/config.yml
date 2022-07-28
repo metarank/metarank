@@ -1,18 +1,17 @@
-bootstrap:
-  source:
-    type: file
-    path: src/test/resources/ranklens/events/
-  workdir: /tmp/bootstrap
-
-inference:
+api:
   port: 8080
   host: "0.0.0.0"
+
+bootstrap:
+  mode: standalone
+  state:
+    type: memory
   source:
     type: rest
+
+inference:
   state:
-    type: redis
-    host: localhost
-    format: protobuf
+    type: memory
 
 models:
 #  lightgbm:

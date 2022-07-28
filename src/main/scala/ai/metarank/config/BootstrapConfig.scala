@@ -5,10 +5,10 @@ import io.circe.Decoder
 import io.circe.generic.extras.Configuration
 
 case class BootstrapConfig(
-    source: EventSourceConfig,
-    workdir: MPath,
-    parallelism: Option[Int] = None,
-    syntheticImpression: SyntheticImpressionConfig = SyntheticImpressionConfig()
+                            source: InputConfig,
+                            workdir: MPath,
+                            parallelism: Option[Int] = None,
+                            syntheticImpression: SyntheticImpressionConfig = SyntheticImpressionConfig()
 )
 object BootstrapConfig {
   import io.circe.generic.extras.semiauto._

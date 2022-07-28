@@ -5,7 +5,6 @@ import ai.metarank.config.BootstrapConfig.SyntheticImpressionConfig
 import ai.metarank.config.MPath
 import ai.metarank.mode.AsyncFlinkJob
 import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.upload.WindowBatchFunction
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import io.findify.featury.connector.redis.RedisStore
@@ -61,17 +60,18 @@ object FeedbackFlow extends Logging {
       intti: TypeInformation[Int],
       lti: TypeInformation[Long],
       tti: TypeInformation[Tenant]
-  ): DataStreamSink[List[FeatureValue]] = {
-    val source          = events(env).id("local-source")
-    val grouped         = Bootstrap.groupFeedback(source)
-    val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
-    updates
-      .keyBy(_.key.tenant)
-      .process(WindowBatchFunction(batchPeriod, 128))
-      .id("make-batch")
-      .sinkTo(
-        FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format, 0)))
-      )
-      .id("write-redis")
-  }
+  ): DataStreamSink[List[FeatureValue]] = ???
+//  {
+//    val source          = events(env).id("local-source")
+//    val grouped         = Bootstrap.groupFeedback(source)
+//    val (_, _, updates) = Bootstrap.makeUpdates(source, grouped, mapping, impress)
+//    updates
+//      .keyBy(_.key.tenant)
+//      .process(WindowBatchFunction(batchPeriod, 128))
+//      .id("make-batch")
+//      .sinkTo(
+//        FeatureStoreSink(RedisStore(RedisConfig(redisHost, redisPort, format, 0)))
+//      )
+//      .id("write-redis")
+//  }
 }

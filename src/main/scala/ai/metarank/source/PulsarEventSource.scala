@@ -1,6 +1,6 @@
 package ai.metarank.source
 
-import ai.metarank.config.EventSourceConfig.{PulsarSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{PulsarInputConfig, SourceOffset}
 import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
 import ai.metarank.source.PulsarEventSource.EventDeserializationSchema
@@ -17,7 +17,7 @@ import io.circe.parser._
 
 import java.nio.charset.StandardCharsets
 
-case class PulsarEventSource(conf: PulsarSourceConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
+case class PulsarEventSource(conf: PulsarInputConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
   override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
       ti: TypeInformation[Event]
   ): DataStream[Event] = {

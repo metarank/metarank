@@ -1,6 +1,6 @@
 package ai.metarank.source
 
-import ai.metarank.config.EventSourceConfig.{KinesisSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{KinesisInputConfig, SourceOffset}
 import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
 import ai.metarank.source.KinesisSource.KinesisEventSchema
@@ -16,7 +16,7 @@ import org.apache.flink.streaming.connectors.kinesis.serialization.KinesisDeseri
 import java.nio.charset.StandardCharsets
 import java.util.Properties
 
-case class KinesisSource(conf: KinesisSourceConfig) extends EventSource with Logging {
+case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logging {
   import ai.metarank.flow.DataStreamOps._
   override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
       ti: TypeInformation[Event]

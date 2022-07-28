@@ -1,8 +1,8 @@
 package ai.metarank.config
 
-import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
-import ai.metarank.config.EventSourceConfig.SourceOffset._
-import ai.metarank.config.EventSourceConfigTest.Source
+import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
+import ai.metarank.config.InputConfig.SourceOffset._
+import ai.metarank.config.InputConfigTest.Source
 import MPath.LocalPath
 import ai.metarank.source.format.SnowplowFormat.SnowplowTSVFormat
 import cats.data.NonEmptyList
@@ -15,8 +15,8 @@ import io.circe.parser._
 
 import scala.concurrent.duration._
 
-class EventSourceConfigTest extends AnyFlatSpec with Matchers {
-  import EventSourceConfig._
+class InputConfigTest extends AnyFlatSpec with Matchers {
+  import InputConfig._
   def parse(offset: String) = {
     parseYaml(s"offset: $offset").flatMap(_.as[Source])
   }
@@ -34,9 +34,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |topic: events
                  |groupId: metarank
                  |offset: earliest""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      KafkaSourceConfig(
+      KafkaInputConfig(
         brokers = NonEmptyList.of("broker1", "broker2"),
         topic = "events",
         groupId = "metarank",
@@ -53,9 +53,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |offset: earliest
                  |options:
                  |  foo.bar: baz""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      KafkaSourceConfig(
+      KafkaInputConfig(
         brokers = NonEmptyList.of("broker1", "broker2"),
         topic = "events",
         groupId = "metarank",
@@ -74,9 +74,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |subscriptionType: exclusive 
                  |offset: earliest
                  |""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      PulsarSourceConfig(
+      PulsarInputConfig(
         serviceUrl = "service",
         adminUrl = "admin",
         topic = "events",
@@ -96,9 +96,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |  foo.baz: bar
                  |  foo.qux: '8'
                  |""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      KinesisSourceConfig(
+      KinesisInputConfig(
         topic = "events",
         offset = SourceOffset.Earliest,
         region = "us-east-1",
@@ -119,9 +119,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |region: us-east-1
                  |format: snowplow:tsv
                  |""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      KinesisSourceConfig(
+      KinesisInputConfig(
         topic = "events",
         offset = SourceOffset.Earliest,
         region = "us-east-1",
@@ -136,9 +136,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |offset: earliest
                  |region: us-east-1
                  |""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      KinesisSourceConfig(
+      KinesisInputConfig(
         topic = "events",
         offset = SourceOffset.Earliest,
         region = "us-east-1",
@@ -158,9 +158,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |options:
                  |  foo.bar: baz
                  |""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      PulsarSourceConfig(
+      PulsarInputConfig(
         serviceUrl = "service",
         adminUrl = "admin",
         topic = "events",
@@ -173,23 +173,17 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode rest config" in {
-    val yaml    = "type: rest"
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
-    decoded shouldBe Right(
-      RestSourceConfig(
-        bufferSize = 10000,
-        host = "localhost",
-        port = 8080
-      )
-    )
+    val yaml    = "type: api"
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
+    decoded shouldBe Right(ApiInputConfig(bufferSize = 10000))
   }
 
   it should "decode file config" in {
     val yaml = """type: file
                  |path: file:///ranklens/events/""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      FileSourceConfig(
+      FileInputConfig(
         path = LocalPath("/ranklens/events/")
       )
     )
@@ -200,9 +194,9 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
                  |path: file:///ranklens/events/
                  |offset: earliest
                  |""".stripMargin
-    val decoded = parseYaml(yaml).flatMap(_.as[EventSourceConfig])
+    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
-      FileSourceConfig(
+      FileInputConfig(
         path = LocalPath("/ranklens/events/"),
         offset = SourceOffset.Earliest
       )
@@ -210,7 +204,7 @@ class EventSourceConfigTest extends AnyFlatSpec with Matchers {
   }
 }
 
-object EventSourceConfigTest {
+object InputConfigTest {
   case class Source(offset: SourceOffset)
   implicit val sourceTestDecoder: Decoder[Source] = deriveDecoder
 }

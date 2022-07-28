@@ -8,7 +8,7 @@ object Deps {
   lazy val circeYamlVersion = "0.14.1"
   lazy val fs2Version       = "3.2.2"
   lazy val flinkVersion     = "1.15.1"
-  lazy val featuryVersion   = "0.4.0-M2-SNAPSHOT"
+  lazy val featuryVersion   = "0.4.0-M3-SNAPSHOT"
   lazy val luceneVersion    = "9.2.0"
 
   val httpsDeps = Seq(

@@ -24,7 +24,6 @@ class DatasetSinkTest extends AnyFlatSpec with Matchers with FlinkTest {
   it should "write cts" in {
     env.setRuntimeMode(RuntimeExecutionMode.BATCH)
     val model = LambdaMARTConfig(
-      MPath(File.newTemporaryFile()),
       XGBoostBackend(),
       NonEmptyList.of("budget"),
       NonEmptyMap.of("click" -> 1)

@@ -9,9 +9,9 @@ import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
 
-sealed trait EventSourceConfig
+sealed trait InputConfig
 
-object EventSourceConfig {
+object InputConfig {
   sealed trait SourceOffset
   object SourceOffset {
     case object Latest                                    extends SourceOffset
@@ -30,22 +30,22 @@ object EventSourceConfig {
     }
   }
 
-  case class KafkaSourceConfig(
+  case class KafkaInputConfig(
       brokers: NonEmptyList[String],
       topic: String,
       groupId: String,
       offset: SourceOffset,
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
-  ) extends EventSourceConfig
+  ) extends InputConfig
 
-  case class FileSourceConfig(
+  case class FileInputConfig(
       path: MPath,
       offset: SourceOffset = SourceOffset.Earliest,
       format: SourceFormat = JsonFormat
-  ) extends EventSourceConfig
+  ) extends InputConfig
 
-  case class PulsarSourceConfig(
+  case class PulsarInputConfig(
       serviceUrl: String,
       adminUrl: String,
       topic: String,
@@ -54,32 +54,30 @@ object EventSourceConfig {
       offset: SourceOffset,
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
-  ) extends EventSourceConfig
+  ) extends InputConfig
 
-  case class KinesisSourceConfig(
+  case class KinesisInputConfig(
       topic: String,
       offset: SourceOffset,
       region: String,
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
-  ) extends EventSourceConfig
+  ) extends InputConfig
 
-  case class RestSourceConfig(
-      bufferSize: Int = 10000,
-      host: String = "localhost",
-      port: Int = 8080
-  ) extends EventSourceConfig
+  case class ApiInputConfig(
+      bufferSize: Int = 10000
+  ) extends InputConfig
 
   implicit val conf = Configuration.default
     .withDiscriminator("type")
     .withDefaults
     .copy(transformConstructorNames = {
-      case "FileSourceConfig"    => "file"
-      case "KafkaSourceConfig"   => "kafka"
-      case "PulsarSourceConfig"  => "pulsar"
-      case "RestSourceConfig"    => "rest"
-      case "KinesisSourceConfig" => "kinesis"
+      case "FileInputConfig"    => "file"
+      case "KafkaInputConfig"   => "kafka"
+      case "PulsarInputConfig"  => "pulsar"
+      case "ApiInputConfig"     => "api"
+      case "KinesisInputConfig" => "kinesis"
     })
-  implicit val eventSourceDecoder: Decoder[EventSourceConfig] = deriveConfiguredDecoder
+  implicit val eventSourceDecoder: Decoder[InputConfig] = deriveConfiguredDecoder
 
 }

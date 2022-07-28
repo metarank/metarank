@@ -1,7 +1,6 @@
 package ai.metarank.mode.standalone
 
 import ai.metarank.config.{MPath, StateStoreConfig}
-import ai.metarank.mode.upload.Upload
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -23,12 +22,12 @@ object RedisEndpoint {
     override def close: IO[Unit]  = IO.unit
   }
 
-  case class EmbeddedRedis(host: String, port: Int, format: StoreCodec[FeatureValue], service: RedisServer, dir: MPath)
-      extends RedisEndpoint {
-    override def upload: IO[Unit] = Upload.upload(dir, host, port, format, 100.millis).use(_ => IO.unit)
-
-    override def close: IO[Unit] = IO { service.close() }
-  }
+//  case class EmbeddedRedis(host: String, port: Int, format: StoreCodec[FeatureValue], service: RedisServer, dir: MPath)
+//      extends RedisEndpoint {
+//    override def upload: IO[Unit] = Upload.upload(dir, host, port, format, 100.millis).use(_ => IO.unit)
+//
+//    override def close: IO[Unit] = IO { service.close() }
+//  }
 
   object EmbeddedRedis extends Logging {
     def createUnsafe(port: Int) = {
@@ -39,12 +38,12 @@ object RedisEndpoint {
     }
   }
 
-  def create(store: StateStoreConfig, workdir: MPath) = store match {
-    case StateStoreConfig.RedisConfig(host, port, format) =>
+  def create(store: StateStoreConfig) = store match {
+    case StateStoreConfig.RedisConfig(host, port) =>
       Resource.make(IO.pure(RemoteRedis(host)))(_ => IO.unit)
-    case StateStoreConfig.MemConfig(format, port) =>
-      Resource.make(IO {
-        EmbeddedRedis("localhost", port, format, EmbeddedRedis.createUnsafe(port), workdir / "features")
-      })(_.close)
+    case StateStoreConfig.MemConfig(port) => ???
+//      Resource.make(IO {
+//        EmbeddedRedis("localhost", port, format, EmbeddedRedis.createUnsafe(port), workdir / "features")
+//      })(_.close)
   }
 }

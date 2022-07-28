@@ -1,6 +1,6 @@
 package ai.metaranke2e.source
 
-import ai.metarank.config.EventSourceConfig.{PulsarSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{PulsarInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.PulsarEventSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
@@ -18,7 +18,7 @@ class PulsarEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
 
   it should "receive events from pulsar" in {
-    val sourceConfig = PulsarSourceConfig(
+    val sourceConfig = PulsarInputConfig(
       serviceUrl = "pulsar://localhost:6650",
       adminUrl = "http://localhost:8080",
       topic = "persistent://tenant/namespace/events",

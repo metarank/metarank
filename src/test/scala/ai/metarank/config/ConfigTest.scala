@@ -27,7 +27,6 @@ class ConfigTest extends AnyFlatSpec with Matchers {
       conf.copy(models =
         NonEmptyMap.of(
           "test" -> LambdaMARTConfig(
-            MPath(File.newTemporaryFile()),
             XGBoostBackend(),
             NonEmptyList.of("price"),
             NonEmptyMap.of("click" -> 1)
@@ -39,7 +38,6 @@ class ConfigTest extends AnyFlatSpec with Matchers {
       conf.copy(models =
         NonEmptyMap.of(
           "test" -> LambdaMARTConfig(
-            MPath(File.newTemporaryFile()),
             XGBoostBackend(),
             NonEmptyList.of("neprice"),
             NonEmptyMap.of("click" -> 1)

@@ -1,6 +1,6 @@
 package ai.metarank.source
 
-import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
 import ai.metarank.source.KafkaSource.EventDeserializationSchema
@@ -16,7 +16,7 @@ import io.circe.parser._
 
 import java.nio.charset.StandardCharsets
 
-case class KafkaSource(conf: KafkaSourceConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
+case class KafkaSource(conf: KafkaInputConfig)(implicit ti: TypeInformation[Event]) extends EventSource {
 
   override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
       ti: TypeInformation[Event]

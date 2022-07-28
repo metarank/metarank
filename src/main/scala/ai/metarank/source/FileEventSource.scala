@@ -1,7 +1,7 @@
 package ai.metarank.source
 
 import FileEventSource.EventStreamFormat
-import ai.metarank.config.EventSourceConfig.{FileSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{FileInputConfig, SourceOffset}
 import ai.metarank.config.SourceFormat.FormatReader
 import ai.metarank.config.{MPath, SourceFormat}
 import ai.metarank.model.Event
@@ -23,7 +23,7 @@ import io.findify.flink.api._
 
 import scala.jdk.CollectionConverters._
 
-case class FileEventSource(conf: FileSourceConfig) extends EventSource with Logging {
+case class FileEventSource(conf: FileInputConfig) extends EventSource with Logging {
   val compressedExts = StandardDeCompressors.getCommonSuffixes.asScala.toList.map(ext => s".$ext")
   val commonExts     = List(".json", ".jsonl", ".tsv")
 

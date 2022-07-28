@@ -29,8 +29,8 @@ object Train extends CliApp {
       case Some(value: LambdaMARTModel) => IO.pure(value)
       case _                            => IO.raiseError(new Exception(s"model $modelName is not configured"))
     }
-    data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName, env)
-    _    <- train(data, ranker, ranker.conf.path, env)
+    // data <- loadData(config.bootstrap.workdir, ranker.datasetDescriptor, modelName, env)
+    // _    <- train(data, ranker, ranker.conf.path, env)
   } yield {
     ExitCode.Success
   }

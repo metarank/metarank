@@ -26,18 +26,18 @@ object Update extends CliApp {
       mapping: FeatureMapping
   ): IO[ExitCode] = IO {
     val streamEnv = StreamExecutionEnvironment.getExecutionEnvironment
-    config.inference.parallelism.foreach(streamEnv.setParallelism)
-    val source = EventSource.fromConfig(config.inference.source)
-    FeedbackFlow.job(
-      env = streamEnv,
-      mapping = mapping,
-      redisHost = config.inference.state.host,
-      redisPort = config.inference.state.port,
-      format = config.inference.state.format,
-      impress = config.bootstrap.syntheticImpression,
-      events = source.eventStream(_, bounded = false),
-      batchPeriod = 100.millis
-    )
+    // config.inference.parallelism.foreach(streamEnv.setParallelism)
+//    val source = EventSource.fromConfig(config.inference.source)
+//    FeedbackFlow.job(
+//      env = streamEnv,
+//      mapping = mapping,
+//      redisHost = config.inference.state.host,
+//      redisPort = config.inference.state.port,
+//      format = config.inference.state.format,
+//      impress = config.bootstrap.syntheticImpression,
+//      events = source.eventStream(_, bounded = false),
+//      batchPeriod = 100.millis
+//    )
     streamEnv.execute("metarank-update")
     ExitCode.Success
   }

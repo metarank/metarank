@@ -1,6 +1,6 @@
 package ai.metaranke2e.source
 
-import ai.metarank.config.EventSourceConfig.{KafkaSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KafkaSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
@@ -23,7 +23,7 @@ class KafkaEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
 
   it should "receive events from kafka" in {
 
-    val sourceConfig = KafkaSourceConfig(
+    val sourceConfig = KafkaInputConfig(
       brokers = NonEmptyList.of(s"localhost:9092"),
       topic = "events",
       groupId = "metarank",

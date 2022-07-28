@@ -11,7 +11,6 @@ sealed trait ModelConfig
 object ModelConfig {
   import io.circe.generic.extras.semiauto._
   case class LambdaMARTConfig(
-      path: MPath,
       backend: ModelBackend,
       features: NonEmptyList[String],
       weights: NonEmptyMap[String, Double]

@@ -14,6 +14,7 @@ import org.http4s.dsl.io._
 import io.circe.syntax._
 import cats.syntax.all._
 import io.findify.flinkadt.api._
+import org.apache.flink.api.common.JobID
 
 import scala.concurrent.duration._
 
@@ -49,26 +50,27 @@ object Standalone extends CliApp {
       )
     )
 
-  def cluster(config: Config, mapping: FeatureMapping, models: Map[String, Scorer]) = {
-    for {
-      cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
-      redis   <- RedisEndpoint.create(config.inference.state, config.bootstrap.workdir)
-      _       <- Resource.eval(redis.upload)
-      source  <- Resource.pure(EventSource.fromConfig(config.inference.source))
-      job <- FeedbackFlow.resource(
-        cluster,
-        mapping,
-        config.inference.state.host,
-        config.inference.state.port,
-        config.bootstrap.workdir.child("savepoint"),
-        config.inference.state.format,
-        config.bootstrap.syntheticImpression,
-        source.eventStream(_, bounded = false),
-        batchPeriod = 100.millis
-      )
-    } yield {
-      job
-    }
-  }
+  def cluster(config: Config, mapping: FeatureMapping, models: Map[String, Scorer]): Resource[IO, JobID] = ???
+//  {
+//    for {
+//      cluster <- FlinkMinicluster.resource(FlinkS3Configuration(System.getenv()))
+//      redis   <- RedisEndpoint.create(config.state)
+//      _       <- Resource.eval(redis.upload)
+//      source  <- Resource.pure(EventSource.fromConfig(config.input))
+//      job <- FeedbackFlow.resource(
+//        cluster,
+//        mapping,
+//        config.inference.state.host,
+//        config.inference.state.port,
+//        config.bootstrap.workdir.child("savepoint"),
+//        config.inference.state.format,
+//        config.bootstrap.syntheticImpression,
+//        source.eventStream(_, bounded = false),
+//        batchPeriod = 100.millis
+//      )
+//    } yield {
+//      job
+//    }
+//  }
 
 }

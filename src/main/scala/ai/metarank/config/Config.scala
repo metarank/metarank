@@ -13,8 +13,9 @@ import io.circe.yaml.parser.{parse => parseYaml}
 case class Config(
     features: NonEmptyList[FeatureSchema],
     models: NonEmptyMap[String, ModelConfig],
-    bootstrap: BootstrapConfig,
-    inference: InferenceConfig
+    api: ApiConfig,
+    state: StateConfig,
+    input: InputConfig
 )
 
 object Config extends Logging {
@@ -41,7 +42,7 @@ object Config extends Logging {
   def validateConfig(conf: Config): List[String] = {
     val features = nonUniqueNames[FeatureSchema](conf.features, _.name).map(_.toString("feature"))
     val modelFeatures = conf.models.toNel.toList.flatMap {
-      case (name, LambdaMARTConfig(_, _, features, _)) =>
+      case (name, LambdaMARTConfig(_, features, _)) =>
         val undefined = features.filterNot(feature => conf.features.exists(_.name == feature))
         undefined.map(feature => s"unresolved feature '$feature' in model '$name'")
       case _ => Nil

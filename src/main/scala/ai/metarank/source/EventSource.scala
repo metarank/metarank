@@ -1,7 +1,7 @@
 package ai.metarank.source
 
-import ai.metarank.config.EventSourceConfig
-import ai.metarank.config.EventSourceConfig._
+import ai.metarank.config.InputConfig
+import ai.metarank.config.InputConfig._
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -29,11 +29,11 @@ trait EventSource extends Logging {
 }
 
 object EventSource {
-  def fromConfig(conf: EventSourceConfig)(implicit ti: TypeInformation[Event]): EventSource = conf match {
-    case file: FileSourceConfig       => FileEventSource(file)
-    case kafka: KafkaSourceConfig     => KafkaSource(kafka)
-    case pulsar: PulsarSourceConfig   => PulsarEventSource(pulsar)
-    case rest: RestSourceConfig       => RestApiEventSource(rest.host, rest.port)
-    case kinesis: KinesisSourceConfig => KinesisSource(kinesis)
+  def fromConfig(conf: InputConfig)(implicit ti: TypeInformation[Event]): EventSource = conf match {
+    case file: FileInputConfig       => FileEventSource(file)
+    case kafka: KafkaInputConfig     => KafkaSource(kafka)
+    case pulsar: PulsarInputConfig   => PulsarEventSource(pulsar)
+    case rest: ApiInputConfig        => RestApiEventSource("none", 0)
+    case kinesis: KinesisInputConfig => KinesisSource(kinesis)
   }
 }

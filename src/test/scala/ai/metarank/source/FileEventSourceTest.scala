@@ -1,6 +1,6 @@
 package ai.metarank.source
 
-import ai.metarank.config.EventSourceConfig.FileSourceConfig
+import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.config.MPath
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import better.files.File
@@ -20,7 +20,7 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
     val json    = events.map(_.asJson.noSpaces).mkString("\n")
     outFile.write(json)
     outFile.size should be > 1L
-    val result = FileEventSource(FileSourceConfig(MPath("file:///" + outDir.toString())))
+    val result = FileEventSource(FileInputConfig(MPath("file:///" + outDir.toString())))
       .eventStream(env, bounded = false)
       .executeAndCollect(2000)
     result should contain theSameElementsAs events

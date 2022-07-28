@@ -43,7 +43,6 @@ object TestFeatureMapping {
 
     val models = NonEmptyMap.of(
       "random" -> LambdaMARTConfig(
-        path = MPath(File.newTemporaryFile().deleteOnExit()),
         backend = XGBoostBackend(),
         features = features.map(_.name),
         weights = NonEmptyMap.of("click" -> 1)

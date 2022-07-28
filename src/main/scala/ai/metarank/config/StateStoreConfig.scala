@@ -11,22 +11,13 @@ import scala.util.{Failure, Success}
 sealed trait StateStoreConfig {
   def port: Int
   def host: String
-  def format: StoreCodec[FeatureValue]
 }
 object StateStoreConfig {
   import io.circe.generic.extras.semiauto._
 
-  implicit val formatDecoder: Decoder[StoreCodec[FeatureValue]] = Decoder.decodeString.emapTry {
-    case "json"     => Success(FeatureValueJsonCodec)
-    case "protobuf" => Success(FeatureValueProtobufCodec)
-    case other      => Failure(new Exception(s"codec $other is not supported"))
-  }
+  case class RedisConfig(host: String, port: Int = 6379) extends StateStoreConfig
 
-  case class RedisConfig(host: String, port: Int = 6379, format: StoreCodec[FeatureValue] = FeatureValueProtobufCodec)
-      extends StateStoreConfig
-
-  case class MemConfig(format: StoreCodec[FeatureValue] = FeatureValueProtobufCodec, port: Int = 6379)
-      extends StateStoreConfig {
+  case class MemConfig(port: Int = 6379) extends StateStoreConfig {
     val host = "localhost"
   }
 

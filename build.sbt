@@ -60,6 +60,7 @@ lazy val root = (project in file("."))
       "io.circe"             %% "circe-generic"              % circeVersion,
       "io.circe"             %% "circe-generic-extras"       % circeVersion,
       "io.circe"             %% "circe-parser"               % circeVersion,
+      "io.circe"             %% "circe-literal"               % circeVersion,
       "com.github.pathikrit" %% "better-files"               % "3.9.1",
       "com.github.scopt"     %% "scopt"                      % "4.1.0",
       "redis.clients"         % "jedis"                      % "4.2.3",

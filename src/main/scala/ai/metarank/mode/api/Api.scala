@@ -17,6 +17,7 @@ import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, Resource}
 import cats.syntax.all._
 import io.findify.featury.connector.redis.RedisStore
+import io.findify.featury.values.StoreCodec.FeatureValueJsonCodec
 import io.findify.featury.values.ValueStoreConfig.RedisConfig
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
@@ -37,7 +38,7 @@ object Api extends CliApp {
     models <- Resource.eval(loadModels(config, env))
     store <- FeatureStoreResource.make(() =>
       RedisStore(
-        RedisConfig(config.inference.state.host, config.inference.state.port, config.inference.state.format, 0)
+        RedisConfig(config.state.host.value, config.state.port.value, FeatureValueJsonCodec, 0)
       )
     )
     storeRef <- Resource.eval(Ref.of[IO, FeatureStoreResource](store))
@@ -47,29 +48,30 @@ object Api extends CliApp {
     httpApp = Router("/" -> routes).orNotFound
   } yield {
     BlazeServerBuilder[IO]
-      .bindHttp(config.inference.port, config.inference.host)
+      .bindHttp(config.api.port.value, config.api.host.value)
       .withHttpApp(httpApp)
       .withBanner(Logo.lines)
   }
 
   override def usage: String = "usage: metarank api <config path>"
 
-  def loadModels(config: Config, env: Map[String, String] = Map.empty): IO[Map[String, Scorer]] = {
-    config.models.toNel.toList
-      .map {
-        case (name, LambdaMARTConfig(path, backend, _, _)) =>
-          FS.read(path, env)
-            .flatTap(bytes => IO { logger.info(s"loaded model $name file, size=${bytes.length}b") })
-            .map(file => name -> LambdaMARTScorer(backend, file))
-            .onError(err => IO { logger.error(s"cannot load ranking model: ${err.getMessage}", err) })
-        case (name, ShuffleConfig(maxPositionChange)) =>
-          IO.pure(name -> ShuffleScorer(maxPositionChange))
-        case (name, _: NoopConfig) =>
-          IO.pure(name -> NoopScorer)
-      }
-      .sequence
-      .flatTap(models => IO { logger.info(s"initialized scorers for models ${models.map(_._1)}") })
-      .map(_.toMap)
-  }
+  def loadModels(config: Config, env: Map[String, String] = Map.empty): IO[Map[String, Scorer]] = ???
+//  {
+//    config.models.toNel.toList
+//      .map {
+//        case (name, LambdaMARTConfig(backend, _, _)) =>
+//          FS.read(path, env)
+//            .flatTap(bytes => IO { logger.info(s"loaded model $name file, size=${bytes.length}b") })
+//            .map(file => name -> LambdaMARTScorer(backend, file))
+//            .onError(err => IO { logger.error(s"cannot load ranking model: ${err.getMessage}", err) })
+//        case (name, ShuffleConfig(maxPositionChange)) =>
+//          IO.pure(name -> ShuffleScorer(maxPositionChange))
+//        case (name, _: NoopConfig) =>
+//          IO.pure(name -> NoopScorer)
+//      }
+//      .sequence
+//      .flatTap(models => IO { logger.info(s"initialized scorers for models ${models.map(_._1)}") })
+//      .map(_.toMap)
+//  }
 
 }

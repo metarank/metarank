@@ -1,6 +1,6 @@
 package ai.metaranke2e.source
 
-import ai.metarank.config.EventSourceConfig.{KinesisSourceConfig, SourceOffset}
+import ai.metarank.config.InputConfig.{KinesisInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KinesisSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
@@ -25,7 +25,7 @@ import java.nio.charset.StandardCharsets
 class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
   import ai.metarank.mode.TypeInfos._
   it should "read from kinesis" in {
-    val conf = KinesisSourceConfig(
+    val conf = KinesisInputConfig(
       topic = "events",
       offset = SourceOffset.Earliest,
       region = "us-east-1",

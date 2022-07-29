@@ -50,14 +50,14 @@ case class FileEventSource(conf: FileInputConfig) extends EventSource with Loggi
     path.extName match {
       case ".gz" | ".gzip" =>
         Stream
-          .exec(IO(logger.info("GZip decompressor is selected")))
+          .exec(info(s"reading file $path (with gzip decompressor)"))
           .append(readInputStream[IO](IO(new GZIPInputStream(new FileInputStream(name))), 64 * 1024))
       case ".zst" =>
         Stream
-          .exec(IO(logger.info("ZSTD decompressor is selected")))
+          .exec(info(s"reading file $path (with zstd decompressor)"))
           .append(readInputStream[IO](IO(new ZstdInputStream(new FileInputStream(name))), 64 * 1024))
       case other =>
-        Stream.exec(IO(logger.info(s"$other is not looking like a compression format"))).append(Files[IO].readAll(path))
+        Stream.exec(info(s"reading file $path (no compression)")).append(Files[IO].readAll(path))
     }
   }
 }

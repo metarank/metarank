@@ -3,6 +3,7 @@ package ai.metarank.source
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KafkaSource.Consumer
+import ai.metarank.source.KafkaSource.Consumer.ConsumerOps
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists
@@ -29,29 +30,21 @@ case class KafkaSource(conf: KafkaInputConfig) extends EventSource {
     .bracket(Consumer.create(conf))(_.close())
     .flatMap(consumer =>
       Stream
-        .unfoldChunkEval[IO, Consumer, Array[Byte]](consumer)(cons => {
-          val records = cons.client.poll(POLL_FREQUENCY)
-          val chunk   = Chunk.seq(records.iterator().asScala.map(_.value()).toSeq)
-          val result  = Some(chunk -> cons)
-          IO.async_(callback =>
-            IO {
-              cons.client.commitAsync(new OffsetCommitCallback {
-                override def onComplete(offsets: util.Map[TopicPartition, OffsetAndMetadata], exception: Exception) = {
-                  Option(exception) match {
-                    case Some(error) => callback(Left(error))
-                    case None        => callback(Right(result))
-                  }
-                }
-              })
-            }
-          )
-        })
+        .unfoldChunkEval[IO, Consumer, Array[Byte]](consumer)(cons =>
+          for {
+            messages <- cons.client.poll2(POLL_FREQUENCY)
+            _        <- cons.client.commit(messages.offsets)
+          } yield {
+            Some(Chunk.seq(messages.events), cons)
+          }
+        )
         .flatMap(record => Stream.emits(record).through(conf.format.parse))
     )
 }
 
 object KafkaSource {
   val KAFKA_TIMEOUT = Duration.ofSeconds(10)
+  case class Messages(events: List[Array[Byte]], offsets: Map[TopicPartition, OffsetAndMetadata])
 
   case class Consumer(client: KafkaConsumer[Array[Byte], Array[Byte]]) {
     def close() = IO(client.close())
@@ -136,6 +129,42 @@ object KafkaSource {
 
       def partitions(topic: String): IO[List[TopicPartition]] =
         IO(client.partitionsFor(topic).asScala.map(pi => new TopicPartition(pi.topic(), pi.partition())).toList)
+
+      def poll2(freq: Duration): IO[Messages] = for {
+        messages <- IO(client.poll(freq))
+        _        <- debug(s"polled ${messages.count()} messages from kafka")
+      } yield {
+        val events = messages.asScala.map(_.value()).toList
+        val offsets = messages.asScala
+          .map(m => new TopicPartition(m.topic(), m.partition()) -> new OffsetAndMetadata(m.offset()))
+          .groupBy(_._1)
+          .map { case (tp, offsets) =>
+            tp -> offsets.map(_._2).maxBy(_.offset())
+          }
+        Messages(events, offsets)
+      }
+
+      def commit(offsets: Map[TopicPartition, OffsetAndMetadata]): IO[Unit] = {
+        IO.async_(callback =>
+          IO(
+            client.commitAsync(
+              offsets.asJava,
+              new OffsetCommitCallback {
+                override def onComplete(offsets: util.Map[TopicPartition, OffsetAndMetadata], exception: Exception) = {
+                  Option(exception) match {
+                    case Some(error) =>
+                      logger.error(s"error committing to kafka: ${error.getMessage}", error)
+                      callback(Left(error))
+                    case None =>
+                      logger.debug(s"commit successful")
+                      callback(Right({}))
+                  }
+                }
+              }
+            )
+          )
+        )
+      }
     }
   }
 }

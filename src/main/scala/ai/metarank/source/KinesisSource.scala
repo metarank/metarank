@@ -58,7 +58,7 @@ case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logg
 
 object KinesisSource {
   case class Records(events: List[Array[Byte]], next: String)
-  case class Consumer(client: KinesisAsyncClient, shards: List[String]) {
+  case class Consumer(client: KinesisAsyncClient, shards: List[String]) extends Logging {
     def close(): IO[Unit] = IO(client.close())
 
     def getShardIterator(topic: String, shard: String, offset: SourceOffset): IO[String] = {
@@ -74,7 +74,9 @@ object KinesisSource {
             .timestamp(Instant.ofEpochMilli(Timestamp.now.minus(duration).ts))
             .build()
       }
-      IO.fromCompletableFuture(IO(client.getShardIterator(request))).map(_.shardIterator())
+      IO.fromCompletableFuture(IO(client.getShardIterator(request)))
+        .map(_.shardIterator())
+        .flatTap(it => debug(s"initial shard iterator: $it"))
     }
 
     def getRecords(it: String): IO[Records] = {
@@ -83,6 +85,7 @@ object KinesisSource {
         .map(response =>
           Records(response.records().asScala.toList.map(_.data().asByteArray()), response.nextShardIterator())
         )
+        .flatTap(rec => debug(s"getRecords: received ${rec.events.size} records"))
     }
   }
 

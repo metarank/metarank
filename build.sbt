@@ -74,7 +74,8 @@ lazy val root = (project in file("."))
       "org.apache.flink"      % "flink-runtime-web"          % flinkVersion,
       "io.findify"           %% "flink-scala-api"            % "1.15-2",
       "org.apache.kafka"      % "kafka-clients"              % "3.2.0",
-      "org.apache.pulsar"     % "pulsar-client"              % "2.10.1",
+      "org.apache.pulsar"     % "pulsar-client"              % pulsarVersion,
+      "org.apache.pulsar"     % "pulsar-client-admin"        % pulsarVersion,
       "org.apache.flink"      % "flink-test-utils"           % flinkVersion excludeAll (
         ExclusionRule("org.apache.curator"),
         ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),

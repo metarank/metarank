@@ -82,7 +82,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
         topic = "events",
         subscriptionName = "metarank",
         subscriptionType = "exclusive",
-        offset = SourceOffset.Earliest
+        offset = Some(SourceOffset.Earliest)
       )
     )
   }
@@ -166,7 +166,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
         topic = "events",
         subscriptionName = "metarank",
         subscriptionType = "exclusive",
-        offset = SourceOffset.Earliest,
+        offset = Some(SourceOffset.Earliest),
         options = Some(Map("foo.bar" -> "baz"))
       )
     )

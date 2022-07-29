@@ -1,12 +1,12 @@
 version: '2'
 
 services:
-  kinesis:
-    image: ghcr.io/etspaceman/kinesis-mock:0.2.3
-    environment:
-      - INITIALIZE_STREAMS=events:1
-    ports:
-      - '4567:4567'
+#  kinesis:
+#    image: ghcr.io/etspaceman/kinesis-mock:0.2.3
+#    environment:
+#      - INITIALIZE_STREAMS=events:1
+#    ports:
+#      - '4567:4567'
 
 #  kafka:
 #    image: docker.io/bitnami/kafka:3.1
@@ -22,11 +22,11 @@ services:
 #      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@127.0.0.1:9093
 #      - ALLOW_PLAINTEXT_LISTENER=yes
 
-#  pulsar:
-#    image: apachepulsar/pulsar:2.8.0
-#    ports:
-#      - 8080:8080
-#      - 6650:6650
-#    environment:
-#      PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
-#    command: bin/pulsar standalone --wipe-data
+  pulsar:
+    image: apachepulsar/pulsar:2.10.1
+    ports:
+      - 8080:8080
+      - 6650:6650
+    environment:
+      PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
+    command: bin/pulsar standalone --wipe-data

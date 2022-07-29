@@ -7,9 +7,7 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.{Chunk, Stream}
 import io.findify.featury.model.Timestamp
-import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder
 import software.amazon.awssdk.http.SdkHttpConfigurationOption
-import software.amazon.awssdk.http.async.SdkAsyncHttpClient
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient
@@ -23,9 +21,11 @@ import software.amazon.awssdk.utils.AttributeMap
 
 import scala.jdk.CollectionConverters._
 import java.net.URI
-import java.time.Instant
+import java.time.{Duration, Instant}
+import scala.concurrent.duration._
 
 case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logging {
+  val GETRECORDS_TIMEOUT = 200.millis
   override def stream: fs2.Stream[IO, Event] =
     Stream
       .bracket(Consumer.create(conf))(_.close())
@@ -51,6 +51,7 @@ case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logg
                 Some(chunk, next)
               })
           })
+          .metered(GETRECORDS_TIMEOUT)
           .flatMap(bytes => Stream.emits(bytes).through(conf.format.parse))
       })
 }

@@ -8,10 +8,11 @@ import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
-
+import scala.concurrent.duration._
 sealed trait InputConfig
 
 object InputConfig {
+  import ai.metarank.util.DurationJson._
   sealed trait SourceOffset
   object SourceOffset {
     case object Latest                                    extends SourceOffset
@@ -51,7 +52,7 @@ object InputConfig {
       topic: String,
       subscriptionName: String,
       subscriptionType: String,
-      offset: SourceOffset,
+      offset: Option[SourceOffset] = None,
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
   ) extends InputConfig
@@ -62,6 +63,7 @@ object InputConfig {
       region: String,
       endpoint: Option[String] = None,
       skipCertVerification: Boolean = false,
+      getRecordsPeriod: FiniteDuration = 200.millis,
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
   ) extends InputConfig

@@ -22,7 +22,7 @@
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <!--root level="debug">
+    <!--root level="verbose">
         <appender-ref ref="STDOUT"/>
     </root-->
 

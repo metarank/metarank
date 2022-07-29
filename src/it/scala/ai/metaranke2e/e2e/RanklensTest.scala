@@ -13,7 +13,6 @@ import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId}
 import ai.metarank.rank.LambdaMARTModel
-import ai.metarank.util.fs.FS
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import better.files.File
 import cats.data.NonEmptyList

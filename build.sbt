@@ -73,8 +73,7 @@ lazy val root = (project in file("."))
       "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
       "org.apache.flink"      % "flink-runtime-web"          % flinkVersion,
       "io.findify"           %% "flink-scala-api"            % "1.15-2",
-      "org.apache.flink"      % "flink-connector-kinesis"    % flinkVersion,
-      "org.apache.flink"      % "flink-connector-kafka"      % flinkVersion,
+      "org.apache.kafka"      % "kafka-clients"              % "3.2.0",
       "org.apache.flink"      % "flink-connector-pulsar"     % flinkVersion excludeAll (
         ExclusionRule("com.sun.activation", "javax.activation")
       ),
@@ -83,7 +82,6 @@ lazy val root = (project in file("."))
         ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
         ExclusionRule("org.apache.logging.log4j")
       ),
-      "org.apache.flink"           % "flink-s3-fs-hadoop"       % flinkVersion,
       "org.http4s"                %% "http4s-dsl"               % http4sVersion,
       "org.http4s"                %% "http4s-blaze-server"      % http4sVersion,
       "org.http4s"                %% "http4s-blaze-client"      % http4sVersion,

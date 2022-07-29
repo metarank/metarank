@@ -4,7 +4,6 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, MPath}
 import ai.metarank.mode.CliApp
 import ai.metarank.rank.{LambdaMARTModel, Model}
-import ai.metarank.util.fs.{FS, LineReader}
 import cats.implicits._
 import cats.effect.{ExitCode, IO}
 import io.circe.parser._
@@ -35,32 +34,32 @@ object Train extends CliApp {
     ExitCode.Success
   }
 
-  def loadData(path: MPath, desc: DatasetDescriptor, modelName: String, env: Map[String, String]) = {
-    for {
-      files <- FS.listRecursive(path / s"dataset-$modelName", env).map(_.filter(_.path.endsWith(".json")))
-      filesNel <- files match {
-        case Nil =>
-          IO.raiseError(
-            new Exception("zero training files found. maybe you forgot to run bootstrap? or dir is incorrect?")
-          )
-        case nel => IO(logger.info(s"found training dataset files: $files")) *> IO.pure(nel)
-      }
-      contents <- filesNel.map(file => IO(logger.info(s"reading $file")) *> FS.read(file, env)).sequence
-      queries <- IO {
-        for {
-          fileBytes <- contents
-          line      <- LineReader.lines(fileBytes)
-          query     <- decode[Query](line).toOption
-        } yield {
-          query
-        }
-      }
-      queriesNel <- queries match {
-        case Nil => IO.raiseError(new Exception("loaded 0 valid queries"))
-        case nel => IO(s"loaded ${nel.size} queries") *> IO.pure(nel)
-      }
-    } yield { Dataset(desc, queriesNel) }
-  }
+//  def loadData(path: MPath, desc: DatasetDescriptor, modelName: String, env: Map[String, String]) = {
+//    for {
+//      files <- FS.listRecursive(path / s"dataset-$modelName", env).map(_.filter(_.path.endsWith(".json")))
+//      filesNel <- files match {
+//        case Nil =>
+//          IO.raiseError(
+//            new Exception("zero training files found. maybe you forgot to run bootstrap? or dir is incorrect?")
+//          )
+//        case nel => IO(logger.info(s"found training dataset files: $files")) *> IO.pure(nel)
+//      }
+//      contents <- filesNel.map(file => IO(logger.info(s"reading $file")) *> FS.read(file, env)).sequence
+//      queries <- IO {
+//        for {
+//          fileBytes <- contents
+//          line      <- LineReader.lines(fileBytes)
+//          query     <- decode[Query](line).toOption
+//        } yield {
+//          query
+//        }
+//      }
+//      queriesNel <- queries match {
+//        case Nil => IO.raiseError(new Exception("loaded 0 valid queries"))
+//        case nel => IO(s"loaded ${nel.size} queries") *> IO.pure(nel)
+//      }
+//    } yield { Dataset(desc, queriesNel) }
+//  }
 
   def split(dataset: Dataset, factor: Int) = {
     val (train, test) = dataset.groups.partition(_ => Random.nextInt(100) < factor)
@@ -79,16 +78,16 @@ object Train extends CliApp {
     }
   }
 
-  def train(data: Dataset, ranker: Model, path: MPath, env: Map[String, String]) = {
-    val (train, test) = split(data, 80)
-    ranker.train(train, test) match {
-      case Some(modelBytes) =>
-        FS.write(path, modelBytes, env) *> IO(logger.info(s"model written to $path"))
-      case None =>
-        IO(logger.info("model is empty"))
-    }
-
-  }
+//  def train(data: Dataset, ranker: Model, path: MPath, env: Map[String, String]) = {
+//    val (train, test) = split(data, 80)
+//    ranker.train(train, test) match {
+//      case Some(modelBytes) =>
+//        FS.write(path, modelBytes, env) *> IO(logger.info(s"model written to $path"))
+//      case None =>
+//        IO(logger.info("model is empty"))
+//    }
+//
+//  }
 
   case class DatasetValidationError(msg: String) extends Exception(msg)
 }

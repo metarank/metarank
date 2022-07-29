@@ -11,7 +11,6 @@ import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.ShuffleModel.ShuffleScorer
-import ai.metarank.util.fs.FS
 import cats.effect.kernel.Ref
 import cats.effect.std.Queue
 import cats.effect.{ExitCode, IO, Resource}

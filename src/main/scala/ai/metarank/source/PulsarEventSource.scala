@@ -3,17 +3,13 @@ package ai.metarank.source
 import ai.metarank.config.InputConfig.{PulsarInputConfig, SourceOffset}
 import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
-import ai.metarank.source.PulsarEventSource.EventDeserializationSchema
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.findify.featury.model.Timestamp
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.connector.pulsar.source.{PulsarSource, PulsarSourceOptions}
-import org.apache.flink.connector.pulsar.source.enumerator.cursor.{StartCursor, StopCursor}
-import org.apache.flink.connector.pulsar.source.reader.deserializer.PulsarDeserializationSchema
 import io.findify.flink.api._
 import org.apache.flink.util.Collector
-import org.apache.pulsar.client.api.{Message, SubscriptionType}
+import org.apache.pulsar.client.api.{Message, PulsarClient, SubscriptionType}
 import io.circe.parser._
 
 import java.nio.charset.StandardCharsets
@@ -54,22 +50,9 @@ case class PulsarEventSource(conf: PulsarInputConfig)(implicit ti: TypeInformati
 }
 
 object PulsarEventSource {
-  case class EventDeserializationSchema(format: SourceFormat, ti: TypeInformation[Event])
-      extends PulsarDeserializationSchema[Event]
-      with Logging {
-    override def getProducedType: TypeInformation[Event] = ti
-
-    override def deserialize(message: Message[Array[Byte]], out: Collector[Event]): Unit = ???
-//    {
-//      format.parse(message.getData) match {
-//        case Left(value) =>
-//          val string = new String(message.getData, StandardCharsets.UTF_8)
-//          logger.error(s"cannot parse message $string", value)
-//        case Right(Some(value)) =>
-//          out.collect(value)
-//        case Right(None) =>
-//        // do nothing
-//      }
-//    }
+  case class Consumer(client: PulsarClient) {
+    def close() = IO.fromCompletableFuture(IO(client.closeAsync()))
   }
+
+  object Consumer {}
 }

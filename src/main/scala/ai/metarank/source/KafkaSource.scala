@@ -6,11 +6,18 @@ import ai.metarank.source.KafkaSource.Consumer
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists
-import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRebalanceListener, KafkaConsumer}
+import org.apache.kafka.clients.consumer.{
+  ConsumerConfig,
+  ConsumerRebalanceListener,
+  KafkaConsumer,
+  OffsetAndMetadata,
+  OffsetCommitCallback
+}
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import fs2.{Chunk, Stream}
 import io.findify.featury.model.Timestamp
 import org.apache.kafka.common.TopicPartition
+
 import java.time.Duration
 import java.util
 import scala.jdk.CollectionConverters._
@@ -22,10 +29,22 @@ case class KafkaSource(conf: KafkaInputConfig) extends EventSource {
     .bracket(Consumer.create(conf))(_.close())
     .flatMap(consumer =>
       Stream
-        .unfoldChunk[IO, Consumer, Array[Byte]](consumer)(cons => {
+        .unfoldChunkEval[IO, Consumer, Array[Byte]](consumer)(cons => {
           val records = cons.client.poll(POLL_FREQUENCY)
           val chunk   = Chunk.seq(records.iterator().asScala.map(_.value()).toSeq)
-          Some(chunk -> cons)
+          val result  = Some(chunk -> cons)
+          IO.async_(callback =>
+            IO {
+              cons.client.commitAsync(new OffsetCommitCallback {
+                override def onComplete(offsets: util.Map[TopicPartition, OffsetAndMetadata], exception: Exception) = {
+                  Option(exception) match {
+                    case Some(error) => callback(Left(error))
+                    case None        => callback(Right(result))
+                  }
+                }
+              })
+            }
+          )
         })
         .flatMap(record => Stream.emits(record).through(conf.format.parse))
     )

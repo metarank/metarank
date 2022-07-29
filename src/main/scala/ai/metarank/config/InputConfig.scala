@@ -60,6 +60,8 @@ object InputConfig {
       topic: String,
       offset: SourceOffset,
       region: String,
+      endpoint: Option[String] = None,
+      skipCertVerification: Boolean = false,
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
   ) extends InputConfig

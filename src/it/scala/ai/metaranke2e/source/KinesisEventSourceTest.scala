@@ -4,6 +4,7 @@ import ai.metarank.config.InputConfig.{KinesisInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KinesisSource
 import ai.metarank.util.{FlinkTest, TestItemEvent}
+import cats.effect.unsafe.implicits.global
 import org.apache.flink.kinesis.shaded.com.amazonaws.services.kinesis.producer.{
   KinesisProducer,
   KinesisProducerConfiguration,
@@ -22,21 +23,13 @@ import org.apache.flink.kinesis.shaded.com.amazonaws.auth.{
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
-  import ai.metarank.mode.TypeInfos._
+class KinesisEventSourceTest extends AnyFlatSpec with Matchers {
   it should "read from kinesis" in {
     val conf = KinesisInputConfig(
       topic = "events",
       offset = SourceOffset.Earliest,
       region = "us-east-1",
-      options = Some(
-        Map(
-          "aws.endpoint"                               -> "http://localhost:4568",
-          "aws.credentials.provider"                   -> "BASIC",
-          "aws.credentials.provider.basic.accesskeyid" -> "1",
-          "aws.credentials.provider.basic.secretkey"   -> "1"
-        )
-      )
+      endpoint = Some("https://localhost:4567")
     )
     val creds = new AWSCredentialsProvider {
       override def getCredentials: AWSCredentials = new BasicAWSCredentials("1", "1")
@@ -57,7 +50,7 @@ class KinesisEventSourceTest extends AnyFlatSpec with Matchers with FlinkTest {
     val response = producer.addUserRecord(eventRecord).get()
     producer.flushSync()
     producer.destroy()
-//    val received = KinesisSource(conf).eventStream(env, true).executeAndCollect(1)
-//    received shouldBe List(event)
+    val received = KinesisSource(conf).stream.take(1).compile.toList.unsafeRunSync()
+    received shouldBe List(event)
   }
 }

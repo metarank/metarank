@@ -40,7 +40,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
         brokers = NonEmptyList.of("broker1", "broker2"),
         topic = "events",
         groupId = "metarank",
-        offset = SourceOffset.Earliest
+        offset = Some(SourceOffset.Earliest)
       )
     )
   }
@@ -59,7 +59,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
         brokers = NonEmptyList.of("broker1", "broker2"),
         topic = "events",
         groupId = "metarank",
-        offset = SourceOffset.Earliest,
+        offset = Some(SourceOffset.Earliest),
         options = Some(Map("foo.bar" -> "baz"))
       )
     )

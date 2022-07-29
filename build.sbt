@@ -60,7 +60,7 @@ lazy val root = (project in file("."))
       "io.circe"             %% "circe-generic"              % circeVersion,
       "io.circe"             %% "circe-generic-extras"       % circeVersion,
       "io.circe"             %% "circe-parser"               % circeVersion,
-      "io.circe"             %% "circe-literal"               % circeVersion,
+      "io.circe"             %% "circe-literal"              % circeVersion,
       "com.github.pathikrit" %% "better-files"               % "3.9.1",
       "com.github.scopt"     %% "scopt"                      % "4.1.0",
       "redis.clients"         % "jedis"                      % "4.2.3",
@@ -98,6 +98,7 @@ lazy val root = (project in file("."))
       "org.apache.lucene"          % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"          % "lucene-analysis-stempel"  % luceneVersion,
       "org.apache.httpcomponents"  % "httpclient"               % "4.5.13",
+      "software.amazon.awssdk"     % "kinesis"                  % "2.17.242",
       "com.fasterxml.jackson.core" % "jackson-annotations"      % "2.12.4" // should match flink's version
     ),
     Compile / mainClass             := Some("ai.metarank.Main"),

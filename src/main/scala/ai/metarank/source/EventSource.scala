@@ -5,10 +5,7 @@ import ai.metarank.config.InputConfig._
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import cats.effect.IO
-import org.apache.flink.api.common.typeinfo.TypeInformation
 import fs2.Stream
-
-import java.util.Properties
 
 trait EventSource extends Logging {
   def stream: Stream[IO, Event]

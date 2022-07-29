@@ -34,7 +34,7 @@ object InputConfig {
       brokers: NonEmptyList[String],
       topic: String,
       groupId: String,
-      offset: SourceOffset,
+      offset: Option[SourceOffset],
       options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
   ) extends InputConfig

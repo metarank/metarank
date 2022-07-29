@@ -31,6 +31,7 @@ case class FileEventSource(conf: FileInputConfig) extends EventSource with Loggi
   def selectFile(path: Path): Boolean = {
     val modificationTime = java.nio.file.Files.getLastModifiedTime(path.toNioPath).toMillis
     val timeMatches = conf.offset match {
+      case SourceOffset.Committed                  => true
       case SourceOffset.Latest                     => false
       case SourceOffset.Earliest                   => true
       case SourceOffset.ExactTimestamp(ts)         => modificationTime > ts

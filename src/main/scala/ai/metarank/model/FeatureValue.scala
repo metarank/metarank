@@ -1,7 +1,7 @@
 package ai.metarank.model
 
+import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
-import ai.metarank.model.State.BoundedListState.TimeValue
 import io.circe._
 import io.circe.generic.semiauto._
 
@@ -22,6 +22,9 @@ object FeatureValue {
   }
   case class FrequencyValue(key: Key, ts: Timestamp, values: Map[String, Double]) extends FeatureValue
   case class BoundedListValue(key: Key, ts: Timestamp, values: List[TimeValue])   extends FeatureValue
+  object BoundedListValue {
+    case class TimeValue(ts: Timestamp, value: Scalar)
+  }
 
   implicit val scalarCodec: Codec[ScalarValue]                        = deriveCodec
   implicit val freqCodec: Codec[FrequencyValue]                       = deriveCodec

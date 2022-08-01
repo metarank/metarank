@@ -1,35 +1,95 @@
 package ai.metarank.model
 
-import ai.metarank.model.FeatureConfig._
+import ai.metarank.model.Feature.BoundedList.BoundedListConfig
+import ai.metarank.model.Feature.Counter.CounterConfig
+import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
+import ai.metarank.model.Feature.MapFeature.MapConfig
+import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
+import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import ai.metarank.model.Write._
 import ai.metarank.model.FeatureValue._
-import ai.metarank.model.State._
+import ai.metarank.model.Key.{FeatureName, Scope}
+import cats.effect.IO
 import com.google.common.math.Quantiles
 
+import scala.concurrent.duration._
 import scala.util.Random
 
-sealed trait Feature[W <: Write, T <: FeatureValue, C <: FeatureConfig, S <: State] {
-  def put(action: W): Unit
-  def config: C
-  def computeValue(key: Key, ts: Timestamp): Option[T]
-  def readState(key: Key, ts: Timestamp): Option[S]
-  def writeState(state: S): Unit
+sealed trait Feature[W <: Write, T <: FeatureValue] {
+  def put(action: W): IO[Unit]
+  def computeValue(key: Key, ts: Timestamp): IO[Option[T]]
 }
 
 object Feature {
-  trait ScalarFeature extends Feature[Put, ScalarValue, ScalarConfig, ScalarState]
+  sealed trait FeatureConfig {
+    def scope: Scope
+    def name: FeatureName
+    def ttl: FiniteDuration
+    def refresh: FiniteDuration
+  }
 
-  trait MapFeature extends Feature[PutTuple, MapValue, MapConfig, MapState]
+  trait ScalarFeature extends Feature[Put, ScalarValue] {
+    def config: ScalarConfig
+  }
 
-  trait Counter extends Feature[Increment, CounterValue, CounterConfig, CounterState]
+  object ScalarFeature {
+    case class ScalarConfig(
+        scope: Scope,
+        name: FeatureName,
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig
+  }
 
-  trait BoundedList extends Feature[Append, BoundedListValue, BoundedListConfig, BoundedListState]
+  trait MapFeature extends Feature[PutTuple, MapValue] {
+    def config: MapConfig
+  }
 
-  trait FreqEstimator extends Feature[PutFreqSample, FrequencyValue, FreqEstimatorConfig, FrequencyState] {
-    override def put(action: PutFreqSample): Unit =
-      if (Feature.shouldSample(config.sampleRate)) putSampled(action)
-    def putSampled(action: PutFreqSample): Unit
+  object MapFeature {
+    case class MapConfig(
+        scope: Scope,
+        name: FeatureName,
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig
+  }
+
+  trait Counter extends Feature[Increment, CounterValue] {
+    def config: CounterConfig
+  }
+
+  object Counter {
+    case class CounterConfig(
+        scope: Scope,
+        name: FeatureName,
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig
+
+  }
+
+  trait BoundedList extends Feature[Append, BoundedListValue] {
+    def config: BoundedListConfig
+  }
+
+  object BoundedList {
+    case class BoundedListConfig(
+        scope: Scope,
+        name: FeatureName,
+        count: Int = Int.MaxValue,
+        duration: FiniteDuration = Long.MaxValue.nanos,
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig
+  }
+
+  trait FreqEstimator extends Feature[PutFreqSample, FrequencyValue] {
+    def config: FreqEstimatorConfig
+    override def put(action: PutFreqSample): IO[Unit] =
+      if (Feature.shouldSample(config.sampleRate)) putSampled(action) else IO.unit
+    def putSampled(action: PutFreqSample): IO[Unit]
 
     def freqFromSamples(samples: List[String]): Option[Map[String, Double]] = {
       if (samples.nonEmpty) {
@@ -44,8 +104,20 @@ object Feature {
     }
   }
 
-  trait PeriodicCounter
-      extends Feature[PeriodicIncrement, PeriodicCounterValue, PeriodicCounterConfig, PeriodicCounterState] {
+  object FreqEstimator {
+    case class FreqEstimatorConfig(
+        scope: Scope,
+        name: FeatureName,
+        poolSize: Int,
+        sampleRate: Int,
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig
+
+  }
+
+  trait PeriodicCounter extends Feature[PeriodicIncrement, PeriodicCounterValue] {
+    def config: PeriodicCounterConfig
     def fromMap(map: Map[Timestamp, Long]): List[PeriodicValue] = {
       for {
         range         <- config.sumPeriodRanges
@@ -63,11 +135,30 @@ object Feature {
     }
   }
 
-  trait StatsEstimator extends Feature[PutStatSample, NumStatsValue, StatsEstimatorConfig, StatsState] {
+  object PeriodicCounter {
+    case class PeriodRange(startOffset: Int, endOffset: Int)
+
+    case class PeriodicCounterConfig(
+        scope: Scope,
+        name: FeatureName,
+        period: FiniteDuration,
+        sumPeriodRanges: List[PeriodRange],
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig {
+      val periods: List[Int]   = (sumPeriodRanges.map(_.startOffset) ++ sumPeriodRanges.map(_.endOffset)).sorted
+      val latestPeriodOffset   = periods.head
+      val earliestPeriodOffset = periods.last
+    }
+
+  }
+
+  trait StatsEstimator extends Feature[PutStatSample, NumStatsValue] {
+    def config: StatsEstimatorConfig
     import scala.jdk.CollectionConverters._
-    override def put(action: PutStatSample): Unit =
-      if (Feature.shouldSample(config.sampleRate)) putSampled(action)
-    def putSampled(action: PutStatSample): Unit
+    override def put(action: PutStatSample): IO[Unit] =
+      if (Feature.shouldSample(config.sampleRate)) putSampled(action) else IO.unit
+    def putSampled(action: PutStatSample): IO[Unit]
     def fromPool(key: Key, ts: Timestamp, pool: Seq[Double]): NumStatsValue = {
       val quantile = Quantiles
         .percentiles()
@@ -85,6 +176,19 @@ object Feature {
         quantiles = quantile.toMap
       )
     }
+  }
+
+  object StatsEstimator {
+    case class StatsEstimatorConfig(
+        scope: Scope,
+        name: FeatureName,
+        poolSize: Int,
+        sampleRate: Double,
+        percentiles: List[Int],
+        ttl: FiniteDuration = 365.days,
+        refresh: FiniteDuration = 1.hour
+    ) extends FeatureConfig
+
   }
 
   def shouldSample(rate: Double): Boolean = Random.nextDouble() <= rate

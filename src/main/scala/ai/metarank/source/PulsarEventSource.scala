@@ -47,10 +47,10 @@ object PulsarEventSource {
 
     def acknowledgeAsync(ids: List[MessageId]): IO[Unit] =
       IO.fromCompletableFuture(IO(consumer.acknowledgeAsync(Lists.newArrayList(ids.asJava))))
-        .flatMap(_ => IO.unit)
+        .void
         .flatTap(_ => debug("ack sent"))
 
-    def close(): IO[Unit] = IO.fromCompletableFuture(IO(client.closeAsync())).flatMap(_ => IO.unit)
+    def close(): IO[Unit] = IO.fromCompletableFuture(IO(client.closeAsync())).void
   }
 
   object Consumer {

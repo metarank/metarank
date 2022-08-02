@@ -4,7 +4,9 @@ import ai.metarank.model.Key.{Env, FeatureName, Tag}
 import io.circe.{Codec, Decoder, Encoder, Json, JsonObject}
 import io.circe.generic.semiauto._
 
-case class Key(tag: Tag, name: FeatureName, env: Env)
+case class Key(tag: Tag, name: FeatureName, env: Env) {
+  def asString = s"${env.value}/${tag.scope.name}/${name.value}/${tag.value}"
+}
 
 object Key {
   case class Env(value: String)
@@ -46,4 +48,8 @@ object Key {
   def stringCodec[T](toString: T => String, fromString: String => T) =
     Codec.from(Decoder.decodeString.map(fromString), Encoder.encodeString.contramap(toString))
 
+  def fromString(str: String) = {
+    val tokens = str.split('/')
+    new Key(tag = Tag(Scope(tokens(1)), tokens(3)), name = FeatureName(tokens(2)), env = Env(tokens(0)))
+  }
 }

@@ -53,7 +53,7 @@ lazy val root = (project in file("."))
       "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
       "org.scalatest"        %% "scalatest"                  % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"                  % scalatestVersion % "test,it",
-      "org.scalatestplus"    %% "scalacheck-1-16"            % "3.2.12.0"       % "test,it",
+      "org.scalatestplus"    %% "scalacheck-1-16"            % "3.2.13.0"       % "test,it",
       "ch.qos.logback"        % "logback-classic"            % "1.2.11",
       "io.circe"             %% "circe-yaml"                 % circeYamlVersion,
       "io.circe"             %% "circe-core"                 % circeVersion,

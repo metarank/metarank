@@ -7,6 +7,7 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{RedisCodec, StringCodec}
+import scala.jdk.CollectionConverters._
 
 case class RedisPipeline(
     client: RedisClient,
@@ -22,6 +23,7 @@ case class RedisPipeline(
       case RedisOp.HSET(key, hashKey, hashValue) => commands.hset(key, hashKey, hashValue)
       case RedisOp.HINCRBY(key, hashKey, by)     => commands.hincrby(key, hashKey, by)
       case RedisOp.LTRIM(key, start, end)        => commands.ltrim(key, start, end)
+      case RedisOp.MSET(kvs)                     => commands.mset(kvs.asJava)
     }
     IO(conn.flushCommands())
   }
@@ -48,6 +50,7 @@ object RedisPipeline {
     case class HSET(key: String, hashKey: String, hashValue: String) extends RedisOp
     case class HINCRBY(key: String, hashKey: String, by: Int)        extends RedisOp
     case class LTRIM(key: String, start: Int, end: Int)              extends RedisOp
+    case class MSET(kv: Map[String, String])                         extends RedisOp
   }
 
 }

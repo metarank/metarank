@@ -6,6 +6,6 @@ import ai.metarank.model.Write.PutFreqSample
 
 class RedisFreqEstimatorFeatureTest
     extends FreqEstimatorSuite
-    with RedisTest[PutFreqSample, RedisFreqEstimatorFeature] {
+    with RedisFeatureTest[PutFreqSample, RedisFreqEstimatorFeature] {
   override def feature: RedisFreqEstimatorFeature = RedisFreqEstimatorFeature(config, pipeline, client)
 }

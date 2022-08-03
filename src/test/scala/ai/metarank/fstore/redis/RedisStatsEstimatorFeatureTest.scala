@@ -5,6 +5,6 @@ import ai.metarank.model.Write.PutStatSample
 
 class RedisStatsEstimatorFeatureTest
     extends StatsEstimatorSuite
-    with RedisTest[PutStatSample, RedisStatsEstimatorFeature] {
+    with RedisFeatureTest[PutStatSample, RedisStatsEstimatorFeature] {
   override def feature: RedisStatsEstimatorFeature = RedisStatsEstimatorFeature(config, pipeline, client)
 }

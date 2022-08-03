@@ -6,6 +6,7 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{RedisCodec, StringCodec}
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 
 case class RedisReader(
     client: RedisClient,
@@ -16,6 +17,10 @@ case class RedisReader(
 
   def get(key: String): IO[Option[String]] =
     IO.fromCompletableFuture(IO(commands.get(key).toCompletableFuture)).map(Option.apply)
+
+  def mget(keys: List[String]): IO[Map[String, String]] =
+    IO.fromCompletableFuture(IO(commands.mget(keys: _*).toCompletableFuture))
+      .map(_.asScala.toList.flatMap(kv => kv.optional().toScala.map(v => kv.getKey -> v)).toMap)
 
   def hgetAll(key: String): IO[Map[String, String]] =
     IO.fromCompletableFuture(IO(commands.hgetall(key).toCompletableFuture)).map(_.asScala.toMap)

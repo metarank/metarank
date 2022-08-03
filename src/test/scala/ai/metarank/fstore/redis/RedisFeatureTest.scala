@@ -13,13 +13,13 @@ import redis.clients.jedis.Jedis
 
 import scala.util.Random
 
-trait RedisTest[W <: Write, F <: Feature[W, _ <: FeatureValue]] extends BeforeAndAfterAll {
+trait RedisFeatureTest[W <: Write, F <: Feature[W, _ <: FeatureValue]] extends BeforeAndAfterAll {
   this: FeatureSuite[W] =>
 
-  lazy val port                    = RedisTest.port
-  var service: RedisServer         = RedisTest.service
-  var client: RedisReader          = RedisTest.client
-  val writer: RedisPipeline        = RedisTest.writer
+  lazy val port                    = RedisFeatureTest.port
+  var service: RedisServer         = RedisFeatureTest.service
+  var client: RedisReader          = RedisFeatureTest.client
+  val writer: RedisPipeline        = RedisFeatureTest.writer
   val pipeline: Queue[IO, RedisOp] = Queue.unbounded[IO, RedisOp].unsafeRunSync()
 
   def feature: F
@@ -34,7 +34,7 @@ trait RedisTest[W <: Write, F <: Feature[W, _ <: FeatureValue]] extends BeforeAn
   }
 }
 
-object RedisTest {
+object RedisFeatureTest {
   lazy val port = 1024 + Random.nextInt(60000)
   lazy val service = {
     val s = new RedisServer()

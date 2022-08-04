@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
+import ai.metarank.model.ScopeType.{ItemScope, SessionScope}
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.persistence.field.MapFieldStore

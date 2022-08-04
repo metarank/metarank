@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.FeatureSchema
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.MValue.VectorValue

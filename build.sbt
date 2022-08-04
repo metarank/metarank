@@ -2,34 +2,9 @@ import Deps._
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / version      := "0.4.1"
+ThisBuild / version      := "0.5.0-SNAPSHOT-M1"
 
 lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("linux/amd64")
-
-/** A hack for flink-s3-fs-hadoop jar bundling a set of ancient dependencies causing classpath conflicts on fat-jar
-  * building. With this approach we have a custom MergeStrategy, which drops all files from flink-s3-fs-hadoop jar if
-  * there is a conflict (so probably there is a newer version of dependency in fat-jar classpath)
-  */
-lazy val flinkS3Conflicts = List(
-  "com/google/common",
-  "com/google/errorprone",
-  "com/google/j2objc",
-  "com/google/thirdparty",
-  "org/checkerframework",
-  "org/apache/commons/beanutils",
-  "org/apache/commons/codec",
-  "org/apache/commons/collections",
-  "org/apache/commons/io",
-  "org/apache/commons/lang3",
-  "org/apache/commons/text",
-  "org/apache/commons/logging",
-  "org/apache/http",
-  "com/fasterxml/jackson/",
-  "org/joda/time",
-  "google/protobuf"
-)
-
-val flinkMergeStrategy = FlinkMergeStrategy("flink-s3-fs-hadoop-.*".r, flinkS3Conflicts)
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -48,39 +23,28 @@ lazy val root = (project in file("."))
       "-Xfatal-warnings"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"                % "3.3.14",
-      "org.typelevel"        %% "log4cats-core"              % log4catsVersion,
-      "org.typelevel"        %% "log4cats-slf4j"             % log4catsVersion,
-      "org.scalatest"        %% "scalatest"                  % scalatestVersion % "test,it",
-      "org.scalactic"        %% "scalactic"                  % scalatestVersion % "test,it",
-      "org.scalatestplus"    %% "scalacheck-1-16"            % "3.2.12.0"       % "test,it",
-      "ch.qos.logback"        % "logback-classic"            % "1.2.11",
-      "io.circe"             %% "circe-yaml"                 % circeYamlVersion,
-      "io.circe"             %% "circe-core"                 % circeVersion,
-      "io.circe"             %% "circe-generic"              % circeVersion,
-      "io.circe"             %% "circe-generic-extras"       % circeVersion,
-      "io.circe"             %% "circe-parser"               % circeVersion,
-      "io.circe"             %% "circe-literal"              % circeVersion,
-      "com.github.pathikrit" %% "better-files"               % "3.9.1",
-      "com.github.scopt"     %% "scopt"                      % "4.1.0",
-      "redis.clients"         % "jedis"                      % "4.2.3",
-      "com.github.blemale"   %% "scaffeine"                  % "5.2.0",
-      "com.github.fppt"       % "jedis-mock"                 % "1.0.3"          % "test,it",
-      "org.scala-lang"        % "scala-reflect"              % scalaVersion.value,
-      "io.github.metarank"   %% "featury-flink"              % featuryVersion,
-      "io.github.metarank"   %% "featury-redis"              % featuryVersion,
-      "org.apache.flink"      % "flink-statebackend-rocksdb" % flinkVersion,
-      "org.apache.flink"      % "flink-connector-files"      % flinkVersion,
-      "org.apache.flink"      % "flink-runtime-web"          % flinkVersion,
-      "io.findify"           %% "flink-scala-api"            % "1.15-2",
-      "org.apache.kafka"      % "kafka-clients"              % "3.2.0",
-      "org.apache.pulsar"     % "pulsar-client"              % pulsarVersion,
-      "org.apache.pulsar"     % "pulsar-client-admin"        % pulsarVersion,
-      "org.apache.flink"      % "flink-test-utils"           % flinkVersion excludeAll (
-        ExclusionRule("org.apache.curator"),
-        ExclusionRule("org.apache.logging.log4j", "log4j-slf4j-impl"),
-        ExclusionRule("org.apache.logging.log4j")
-      ),
+      "org.typelevel"             %% "cats-effect"              % "3.3.14",
+      "org.typelevel"             %% "log4cats-core"            % log4catsVersion,
+      "org.typelevel"             %% "log4cats-slf4j"           % log4catsVersion,
+      "org.scalatest"             %% "scalatest"                % scalatestVersion % "test,it",
+      "org.scalactic"             %% "scalactic"                % scalatestVersion % "test,it",
+      "org.scalatestplus"         %% "scalacheck-1-16"          % "3.2.12.0"       % "test,it",
+      "ch.qos.logback"             % "logback-classic"          % "1.2.11",
+      "io.circe"                  %% "circe-yaml"               % circeYamlVersion,
+      "io.circe"                  %% "circe-core"               % circeVersion,
+      "io.circe"                  %% "circe-generic"            % circeVersion,
+      "io.circe"                  %% "circe-generic-extras"     % circeVersion,
+      "io.circe"                  %% "circe-parser"             % circeVersion,
+      "io.circe"                  %% "circe-literal"            % circeVersion,
+      "com.github.pathikrit"      %% "better-files"             % "3.9.1",
+      "com.github.scopt"          %% "scopt"                    % "4.1.0",
+      "redis.clients"              % "jedis"                    % "4.2.3",
+      "com.github.blemale"        %% "scaffeine"                % "5.2.0",
+      "com.github.fppt"            % "jedis-mock"               % "1.0.3"          % "test,it",
+      "org.scala-lang"             % "scala-reflect"            % scalaVersion.value,
+      "org.apache.kafka"           % "kafka-clients"            % "3.2.0",
+      "org.apache.pulsar"          % "pulsar-client"            % pulsarVersion,
+      "org.apache.pulsar"          % "pulsar-client-admin-api"  % pulsarVersion,
       "org.http4s"                %% "http4s-dsl"               % http4sVersion,
       "org.http4s"                %% "http4s-blaze-server"      % http4sVersion,
       "org.http4s"                %% "http4s-blaze-client"      % http4sVersion,
@@ -97,7 +61,9 @@ lazy val root = (project in file("."))
       "org.apache.httpcomponents"  % "httpclient"               % "4.5.13",
       "software.amazon.awssdk"     % "kinesis"                  % "2.17.242",
       "com.fasterxml.jackson.core" % "jackson-annotations"      % "2.12.4", // should match flink's version
-      "io.lettuce"                 % "lettuce-core"             % "6.2.0.RELEASE"
+      "io.lettuce"                 % "lettuce-core"             % "6.2.0.RELEASE",
+      "commons-io"                 % "commons-io"               % "2.11.0",
+      "com.google.guava"           % "guava"                    % "31.1-jre"
     ),
     Compile / mainClass             := Some("ai.metarank.Main"),
     Compile / discoveredMainClasses := Seq(),
@@ -106,12 +72,9 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"flink:$flinkVersion")
-        run("mkdir", "/opt/flink/plugins/s3-fs-hadoop")
-        run("cp", s"/opt/flink/opt/flink-s3-fs-hadoop-$flinkVersion.jar", "/opt/flink/plugins/s3-fs-hadoop/")
-        run("rm", s"/opt/flink/lib/flink-scala_2.12-$flinkVersion.jar")
+        from(s"ubuntu:jammy-20220801")
         run("apt-get", "update")
-        run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping", "openjdk-11-jdk-headless")
+        run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping", "openjdk-17-jdk-headless")
         run("apt-get", "-y", "install", "libgomp1")
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
@@ -129,12 +92,11 @@ lazy val root = (project in file("."))
       pullBaseImage = BuildOptions.Pull.Always
     ),
     ThisBuild / assemblyMergeStrategy := {
-      case x if flinkS3Conflicts.exists(prefix => x.startsWith(prefix)) => flinkMergeStrategy
-      case PathList("module-info.class")                                => MergeStrategy.discard
-      case "META-INF/io.netty.versions.properties"                      => MergeStrategy.first
-      case "findbugsExclude.xml"                                        => MergeStrategy.discard
-      case "log4j2-test.properties"                                     => MergeStrategy.discard
-      case x if x.endsWith("/module-info.class")                        => MergeStrategy.discard
+      case PathList("module-info.class")           => MergeStrategy.discard
+      case "META-INF/io.netty.versions.properties" => MergeStrategy.first
+      case "findbugsExclude.xml"                   => MergeStrategy.discard
+      case "log4j2-test.properties"                => MergeStrategy.discard
+      case x if x.endsWith("/module-info.class")   => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)

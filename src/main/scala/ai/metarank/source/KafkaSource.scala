@@ -1,22 +1,15 @@
 package ai.metarank.source
 
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.KafkaSource.Consumer
 import ai.metarank.source.KafkaSource.Consumer.ConsumerOps
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists
-import org.apache.kafka.clients.consumer.{
-  ConsumerConfig,
-  ConsumerRebalanceListener,
-  KafkaConsumer,
-  OffsetAndMetadata,
-  OffsetCommitCallback
-}
+import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRebalanceListener, KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import fs2.{Chunk, Stream}
-import io.findify.featury.model.Timestamp
 import org.apache.kafka.common.TopicPartition
 
 import java.time.Duration

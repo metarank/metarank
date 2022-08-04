@@ -10,7 +10,7 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
+import ai.metarank.model.ScopeType.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import better.files.File

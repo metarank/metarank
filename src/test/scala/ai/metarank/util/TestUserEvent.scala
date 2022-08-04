@@ -13,7 +13,7 @@ object TestUserEvent {
     user = UserId(id),
     timestamp = Timestamp.now,
     fields = fields,
-    tenant = "default"
+    env = "default"
   )
 
 }

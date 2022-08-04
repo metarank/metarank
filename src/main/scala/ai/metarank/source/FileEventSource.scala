@@ -1,14 +1,14 @@
 package ai.metarank.source
 
 import ai.metarank.config.InputConfig.{FileInputConfig, SourceOffset}
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.github.luben.zstd.ZstdInputStream
 import fs2.Stream
 import fs2.io.file.{Files, Path}
 import fs2.io.readInputStream
-import io.findify.featury.model.Timestamp
+
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
 
@@ -17,7 +17,7 @@ case class FileEventSource(conf: FileInputConfig) extends EventSource with Loggi
   val formats       = List("json", "jsonl", "tsv")
 
   override def stream: Stream[IO, Event] =
-    listRecursive(Path(conf.path.path)).filter(selectFile).flatMap(readFile).through(conf.format.parse)
+    listRecursive(Path(conf.path)).filter(selectFile).flatMap(readFile).through(conf.format.parse)
 
   def listRecursive(path: Path): Stream[IO, Path] = Files[IO]
     .list(path)

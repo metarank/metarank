@@ -1,22 +1,16 @@
 package ai.metarank.source
 
 import ai.metarank.config.InputConfig.{KinesisInputConfig, SourceOffset}
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.KinesisSource.Consumer
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.{Chunk, Stream}
-import io.findify.featury.model.Timestamp
 import software.amazon.awssdk.http.SdkHttpConfigurationOption
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient
-import software.amazon.awssdk.services.kinesis.model.{
-  GetRecordsRequest,
-  GetShardIteratorRequest,
-  ListShardsRequest,
-  ShardIteratorType
-}
+import software.amazon.awssdk.services.kinesis.model.{GetRecordsRequest, GetShardIteratorRequest, ListShardsRequest, ShardIteratorType}
 import software.amazon.awssdk.utils.AttributeMap
 
 import scala.jdk.CollectionConverters._

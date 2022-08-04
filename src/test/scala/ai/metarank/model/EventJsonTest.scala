@@ -34,7 +34,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           StringListField("color", List("blue", "black")),
           BooleanField("availability", true)
         ),
-        tenant = "default"
+        env = "default"
       )
     )
   }
@@ -63,7 +63,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           StringListField("color", List("blue", "black")),
           BooleanField("availability", true)
         ),
-        tenant = "default"
+        env = "default"
       )
     )
   }
@@ -92,7 +92,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           StringListField("color", List("blue", "black")),
           BooleanField("availability", true)
         ),
-        tenant = "foo"
+        env = "foo"
       )
     )
   }
@@ -109,7 +109,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
         item = ItemId("product1"),
         timestamp = Timestamp(1599391467000L),
         fields = Nil,
-        tenant = "default"
+        env = "default"
       )
     )
   }
@@ -147,7 +147,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           ItemRelevancy(ItemId("product1"), 1.0),
           ItemRelevancy(ItemId("product2"), 0.5)
         ),
-        tenant = "default"
+        env = "default"
       )
     )
   }
@@ -171,7 +171,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
         items = NonEmptyList.of(
           ItemRelevancy(ItemId("product3"), None)
         ),
-        tenant = "default"
+        env = "default"
       )
     )
   }
@@ -204,7 +204,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           NumberField("count", 2),
           StringField("shipping", "DHL")
         ),
-        tenant = "default"
+        env = "default"
       )
     )
   }
@@ -234,7 +234,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           NumberField("count", 2),
           StringField("shipping", "DHL")
         ),
-        tenant = "default"
+        env = "default"
       )
     )
   }

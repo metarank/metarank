@@ -1,6 +1,8 @@
 package ai.metarank.source
 
-import ai.metarank.mode.standalone.api.{FeedbackApi, HealthApi, RankApi}
+import ai.metarank.main.api
+import ai.metarank.main.api.{FeedbackApi, RankApi}
+import ai.metarank.mode.standalone.api.HealthApi
 import ai.metarank.model.Event
 import ai.metarank.util.{FlinkTest, TestItemEvent}
 import cats.effect.{ExitCode, IO, Ref}
@@ -25,7 +27,7 @@ class RestApiEventSourceTest extends AnyFlatSpec with Matchers with BeforeAndAft
   val port   = 1024 + Random.nextInt(50000)
 
   override def beforeAll() = {
-    val httpApp = Router("/" -> FeedbackApi(queue).routes).orNotFound
+    val httpApp = Router("/" -> api.FeedbackApi(queue).routes).orNotFound
     BlazeServerBuilder[IO]
       .bindHttp(port, host)
       .withHttpApp(httpApp)

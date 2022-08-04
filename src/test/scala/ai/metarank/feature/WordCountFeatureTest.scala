@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName}
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId

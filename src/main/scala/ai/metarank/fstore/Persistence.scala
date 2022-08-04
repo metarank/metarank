@@ -1,6 +1,9 @@
 package ai.metarank.fstore
 
-import ai.metarank.fstore.Persistence.{KVCodec, KVStore}
+import ai.metarank.config.StateStoreConfig
+import ai.metarank.fstore.Persistence.{KVCodec, KVStore, ModelKey, StreamStore}
+import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.model.Feature.{
   BoundedList,
   Counter,
@@ -10,11 +13,13 @@ import ai.metarank.model.Feature.{
   ScalarFeature,
   StatsEstimator
 }
-import ai.metarank.model.{FeatureKey, Schema}
-import cats.effect.IO
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.{Env, FeatureKey, FeatureValue, Key, Schema, Scope}
+import cats.effect.{IO, Resource}
 import io.circe.Codec
 
 trait Persistence {
+
   def schema: Schema
   def counters: Map[FeatureKey, Counter]
   def periodicCounters: Map[FeatureKey, PeriodicCounter]
@@ -24,10 +29,17 @@ trait Persistence {
   def stats: Map[FeatureKey, StatsEstimator]
   def maps: Map[FeatureKey, MapFeature]
 
-  def kvstore[V: KVCodec](name: String): KVStore[V]
+  lazy val state: KVStore[Key, FeatureValue] = kv[Key, FeatureValue]("state")(KVCodec.keyCodec, KVCodec.jsonCodec)
+  lazy val models: KVStore[ModelKey, String] = kv[ModelKey, String]("model")
+
+  protected def kv[K: KVCodec, V: KVCodec](name: String): KVStore[K, V]
+  protected def stream[V: KVCodec](name: String): StreamStore[V]
+  def healthcheck(): IO[Unit]
+  def run(): IO[Unit]
 }
 
 object Persistence {
+  case class ModelKey(env: Env, name: String)
   trait KVCodec[T] {
     def encode(value: T): String
     def decode(str: String): Either[Throwable, T]
@@ -44,10 +56,39 @@ object Persistence {
       override def decode(str: String): Either[Throwable, String] = Right(str)
       override def encode(value: String): String                  = value
     }
+    implicit val keyCodec: KVCodec[Key] = new KVCodec[Key] {
+      override def decode(str: String): Either[Throwable, Key] = {
+        str.split("/").toList match {
+          case scope :: name :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(name)))
+          case _                    => Left(new Exception(s"cannot decode key $str"))
+        }
+      }
+
+      override def encode(value: Key): String = value.asString
+    }
+    implicit val modelKeyCodec: KVCodec[ModelKey] = new KVCodec[ModelKey] {
+      override def encode(value: ModelKey): String = s"${value.env.value}/${value.name}"
+
+      override def decode(str: String): Either[Throwable, ModelKey] = str.split("/").toList match {
+        case env :: name :: Nil => Right(ModelKey(Env(env), name))
+        case _                  => Left(new Exception(s"cannot decode model key $str"))
+      }
+    }
   }
 
-  trait KVStore[V] {
-    def put(values: Map[String, V]): IO[Unit]
-    def get(keys: List[String]): IO[Map[String, V]]
+  trait KVStore[K, V] {
+    def put(values: Map[K, V]): IO[Unit]
+    def get(keys: List[K]): IO[Map[K, V]]
   }
+
+  trait StreamStore[V] {
+    def push(values: List[V]): IO[Unit]
+    def getall(): fs2.Stream[IO, V]
+  }
+
+  def fromConfig(schema: Schema, conf: StateStoreConfig) = conf match {
+    case StateStoreConfig.RedisStateConfig(host, port) => RedisPersistence.create(schema, host.value, port.value)
+    case StateStoreConfig.MemoryStateConfig()          => Resource.make(IO(MemPersistence(schema)))(_ => IO.unit)
+  }
+
 }

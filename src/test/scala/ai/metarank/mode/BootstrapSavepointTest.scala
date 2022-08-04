@@ -3,7 +3,7 @@ package ai.metarank.mode
 import ai.metarank.config.MPath.LocalPath
 import ai.metarank.mode.BootstrapSavepointTest.{BootstrapFunction, Keyer}
 import ai.metarank.mode.bootstrap.Bootstrap.{FeatureValueKeySelector, StateKeySelector}
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.util.FlinkTest
 import better.files.File
 import io.findify.featury.flink.FeatureJoinFunction.FeatureJoinBootstrapFunction

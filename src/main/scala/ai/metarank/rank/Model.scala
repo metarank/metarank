@@ -4,8 +4,8 @@ import ai.metarank.config.ModelConfig
 import ai.metarank.feature.BaseFeature
 import ai.metarank.model.Clickthrough.ItemValues
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
+import ai.metarank.model.{FeatureValue, Schema}
 import ai.metarank.util.Logging
-import io.findify.featury.model.{FeatureValue, Schema}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 
 trait Model extends Logging {

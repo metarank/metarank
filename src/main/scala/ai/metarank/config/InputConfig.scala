@@ -41,7 +41,7 @@ object InputConfig {
   ) extends InputConfig
 
   case class FileInputConfig(
-      path: MPath,
+      path: String,
       offset: SourceOffset = SourceOffset.Earliest,
       format: SourceFormat = JsonFormat
   ) extends InputConfig

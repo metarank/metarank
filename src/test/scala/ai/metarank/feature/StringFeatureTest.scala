@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope, UserScope}
+import ai.metarank.model.ScopeType.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId}

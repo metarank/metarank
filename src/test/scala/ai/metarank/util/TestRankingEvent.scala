@@ -16,6 +16,6 @@ object TestRankingEvent {
     session = Some(SessionId("s1")),
     fields = Nil,
     items = NonEmptyList.fromListUnsafe(items).map(item => ItemRelevancy(ItemId(item), 1.0)),
-    tenant = "default"
+    env = "default"
   )
 }

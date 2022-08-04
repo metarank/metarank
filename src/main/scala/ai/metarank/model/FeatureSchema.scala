@@ -12,17 +12,18 @@ import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
-import ai.metarank.feature.WindowCountFeature.WindowCountSchema
+import ai.metarank.feature.WindowInteractionCountFeature.WindowCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, DecodingFailure}
 
 import scala.concurrent.duration.FiniteDuration
 
 trait FeatureSchema {
-  def name: String
+  def name: FeatureName
   def refresh: Option[FiniteDuration]
   def ttl: Option[FiniteDuration]
-  def scope: FeatureScope
+  def scope: ScopeType
 }
 
 object FeatureSchema {

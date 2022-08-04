@@ -1,9 +1,8 @@
 package ai.metarank.util
 
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
-import ai.metarank.model.{EventId, Field}
+import ai.metarank.model.{EventId, Field, Timestamp}
 import ai.metarank.model.Identifier._
-import io.findify.featury.model.Timestamp
 
 import java.util.UUID
 
@@ -17,6 +16,6 @@ object TestInteractionEvent {
     item = ItemId(item),
     ranking = Some(EventId(parent)),
     `type` = "click",
-    tenant = "default"
+    env = "default"
   )
 }

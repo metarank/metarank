@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.RefererFeature.RefererSchema
-import ai.metarank.model.FeatureScope.UserScope
+import ai.metarank.model.ScopeType.UserScope
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.{Ranking, User}

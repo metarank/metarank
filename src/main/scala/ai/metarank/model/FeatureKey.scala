@@ -1,9 +1,9 @@
 package ai.metarank.model
 
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
 
-case class FeatureKey(scope: Scope, feature: FeatureName)
+case class FeatureKey(scope: ScopeType, feature: FeatureName)
 
 object FeatureKey {
-  def apply(key: Key): FeatureKey = FeatureKey(key.tag.scope, key.name)
+  def apply(key: Key): FeatureKey = FeatureKey(key.scope.getType, key.feature)
 }

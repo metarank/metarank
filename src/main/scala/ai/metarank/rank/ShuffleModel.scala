@@ -1,9 +1,8 @@
 package ai.metarank.rank
 
 import ai.metarank.config.ModelConfig.ShuffleConfig
-import ai.metarank.model.{Clickthrough, Event}
+import ai.metarank.model.{Clickthrough, Event, FeatureValue}
 import ai.metarank.rank.Model.Scorer
-import io.findify.featury.model.{FeatureValue, Schema}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 
 import scala.util.Random

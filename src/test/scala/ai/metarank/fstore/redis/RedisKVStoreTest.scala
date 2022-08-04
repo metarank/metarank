@@ -9,13 +9,16 @@ import com.github.microwww.redis.RedisServer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class RedisKVStoreTest extends AnyFlatSpec with Matchers {
-  lazy val client = RedisReader.create("localhost", 6379, 0).allocated.unsafeRunSync()._1
-  lazy val writer = RedisPipeline.create("localhost", 6379, 0).allocated.unsafeRunSync()._1
-  lazy val queue  = Queue.unbounded[IO, RedisOp].unsafeRunSync()
-  lazy val kv     = RedisKVStore[String]("foo", queue, RedisFeatureTest.client)
+class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
+  lazy val kv = RedisKVStore[String]("foo", pipeline, client)
 
   it should "get empty" in {
     kv.get(List("a", "b")).unsafeRunSync() shouldBe Map.empty
+  }
+
+  it should "write-read" in {
+    kv.put(Map("foo" -> "bar")).unsafeRunSync()
+    flushPipeline().unsafeRunSync()
+    kv.get(List("foo")).unsafeRunSync() shouldBe Map("foo" -> "bar")
   }
 }

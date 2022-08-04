@@ -2,28 +2,31 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
-import ai.metarank.util.persistence.field.FieldStore
+import ai.metarank.fstore.Persistence
+import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.ScopeType.SessionScopeType
+import ai.metarank.model.Write.Put
 import ai.metarank.model._
 import ai.metarank.util.Logging
+import cats.effect.IO
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.Write.Put
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key}
-import ai.metarank.model.Identifier._
 
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
 case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeature with Logging {
-  override def dim: Int                                                = 1
-  override def states: List[FeatureConfig]                             = Nil
-  override def fields                                                  = Nil
-  override def writes(event: Event, fields: FieldStore): Iterable[Put] = Nil
+  override def dim: Int                                                     = 1
+  override def states: List[FeatureConfig]                                  = Nil
+  override def fields                                                       = Nil
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
 
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue]
@@ -76,13 +79,13 @@ object LocalDateTimeFeature {
     }
   }
   case class LocalDateTimeSchema(
-      name: String,
+      name: FeatureName,
       source: FieldName,
       parse: DateTimeMapper
   ) extends FeatureSchema {
     override val refresh = None
     override val ttl     = None
-    override val scope   = FeatureScope.SessionScope
+    override val scope   = SessionScopeType
   }
 
   implicit val tdMapperDecoder: Decoder[DateTimeMapper] = Decoder.decodeString.emapTry {

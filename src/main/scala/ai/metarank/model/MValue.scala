@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, Encoder, Json, JsonObject}
 import io.circe.generic.semiauto.deriveCodec
 
@@ -10,6 +11,10 @@ sealed trait MValue {
 object MValue {
   case class SingleValue(name: String, value: Double) extends MValue {
     override val dim: Int = 1
+  }
+
+  object SingleValue {
+    def apply(name: FeatureName, value: Double) = new SingleValue(name.value, value)
   }
 
   case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue

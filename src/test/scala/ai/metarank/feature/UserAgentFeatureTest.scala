@@ -4,7 +4,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.PlatformField
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
+import ai.metarank.model.ScopeType.{ItemScope, SessionScope}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.{Item, Ranking}

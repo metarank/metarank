@@ -4,7 +4,7 @@ import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.util.TestConfig

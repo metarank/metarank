@@ -10,7 +10,7 @@ object TestKey {
   def apply(c: FeatureConfig, id: String) = {
     Key(
       tag = Tag(c.scope, id),
-      name = c.name,
+      feature = c.name,
       env = Env("1")
     )
   }
@@ -21,7 +21,7 @@ object TestKey {
       id: String = "p1"
   ) = Key(
     tag = Tag(Scope(scope), id),
-    name = FeatureName(fname),
+    feature = FeatureName(fname),
     env = Env(tenant.toString)
   )
 }

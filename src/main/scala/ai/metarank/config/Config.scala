@@ -40,10 +40,10 @@ object Config extends Logging {
   }
 
   def validateConfig(conf: Config): List[String] = {
-    val features = nonUniqueNames[FeatureSchema](conf.features, _.name).map(_.toString("feature"))
+    val features = nonUniqueNames[FeatureSchema](conf.features, _.name.value).map(_.toString("feature"))
     val modelFeatures = conf.models.toNel.toList.flatMap {
       case (name, LambdaMARTConfig(_, features, _)) =>
-        val undefined = features.filterNot(feature => conf.features.exists(_.name == feature))
+        val undefined = features.filterNot(feature => conf.features.exists(_.name.value == feature))
         undefined.map(feature => s"unresolved feature '$feature' in model '$name'")
       case _ => Nil
     }

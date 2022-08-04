@@ -1,37 +1,14 @@
 package ai.metaranke2e.e2e
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.{Config, MPath}
-import ai.metarank.flow.DataStreamOps._
-import ai.metarank.mode.api.Api
-import ai.metarank.mode.bootstrap.Bootstrap
-import ai.metarank.mode.standalone.RedisEndpoint.EmbeddedRedis
-import ai.metarank.mode.standalone.api.RankApi
-import ai.metarank.mode.standalone.{FeatureStoreResource, FeedbackFlow, FlinkMinicluster, Standalone}
-import ai.metarank.mode.train.Train
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
-import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
-import ai.metarank.model.{Event, EventId}
-import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.util.{FlinkTest, RanklensEvents}
 import better.files.File
 import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import io.findify.featury.connector.redis.RedisStore
-import io.findify.featury.flink.format.BulkCodec
-import io.findify.featury.model.api.{ReadRequest, ReadResponse}
-import io.findify.featury.model.{FeatureValue, Key, Timestamp}
-import io.findify.featury.values.ValueStoreConfig.RedisConfig
-import io.findify.featury.values.{FeatureStore, StoreCodec}
-import io.findify.flinkadt.api._
 import org.apache.commons.io.IOUtils
-import org.apache.flink.api.common.RuntimeExecutionMode
-import org.apache.flink.configuration.Configuration
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.findify.flink.api._
-import io.findify.flinkadt.api._
 
 import java.nio.charset.StandardCharsets
 import scala.util.Random
@@ -149,39 +126,4 @@ class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
 //
 //    redis.close()
 //  }
-}
-
-object RanklensTest {
-  case class DiskStore(map: Map[Key, FeatureValue]) extends FeatureStore {
-    override def read(request: ReadRequest): IO[ReadResponse] = IO {
-      val values = for {
-        key   <- request.keys
-        value <- map.get(key)
-      } yield {
-        value
-      }
-      ReadResponse(values)
-    }
-
-    override def write(batch: List[FeatureValue]): IO[Unit] = IO.unit
-
-    override def writeSync(batch: List[FeatureValue]): Unit = {}
-
-    override def close(): IO[Unit] = IO.unit
-
-    override def closeSync(): Unit = {}
-  }
-
-  object DiskStore {
-    def apply(path: File): DiskStore = {
-      val values = for {
-        file <- path.listRecursively.filter(_.extension(includeDot = false).contains("pb"))
-        stream = file.newFileInputStream
-        value <- Iterator.continually(BulkCodec.featureValueProtobufCodec.read(stream)).takeWhile(_.isDefined).flatten
-      } yield {
-        value.key -> value
-      }
-      DiskStore(values.toMap)
-    }
-  }
 }

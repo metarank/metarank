@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName}
-import ai.metarank.model.FeatureScope.{ItemScope, UserScope}
+import ai.metarank.model.ScopeType.{ItemScope, UserScope}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.Identifier.ItemId

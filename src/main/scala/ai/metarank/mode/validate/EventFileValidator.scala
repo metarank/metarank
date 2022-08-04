@@ -69,8 +69,8 @@ object EventFileValidator extends Logging {
   }
 
   def checkUsers(ints: List[InteractionEvent], rankings: List[RankingEvent]) = {
-    val interactionUsers = ints.flatMap(_.user.map(_.value)).toSet
-    val rankingUsers     = rankings.flatMap(_.user.map(_.value)).toSet
+    val interactionUsers = ints.map(_.user).toSet
+    val rankingUsers     = rankings.map(_.user).toSet
     logger.info(s"users: interaction=${interactionUsers.size} ranking=${rankingUsers.size}")
     logger.info(s"users with no ranking: ${interactionUsers.count(x => !rankingUsers.contains(x))} (should be 0)")
   }

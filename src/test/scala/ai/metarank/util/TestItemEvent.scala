@@ -2,8 +2,7 @@ package ai.metarank.util
 
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{EventId, Field}
-import io.findify.featury.model.Timestamp
+import ai.metarank.model.{Env, EventId, Field, Timestamp}
 
 import java.util.UUID
 
@@ -13,6 +12,6 @@ object TestItemEvent {
     item = ItemId(id),
     timestamp = Timestamp.now,
     fields = fields,
-    tenant = "default"
+    env = Env("default")
   )
 }

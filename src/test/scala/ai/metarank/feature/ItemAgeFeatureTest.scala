@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item

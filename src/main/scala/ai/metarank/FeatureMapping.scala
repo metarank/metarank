@@ -4,7 +4,6 @@ import ai.metarank.config.ModelConfig
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
@@ -16,16 +15,13 @@ import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
-import ai.metarank.feature.WindowCountFeature.WindowCountSchema
+import ai.metarank.feature.WindowInteractionCountFeature.WindowCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
-import ai.metarank.model.Clickthrough.ItemValues
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Event.RankingEvent
+import ai.metarank.model.{FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
 import ai.metarank.rank.{LambdaMARTModel, Model, NoopModel, ShuffleModel}
 import cats.data.{NonEmptyList, NonEmptyMap}
-import io.findify.featury.model.Key.Tenant
-import io.findify.featury.model.{FeatureValue, Key, Schema}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}
 
@@ -35,13 +31,8 @@ case class FeatureMapping(
     schema: Schema,
     models: Map[String, Model]
 ) {
-
-  def keys(ranking: RankingEvent): Iterable[Key] = for {
-    tag           <- FeatureScope.tags(ranking)
-    scopeFeatures <- schema.scopeNameCache.get(tag.scope).toSeq
-    featureName   <- scopeFeatures
-  } yield {
-    Key(tag, featureName, Tenant(ranking.tenant))
+  def stateReadKeys(request: RankingEvent): List[Key] = {
+    features.flatMap(_.valueKeys(request).toList)
   }
 }
 
@@ -59,7 +50,7 @@ object FeatureMapping {
       case c: InteractionCountSchema => InteractionCountFeature(c)
       case c: RelevancySchema        => RelevancyFeature(c)
       case c: UserAgentSchema        => UserAgentFeature(c)
-      case c: WindowCountSchema      => WindowCountFeature(c)
+      case c: WindowCountSchema      => WindowInteractionCountFeature(c)
       case c: LocalDateTimeSchema    => LocalDateTimeFeature(c)
       case c: ItemAgeSchema          => ItemAgeFeature(c)
       case c: FieldMatchSchema       => FieldMatchFeature(c)
@@ -71,7 +62,7 @@ object FeatureMapping {
       case (name, conf: LambdaMARTConfig) =>
         val modelFeatures = for {
           featureName <- conf.features.toList
-          feature     <- features.find(_.schema.name == featureName)
+          feature     <- features.find(_.schema.name.value == featureName)
         } yield {
           feature
         }
@@ -96,9 +87,9 @@ object FeatureMapping {
 
   def makeDatasetDescriptor(features: List[BaseFeature]): DatasetDescriptor = {
     val datasetFeatures = features.map {
-      case f: StringFeature if f.schema.encode == IndexEncoderName => CategoryFeature(f.schema.name)
-      case f: BaseFeature if f.dim == 1                            => SingularFeature(f.schema.name)
-      case f: BaseFeature                                          => VectorFeature(f.schema.name, f.dim)
+      case f: StringFeature if f.schema.encode == IndexEncoderName => CategoryFeature(f.schema.name.value)
+      case f: BaseFeature if f.dim == 1                            => SingularFeature(f.schema.name.value)
+      case f: BaseFeature                                          => VectorFeature(f.schema.name.value, f.dim)
     }
     DatasetDescriptor(datasetFeatures)
   }

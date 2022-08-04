@@ -10,7 +10,8 @@ import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import ai.metarank.model.Write._
 import ai.metarank.model.FeatureValue._
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
 import cats.effect.IO
 import com.google.common.math.Quantiles
 
@@ -24,10 +25,17 @@ sealed trait Feature[W <: Write, T <: FeatureValue] {
 
 object Feature {
   sealed trait FeatureConfig {
-    def scope: Scope
+    def scope: ScopeType
     def name: FeatureName
     def ttl: FiniteDuration
     def refresh: FiniteDuration
+    def featureKey: FeatureKey = FeatureKey(scope, name)
+    def readKeys(event: Event.RankingEvent): Iterable[Key] = scope match {
+      case ScopeType.ItemScopeType    => event.items.toList.map(ir => Key(ItemScope(event.env, ir.id), name))
+      case ScopeType.UserScopeType    => Some(Key(UserScope(event.env, event.user), name))
+      case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(event.env, s), name))
+      case ScopeType.GlobalScopeType  => Some(Key(GlobalScope(event.env), name))
+    }
   }
 
   trait ScalarFeature extends Feature[Put, ScalarValue] {
@@ -36,7 +44,7 @@ object Feature {
 
   object ScalarFeature {
     case class ScalarConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         ttl: FiniteDuration = 365.days,
         refresh: FiniteDuration = 1.hour
@@ -49,7 +57,7 @@ object Feature {
 
   object MapFeature {
     case class MapConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         ttl: FiniteDuration = 365.days,
         refresh: FiniteDuration = 1.hour
@@ -62,7 +70,7 @@ object Feature {
 
   object Counter {
     case class CounterConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         ttl: FiniteDuration = 365.days,
         refresh: FiniteDuration = 1.hour
@@ -76,7 +84,7 @@ object Feature {
 
   object BoundedList {
     case class BoundedListConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         count: Int = Int.MaxValue,
         duration: FiniteDuration = Long.MaxValue.nanos,
@@ -106,7 +114,7 @@ object Feature {
 
   object FreqEstimator {
     case class FreqEstimatorConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         poolSize: Int,
         sampleRate: Int,
@@ -139,7 +147,7 @@ object Feature {
     case class PeriodRange(startOffset: Int, endOffset: Int)
 
     case class PeriodicCounterConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         period: FiniteDuration,
         sumPeriodRanges: List[PeriodRange],
@@ -180,7 +188,7 @@ object Feature {
 
   object StatsEstimator {
     case class StatsEstimatorConfig(
-        scope: Scope,
+        scope: ScopeType,
         name: FeatureName,
         poolSize: Int,
         sampleRate: Double,

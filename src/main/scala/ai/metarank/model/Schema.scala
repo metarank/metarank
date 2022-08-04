@@ -8,7 +8,7 @@ import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
 
 case class Schema(
     counters: Map[FeatureKey, CounterConfig],
@@ -19,12 +19,7 @@ case class Schema(
     lists: Map[FeatureKey, BoundedListConfig],
     maps: Map[FeatureKey, MapConfig],
     configs: Map[FeatureKey, FeatureConfig]
-) {
-  val scopeNameCache: Map[Scope, List[FeatureName]] =
-    configs.values.toList.groupBy(_.scope).map { case (k, configs) =>
-      k -> configs.map(_.name)
-    }
-}
+)
 
 object Schema {
 

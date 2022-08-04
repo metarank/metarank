@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 
 class PulsarEventSourceTest extends AnyFlatSpec with Matchers {
-  import ai.metarank.mode.TypeInfos._
 
   it should "receive events from pulsar" in {
     val sourceConfig = PulsarInputConfig(

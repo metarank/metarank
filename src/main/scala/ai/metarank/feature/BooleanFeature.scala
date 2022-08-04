@@ -2,19 +2,21 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.util.persistence.field.FieldStore
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
+import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.{Env, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
-import io.findify.featury.model.Write.Put
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SBoolean, ScalarValue}
-import ai.metarank.model.Identifier._
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.Scalar.SBoolean
+import ai.metarank.model.Write.Put
+import cats.effect.IO
 
 import scala.concurrent.duration._
 import shapeless.syntax.typeable._
@@ -23,8 +25,8 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = schema.scope.scope,
-    name = FeatureName(schema.name),
+    scope = schema.scope,
+    name = schema.name,
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
@@ -32,37 +34,46 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, fields: FieldStore): Iterable[Put] = for {
-    key   <- keyOf(event)
-    field <- event.fields.find(_.name == schema.source.field)
-    fieldValue <- field match {
-      case b: BooleanField => Some(b)
-      case other =>
-        logger.warn(s"field extractor ${schema.name} expects a boolean, but got $other in event $event")
-        None
+  override def writes(event: Event, features: Persistence): IO[Iterable[Put]] = IO {
+    for {
+      key   <- writeKey(event, conf)
+      field <- event.fields.find(_.name == schema.source.field)
+      fieldValue <- field match {
+        case b: BooleanField => Some(b)
+        case other =>
+          logger.warn(s"field extractor ${schema.name} expects a boolean, but got $other in event $event")
+          None
+      }
+    } yield {
+      Put(key, event.timestamp, SBoolean(fieldValue.value))
     }
-  } yield {
-    Put(key, event.timestamp, SBoolean(fieldValue.value))
   }
+
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = conf.readKeys(event)
 
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
       id: ItemRelevancy
-  ): MValue =
-    features.get(Key(conf, Tenant(request.tenant), id.id.value)) match {
-      case Some(ScalarValue(_, _, SBoolean(value))) => SingleValue(schema.name, if (value) 1 else 0)
-      case _                                        => SingleValue(schema.name, 0.0)
+  ): MValue = {
+    val result = for {
+      key    <- readKey(request, conf, id.id)
+      value  <- features.get(key)
+      scalar <- value.cast[ScalarValue]
+      bool   <- scalar.value.cast[SBoolean]
+    } yield {
+      SingleValue(schema.name.value, if (bool.value) 1.0 else 0.0)
     }
-
+    result.getOrElse(SingleValue(schema.name.value, 0.0))
+  }
 }
 
 object BooleanFeature {
   import ai.metarank.util.DurationJson._
   case class BooleanFeatureSchema(
-      name: String,
+      name: FeatureName,
       source: FieldName,
-      scope: FeatureScope,
+      scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema

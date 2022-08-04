@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
+import ai.metarank.model.ScopeType.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldId.ItemFieldId
 import ai.metarank.model.{FieldId, FieldName}

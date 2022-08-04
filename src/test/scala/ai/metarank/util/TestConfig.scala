@@ -6,7 +6,7 @@ import MPath.LocalPath
 import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.config.StateStoreConfig.{DBConfig, MemoryStateConfig}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import cats.data.{NonEmptyList, NonEmptyMap}

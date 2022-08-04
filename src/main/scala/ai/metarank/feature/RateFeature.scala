@@ -2,18 +2,19 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.util.persistence.field.FieldStore
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.PeriodicCounter.{PeriodRange, PeriodicCounterConfig}
+import ai.metarank.model.FeatureValue.PeriodicCounterValue
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
-import ai.metarank.model.Identifier._
+import ai.metarank.model.Scope.ItemScope
+import ai.metarank.model.Write.PeriodicIncrement
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
+import cats.effect.IO
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.FeatureConfig.{PeriodRange, PeriodicCounterConfig}
-import io.findify.featury.model.Key.{FeatureName, Scope}
-import io.findify.featury.model.Write.PeriodicIncrement
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, PeriodicCounterValue, Write}
 import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
@@ -24,7 +25,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 
   val top = PeriodicCounterConfig(
-    scope = schema.scope.scope,
+    scope = schema.scope,
     name = FeatureName(s"${schema.name}_${schema.top}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
@@ -32,7 +33,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
     ttl = schema.ttl.getOrElse(90.days)
   )
   val bottom = PeriodicCounterConfig(
-    scope = schema.scope.scope,
+    scope = schema.scope,
     name = FeatureName(s"${schema.name}_${schema.bottom}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
@@ -44,12 +45,12 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
 
   override def fields: List[FieldName] = Nil
 
-  override def writes(event: Event, fields: FieldStore): Iterable[Write] =
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Write]] = IO {
     event match {
       case e: InteractionEvent if e.`type` == schema.top =>
         Some(
           PeriodicIncrement(
-            keyOf(schema.scope.scope.name, e.item.value, top.name.value, event.tenant),
+            Key(ItemScope(event.env, e.item), top.name),
             event.timestamp,
             1
           )
@@ -57,13 +58,16 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
       case e: InteractionEvent if e.`type` == schema.bottom =>
         Some(
           PeriodicIncrement(
-            keyOf(schema.scope.scope.name, e.item.value, bottom.name.value, event.tenant),
+            Key(ItemScope(event.env, e.item), bottom.name),
             event.timestamp,
             1
           )
         )
       case _ => None
     }
+  }
+
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = top.readKeys(event) ++ bottom.readKeys(event)
 
   override def value(
       request: Event.RankingEvent,
@@ -71,8 +75,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
       id: ItemRelevancy
   ): MValue = {
     val result = for {
-      topValue    <- features.get(keyOf(schema.scope, id.id, top.name, request.tenant))
-      bottomValue <- features.get(keyOf(schema.scope, id.id, bottom.name, request.tenant))
+      topValue    <- features.get(Key(ItemScope(request.env, id.id), top.name))
+      bottomValue <- features.get(Key(ItemScope(request.env, id.id), bottom.name))
       topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim
       bottomNum   <- bottomValue.cast[PeriodicCounterValue] if (bottomNum.values.size == dim)
     } yield {
@@ -86,12 +90,12 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
 object RateFeature {
   import ai.metarank.util.DurationJson._
   case class RateFeatureSchema(
-      name: String,
+      name: FeatureName,
       top: String,
       bottom: String,
       bucket: FiniteDuration,
       periods: List[Int],
-      scope: FeatureScope,
+      scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema

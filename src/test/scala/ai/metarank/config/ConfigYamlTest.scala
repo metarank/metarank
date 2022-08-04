@@ -5,7 +5,7 @@ import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType._
 import better.files.Resource

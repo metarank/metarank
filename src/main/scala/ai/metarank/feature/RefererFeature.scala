@@ -2,53 +2,36 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.RefererFeature.RefererSchema
-import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
-import ai.metarank.util.persistence.field.FieldStore
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent, UserEvent}
-import ai.metarank.model.FeatureScope.SessionScope
+import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
+import ai.metarank.model.FeatureValue.{MapValue, ScalarValue}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.FieldName.EventType.{Interaction, Ranking, User}
-import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, Field, FieldName, MValue}
+import ai.metarank.model.Identifier.{SessionId, UserId}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.MValue.{CategoryValue, VectorValue}
+import ai.metarank.model.Scalar.{SBoolean, SString}
+import ai.metarank.model.Scope.{SessionScope, UserScope}
+import ai.metarank.model.Write.{Put, PutTuple}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.Logging
 import better.files.{File, Resource}
 import cats.Id
+import cats.effect.IO
 import com.snowplowanalytics.refererparser.{
   CreateParser,
   EmailMedium,
-  EmailReferer,
   InternalMedium,
-  InternalReferer,
   PaidMedium,
-  PaidReferer,
   SearchMedium,
-  SearchReferer,
   SocialMedium,
-  SocialReferer,
-  UnknownMedium,
-  UnknownReferer
+  UnknownMedium
 }
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.{
-  BoundedListValue,
-  CounterValue,
-  FeatureConfig,
-  FeatureValue,
-  FrequencyValue,
-  Key,
-  MapValue,
-  NumStatsValue,
-  PeriodicCounterValue,
-  SBoolean,
-  SString,
-  ScalarValue,
-  Write
-}
-import io.findify.featury.model.FeatureConfig.{MapConfig, ScalarConfig}
-import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
-import io.findify.featury.model.Write.{Put, PutTuple}
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
@@ -62,9 +45,9 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     CreateParser[Id].create(file.toString()).toOption.get // YOLO
   }
 
-  val conf = MapConfig(
-    scope = schema.scope.scope,
-    name = FeatureName(schema.name),
+  val conf = ScalarConfig(
+    scope = schema.scope,
+    name = schema.name,
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
@@ -78,24 +61,28 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     PaidMedium.value     -> 5
   )
 
-  val names = possibleValues.keys.toList
-
-  override val dim: Int = possibleValues.size
+  override val dim: Int = 1
 
   override val fields: List[FieldName] = List(schema.source)
 
   override val states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, fields: FieldStore): Iterable[Write] = event match {
-    case event: UserEvent if schema.source.event == User                             => writeField(event)
-    case event: RankingEvent if schema.source.event == Ranking                       => writeField(event)
-    case event: InteractionEvent if schema.source.event == Interaction(event.`type`) => writeField(event)
-    case _                                                                           => Iterable.empty
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Write]] = IO {
+    event match {
+      case event: RankingEvent if schema.source.event == Ranking => writeField(event, event.user, event.session)
+      case event: InteractionEvent if schema.source.event == Interaction(event.`type`) =>
+        writeField(event, event.user, event.session)
+      case _ => Iterable.empty
+    }
   }
 
-  def writeField(event: Event): Iterable[PutTuple] = {
+  def writeField(event: Event, user: UserId, session: Option[SessionId]): Iterable[Put] = {
     for {
-      key   <- schema.scope.keys(event, conf.name)
+      key <- schema.scope match {
+        case ScopeType.UserScopeType    => Some(Key(UserScope(event.env, user), conf.name))
+        case ScopeType.SessionScopeType => session.map(s => Key(SessionScope(event.env, s), conf.name))
+        case _                          => None
+      }
       field <- event.fieldsMap.get(schema.source.field)
       ref <- field match {
         case StringField(_, value) => Some(value)
@@ -105,35 +92,27 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
       }
       parsed <- parser.parse(ref)
     } yield {
-      PutTuple(key, event.timestamp, parsed.medium.value, Some(SBoolean(true)))
+      Put(key, event.timestamp, SString(parsed.medium.value))
     }
   }
+
+  override def valueKeys(event: RankingEvent): Iterable[Key] = conf.readKeys(event)
 
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue]): MValue = {
     val result = for {
-      mediums <- fromState(request, features)
-    } yield {
-      val buffer = new Array[Double](6)
-      for {
-        medium <- mediums
-        index  <- possibleValues.get(medium)
-      } {
-        buffer(index) = 1.0
+      key <- schema.scope match {
+        case ScopeType.UserScopeType    => Some(Key(UserScope(request.env, request.user), conf.name))
+        case ScopeType.SessionScopeType => request.session.map(s => Key(SessionScope(request.env, s), conf.name))
+        case _                          => None
       }
-      VectorValue(names, buffer, dim)
+      medium <- features.get(key).flatMap {
+        case ScalarValue(_, _, SString(medium)) => possibleValues.get(medium)
+        case _                                  => None
+      }
+    } yield {
+      CategoryValue(schema.name.value, medium)
     }
-    result.getOrElse(VectorValue.empty(names, dim))
-  }
-
-  def fromState(request: Event.RankingEvent, features: Map[Key, FeatureValue]): Option[List[String]] = for {
-    key      <- schema.scope.keys(request, conf.name).headOption
-    refField <- features.get(key)
-    ref <- refField match {
-      case MapValue(_, _, values) => Some(values.keys.toList)
-      case _                      => None
-    }
-  } yield {
-    ref
+    result.getOrElse(CategoryValue(schema.name.value, 0))
   }
 
 }
@@ -142,29 +121,29 @@ object RefererFeature {
   import ai.metarank.util.DurationJson._
 
   case class RefererSchema(
-      name: String,
+      name: FeatureName,
       source: FieldName,
-      scope: FeatureScope,
+      scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
   implicit val refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
-    .ensure(validType, "source type can be only user, interaction or ranking")
+    .ensure(validType, "source type can be only interaction or ranking")
     .ensure(validScope, "scope can be only user or session")
     .withErrorMessage("cannot parse a feature definition of type 'referer'")
 
   private def validType(schema: RefererSchema) = schema.source.event match {
     case EventType.Item           => false
-    case EventType.User           => true
+    case EventType.User           => false
     case EventType.Interaction(_) => true
     case EventType.Ranking        => true
   }
 
   private def validScope(schema: RefererSchema) = schema.scope match {
-    case FeatureScope.UserScope    => true
-    case FeatureScope.SessionScope => true
-    case _                         => false
+    case ScopeType.UserScopeType    => true
+    case ScopeType.SessionScopeType => true
+    case _                          => false
   }
 
 }

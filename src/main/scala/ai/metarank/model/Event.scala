@@ -3,7 +3,6 @@ package ai.metarank.model
 import cats.data.NonEmptyList
 import io.circe.generic.extras.Configuration
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
-import io.findify.featury.model.Timestamp
 import io.circe.generic.semiauto._
 import io.circe.generic.extras.semiauto.{deriveConfiguredCodec, deriveConfiguredDecoder, deriveConfiguredEncoder}
 import ai.metarank.model.Identifier._
@@ -15,7 +14,7 @@ sealed trait Event {
   def id: EventId
   def timestamp: Timestamp
   def fields: List[Field]
-  def tenant: String
+  def env: Env
 
   lazy val fieldsMap = fields.map(f => f.name -> f).toMap
 }
@@ -28,7 +27,7 @@ object Event {
       item: ItemId,
       timestamp: Timestamp,
       fields: List[Field] = Nil,
-      tenant: String = "default"
+      env: Env = Env("default")
   ) extends MetadataEvent
 
   case class UserEvent(
@@ -36,22 +35,22 @@ object Event {
       user: UserId,
       timestamp: Timestamp,
       fields: List[Field] = Nil,
-      tenant: String = "default"
+      env: Env = Env("default")
   ) extends MetadataEvent
 
   sealed trait FeedbackEvent extends Event {
-    def user: Option[UserId]
+    def user: UserId
     def session: Option[SessionId]
   }
 
   case class RankingEvent(
       id: EventId,
       timestamp: Timestamp,
-      user: Option[UserId] = None,
-      session: Option[SessionId] = None,
+      user: UserId,
+      session: Option[SessionId],
       fields: List[Field] = Nil,
       items: NonEmptyList[ItemRelevancy],
-      tenant: String = "default"
+      env: Env = Env("default")
   ) extends FeedbackEvent
 
   case class InteractionEvent(
@@ -59,11 +58,11 @@ object Event {
       item: ItemId,
       timestamp: Timestamp,
       ranking: Option[EventId] = None,
-      user: Option[UserId] = None,
-      session: Option[SessionId] = None,
+      user: UserId,
+      session: Option[SessionId],
       `type`: String,
       fields: List[Field] = Nil,
-      tenant: String = "default"
+      env: Env = Env("default")
   ) extends FeedbackEvent
 
   case class ItemRelevancy(id: ItemId, relevancy: Option[Double] = None)

@@ -3,15 +3,17 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
-import ai.metarank.util.persistence.field.FieldStore
+import ai.metarank.fstore.Persistence
+import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.MValue.VectorValue
+import ai.metarank.model.Write.Put
 import ai.metarank.util.OneHotEncoder
+import cats.effect.IO
 import io.circe.{Decoder, DecodingFailure}
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.Write.Put
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, SStringList, ScalarValue}
 import ua_parser.{Client, Parser}
 
 import scala.concurrent.duration._
@@ -25,8 +27,11 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, fields: FieldStore): Iterable[Put] = Nil
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
 
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
+
+  // todo: add cache
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue]
@@ -47,13 +52,13 @@ object UserAgentFeature {
   import ai.metarank.util.DurationJson._
 
   case class UserAgentSchema(
-      name: String,
+      name: FeatureName,
       source: FieldName,
       field: UAField,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
-    override val scope = FeatureScope.SessionScope
+    override val scope = ScopeType.SessionScopeType
   }
 
   trait UAField {

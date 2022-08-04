@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.NgramMatcher
-import ai.metarank.model.FeatureScope.ItemScope
+import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.{Item, Ranking}

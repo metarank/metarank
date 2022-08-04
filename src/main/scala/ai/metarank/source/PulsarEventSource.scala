@@ -1,12 +1,11 @@
 package ai.metarank.source
 
 import ai.metarank.config.InputConfig.{PulsarInputConfig, SourceOffset}
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.PulsarEventSource.Consumer
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists
-import io.findify.featury.model.Timestamp
 import org.apache.pulsar.client.api.{
   MessageId,
   PulsarClient,

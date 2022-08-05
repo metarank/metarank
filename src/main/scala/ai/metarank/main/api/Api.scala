@@ -32,7 +32,7 @@ object Api {
     models <- Resource.eval(loadModels(config, env))
     mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
     store <- Persistence.fromConfig(mapping.schema, config.state)
-    queue <- Resource.eval(Queue.dropping[IO, Event](1000))
+    queue <- Resource.eval(Queue.dropping[IO, Option[Event]](1000))
     routes  = HealthApi(store).routes <+> RankApi(mapping, store, models).routes <+> FeedbackApi(queue).routes
     httpApp = Router("/" -> routes).orNotFound
   } yield {

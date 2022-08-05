@@ -5,10 +5,16 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
+import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{StringField, StringListField}
+import ai.metarank.model.Identifier.SessionId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.MValue.VectorValue
+import ai.metarank.model.Scalar.SString
+import ai.metarank.model.Scope.SessionScope
+import ai.metarank.model.ScopeType.{SessionScopeType, UserScopeType}
 import ai.metarank.model.Write.Put
 import ai.metarank.util.OneHotEncoder
 import cats.effect.IO
@@ -23,28 +29,45 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   val names             = schema.field.possibleValues.map(value => s"${schema.name}_$value")
   override def dim: Int = schema.field.dim
 
-  override def states: List[FeatureConfig] = Nil
+  val conf = ScalarConfig(
+    scope = SessionScopeType,
+    name = schema.name,
+    refresh = 0.seconds
+  )
+  override def states: List[FeatureConfig] = List(conf)
 
   override def fields = List(schema.source)
 
-  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {
+    event match {
+      case feedback: Event.FeedbackEvent =>
+        for {
+          value   <- parse(feedback)
+          session <- feedback.session
+        } yield {
+          Put(Key(SessionScope(event.env, session), conf.name), event.timestamp, SString(value))
+        }
+      case _ => None
+    }
+  }
 
-  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = conf.readKeys(event)
 
-  // todo: add cache
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue]
   ): MValue = {
-    request.fieldsMap.get(schema.source.field) match {
-      case Some(StringField(_, value)) =>
-        val client = parser.parse(value)
-        val field  = schema.field.value(client)
-        VectorValue(names, OneHotEncoder.fromValues(field, schema.field.possibleValues, dim), dim)
+    request.session.flatMap(session => features.get(Key(SessionScope(request.env, session), conf.name))) match {
+      case Some(ScalarValue(_, _, SString(stored))) =>
+        VectorValue(names, OneHotEncoder.fromValues(List(stored), schema.field.possibleValues, dim), dim)
       case _ =>
-        VectorValue(names, OneHotEncoder.empty(dim), dim)
-
+        VectorValue(names, OneHotEncoder.fromValues(parse(request), schema.field.possibleValues, dim), dim)
     }
+  }
+
+  private def parse(event: Event): Option[String] = event.fieldsMap.get(schema.source.field) match {
+    case Some(StringField(_, value)) => schema.field.value(parser.parse(value))
+    case _                           => None
   }
 }
 

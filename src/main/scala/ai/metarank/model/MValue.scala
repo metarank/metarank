@@ -4,6 +4,8 @@ import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, Encoder, Json, JsonObject}
 import io.circe.generic.semiauto.deriveCodec
 
+import java.util
+
 sealed trait MValue {
   def dim: Int
 }
@@ -17,7 +19,14 @@ object MValue {
     def apply(name: FeatureName, value: Double) = new SingleValue(name.value, value)
   }
 
-  case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue
+  case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue {
+    // so we can chech for equality in tests without array upcasting tricks
+    override def equals(obj: Any): Boolean = obj match {
+      case VectorValue(xnames, xvalues, xdim) =>
+        names.equals(xnames) && (util.Arrays.compare(values, xvalues) == 0) && (xdim == dim)
+      case _ => false
+    }
+  }
   case class CategoryValue(name: String, index: Int) extends MValue {
     override val dim: Int = 1
   }

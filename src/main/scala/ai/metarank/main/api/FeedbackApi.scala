@@ -10,7 +10,7 @@ import org.http4s.{HttpRoutes, Response, Status}
 import io.circe.syntax._
 import cats.implicits._
 
-case class FeedbackApi(queue: Queue[IO, Event]) extends Logging {
+case class FeedbackApi(queue: Queue[IO, Option[Event]]) extends Logging {
   val routes = HttpRoutes.of[IO] {
     case GET -> Root / "feedback" =>
       for {
@@ -27,7 +27,7 @@ case class FeedbackApi(queue: Queue[IO, Event]) extends Logging {
         eventsJson <- post.as[String]
         events     <- IO.fromEither(decodeEvent(eventsJson))
         _          <- IO { logger.info(s"received event $events") }
-        accepted   <- events.map(e => queue.tryOffer(e)).sequence
+        accepted   <- events.map(e => queue.tryOffer(Some(e))).sequence
       } yield {
         if (accepted.forall(_ == true)) {
           Response(status = Status.Ok)

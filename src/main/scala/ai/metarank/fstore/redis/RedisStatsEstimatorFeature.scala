@@ -2,8 +2,8 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{LPUSH, LTRIM}
-import ai.metarank.fstore.redis.client.RedisReader
-import ai.metarank.model.Feature.StatsEstimator
+import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.model.Feature.{StatsEstimator, shouldSample}
 import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.NumStatsValue
 import ai.metarank.model.{Key, Timestamp}
@@ -12,12 +12,16 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import cats.implicits._
 
-case class RedisStatsEstimatorFeature(config: StatsEstimatorConfig, queue: Queue[IO, RedisOp], client: RedisReader)
-    extends StatsEstimator {
-  override def putSampled(action: PutStatSample): IO[Unit] = for {
-    _ <- queue.offer(LPUSH(action.key.asString, action.value.toString))
-    _ <- queue.offer(LTRIM(action.key.asString, 0, config.poolSize))
-  } yield {}
+case class RedisStatsEstimatorFeature(config: StatsEstimatorConfig, client: RedisClient) extends StatsEstimator {
+  override def put(action: PutStatSample): IO[Unit] = {
+    if (shouldSample(config.sampleRate)) {
+      client
+        .lpush(action.key.asString, action.value.toString)
+        .flatMap(_ => client.ltrim(action.key.asString, 0, config.poolSize).void)
+    } else {
+      IO.unit
+    }
+  }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[NumStatsValue]] = for {
     raw     <- client.lrange(key.asString, 0, config.poolSize)

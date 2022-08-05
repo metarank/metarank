@@ -35,7 +35,6 @@ trait Persistence {
   protected def kv[K: KVCodec, V: KVCodec](name: String): KVStore[K, V]
   protected def stream[V: KVCodec](name: String): StreamStore[V]
   def healthcheck(): IO[Unit]
-  def run(): IO[Unit]
 }
 
 object Persistence {
@@ -89,6 +88,28 @@ object Persistence {
   def fromConfig(schema: Schema, conf: StateStoreConfig) = conf match {
     case StateStoreConfig.RedisStateConfig(host, port) => RedisPersistence.create(schema, host.value, port.value)
     case StateStoreConfig.MemoryStateConfig()          => Resource.make(IO(MemPersistence(schema)))(_ => IO.unit)
+  }
+
+  def blackhole() = new Persistence {
+    override def schema: Schema                                     = Schema(Nil)
+    override def counters: Map[FeatureKey, Counter]                 = Map.empty
+    override def periodicCounters: Map[FeatureKey, PeriodicCounter] = Map.empty
+    override def lists: Map[FeatureKey, BoundedList]                = Map.empty
+    override def freqs: Map[FeatureKey, FreqEstimator]              = Map.empty
+    override def scalars: Map[FeatureKey, ScalarFeature]            = Map.empty
+    override def stats: Map[FeatureKey, StatsEstimator]             = Map.empty
+    override def maps: Map[FeatureKey, MapFeature]                  = Map.empty
+
+    override protected def kv[K: KVCodec, V: KVCodec](name: String): KVStore[K, V] = new KVStore[K, V] {
+      override def put(values: Map[K, V]): IO[Unit]  = IO.unit
+      override def get(keys: List[K]): IO[Map[K, V]] = IO.pure(Map.empty)
+    }
+    override protected def stream[V: KVCodec](name: String): StreamStore[V] = new StreamStore[V] {
+      override def push(values: List[V]): IO[Unit] = IO.unit
+      override def getall(): fs2.Stream[IO, V]     = fs2.Stream.empty
+    }
+
+    override def healthcheck(): IO[Unit] = IO.unit
   }
 
 }

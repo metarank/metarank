@@ -1,7 +1,7 @@
 package ai.metaranke2e.e2e
 
 import ai.metarank.FeatureMapping
-import ai.metarank.util.{FlinkTest, RanklensEvents}
+import ai.metarank.util.RanklensEvents
 import better.files.File
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import scala.util.Random
 import scala.concurrent.duration._
 
-class RanklensTest extends AnyFlatSpec with Matchers with FlinkTest {
+class RanklensTest extends AnyFlatSpec with Matchers  {
 //  import ai.metarank.mode.TypeInfos._
 //  val baseConfig = Config
 //    .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8))

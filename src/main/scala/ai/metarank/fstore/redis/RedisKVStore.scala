@@ -3,13 +3,13 @@ package ai.metarank.fstore.redis
 import ai.metarank.fstore.Persistence.{KVCodec, KVStore}
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{HSET, MSET}
-import ai.metarank.fstore.redis.client.RedisReader
+import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.implicits._
 
-case class RedisKVStore[K, V](prefix: String, queue: Queue[IO, RedisOp], client: RedisReader)(implicit
+case class RedisKVStore[K, V](prefix: String, client: RedisClient)(implicit
     kc: KVCodec[K],
     vc: KVCodec[V]
 ) extends KVStore[K, V]
@@ -32,6 +32,7 @@ case class RedisKVStore[K, V](prefix: String, queue: Queue[IO, RedisOp], client:
     decodedKey -> decodedValue
   }
 
-  override def put(values: Map[K, V]): IO[Unit] =
-    queue.offer(HSET(prefix, values.map { case (k, v) => kc.encode(k) -> vc.encode(v) }))
+  override def put(values: Map[K, V]): IO[Unit] = {
+    client.hset(prefix, values.map { case (k, v) => kc.encode(k) -> vc.encode(v) }).void
+  }
 }

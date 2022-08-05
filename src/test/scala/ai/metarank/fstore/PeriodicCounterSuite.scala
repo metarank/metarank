@@ -1,10 +1,10 @@
 package ai.metarank.fstore
 
-
 import ai.metarank.model.Feature.PeriodicCounter.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.util.TestKey
 
@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 
 trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement] {
   val config = PeriodicCounterConfig(
-    scope = Scope("b"),
+    scope = ItemScopeType,
     FeatureName("f1"),
     1.day,
     List(PeriodRange(0, 0), PeriodRange(7, 0))

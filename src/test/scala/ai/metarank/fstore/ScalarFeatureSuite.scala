@@ -1,17 +1,17 @@
 package ai.metarank.fstore
 
-
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.TestKey
 
 import scala.concurrent.duration._
 
 trait ScalarFeatureSuite extends FeatureSuite[Put] {
-  val config = ScalarConfig(scope = Scope("b"), FeatureName("counter"), 1.day)
+  val config = ScalarConfig(scope = ItemScopeType, FeatureName("counter"), 1.day)
 
   it should "write and read" in {
     val key    = TestKey(config, id = "p11")

@@ -1,18 +1,20 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.ScopeType.ItemScope
+import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField}
-import ai.metarank.model.FieldName
+import ai.metarank.model.{Env, FieldName, Key, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.persistence.field.MapFieldStore
+import ai.metarank.model.Scalar.SDouble
+import ai.metarank.model.Scope.ItemScope
+import ai.metarank.model.Write.Put
 import ai.metarank.util.{TestItemEvent, TestRankingEvent}
-import io.findify.featury.model.{Key, SDouble, ScalarValue, Timestamp}
-import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
-import io.findify.featury.model.Write.Put
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -20,7 +22,7 @@ import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 
 class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  lazy val feature   = ItemAgeFeature(ItemAgeSchema("itemage", FieldName(Item, "updated_at")))
+  lazy val feature   = ItemAgeFeature(ItemAgeSchema(FeatureName("itemage"), FieldName(Item, "updated_at")))
   lazy val updatedAt = ZonedDateTime.of(2022, 3, 1, 0, 0, 0, 0, ZoneId.of("UTC+2"))
   lazy val now       = ZonedDateTime.of(2022, 3, 28, 0, 0, 0, 0, ZoneId.of("UTC+2"))
 
@@ -30,10 +32,10 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(StringField("updated_at", updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event, MapFieldStore()).toList
+    val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
+        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
         SDouble(updatedAt.toEpochSecond.toDouble)
       )
@@ -46,10 +48,10 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(NumberField("updated_at", updatedAt.toEpochSecond.toDouble))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event, MapFieldStore()).toList
+    val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
+        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
         SDouble(updatedAt.toEpochSecond.toDouble)
       )
@@ -62,10 +64,10 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(StringField("updated_at", updatedAt.toEpochSecond.toString))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event, MapFieldStore()).toList
+    val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default")),
+        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
         SDouble(updatedAt.toEpochSecond.toDouble)
       )
@@ -73,7 +75,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   }
 
   it should "compute item age" in {
-    val key   = Key(Tag(ItemScope.scope, "p1"), FeatureName("itemage"), Tenant("default"))
+    val key   = Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage"))
     val nowts = Timestamp(now.toInstant.toEpochMilli)
     val result = feature.value(
       TestRankingEvent(List("p1")).copy(timestamp = nowts),

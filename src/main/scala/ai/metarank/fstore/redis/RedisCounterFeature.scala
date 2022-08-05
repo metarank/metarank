@@ -2,7 +2,7 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.INCRBY
-import ai.metarank.fstore.redis.client.RedisReader
+import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.Counter
 import ai.metarank.model.Feature.Counter.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
@@ -12,9 +12,9 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import scala.util.Try
 
-case class RedisCounterFeature(config: CounterConfig, queue: Queue[IO, RedisOp], client: RedisReader) extends Counter {
+case class RedisCounterFeature(config: CounterConfig, client: RedisClient) extends Counter {
   override def put(action: Increment): IO[Unit] = {
-    queue.offer(INCRBY(action.key.asString, action.inc))
+    client.incrBy(action.key.asString, action.inc).void
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[CounterValue]] = {

@@ -2,7 +2,7 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.FeatureSuite
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.{RedisPipeline, RedisReader}
+import ai.metarank.fstore.redis.client.{RedisPipeline, RedisClient}
 import ai.metarank.model.{Feature, FeatureValue, Write}
 import cats.effect.IO
 import cats.effect.std.Queue
@@ -20,9 +20,6 @@ trait RedisFeatureTest[W <: Write, F <: Feature[W, _ <: FeatureValue]] extends B
   def write(values: List[W]): Option[FeatureValue] = {
     values.foldLeft(Option.empty[FeatureValue])((_, inc) => {
       feature.put(inc).unsafeRunSync()
-      writer
-        .batch(Iterator.continually(pipeline.tryTake.unsafeRunSync()).takeWhile(_.nonEmpty).flatten.toList)
-        .unsafeRunSync()
       feature.computeValue(inc.key, inc.ts).unsafeRunSync()
     })
   }

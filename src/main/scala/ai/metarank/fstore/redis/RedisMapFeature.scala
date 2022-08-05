@@ -2,7 +2,7 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{HDEL, HSET}
-import ai.metarank.fstore.redis.client.RedisReader
+import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.MapFeature
 import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.FeatureValue.MapValue
@@ -14,11 +14,11 @@ import io.circe.syntax._
 import io.circe.parser._
 import cats.implicits._
 
-case class RedisMapFeature(config: MapConfig, queue: Queue[IO, RedisOp], client: RedisReader) extends MapFeature {
+case class RedisMapFeature(config: MapConfig, client: RedisClient) extends MapFeature {
   override def put(action: PutTuple): IO[Unit] = {
     action.value match {
-      case None        => queue.offer(HDEL(action.key.asString, action.mapKey))
-      case Some(value) => queue.offer(HSET(action.key.asString, action.mapKey, value.asJson.noSpaces))
+      case None        => client.hdel(action.key.asString, List(action.mapKey)).void
+      case Some(value) => client.hset(action.key.asString, Map(action.mapKey -> value.asJson.noSpaces)).void
     }
   }
 

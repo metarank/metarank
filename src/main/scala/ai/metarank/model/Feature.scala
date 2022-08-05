@@ -95,9 +95,6 @@ object Feature {
 
   trait FreqEstimator extends Feature[PutFreqSample, FrequencyValue] {
     def config: FreqEstimatorConfig
-    override def put(action: PutFreqSample): IO[Unit] =
-      if (Feature.shouldSample(config.sampleRate)) putSampled(action) else IO.unit
-    def putSampled(action: PutFreqSample): IO[Unit]
 
     def freqFromSamples(samples: List[String]): Option[Map[String, Double]] = {
       if (samples.nonEmpty) {
@@ -164,9 +161,6 @@ object Feature {
   trait StatsEstimator extends Feature[PutStatSample, NumStatsValue] {
     def config: StatsEstimatorConfig
     import scala.jdk.CollectionConverters._
-    override def put(action: PutStatSample): IO[Unit] =
-      if (Feature.shouldSample(config.sampleRate)) putSampled(action) else IO.unit
-    def putSampled(action: PutStatSample): IO[Unit]
     def fromPool(key: Key, ts: Timestamp, pool: Seq[Double]): NumStatsValue = {
       val quantile = Quantiles
         .percentiles()

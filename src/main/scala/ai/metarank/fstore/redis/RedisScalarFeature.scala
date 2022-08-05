@@ -2,7 +2,7 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.SET
-import ai.metarank.fstore.redis.client.RedisReader
+import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -15,11 +15,10 @@ import io.circe.parser._
 
 case class RedisScalarFeature(
     config: ScalarConfig,
-    queue: Queue[IO, RedisOp],
-    client: RedisReader
+    client: RedisClient
 ) extends ScalarFeature {
   override def put(action: Put): IO[Unit] = {
-    queue.offer(SET(action.key.asString, action.value.asJson.noSpaces))
+    client.set(action.key.asString, action.value.asJson.noSpaces).void
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[ScalarValue]] = {

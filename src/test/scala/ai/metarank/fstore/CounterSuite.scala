@@ -2,7 +2,8 @@ package ai.metarank.fstore
 
 import ai.metarank.model.Feature.Counter.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Increment
 import ai.metarank.util.TestKey
 
@@ -10,7 +11,7 @@ import scala.concurrent.duration._
 import scala.util.Random
 
 trait CounterSuite extends FeatureSuite[Increment] {
-  val config = CounterConfig(Scope("g1"), FeatureName("c1"))
+  val config = CounterConfig(ItemScopeType, FeatureName("c1"))
 
   it should "increment once" in {
     val key      = TestKey(config, id = "p11")

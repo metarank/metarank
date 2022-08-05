@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.{RedisPipeline, RedisReader}
+import ai.metarank.fstore.redis.client.{RedisPipeline, RedisClient}
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
-  lazy val kv = RedisKVStore[String]("foo", pipeline, client)
+  lazy val kv = RedisKVStore[String, String]("foo", client)
 
   it should "get empty" in {
     kv.get(List("a", "b")).unsafeRunSync() shouldBe Map.empty
@@ -18,7 +18,6 @@ class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
 
   it should "write-read" in {
     kv.put(Map("foo" -> "bar")).unsafeRunSync()
-    flushPipeline().unsafeRunSync()
     kv.get(List("foo")).unsafeRunSync() shouldBe Map("foo" -> "bar")
   }
 }

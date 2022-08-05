@@ -4,50 +4,41 @@ import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.{RedisPipeline, RedisReader}
+import ai.metarank.fstore.redis.client.{RedisPipeline, RedisClient}
 import ai.metarank.model.Schema
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.effect.std.Queue
 import scala.concurrent.duration._
 
-case class RedisPersistence(schema: Schema, queue: Queue[IO, RedisOp], client: RedisReader, writer: RedisPipeline)
+case class RedisPersistence(schema: Schema, client: RedisClient)
     extends Persistence {
-  override lazy val counters = schema.counters.view.mapValues(RedisCounterFeature(_, queue, client)).toMap
+  override lazy val counters = schema.counters.view.mapValues(RedisCounterFeature(_, client)).toMap
   override lazy val periodicCounters =
-    schema.periodicCounters.view.mapValues(RedisPeriodicCounterFeature(_, queue, client)).toMap
+    schema.periodicCounters.view.mapValues(RedisPeriodicCounterFeature(_, client)).toMap
   override lazy val lists =
-    schema.lists.view.mapValues(RedisBoundedListFeature(_, queue, client)).toMap
-  override lazy val freqs   = schema.freqs.view.mapValues(RedisFreqEstimatorFeature(_, queue, client)).toMap
-  override lazy val scalars = schema.scalars.view.mapValues(RedisScalarFeature(_, queue, client)).toMap
-  override lazy val stats   = schema.stats.view.mapValues(RedisStatsEstimatorFeature(_, queue, client)).toMap
-  override lazy val maps    = schema.maps.view.mapValues(RedisMapFeature(_, queue, client)).toMap
+    schema.lists.view.mapValues(RedisBoundedListFeature(_, client)).toMap
+  override lazy val freqs   = schema.freqs.view.mapValues(RedisFreqEstimatorFeature(_, client)).toMap
+  override lazy val scalars = schema.scalars.view.mapValues(RedisScalarFeature(_, client)).toMap
+  override lazy val stats   = schema.stats.view.mapValues(RedisStatsEstimatorFeature(_, client)).toMap
+  override lazy val maps    = schema.maps.view.mapValues(RedisMapFeature(_, client)).toMap
 
   override def kv[K: KVCodec, V: KVCodec](name: String): Persistence.KVStore[K, V] =
-    RedisKVStore(name, queue, client)
+    RedisKVStore(name, client)
 
   override def stream[V: Persistence.KVCodec](name: String): Persistence.StreamStore[V] =
-    RedisStreamStore(name, queue, client)
+    RedisStreamStore(name, client)
 
   override def healthcheck(): IO[Unit] =
     client.ping().void
 
-  override def run(): IO[Unit] =
-    fs2.Stream
-      .fromQueueUnterminated(queue)
-      .groupWithin(128, 1.second)
-      .map(chunk => writer.batch(chunk.toList))
-      .compile
-      .drain
 }
 
 object RedisPersistence {
   def create(schema: Schema, host: String, port: Int): Resource[IO, RedisPersistence] = for {
-    client <- RedisReader.create(host, port, 0)
-    writer <- RedisPipeline.create(host, port, 0)
-    queue  <- Resource.liftK(Queue.unbounded[IO, RedisOp])
+    client <- RedisClient.create(host, port, 0)
   } yield {
-    RedisPersistence(schema, queue, client, writer)
+    RedisPersistence(schema, client)
   }
 
 }

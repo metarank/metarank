@@ -5,9 +5,10 @@ import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.model.ScopeType.ItemScope
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.Key.FeatureName
 import better.files.Resource
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.circe.yaml.parser.parse
@@ -23,17 +24,17 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
-        features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
+        features = NonEmptyList.of(NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType)),
         models = NonEmptyMap.of(
           "xgboost" -> LambdaMARTConfig(
             XGBoostBackend(10, seed = 0),
-            NonEmptyList.of("price"),
+            NonEmptyList.of(FeatureName("price")),
             NonEmptyMap.of("click" -> 1)
           )
         ),
         api = ApiConfig(Hostname("0.0.0.0"), Port(8080)),
         state = RedisStateConfig(Hostname("localhost"), Port(6379)),
-        input = FileInputConfig(MPath("s3://bucket/events/"))
+        input = FileInputConfig("s3://bucket/events/")
       )
     )
   }
@@ -43,17 +44,17 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
-        features = NonEmptyList.of(NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope)),
+        features = NonEmptyList.of(NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType)),
         models = NonEmptyMap.of(
           "xgboost" -> LambdaMARTConfig(
             XGBoostBackend(10, seed = 0),
-            NonEmptyList.of("price"),
+            NonEmptyList.of(FeatureName("price")),
             NonEmptyMap.of("click" -> 1)
           )
         ),
         api = ApiConfig(Hostname("0.0.0.0"), Port(8080)),
         state = RedisStateConfig(Hostname("localhost"), Port(6379)),
-        input = FileInputConfig(MPath("s3://bucket/events/"))
+        input = FileInputConfig("s3://bucket/events/")
       )
     )
   }

@@ -1,5 +1,6 @@
 package ai.metarank.config
 
+import ai.metarank.model.Key.FeatureName
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
@@ -12,7 +13,7 @@ object ModelConfig {
   import io.circe.generic.extras.semiauto._
   case class LambdaMARTConfig(
       backend: ModelBackend,
-      features: NonEmptyList[String],
+      features: NonEmptyList[FeatureName],
       weights: NonEmptyMap[String, Double]
   ) extends ModelConfig
   case class ShuffleConfig(maxPositionChange: Int) extends ModelConfig

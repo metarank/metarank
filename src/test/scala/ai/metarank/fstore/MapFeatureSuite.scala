@@ -2,15 +2,16 @@ package ai.metarank.fstore
 
 import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.FeatureValue.MapValue
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PutTuple
 import ai.metarank.util.TestKey
 
 import scala.concurrent.duration._
 
 trait MapFeatureSuite extends FeatureSuite[PutTuple] {
-  val config = MapConfig(scope = Scope("b"), FeatureName("counter"), 1.day)
+  val config = MapConfig(scope = ItemScopeType, FeatureName("counter"), 1.day)
   val k      = TestKey(config, id = "p11")
 
   it should "write-read" in {

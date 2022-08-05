@@ -4,8 +4,9 @@ package ai.metarank.fstore
 import ai.metarank.model.Feature.BoundedList.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Append
 import ai.metarank.util.TestKey
 
@@ -14,7 +15,7 @@ import scala.concurrent.duration._
 trait BoundedListSuite extends FeatureSuite[Append] {
   val config = BoundedListConfig(
     name = FeatureName("example"),
-    scope = Scope("b"),
+    scope = ItemScopeType,
     count = 10,
     duration = 5.hour
   )

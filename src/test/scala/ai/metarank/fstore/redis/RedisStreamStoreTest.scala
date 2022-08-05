@@ -6,17 +6,15 @@ import org.scalatest.matchers.should.Matchers
 
 class RedisStreamStoreTest extends AnyFlatSpec with Matchers with RedisTest {
   it should "read empty" in {
-    val stream = RedisStreamStore("empty", pipeline, client)
+    val stream = RedisStreamStore[String]("empty", client)
     val result = stream.getall().compile.toList.unsafeRunSync()
     result shouldBe Nil
   }
 
   it should "write and read" in {
-    val stream = RedisStreamStore("test", pipeline, client)
+    val stream = RedisStreamStore[String]("test", client)
     stream.push(List("foo")).unsafeRunSync()
-    flushPipeline().unsafeRunSync()
     stream.push(List("bar", "baz")).unsafeRunSync()
-    flushPipeline().unsafeRunSync()
     val result = stream.getall().compile.toList.unsafeRunSync()
     result shouldBe List("baz", "bar", "foo")
   }

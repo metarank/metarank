@@ -2,13 +2,14 @@ package ai.metarank.fstore
 
 import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.NumStatsValue
-import ai.metarank.model.Key.{FeatureName, Scope}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PutStatSample
 import ai.metarank.util.TestKey
 
 trait StatsEstimatorSuite extends FeatureSuite[PutStatSample] {
   val config =
-    StatsEstimatorConfig(scope = Scope("b"), FeatureName("f1"), 100, 1, List(50, 90))
+    StatsEstimatorConfig(scope = ItemScopeType, FeatureName("f1"), 100, 1, List(50, 90))
 
   it should "measure a 1-100 range" in {
     val k      = TestKey(config, id = "p10")

@@ -19,5 +19,4 @@ case class MemPersistence(schema: Schema) extends Persistence {
 
   override def healthcheck(): IO[Unit] = IO.unit
 
-  override def run(): IO[Unit] = IO.unit
 }

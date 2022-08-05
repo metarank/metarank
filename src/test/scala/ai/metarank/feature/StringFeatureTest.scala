@@ -2,113 +2,112 @@ package ai.metarank.feature
 
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.ScopeType.{ItemScope, SessionScope, UserScope}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.Identifier.{ItemId, SessionId}
-import ai.metarank.model.{FieldName, MValue}
+import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.{Env, FieldName, Key, MValue}
 import ai.metarank.model.MValue.{CategoryValue, VectorValue}
-import ai.metarank.util.persistence.field.MapFieldStore
+import ai.metarank.model.Scalar.SStringList
+import ai.metarank.model.Scope.{ItemScope, UserScope}
+import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType, UserScopeType}
+import ai.metarank.model.Write.Put
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import cats.data.NonEmptyList
-import io.findify.featury.model.{Key, SString, SStringList, ScalarValue, Timestamp}
-import io.findify.featury.model.Key.{FeatureName, Tenant}
-import io.findify.featury.model.Write.Put
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = StringFeature(
     StringFeatureSchema(
-      name = "color",
+      name = FeatureName("color"),
       source = FieldName(Item, "color"),
-      scope = ItemScope,
+      scope = ItemScopeType,
       values = NonEmptyList.of("red", "green", "blue")
     )
   )
 
   it should "extract item field" in {
     val event  = TestItemEvent("p1", List(StringField("color", "green")))
-    val result = feature.writes(event, MapFieldStore()).toList
+    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SStringList(List("green")))
+      Put(
+        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("color")),
+        event.timestamp,
+        SStringList(List("green"))
+      )
     )
   }
 
   it should "extract user field" in {
     val feature = StringFeature(
       StringFeatureSchema(
-        name = "user_gender",
+        name = FeatureName("user_gender"),
         source = FieldName(User, "gender"),
-        scope = UserScope,
+        scope = UserScopeType,
         values = NonEmptyList.of("female", "male")
       )
     )
     val event  = TestUserEvent("u1", List(StringField("gender", "male")))
-    val result = feature.writes(event, MapFieldStore()).toList
+    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SStringList(List("male")))
+      Put(
+        Key(UserScope(Env("default"), UserId("u1")), FeatureName("user_gender")),
+        event.timestamp,
+        SStringList(List("male"))
+      )
     )
   }
 
-  it should "compute value" in {
-    val key = Key(feature.states.head, Tenant("default"), "p1")
-    val result = feature.value(
-      request = TestRankingEvent(List("p1")),
-      features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("green")))),
-      id = ItemRelevancy(ItemId("p1"))
+  it should "compute value for item" in {
+    val values = process(
+      List(TestItemEvent("p1", List(StringField("color", "green")))),
+      feature.schema,
+      TestRankingEvent(List("p1"))
     )
-    result shouldBe CategoryValue("color", 2)
+    values shouldBe List(List(CategoryValue("color", 2)))
   }
 
   it should "scope value to user" in {
     val feature = StringFeature(
       StringFeatureSchema(
-        name = "country",
+        name = FeatureName("country"),
         source = FieldName(Interaction("click"), "country"),
-        scope = SessionScope,
-        values = NonEmptyList.of("a", "b", "c")
+        scope = SessionScopeType,
+        values = NonEmptyList.of("US", "EU")
       )
     )
     val event =
-      TestInteractionEvent("p1", "p0").copy(session = Some(SessionId("s1")), fields = List(StringField("country", "b")))
-    val write = feature.writes(event, MapFieldStore()).toList
-    val key   = Key(feature.states.head, Tenant("default"), "s1")
-    write shouldBe List(Put(key, event.timestamp, SStringList(List("b"))))
-    val value = feature.value(
-      request = TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))),
-      features = Map(key -> ScalarValue(key, Timestamp.now, SStringList(List("b")))),
-      id = ItemRelevancy(ItemId("p1"))
-    )
-    value shouldBe CategoryValue("country", 2)
+      TestInteractionEvent("p1", "p0").copy(
+        session = Some(SessionId("s1")),
+        fields = List(StringField("country", "EU"))
+      )
+    val values =
+      process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))
+    values shouldBe List(List(CategoryValue("country", 1)))
   }
 
   it should "onehot encode values" in {
-    val result = process(
-      events = List(TestItemEvent("p1", List(StringField("color", "red")))),
-      schema = feature.schema.copy(encode = OnehotEncoderName),
-      TestRankingEvent(List("p1"))
+    val feature = StringFeature(
+      StringFeatureSchema(
+        name = FeatureName("country"),
+        source = FieldName(Interaction("click"), "country"),
+        scope = SessionScopeType,
+        values = NonEmptyList.of("US", "EU"),
+        encode = OnehotEncoderName
+      )
     )
-    result should matchPattern {
-      case List(List(VectorValue(List("color_red", "color_green", "color_blue"), values, 3)))
-          if values.toList == List(1.0, 0, 0) =>
-    }
+    val event =
+      TestInteractionEvent("p1", "p0").copy(
+        session = Some(SessionId("s1")),
+        fields = List(StringField("country", "EU"))
+      )
+    val values =
+      process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))
+    values shouldBe List(List(VectorValue(List("country_us", "country_eu"), Array(0.0, 1.0), 2)))
   }
 
-  it should "index encode values" in {
-    val result = process(
-      events = List(TestItemEvent("p1", List(StringField("color", "green")))),
-      schema = StringFeatureSchema(
-        name = "color",
-        source = FieldName(Item, "color"),
-        scope = ItemScope,
-        encode = IndexEncoderName,
-        values = NonEmptyList.of("red", "green", "blue")
-      ),
-      TestRankingEvent(List("p1"))
-    )
-    result should matchPattern { case List(List(CategoryValue("color", 2))) =>
-    }
-  }
 }

@@ -3,13 +3,13 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent, UserEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{MapValue, ScalarValue}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
-import ai.metarank.model.FieldName.EventType.{Interaction, Ranking, User}
+import ai.metarank.model.FieldName.EventType.{AnyEvent, Interaction, Ranking, User}
 import ai.metarank.model.Identifier.{SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, VectorValue}
@@ -71,6 +71,8 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     event match {
       case event: RankingEvent if schema.source.event == Ranking => writeField(event, event.user, event.session)
       case event: InteractionEvent if schema.source.event == Interaction(event.`type`) =>
+        writeField(event, event.user, event.session)
+      case event: FeedbackEvent if schema.source.event == AnyEvent =>
         writeField(event, event.user, event.session)
       case _ => Iterable.empty
     }
@@ -134,10 +136,9 @@ object RefererFeature {
     .withErrorMessage("cannot parse a feature definition of type 'referer'")
 
   private def validType(schema: RefererSchema) = schema.source.event match {
-    case EventType.Item           => false
-    case EventType.User           => false
     case EventType.Interaction(_) => true
     case EventType.Ranking        => true
+    case _                        => false
   }
 
   private def validScope(schema: RefererSchema) = schema.scope match {

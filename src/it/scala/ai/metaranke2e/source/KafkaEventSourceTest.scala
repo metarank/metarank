@@ -3,14 +3,13 @@ package ai.metaranke2e.source
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KafkaSource
-import ai.metarank.util.{FlinkTest, TestItemEvent}
+import ai.metarank.util.TestItemEvent
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import io.circe.syntax._
 import org.apache.kafka.clients.admin.{Admin, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.kafka.common.serialization.{Serializer, StringSerializer}
-import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

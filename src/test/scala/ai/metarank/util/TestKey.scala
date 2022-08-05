@@ -1,27 +1,17 @@
 package ai.metarank.util
 
 import ai.metarank.model.Feature.FeatureConfig
-import ai.metarank.model.Key
-import ai.metarank.model.Key.{Env, FeatureName, Scope, Tag}
-
-import scala.util.Random
+import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.{Env, Key, ScopeType}
 
 object TestKey {
   def apply(c: FeatureConfig, id: String) = {
-    Key(
-      tag = Tag(c.scope, id),
-      feature = c.name,
-      env = Env("1")
-    )
+    c.scope match {
+      case ScopeType.GlobalScopeType  => Key(GlobalScope(Env("default")), c.name)
+      case ScopeType.ItemScopeType    => Key(ItemScope(Env("default"), ItemId(id)), c.name)
+      case ScopeType.UserScopeType    => Key(UserScope(Env("default"), UserId(id)), c.name)
+      case ScopeType.SessionScopeType => Key(SessionScope(Env("default"), SessionId(id)), c.name)
+    }
   }
-  def apply(
-      scope: String = "product",
-      fname: String = "f" + Random.nextInt(1000),
-      tenant: Int = 1,
-      id: String = "p1"
-  ) = Key(
-    tag = Tag(Scope(scope), id),
-    feature = FeatureName(fname),
-    env = Env(tenant.toString)
-  )
 }

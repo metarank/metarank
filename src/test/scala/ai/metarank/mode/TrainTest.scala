@@ -1,17 +1,11 @@
 package ai.metarank.mode
 
-import ai.metarank.config.MPath
-import ai.metarank.mode.train.Train
-import better.files.File
-import cats.effect.unsafe.implicits.global
 import io.github.metarank.ltrlib.model.Feature.SingularFeature
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 import org.scalacheck.Gen
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.{Checkers, ScalaCheckPropertyChecks}
-
-import scala.util.Try
 
 class TrainTest extends AnyFlatSpec with Matchers with ScalaCheckPropertyChecks with Checkers {
   val ROWS                                    = 10

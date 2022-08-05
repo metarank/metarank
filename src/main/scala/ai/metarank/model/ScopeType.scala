@@ -12,6 +12,7 @@ object ScopeType {
   case object UserScopeType    extends ScopeType
   case object SessionScopeType extends ScopeType
 
+
   implicit val scopeEncoder: Encoder[ScopeType] = Encoder.encodeString.contramap {
     case GlobalScopeType     => "global"
     case ItemScopeType    => "item"

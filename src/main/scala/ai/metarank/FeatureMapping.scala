@@ -15,7 +15,7 @@ import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
-import ai.metarank.feature.WindowInteractionCountFeature.WindowCountSchema
+import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Event.RankingEvent
@@ -50,7 +50,7 @@ object FeatureMapping {
       case c: InteractionCountSchema => InteractionCountFeature(c)
       case c: RelevancySchema        => RelevancyFeature(c)
       case c: UserAgentSchema        => UserAgentFeature(c)
-      case c: WindowCountSchema      => WindowInteractionCountFeature(c)
+      case c: WindowInteractionCountSchema      => WindowInteractionCountFeature(c)
       case c: LocalDateTimeSchema    => LocalDateTimeFeature(c)
       case c: ItemAgeSchema          => ItemAgeFeature(c)
       case c: FieldMatchSchema       => FieldMatchFeature(c)
@@ -62,7 +62,7 @@ object FeatureMapping {
       case (name, conf: LambdaMARTConfig) =>
         val modelFeatures = for {
           featureName <- conf.features.toList
-          feature     <- features.find(_.schema.name.value == featureName)
+          feature     <- features.find(_.schema.name == featureName)
         } yield {
           feature
         }

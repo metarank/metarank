@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.feature.WindowInteractionCountFeature.WindowCountSchema
+import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.Feature.FeatureConfig
@@ -18,7 +18,7 @@ import shapeless.syntax.typeable.typeableOps
 
 import scala.concurrent.duration._
 
-case class WindowInteractionCountFeature(schema: WindowCountSchema) extends ItemFeature {
+case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
   val names             = schema.periods.map(period => s"${schema.name}_$period")
 
@@ -68,7 +68,7 @@ case class WindowInteractionCountFeature(schema: WindowCountSchema) extends Item
 
 object WindowInteractionCountFeature {
   import ai.metarank.util.DurationJson._
-  case class WindowCountSchema(
+  case class WindowInteractionCountSchema(
       name: FeatureName,
       interaction: String,
       bucket: FiniteDuration,
@@ -78,6 +78,6 @@ object WindowInteractionCountFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val windowCountDecoder: Decoder[WindowCountSchema] =
-    deriveDecoder[WindowCountSchema].withErrorMessage("cannot parse a feature definition of type 'window_count'")
+  implicit val windowCountDecoder: Decoder[WindowInteractionCountSchema] =
+    deriveDecoder[WindowInteractionCountSchema].withErrorMessage("cannot parse a feature definition of type 'window_count'")
 }

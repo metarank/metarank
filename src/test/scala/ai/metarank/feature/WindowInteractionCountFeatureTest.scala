@@ -1,55 +1,56 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.WindowInteractionCountFeature.WindowCountSchema
+import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.ScopeType.ItemScope
 import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.{Env, Key}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.util.persistence.field.MapFieldStore
+import ai.metarank.model.Scope.ItemScope
+import ai.metarank.model.ScopeType.ItemScopeType
+import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
-import io.findify.featury.model.{Key, PeriodicCounterState, PeriodicCounterValue, Timestamp}
-import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}
-import io.findify.featury.model.PeriodicCounterValue.PeriodicValue
-import io.findify.featury.model.Write.{Increment, PeriodicIncrement}
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers {
+class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = WindowInteractionCountFeature(
-    WindowCountSchema(
-      name = "cnt",
+    WindowInteractionCountSchema(
+      name = FeatureName("cnt"),
       interaction = "click",
       bucket = 24.hours,
       periods = List(1),
-      scope = ItemScope
+      scope = ItemScopeType
     )
   )
 
   it should "count item clicks" in {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
-    val write = feature.writes(event, MapFieldStore()).toList
+    val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      PeriodicIncrement(Key(Tag(ItemScope.scope, "p1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
+      PeriodicIncrement(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
   it should "ignore non-interaction events" in {
-    feature.writes(TestItemEvent("p1"), MapFieldStore()) shouldBe Nil
-    feature.writes(TestRankingEvent(List("p1")), MapFieldStore()) shouldBe Nil
+    feature.writes(TestItemEvent("p1"), Persistence.blackhole()).unsafeRunSync().toList shouldBe Nil
+    feature.writes(TestRankingEvent(List("p1")), Persistence.blackhole()).unsafeRunSync().toList shouldBe Nil
   }
 
   it should "compute values" in {
-    val key = Key(Tag(ItemScope.scope, "p1"), FeatureName("cnt"), Tenant("default"))
-    val now = Timestamp.now
-    val value = feature.value(
-      request = TestRankingEvent(List("p1")),
-      features = Map(key -> PeriodicCounterValue(key, now, List(PeriodicValue(now.minus(24.hours), now, 1, 1)))),
-      id = ItemRelevancy(ItemId("p1"))
+    val values = process(
+      List(
+        TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1")),
+        TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1")),
+        TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
+      ),
+      feature.schema,
+      TestRankingEvent(List("p1"))
     )
-    value should matchPattern {
-      case VectorValue("cnt_1" :: Nil, values, 1) if values.toList == List(1.0) =>
-    }
+    values shouldBe List(List(VectorValue(List("ctr_1"), Array(3), 1)))
   }
 }

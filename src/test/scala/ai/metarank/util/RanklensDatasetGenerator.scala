@@ -9,9 +9,7 @@ import cats.data.NonEmptyList
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.parser.decode
 import io.circe.{Codec, Decoder}
-import io.findify.featury.model.Timestamp
 import io.circe.syntax._
-import io.findify.featury.model.Key.Tenant
 
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
@@ -106,7 +104,7 @@ object RanklensDatasetGenerator {
           m.director.map(d => StringField("director", d.name.toLowerCase())),
           m.writer.map(w => StringField("writer", w.name.toLowerCase()))
         ),
-        env = "default"
+        env = Env("default")
       )
     })
     val actions: List[Event] = ranklens.actions.flatMap(t => {
@@ -124,24 +122,24 @@ object RanklensDatasetGenerator {
         RankingEvent(
           id = id,
           timestamp = ts,
-          user = Some(UserId(t.user)),
+          user = UserId(t.user),
           session = Some(SessionId(t.user)),
           fields = Nil,
           items = NonEmptyList.fromListUnsafe(t.shown).map(id => ItemRelevancy(ItemId(id.toString), 0)),
-          env = "default"
+          env = Env("default")
         )
       )
       val clicks = t.liked.map(item =>
         InteractionEvent(
           id = EventId(UUID.randomUUID().toString),
           timestamp = ts.plus(5.second),
-          user = Some(UserId(t.user)),
+          user = UserId(t.user),
           session = Some(SessionId(t.user)),
           fields = Nil,
           item = ItemId(item.toString),
           ranking = Some(id),
           `type` = "click",
-          env = "default"
+          env = Env("default")
         )
       )
       impression ++ clicks

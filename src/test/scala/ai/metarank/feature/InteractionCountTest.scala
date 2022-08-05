@@ -1,46 +1,48 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
-import ai.metarank.model.ScopeType.{ItemScope, SessionScope}
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Identifier.{ItemId, SessionId}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.{Env, Key}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.persistence.field.MapFieldStore
+import ai.metarank.model.Scope.{ItemScope, SessionScope}
+import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
+import ai.metarank.model.Write.Increment
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
-import io.findify.featury.model.Key
-import io.findify.featury.model.Key.{FeatureName, Tag, Tenant}
-import io.findify.featury.model.Write.Increment
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = InteractionCountFeature(
     InteractionCountSchema(
-      name = "cnt",
+      name = FeatureName("cnt"),
       interaction = "click",
-      scope = ItemScope
+      scope = ItemScopeType
     )
   )
 
   it should "emit item increments on type match" in {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
-    val write = feature.writes(event, MapFieldStore()).toList
+    val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      Increment(Key(Tag(ItemScope.scope, "p1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
+      Increment(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
   it should "ignore non-interaction events" in {
-    feature.writes(TestItemEvent("p1"), MapFieldStore()) shouldBe Nil
-    feature.writes(TestRankingEvent(List("p1")), MapFieldStore()) shouldBe Nil
+    feature.writes(TestItemEvent("p1"), Persistence.blackhole()) shouldBe Nil
+    feature.writes(TestRankingEvent(List("p1")), Persistence.blackhole()) shouldBe Nil
   }
 
   it should "also increment on session key" in {
-    val sf = InteractionCountFeature(feature.schema.copy(scope = SessionScope))
+    val sf = InteractionCountFeature(feature.schema.copy(scope = SessionScopeType))
     val event =
       TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"), session = Some(SessionId("s1")))
-    val write = sf.writes(event, MapFieldStore()).toList
+    val write = sf.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      Increment(Key(Tag(SessionScope.scope, "s1"), FeatureName("cnt"), Tenant("default")), event.timestamp, 1)
+      Increment(Key(SessionScope(Env("default"), SessionId("s1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
@@ -50,7 +52,6 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
       schema = feature.schema,
       request = TestRankingEvent(List("p1"))
     )
-    result should matchPattern { case List(List(SingleValue("cnt", 3))) =>
-    }
+    result shouldBe List(List(SingleValue("cnt", 3)))
   }
 }

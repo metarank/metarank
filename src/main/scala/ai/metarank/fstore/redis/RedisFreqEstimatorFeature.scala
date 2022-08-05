@@ -2,8 +2,8 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{LPUSH, LTRIM}
-import ai.metarank.fstore.redis.client.RedisReader
-import ai.metarank.model.Feature.FreqEstimator
+import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.model.Feature.{FreqEstimator, shouldSample}
 import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
 import ai.metarank.model.FeatureValue.FrequencyValue
 import ai.metarank.model.{Key, Timestamp}
@@ -11,12 +11,15 @@ import ai.metarank.model.Write.PutFreqSample
 import cats.effect.IO
 import cats.effect.std.Queue
 
-case class RedisFreqEstimatorFeature(config: FreqEstimatorConfig, queue: Queue[IO, RedisOp], client: RedisReader)
-    extends FreqEstimator {
-  override def putSampled(action: PutFreqSample): IO[Unit] = for {
-    _ <- queue.offer(LPUSH(action.key.asString, action.value))
-    _ <- queue.offer(LTRIM(action.key.asString, 0, config.poolSize))
-  } yield {}
+case class RedisFreqEstimatorFeature(config: FreqEstimatorConfig, client: RedisClient) extends FreqEstimator {
+  override def put(action: PutFreqSample): IO[Unit] = {
+    if (shouldSample(config.sampleRate)) {
+      val key = action.key.asString
+      client.lpush(key, action.value) *> client.ltrim(key, 0, config.poolSize).void
+    } else {
+      IO.unit
+    }
+  }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[FrequencyValue]] = {
     client.lrange(key.asString, 0, config.poolSize).flatMap {

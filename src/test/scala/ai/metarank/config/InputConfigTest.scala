@@ -3,7 +3,6 @@ package ai.metarank.config
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.config.InputConfig.SourceOffset._
 import ai.metarank.config.InputConfigTest.Source
-import MPath.LocalPath
 import ai.metarank.source.format.SnowplowFormat.SnowplowTSVFormat
 import cats.data.NonEmptyList
 import io.circe.Decoder
@@ -184,7 +183,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
     val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
       FileInputConfig(
-        path = LocalPath("/ranklens/events/")
+        path = "/ranklens/events/"
       )
     )
   }
@@ -197,7 +196,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
     val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
       FileInputConfig(
-        path = LocalPath("/ranklens/events/"),
+        path = "/ranklens/events/",
         offset = SourceOffset.Earliest
       )
     )

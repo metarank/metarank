@@ -28,7 +28,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   val encoder = schema.encode match {
     case OnehotEncoderName =>
       OnehotCategoricalEncoder(
-        names = schema.values.toList.map(value => s"${schema.name}_$value"),
+        names = schema.values.toList.map(value => s"${schema.name.value}_$value"),
         possibleValues = schema.values.toList,
         dim = schema.values.size
       )
@@ -42,7 +42,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
 
   private val conf = ScalarConfig(
     scope = schema.scope,
-    name = FeatureName(schema.name.value),
+    name = schema.name,
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )

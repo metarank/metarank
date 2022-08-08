@@ -1,8 +1,9 @@
 package ai.metarank.fstore.redis.client
 
+import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import io.lettuce.core.{RedisClient => LettuceClient, ScanArgs}
+import io.lettuce.core.{ScanArgs, RedisClient => LettuceClient, ScanCursor => LettuceCursor}
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{RedisCodec, StringCodec}
 
@@ -19,9 +20,15 @@ case class RedisClient(
   def get(key: String): IO[Option[String]] =
     IO.fromCompletableFuture(IO(commands.get(key).toCompletableFuture)).map(Option.apply)
 
-  def mget(keys: List[String]): IO[Map[String, String]] =
-    IO.fromCompletableFuture(IO(commands.mget(keys: _*).toCompletableFuture))
-      .map(_.asScala.toList.flatMap(kv => kv.optional().toScala.map(v => kv.getKey -> v)).toMap)
+  def mget(keys: List[String]): IO[Map[String, String]] = keys match {
+    case Nil => IO.pure(Map.empty)
+    case _ =>
+      IO.fromCompletableFuture(IO(commands.mget(keys: _*).toCompletableFuture))
+        .map(_.asScala.toList.flatMap(kv => kv.optional().toScala.map(v => kv.getKey -> v)).toMap)
+  }
+
+  def mset(values: Map[String, String]) =
+    IO.fromCompletableFuture(IO(commands.mset(values.asJava).toCompletableFuture))
 
   def set(key: String, value: String): IO[String] =
     IO.fromCompletableFuture(IO(commands.set(key, value).toCompletableFuture))
@@ -56,9 +63,15 @@ case class RedisClient(
 
   def ltrim(key: String, start: Int, end: Int): IO[String] =
     IO.fromCompletableFuture(IO(commands.ltrim(key, start, end).toCompletableFuture))
+
+  def scan(cursor: String, count: Int): IO[ScanCursor] =
+    IO.fromCompletableFuture(
+      IO(commands.scan(LettuceCursor.of(cursor), ScanArgs.Builder.limit(count)).toCompletableFuture)
+    ).map(sc => ScanCursor(sc.getKeys.asScala.toList, sc.getCursor))
 }
 
 object RedisClient {
+  case class ScanCursor(keys: List[String], cursor: String)
   def create(host: String, port: Int, db: Int): Resource[IO, RedisClient] = {
     Resource.make(IO {
       val client = io.lettuce.core.RedisClient.create(s"redis://$host:$port")

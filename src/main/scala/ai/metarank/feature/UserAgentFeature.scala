@@ -26,7 +26,7 @@ import scala.concurrent.duration._
 
 case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   lazy val parser       = new Parser()
-  val names             = schema.field.possibleValues.map(value => s"${schema.name}_$value")
+  val names             = schema.field.possibleValues.map(value => s"${schema.name.value}_$value")
   override def dim: Int = schema.field.dim
 
   val conf = ScalarConfig(

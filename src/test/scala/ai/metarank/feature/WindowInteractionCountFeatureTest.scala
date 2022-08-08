@@ -51,6 +51,6 @@ class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers with F
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(VectorValue(List("ctr_1"), Array(3), 1)))
+    values shouldBe List(List(VectorValue(List("cnt_1"), Array(3), 1)))
   }
 }

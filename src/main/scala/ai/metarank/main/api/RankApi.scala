@@ -6,6 +6,7 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.main.RankResponse
 import RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.Event.RankingEvent
+import ai.metarank.model.ItemValue
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect._
@@ -45,22 +46,22 @@ case class RankApi(
   def rerank(request: RankingEvent, model: String, explain: Boolean): IO[RankResponse] = for {
     start     <- IO { System.currentTimeMillis() }
     keys      <- IO { mapping.stateReadKeys(request) }
-    state     <- store.state.get(keys).map(_.values.toList)
+    state     <- store.values.get(keys)
     stateTook <- IO { System.currentTimeMillis() }
     ranker <- mapping.models.get(model) match {
       case Some(existing) => IO.pure(existing)
       case None           => IO.raiseError(ModelError(s"model $model is not configured"))
     }
-    items <- IO { ranker.featureValues(request, state) }
-    query <- IO { ClickthroughQuery(items, request.id.value, ranker.datasetDescriptor) }
+    itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping) }
+    query             <- IO { ClickthroughQuery(itemFeatureValues, 0.0, request.id.value, ranker.datasetDescriptor) }
     scorer <- scorers.get(model) match {
       case Some(existing) => IO.pure(existing)
       case None           => IO.raiseError(ModelError(s"model $model is not configured"))
     }
     scores <- IO { scorer.score(query) }
     result <- explain match {
-      case true  => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
-      case false => IO { items.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
+      case true  => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
+      case false => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
     }
     _ <- IO {
       logger.info(
@@ -69,7 +70,7 @@ case class RankApi(
     }
 
   } yield {
-    RankResponse(state = StateValues(state), items = result.sortBy(-_.score))
+    RankResponse(state = StateValues(state.values.toList), items = result.sortBy(-_.score))
   }
 
 }

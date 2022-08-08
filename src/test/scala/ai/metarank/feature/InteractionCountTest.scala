@@ -32,8 +32,8 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
   }
 
   it should "ignore non-interaction events" in {
-    feature.writes(TestItemEvent("p1"), Persistence.blackhole()) shouldBe Nil
-    feature.writes(TestRankingEvent(List("p1")), Persistence.blackhole()) shouldBe Nil
+    feature.writes(TestItemEvent("p1"), Persistence.blackhole()).unsafeRunSync() shouldBe Nil
+    feature.writes(TestRankingEvent(List("p1")), Persistence.blackhole()).unsafeRunSync() shouldBe Nil
   }
 
   it should "also increment on session key" in {

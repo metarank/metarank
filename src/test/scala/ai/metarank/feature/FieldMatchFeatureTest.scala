@@ -31,7 +31,7 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
 
   it should "generate puts" in {
-    val puts = feature.writes(event, store).unsafeRunSync()
+    val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("title_match_title")),
@@ -47,6 +47,6 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1")).copy(fields = List(StringField("query", "foo")))
     )
-    result shouldBe List(SingleValue("title_match", 0.25))
+    result shouldBe List(List(SingleValue("title_match", 0.25)))
   }
 }

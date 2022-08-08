@@ -1,9 +1,10 @@
 package ai.metarank.fstore
 
 import ai.metarank.config.StateStoreConfig
-import ai.metarank.fstore.Persistence.{KVCodec, KVStore, ModelKey, StreamStore}
+import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec, KVStore, ModelKey}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
+import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.Feature.{
   BoundedList,
   Counter,
@@ -14,7 +15,7 @@ import ai.metarank.model.Feature.{
   StatsEstimator
 }
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Env, FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.model.{Clickthrough, Env, EventId, FeatureKey, FeatureValue, Key, Schema, Scope}
 import cats.effect.{IO, Resource}
 import io.circe.Codec
 
@@ -29,11 +30,9 @@ trait Persistence {
   def stats: Map[FeatureKey, StatsEstimator]
   def maps: Map[FeatureKey, MapFeature]
 
-  lazy val state: KVStore[Key, FeatureValue] = kv[Key, FeatureValue]("state")(KVCodec.keyCodec, KVCodec.jsonCodec)
-  lazy val models: KVStore[ModelKey, String] = kv[ModelKey, String]("model")
-
-  protected def kv[K: KVCodec, V: KVCodec](name: String): KVStore[K, V]
-  protected def stream[V: KVCodec](name: String): StreamStore[V]
+  def values: KVStore[Key, FeatureValue]
+  def models: KVStore[ModelKey, String]
+  def cts: ClickthroughStore
   def healthcheck(): IO[Unit]
 }
 
@@ -80,14 +79,23 @@ object Persistence {
     def get(keys: List[K]): IO[Map[K, V]]
   }
 
-  trait StreamStore[V] {
-    def push(values: List[V]): IO[Unit]
-    def getall(): fs2.Stream[IO, V]
+  object KVStore {
+    def empty[K, V] = new KVStore[K, V] {
+      override def get(keys: List[K]): IO[Map[K, V]] = IO.pure(Map.empty)
+      override def put(values: Map[K, V]): IO[Unit]  = IO.unit
+    }
+  }
+
+  trait ClickthroughStore {
+    def put(ct: Clickthrough): IO[Unit]
+    def get(id: EventId): IO[Option[Clickthrough]]
+    def getall(): fs2.Stream[IO, Clickthrough]
   }
 
   def fromConfig(schema: Schema, conf: StateStoreConfig) = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port) => RedisPersistence.create(schema, host.value, port.value)
-    case StateStoreConfig.MemoryStateConfig()          => Resource.make(IO(MemPersistence(schema)))(_ => IO.unit)
+    case StateStoreConfig.RedisStateConfig(host, port, db) =>
+      RedisPersistence.create(schema, host.value, port.value, db)
+    case StateStoreConfig.MemoryStateConfig() => Resource.make(IO(MemPersistence(schema)))(_ => IO.unit)
   }
 
   def blackhole() = new Persistence {
@@ -100,16 +108,10 @@ object Persistence {
     override def stats: Map[FeatureKey, StatsEstimator]             = Map.empty
     override def maps: Map[FeatureKey, MapFeature]                  = Map.empty
 
-    override protected def kv[K: KVCodec, V: KVCodec](name: String): KVStore[K, V] = new KVStore[K, V] {
-      override def put(values: Map[K, V]): IO[Unit]  = IO.unit
-      override def get(keys: List[K]): IO[Map[K, V]] = IO.pure(Map.empty)
-    }
-    override protected def stream[V: KVCodec](name: String): StreamStore[V] = new StreamStore[V] {
-      override def push(values: List[V]): IO[Unit] = IO.unit
-      override def getall(): fs2.Stream[IO, V]     = fs2.Stream.empty
-    }
-
-    override def healthcheck(): IO[Unit] = IO.unit
+    override lazy val cts: ClickthroughStore             = ???
+    override lazy val models: KVStore[ModelKey, String]  = KVStore.empty
+    override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
+    override def healthcheck(): IO[Unit]                 = IO.unit
   }
 
 }

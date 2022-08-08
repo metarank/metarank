@@ -13,6 +13,7 @@ import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.UserScope
 import ai.metarank.model.Write.{Put, PutTuple}
 import ai.metarank.util.{TestRankingEvent, TestUserEvent}
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -28,7 +29,7 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     TestRankingEvent(List("p1")).copy(user = UserId("u1"), fields = List(StringField("ref", "http://www.google.com")))
 
   it should "extract referer field" in {
-    val write = feature.writes(event, Persistence.blackhole())
+    val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
       Put(Key(UserScope(Env("default"), UserId("u1")), FeatureName("ref_medium")), event.timestamp, SString("search"))
     )

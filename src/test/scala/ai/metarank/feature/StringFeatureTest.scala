@@ -96,14 +96,14 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
         name = FeatureName("country"),
         source = FieldName(Interaction("click"), "country"),
         scope = SessionScopeType,
-        values = NonEmptyList.of("US", "EU"),
+        values = NonEmptyList.of("us", "eu"),
         encode = OnehotEncoderName
       )
     )
     val event =
       TestInteractionEvent("p1", "p0").copy(
         session = Some(SessionId("s1")),
-        fields = List(StringField("country", "EU"))
+        fields = List(StringField("country", "eu"))
       )
     val values =
       process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))

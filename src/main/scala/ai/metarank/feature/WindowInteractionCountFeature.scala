@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 
 case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
-  val names             = schema.periods.map(period => s"${schema.name}_$period")
+  val names             = schema.periods.map(period => s"${schema.name.value}_$period")
 
   val conf = PeriodicCounterConfig(
     scope = schema.scope,
@@ -55,7 +55,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
       id: ItemRelevancy
   ): MValue = {
     val result = for {
-      key <- readKey(request, conf, id.id)
+      key      <- readKey(request, conf, id.id)
       value    <- features.get(key)
       valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim
     } yield {
@@ -79,5 +79,7 @@ object WindowInteractionCountFeature {
   ) extends FeatureSchema
 
   implicit val windowCountDecoder: Decoder[WindowInteractionCountSchema] =
-    deriveDecoder[WindowInteractionCountSchema].withErrorMessage("cannot parse a feature definition of type 'window_count'")
+    deriveDecoder[WindowInteractionCountSchema].withErrorMessage(
+      "cannot parse a feature definition of type 'window_count'"
+    )
 }

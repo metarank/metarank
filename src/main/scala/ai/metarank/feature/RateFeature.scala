@@ -22,11 +22,11 @@ import scala.concurrent.duration.FiniteDuration
 
 case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
-  val names             = schema.periods.map(period => s"${schema.name}_$period")
+  val names             = schema.periods.map(period => s"${schema.name.value}_$period")
 
   val top = PeriodicCounterConfig(
     scope = schema.scope,
-    name = FeatureName(s"${schema.name}_${schema.top}"),
+    name = FeatureName(s"${schema.name.value}_${schema.top}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
     refresh = schema.refresh.getOrElse(0.seconds),
@@ -34,7 +34,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   )
   val bottom = PeriodicCounterConfig(
     scope = schema.scope,
-    name = FeatureName(s"${schema.name}_${schema.bottom}"),
+    name = FeatureName(s"${schema.name.value}_${schema.bottom}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
     refresh = schema.refresh.getOrElse(0.seconds),

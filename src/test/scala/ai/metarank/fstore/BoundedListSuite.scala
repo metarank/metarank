@@ -1,6 +1,5 @@
 package ai.metarank.fstore
 
-
 import ai.metarank.model.Feature.BoundedList.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
@@ -46,10 +45,12 @@ trait BoundedListSuite extends FeatureSuite[Append] {
   }
 
   it should "be bounded by time" in {
-    val key     = TestKey(config, id = "p13")
-    val appends = for { i <- (0 until config.count).reverse } yield { Append(key, SString(i.toString), now.minus(i.hours)) }
-    val result  = write(appends.toList)
-    val cutoff  = now.minus(config.duration)
+    val key = TestKey(config, id = "p13")
+    val appends = for { i <- (0 until config.count).reverse } yield {
+      Append(key, SString(i.toString), now.minus(i.hours))
+    }
+    val result = write(appends.toList)
+    val cutoff = now.minus(config.duration)
     result should matchPattern {
       case Some(BoundedListValue(_, _, values)) if values.forall(_.ts.isAfterOrEquals(cutoff)) =>
     }

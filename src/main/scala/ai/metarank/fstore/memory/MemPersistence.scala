@@ -2,7 +2,7 @@ package ai.metarank.fstore.memory
 
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.KVCodec
-import ai.metarank.model.Schema
+import ai.metarank.model.{FeatureValue, Key, Schema}
 import cats.effect.IO
 
 case class MemPersistence(schema: Schema) extends Persistence {
@@ -14,9 +14,10 @@ case class MemPersistence(schema: Schema) extends Persistence {
   override lazy val stats            = schema.stats.view.mapValues(MemStatsEstimator(_)).toMap
   override lazy val maps             = schema.maps.view.mapValues(MemMapFeature(_)).toMap
 
-  override def kv[K: KVCodec, V: KVCodec](name: String): Persistence.KVStore[K, V] = new MemKVStore[K, V]()
-  override def stream[V: KVCodec](name: String): Persistence.StreamStore[V]        = new MemStreamStore[V]()
+  override lazy val models: Persistence.KVStore[Persistence.ModelKey, String] = MemKVStore()
+  override lazy val values: Persistence.KVStore[Key, FeatureValue]            = MemKVStore()
 
-  override def healthcheck(): IO[Unit] = IO.unit
+  override lazy val cts: Persistence.ClickthroughStore = MemClickthroughStore()
+  override def healthcheck(): IO[Unit]                 = IO.unit
 
 }

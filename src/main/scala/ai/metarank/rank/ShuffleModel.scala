@@ -1,23 +1,15 @@
 package ai.metarank.rank
 
 import ai.metarank.config.ModelConfig.ShuffleConfig
-import ai.metarank.model.{Clickthrough, Event, FeatureValue}
+import ai.metarank.model.{Clickthrough, Event, FeatureValue, ItemValue}
 import ai.metarank.rank.Model.Scorer
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 
 import scala.util.Random
 
 case class ShuffleModel(conf: ShuffleConfig) extends Model {
-  override val features                             = Nil
-  override def datasetDescriptor: DatasetDescriptor = DatasetDescriptor(Map.empty, Nil, 0)
-  override def featureValues(
-      ranking: Event.RankingEvent,
-      source: List[FeatureValue],
-      interactions: List[Event.InteractionEvent]
-  ): List[Clickthrough.ItemValues] = {
-    NoopModel.noop(ranking)
-  }
-
+  override val features                                                  = Nil
+  override def datasetDescriptor: DatasetDescriptor                      = DatasetDescriptor(Map.empty, Nil, 0)
   override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = None
 }
 

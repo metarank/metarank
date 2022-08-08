@@ -4,7 +4,7 @@ import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ModelBackend}
 import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
 import ai.metarank.feature.BaseFeature
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
-import ai.metarank.model.Clickthrough.ItemValues
+import ai.metarank.model.ItemValue
 import ai.metarank.model.{Clickthrough, Event, FeatureValue}
 import ai.metarank.rank.LambdaMARTModel.{Fillrate, LambdaMARTScorer}
 import ai.metarank.rank.Model.Scorer
@@ -19,42 +19,6 @@ case class LambdaMARTModel(
     datasetDescriptor: DatasetDescriptor,
     weights: NonEmptyMap[String, Double]
 ) extends Model {
-  override def featureValues(
-      ranking: Event.RankingEvent,
-      source: List[FeatureValue],
-      interactions: List[Event.InteractionEvent]
-  ): List[Clickthrough.ItemValues] = {
-    val state = source.map(fv => fv.key -> fv).toMap
-
-    val itemFeatures: List[ItemFeature] = features.collect { case feature: ItemFeature =>
-      feature
-    }
-
-    val rankingFeatures = features.collect { case feature: RankingFeature =>
-      feature
-    }
-
-    val rankingValues = rankingFeatures.map(_.value(ranking, state))
-
-    val itemValuesMatrix = itemFeatures
-      .map(feature => {
-        val values = feature.values(ranking, state)
-        values.foreach { value =>
-          if (feature.dim != value.dim)
-            throw new IllegalStateException(s"for ${feature.schema} dim mismatch: ${feature.dim} != ${value.dim}")
-        }
-        values
-      })
-      .transpose
-
-    val itemScores = for {
-      (item, itemValues) <- ranking.items.toList.zip(itemValuesMatrix)
-    } yield {
-      val weight = interactions.find(_.item == item.id).map(e => weights.lookup(e.`type`).getOrElse(1.0)).getOrElse(0.0)
-      ItemValues(item.id, weight, rankingValues ++ itemValues)
-    }
-    itemScores
-  }
 
   override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = {
     val booster = conf.backend match {

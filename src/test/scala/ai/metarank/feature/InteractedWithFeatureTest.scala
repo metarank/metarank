@@ -98,6 +98,8 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
       TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
     )
 
-    values shouldBe List()
+    values shouldBe List(
+      List(SingleValue("seen_color", 1.0), SingleValue("seen_color", 1.0), SingleValue("seen_color", 0))
+    )
   }
 }

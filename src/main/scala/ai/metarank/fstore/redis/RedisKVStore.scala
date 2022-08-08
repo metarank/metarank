@@ -9,18 +9,16 @@ import cats.effect.IO
 import cats.effect.std.Queue
 import cats.implicits._
 
-case class RedisKVStore[K, V](prefix: String, client: RedisClient)(implicit
+case class RedisKVStore[K, V](client: RedisClient)(implicit
     kc: KVCodec[K],
     vc: KVCodec[V]
 ) extends KVStore[K, V]
     with Logging {
-  val BATCH_SIZE = 128
 
   override def get(keys: List[K]): IO[Map[K, V]] = for {
-    batches   <- IO(keys.grouped(BATCH_SIZE).toList)
-    responses <- batches.map(keys => client.hget(prefix, keys.map(kc.encode))).sequence
-    decoded   <- responses.flatten.map { case (k, v) => decodeTuple(k, v) }.sequence
-    _         <- IO(debug(s"requested ${keys.size} keys: batches=${responses.size} records=${decoded.size}"))
+    response <- client.mget(keys.map(kc.encode))
+    decoded  <- response.toList.map { case (k, v) => decodeTuple(k, v) }.sequence
+    _        <- IO(debug(s"requested ${keys.size} keys: records=${decoded.size}"))
   } yield {
     decoded.toMap
   }
@@ -33,6 +31,6 @@ case class RedisKVStore[K, V](prefix: String, client: RedisClient)(implicit
   }
 
   override def put(values: Map[K, V]): IO[Unit] = {
-    client.hset(prefix, values.map { case (k, v) => kc.encode(k) -> vc.encode(v) }).void
+    client.mset(values.map { case (k, v) => kc.encode(k) -> vc.encode(v) }).void
   }
 }

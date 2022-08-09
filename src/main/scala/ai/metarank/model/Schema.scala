@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.config.EnvConfig
 import ai.metarank.model.Feature.BoundedList.BoundedListConfig
 import ai.metarank.model.Feature.Counter.CounterConfig
 import ai.metarank.model.Feature.FeatureConfig
@@ -19,16 +20,26 @@ case class Schema(
     lists: Map[FeatureKey, BoundedListConfig],
     maps: Map[FeatureKey, MapConfig],
     configs: Map[FeatureKey, FeatureConfig]
-)
+) {
+  def merge(other: Schema): Schema = Schema(
+    counters = counters ++ other.counters,
+    scalars = scalars ++ other.scalars,
+    periodicCounters = periodicCounters ++ other.periodicCounters,
+    freqs = freqs ++ other.freqs,
+    stats = stats ++ other.stats,
+    lists = lists ++ other.lists,
+    maps = maps ++ other.maps,
+    configs = configs ++ other.configs
+  )
+}
 
 object Schema {
 
-  def apply(conf: FeatureConfig): Schema = apply(List(conf))
-  def apply(confs: List[FeatureConfig]): Schema = {
+  def apply(env: Env, features: List[FeatureConfig]): Schema = {
     val configs = for {
-      c <- confs
+      c <- features
     } yield {
-      FeatureKey(c.scope, c.name) -> c
+      FeatureKey(env, c.scope, c.name) -> c
     }
     new Schema(
       counters = configs.collect { case (key, c: CounterConfig) => key -> c }.toMap,

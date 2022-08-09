@@ -179,7 +179,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
 
   it should "decode file config" in {
     val yaml = """type: file
-                 |path: file:///ranklens/events/""".stripMargin
+                 |path: /ranklens/events/""".stripMargin
     val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
       FileInputConfig(
@@ -190,7 +190,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
 
   it should "decode file config with retention" in {
     val yaml = """type: file
-                 |path: file:///ranklens/events/
+                 |path: /ranklens/events/
                  |offset: earliest
                  |""".stripMargin
     val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])

@@ -27,7 +27,7 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
   )
   val now   = Timestamp.now
-  val store = MemPersistence(Schema(feature.states))
+  val store = MemPersistence(Schema(Env.default, feature.states))
   val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
 
   it should "generate puts" in {

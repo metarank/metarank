@@ -63,8 +63,6 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
 
   override val dim: Int = 1
 
-  override val fields: List[FieldName] = List(schema.source)
-
   override val states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event, fields: Persistence): IO[Iterable[Write]] = IO {

@@ -6,7 +6,7 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.main.RankResponse
 import RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.ItemValue
+import ai.metarank.model.{Env, ItemValue}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect._
@@ -22,18 +22,19 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent.duration._
 
 case class RankApi(
-    mapping: FeatureMapping,
+    mappings: List[FeatureMapping],
     store: Persistence,
     scorers: Map[String, Scorer]
 ) extends Logging {
   import RankApi._
   import ai.metarank.model.Event.EventCodecs._
 
-  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
+  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / env / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))
-      response    <- rerank(request, model, explain.getOrElse(false))
+      mapping     <- IO.fromOption(mappings.find(_.env.value == env))(new Exception(s"environment $env is missing"))
+      response    <- rerank(mapping, request, model, explain.getOrElse(false))
     } yield {
       Response[IO](
         Status.Ok,
@@ -43,7 +44,7 @@ case class RankApi(
     }
   }
 
-  def rerank(request: RankingEvent, model: String, explain: Boolean): IO[RankResponse] = for {
+  def rerank(mapping: FeatureMapping, request: RankingEvent, model: String, explain: Boolean): IO[RankResponse] = for {
     start     <- IO { System.currentTimeMillis() }
     keys      <- IO { mapping.stateReadKeys(request) }
     state     <- store.values.get(keys)

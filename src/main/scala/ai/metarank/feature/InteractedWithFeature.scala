@@ -10,7 +10,18 @@ import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{BoundedListValue, ScalarValue}
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.{
+  Event,
+  FeatureKey,
+  FeatureSchema,
+  FeatureValue,
+  Field,
+  FieldName,
+  Key,
+  MValue,
+  ScopeType,
+  Write
+}
 import ai.metarank.model.Identifier._
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.{SString, SStringList}
@@ -47,8 +58,6 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
   )
   override def states: List[FeatureConfig] = List(lastValues, itemValues)
 
-  override def fields: List[FieldName] = List(schema.field)
-
   override def writes(event: Event, features: Persistence): IO[Iterable[Write]] =
     event match {
       case item: ItemEvent =>
@@ -70,8 +79,10 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         }
       case int: InteractionEvent if int.`type` == schema.interaction =>
         for {
-          feature <- IO.fromOption(features.scalars.get(itemValues.featureKey))(new Exception(s"feature not mapped"))
-          scalar  <- feature.computeValue(Key(ItemScope(int.env, int.item), itemValues.name), int.timestamp)
+          feature <- IO.fromOption(features.scalars.get(FeatureKey(event.env, itemValues.scope, itemValues.name)))(
+            new Exception(s"feature not mapped")
+          )
+          scalar <- feature.computeValue(Key(ItemScope(int.env, int.item), itemValues.name), int.timestamp)
         } yield {
           for {
             string <- scalar match {

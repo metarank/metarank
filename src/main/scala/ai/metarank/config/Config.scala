@@ -11,24 +11,15 @@ import io.circe.generic.semiauto._
 import io.circe.yaml.parser.{parse => parseYaml}
 
 case class Config(
-    features: NonEmptyList[FeatureSchema],
-    models: NonEmptyMap[String, ModelConfig],
     api: ApiConfig,
     state: StateStoreConfig,
-    input: InputConfig
+    input: InputConfig,
+    env: List[EnvConfig]
 )
 
 object Config extends Logging {
 
-  implicit val configDecoder: Decoder[Config] = deriveDecoder[Config].ensure(validateConfig)
-
-  def load(path: File): IO[Config] = for {
-    contents <- IO { path.contentAsString }
-    config   <- load(contents)
-    _        <- IO(logger.info(s"loaded config file from $path"))
-  } yield {
-    config
-  }
+  implicit val configDecoder: Decoder[Config] = deriveDecoder[Config]
 
   def load(contents: String): IO[Config] = {
     for {
@@ -37,17 +28,6 @@ object Config extends Logging {
     } yield {
       decoded
     }
-  }
-
-  def validateConfig(conf: Config): List[String] = {
-    val features = nonUniqueNames[FeatureSchema](conf.features, _.name.value).map(_.toString("feature"))
-    val modelFeatures = conf.models.toNel.toList.flatMap {
-      case (name, LambdaMARTConfig(_, features, _)) =>
-        val undefined = features.filterNot(feature => conf.features.exists(_.name.value == feature))
-        undefined.map(feature => s"unresolved feature '$feature' in model '$name'")
-      case _ => Nil
-    }
-    features ++ modelFeatures
   }
 
   case class NonUniqueName(name: String, count: Int) {

@@ -78,19 +78,6 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     )
   }
 
-  it should "emit last colors on interaction" in {
-    val state = MemPersistence(TestSchema(feature.schema))
-    feature.writes(itemEvent1, state).unsafeRunSync()
-    val appends = feature.writes(interactionEvent1, state).unsafeRunSync().toList
-    appends shouldBe List(
-      Append(
-        key = Key(SessionScope(Env("default"), SessionId("s1")), FeatureName("seen_color_last")),
-        ts = interactionEvent1.timestamp,
-        value = SString("red")
-      )
-    )
-  }
-
   it should "compute values" in {
     val values = process(
       List(itemEvent1, itemEvent2, interactionEvent1, interactionEvent2),

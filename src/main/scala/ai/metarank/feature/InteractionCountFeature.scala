@@ -26,7 +26,6 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  override def fields                      = Nil
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event, store: Persistence): IO[Iterable[Increment]] = IO {

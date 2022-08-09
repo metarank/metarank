@@ -7,20 +7,25 @@ state:
   host: localhost
   port: 6379
 
-models:
-  xgboost:
-    type: lambdamart
-    backend:
-      type: xgboost
-      iterations: 10
-      seed: 0
-    weights:
-      click: 1
-    features:
-      - popularity
+input:
+  type: api
 
-features:
-  - name: popularity
-    type: number
-    scope: item
-    source: metadata.popularity
+env:
+  - name: prod
+    models:
+      xgboost:
+        type: lambdamart
+        backend:
+          type: xgboost
+          iterations: 10
+          seed: 0
+        weights:
+          click: 1
+        features:
+          - popularity
+
+    features:
+      - name: popularity
+        type: number
+        scope: item
+        source: metadata.popularity

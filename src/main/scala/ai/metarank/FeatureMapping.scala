@@ -1,6 +1,6 @@
 package ai.metarank
 
-import ai.metarank.config.ModelConfig
+import ai.metarank.config.{EnvConfig, ModelConfig}
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
@@ -19,15 +19,15 @@ import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountS
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.{FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
+import ai.metarank.model.{Env, FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
 import ai.metarank.rank.{LambdaMARTModel, Model, NoopModel, ShuffleModel}
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}
 
 case class FeatureMapping(
+    env: Env,
     features: List[BaseFeature],
-    fields: List[FieldName],
     schema: Schema,
     models: Map[String, Model]
 ) {
@@ -37,27 +37,31 @@ case class FeatureMapping(
 }
 
 object FeatureMapping {
+  def fromEnvConfig(env: EnvConfig): FeatureMapping =
+    fromFeatureSchema(env.name, env.features, env.models)
+
   def fromFeatureSchema(
+      env: Env,
       schema: NonEmptyList[FeatureSchema],
       models: NonEmptyMap[String, ModelConfig]
   ) = {
     val features: List[BaseFeature] = schema.collect {
-      case c: NumberFeatureSchema    => NumberFeature(c)
-      case c: StringFeatureSchema    => StringFeature(c)
-      case c: BooleanFeatureSchema   => BooleanFeature(c)
-      case c: WordCountSchema        => WordCountFeature(c)
-      case c: RateFeatureSchema      => RateFeature(c)
-      case c: InteractionCountSchema => InteractionCountFeature(c)
-      case c: RelevancySchema        => RelevancyFeature(c)
-      case c: UserAgentSchema        => UserAgentFeature(c)
-      case c: WindowInteractionCountSchema      => WindowInteractionCountFeature(c)
-      case c: LocalDateTimeSchema    => LocalDateTimeFeature(c)
-      case c: ItemAgeSchema          => ItemAgeFeature(c)
-      case c: FieldMatchSchema       => FieldMatchFeature(c)
-      case c: InteractedWithSchema   => InteractedWithFeature(c)
-      case c: RefererSchema          => RefererFeature(c)
+      case c: NumberFeatureSchema          => NumberFeature(c)
+      case c: StringFeatureSchema          => StringFeature(c)
+      case c: BooleanFeatureSchema         => BooleanFeature(c)
+      case c: WordCountSchema              => WordCountFeature(c)
+      case c: RateFeatureSchema            => RateFeature(c)
+      case c: InteractionCountSchema       => InteractionCountFeature(c)
+      case c: RelevancySchema              => RelevancyFeature(c)
+      case c: UserAgentSchema              => UserAgentFeature(c)
+      case c: WindowInteractionCountSchema => WindowInteractionCountFeature(c)
+      case c: LocalDateTimeSchema          => LocalDateTimeFeature(c)
+      case c: ItemAgeSchema                => ItemAgeFeature(c)
+      case c: FieldMatchSchema             => FieldMatchFeature(c)
+      case c: InteractedWithSchema         => InteractedWithFeature(c)
+      case c: RefererSchema                => RefererFeature(c)
     }
-    val featurySchema = Schema(features.flatMap(_.states))
+    val featurySchema = Schema(env, features.flatMap(_.states))
     val m = models.toNel.toList.map {
       case (name, conf: LambdaMARTConfig) =>
         val modelFeatures = for {
@@ -78,8 +82,8 @@ object FeatureMapping {
     }
 
     new FeatureMapping(
+      env = env,
       features = features,
-      fields = features.flatMap(_.fields),
       schema = featurySchema,
       models = m.toMap
     )

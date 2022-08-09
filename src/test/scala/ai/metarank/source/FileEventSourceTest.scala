@@ -17,7 +17,7 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers {
     val json    = events.map(_.asJson.noSpaces).mkString("\n")
     outFile.write(json)
     outFile.size should be > 1L
-    val result  = FileEventSource(FileInputConfig("file:///" + outDir.toString()))
+    val result  = FileEventSource(FileInputConfig(outDir.toString()))
     val decoded = result.stream.compile.toList.unsafeRunSync()
     decoded shouldBe events
   }

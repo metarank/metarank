@@ -92,14 +92,17 @@ object Persistence {
     def getall(): fs2.Stream[IO, Clickthrough]
   }
 
-  def fromConfig(schema: Schema, conf: StateStoreConfig) = conf match {
+  def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
     case StateStoreConfig.RedisStateConfig(host, port, db) =>
       RedisPersistence.create(schema, host.value, port.value, db)
     case StateStoreConfig.MemoryStateConfig() => Resource.make(IO(MemPersistence(schema)))(_ => IO.unit)
   }
 
+  def fromConfig(schemas: List[Schema], conf: StateStoreConfig): Resource[IO, Persistence] =
+    fromConfig(schemas.reduce((a, b) => a.merge(b)), conf)
+
   def blackhole() = new Persistence {
-    override def schema: Schema                                     = Schema(Nil)
+    override def schema: Schema                                     = Schema(Env.default, Nil)
     override def counters: Map[FeatureKey, Counter]                 = Map.empty
     override def periodicCounters: Map[FeatureKey, PeriodicCounter] = Map.empty
     override def lists: Map[FeatureKey, BoundedList]                = Map.empty

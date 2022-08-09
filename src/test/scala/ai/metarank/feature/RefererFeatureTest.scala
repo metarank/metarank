@@ -21,7 +21,7 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = RefererFeature(
     RefererSchema(
       name = FeatureName("ref_medium"),
-      source = FieldName(User, "ref"),
+      source = FieldName(Ranking, "ref"),
       scope = UserScopeType
     )
   )

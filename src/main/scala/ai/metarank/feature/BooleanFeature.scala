@@ -32,8 +32,6 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(schema.source)
-
   override def writes(event: Event, features: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)

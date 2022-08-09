@@ -19,8 +19,6 @@ import scala.concurrent.duration.FiniteDuration
 case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
   override def dim: Int = 1
 
-  override def fields: List[FieldName] = Nil
-
   override def states: List[FeatureConfig] = Nil
 
   override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO.pure(Nil)

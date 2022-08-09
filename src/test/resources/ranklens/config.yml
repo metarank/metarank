@@ -2,181 +2,152 @@ api:
   port: 8080
   host: "0.0.0.0"
 
-bootstrap:
-  mode: standalone
-  state:
-    type: memory
-  source:
-    type: rest
+state:
+  type: memory
 
-inference:
-  state:
-    type: memory
+input:
+  type: api
 
-models:
-#  lightgbm:
-#    type: lambdamart
-#    path: /tmp/lightgbm.model
-#    backend:
-#      type: lightgbm
-#      iterations: 100
-#      seed: 0
-#    weights:
-#      click: 1
-#    features:
-#      - popularity
-#      - vote_avg
-#      - vote_cnt
-#      - budget
-#      - release_date
-#      - runtime
-#      - title_length
-#      - genre
-#      - ctr
-#      - liked_genre
-#      - liked_actors
-#      - liked_tags
-#      - liked_director
-#      - visitor_click_count
-#      - global_item_click_count
-#      - day_item_click_count
-  xgboost:
-    type: lambdamart
-    path: /tmp/xgboost.model
-    backend:
-      type: xgboost
-      iterations: 10
-      seed: 0
-    weights:
-      click: 1
+env:
+  - name: demo
+    models:
+      xgboost:
+        type: lambdamart
+        path: /tmp/xgboost.model
+        backend:
+          type: xgboost
+          iterations: 10
+          seed: 0
+        weights:
+          click: 1
+        features:
+          - popularity
+          - vote_avg
+          - vote_cnt
+          - budget
+          - release_date
+          - runtime
+          - title_length
+          - genre
+          - ctr
+          - liked_genre
+          - liked_actors
+          - liked_tags
+          - liked_director
+          - visitor_click_count
+          - global_item_click_count
+          - day_item_click_count
     features:
-      - popularity
-      - vote_avg
-      - vote_cnt
-      - budget
-      - release_date
-      - runtime
-      - title_length
-      - genre
-      - ctr
-      - liked_genre
-      - liked_actors
-      - liked_tags
-      - liked_director
-      - visitor_click_count
-      - global_item_click_count
-      - day_item_click_count
-features:
-  - name: popularity
-    type: number
-    scope: item
-    source: metadata.popularity
+      - name: popularity
+        type: number
+        scope: item
+        source: metadata.popularity
 
-  - name: vote_avg
-    type: number
-    scope: item
-    source: metadata.vote_avg
+      - name: vote_avg
+        type: number
+        scope: item
+        source: metadata.vote_avg
 
-  - name: vote_cnt
-    type: number
-    scope: item
-    source: metadata.vote_cnt
+      - name: vote_cnt
+        type: number
+        scope: item
+        source: metadata.vote_cnt
 
-  - name: budget
-    type: number
-    scope: item
-    source: metadata.budget
+      - name: budget
+        type: number
+        scope: item
+        source: metadata.budget
 
-  - name: release_date
-    type: number
-    scope: item
-    source: metadata.release_date
+      - name: release_date
+        type: number
+        scope: item
+        source: metadata.release_date
 
-  - name: runtime
-    type: number
-    scope: item
-    source: metadata.runtime
+      - name: runtime
+        type: number
+        scope: item
+        source: metadata.runtime
 
-  - name: title_length
-    type: word_count
-    source: metadata.title
-    scope: item
+      - name: title_length
+        type: word_count
+        source: metadata.title
+        scope: item
 
-  - name: genre
-    type: string
-    scope: item
-    source: metadata.genres
-    encode: index
-    values:
-      - drama
-      - comedy
-      - thriller
-      - action
-      - adventure
-      - romance
-      - crime
-      - science fiction
-      - fantasy
-      - family
-      - horror
-      - mystery
-      - animation
-      - history
-      - music
+      - name: genre
+        type: string
+        scope: item
+        source: metadata.genres
+        encode: index
+        values:
+          - drama
+          - comedy
+          - thriller
+          - action
+          - adventure
+          - romance
+          - crime
+          - science fiction
+          - fantasy
+          - family
+          - horror
+          - mystery
+          - animation
+          - history
+          - music
 
-  - name: ctr
-    type: rate
-    top: click
-    bottom: impression
-    scope: item
-    bucket: 24h
-    periods: [7,30]
+      - name: ctr
+        type: rate
+        top: click
+        bottom: impression
+        scope: item
+        bucket: 24h
+        periods: [7,30]
 
-  - name: liked_genre
-    type: interacted_with
-    interaction: click
-    field: metadata.genres
-    scope: session
-    count: 10
-    duration: 24h
+      - name: liked_genre
+        type: interacted_with
+        interaction: click
+        field: metadata.genres
+        scope: session
+        count: 10
+        duration: 24h
 
-  - name: liked_actors
-    type: interacted_with
-    interaction: click
-    field: metadata.actors
-    scope: session
-    count: 10
-    duration: 24h
+      - name: liked_actors
+        type: interacted_with
+        interaction: click
+        field: metadata.actors
+        scope: session
+        count: 10
+        duration: 24h
 
-  - name: liked_tags
-    type: interacted_with
-    interaction: click
-    field: metadata.tags
-    scope: session
-    count: 10
-    duration: 24h
+      - name: liked_tags
+        type: interacted_with
+        interaction: click
+        field: metadata.tags
+        scope: session
+        count: 10
+        duration: 24h
 
-  - name: liked_director
-    type: interacted_with
-    interaction: click
-    field: metadata.director
-    scope: session
-    count: 10
-    duration: 24h
+      - name: liked_director
+        type: interacted_with
+        interaction: click
+        field: metadata.director
+        scope: session
+        count: 10
+        duration: 24h
 
-  - name: visitor_click_count
-    type: interaction_count
-    interaction: click
-    scope: session
+      - name: visitor_click_count
+        type: interaction_count
+        interaction: click
+        scope: session
 
-  - name: global_item_click_count
-    type: interaction_count
-    interaction: click
-    scope: item
+      - name: global_item_click_count
+        type: interaction_count
+        interaction: click
+        scope: item
 
-  - name: day_item_click_count
-    type: window_count
-    interaction: click
-    scope: item
-    bucket: 24h
-    periods: [7,30]
+      - name: day_item_click_count
+        type: window_count
+        interaction: click
+        scope: item
+        bucket: 24h
+        periods: [7,30]

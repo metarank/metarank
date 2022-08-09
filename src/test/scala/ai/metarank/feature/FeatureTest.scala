@@ -5,7 +5,7 @@ import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.flow.FeatureValueFlow
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.{Event, FeatureSchema, MValue}
+import ai.metarank.model.{Env, Event, FeatureSchema, MValue}
 import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.unsafe.implicits.global
 import com.github.blemale.scaffeine.Scaffeine
@@ -15,7 +15,8 @@ trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
     val mapping = FeatureMapping.fromFeatureSchema(
       schema = NonEmptyList.of(schema),
-      models = NonEmptyMap.of("random" -> ShuffleConfig(10))
+      models = NonEmptyMap.of("random" -> ShuffleConfig(10)),
+      env = Env.default
     )
 
     val flow = FeatureValueFlow(mapping, MemPersistence(mapping.schema), Scaffeine().maximumSize(0).build())

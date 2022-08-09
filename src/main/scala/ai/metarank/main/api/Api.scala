@@ -28,12 +28,12 @@ object Api {
 //    })
 //  }
 
-  def httpResource(config: Config, env: Map[String, String]): Resource[IO, ApiResources] = for {
-    models <- Resource.eval(loadModels(config, env))
-    mapping = FeatureMapping.fromFeatureSchema(config.features, config.models)
-    store <- Persistence.fromConfig(mapping.schema, config.state)
+  def httpResource(config: Config): Resource[IO, ApiResources] = for {
+    models <- Resource.eval(loadModels(config))
+    mappings = config.env.map(FeatureMapping.fromEnvConfig)
+    store <- Persistence.fromConfig(mappings.map(_.schema), config.state)
     queue <- Resource.eval(Queue.dropping[IO, Option[Event]](1000))
-    routes  = HealthApi(store).routes <+> RankApi(mapping, store, models).routes <+> FeedbackApi(queue).routes
+    routes  = HealthApi(store).routes <+> RankApi(mappings, store, models).routes <+> FeedbackApi(queue).routes
     httpApp = Router("/" -> routes).orNotFound
   } yield {
     val builder = BlazeServerBuilder[IO]
@@ -45,7 +45,7 @@ object Api {
 
   // override def usage: String = "usage: metarank api <config path>"
 
-  def loadModels(config: Config, env: Map[String, String] = Map.empty): IO[Map[String, Scorer]] = ???
+  def loadModels(config: Config): IO[Map[String, Scorer]] = ???
 //  {
 //    config.models.toNel.toList
 //      .map {

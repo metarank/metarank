@@ -30,8 +30,6 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  override def fields: List[FieldName] = List(schema.source)
-
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {
@@ -57,7 +55,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
       id: ItemRelevancy
   ): MValue = {
     val result = for {
-      key    <- readKey(request, conf, id.id)
+      key <- readKey(request, conf, id.id)
       value <- features.get(key) match {
         case Some(ScalarValue(_, _, SDouble(value))) => Some(SingleValue(schema.name, value))
         case _                                       => None

@@ -35,8 +35,6 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(schema.itemField, schema.rankingField)
-
   override def writes(event: Event, features: Persistence): IO[Iterable[Write]] = IO {
     for {
       key   <- writeKey(event, conf)

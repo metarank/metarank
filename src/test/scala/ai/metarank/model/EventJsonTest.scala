@@ -78,7 +78,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
                  |    {"name": "color", "value": ["blue", "black"]},
                  |    {"name": "availability", "value": true}
                  |  ],
-                 |  "tenant": "foo"
+                 |  "env": "foo"
                  |}""".stripMargin
     decode[Event](json) shouldBe Right(
       ItemEvent(

@@ -6,6 +6,7 @@ import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScope
 import io.circe.{Codec, Decoder, Encoder}
 
 sealed trait Scope {
+  def env: Env
   def asString: String
   def getType: ScopeType
 }

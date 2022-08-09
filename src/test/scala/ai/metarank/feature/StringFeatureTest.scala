@@ -87,7 +87,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     val values =
       process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))
-    values shouldBe List(List(CategoryValue("country", 1)))
+    values shouldBe List(List(CategoryValue("country", 2)))
   }
 
   it should "onehot encode values" in {

@@ -29,7 +29,6 @@ object Feature {
     def name: FeatureName
     def ttl: FiniteDuration
     def refresh: FiniteDuration
-    def featureKey: FeatureKey = FeatureKey(scope, name)
     def readKeys(event: Event.RankingEvent): Iterable[Key] = scope match {
       case ScopeType.ItemScopeType    => event.items.toList.map(ir => Key(ItemScope(event.env, ir.id), name))
       case ScopeType.UserScopeType    => Some(Key(UserScope(event.env, event.user), name))

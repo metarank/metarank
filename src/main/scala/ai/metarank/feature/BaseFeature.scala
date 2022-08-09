@@ -11,7 +11,6 @@ import cats.effect.IO
 
 sealed trait BaseFeature {
   def dim: Int
-  def fields: List[FieldName]
   def schema: FeatureSchema
   def states: List[FeatureConfig]
   def writes(event: Event, features: Persistence): IO[Iterable[Write]]

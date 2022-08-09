@@ -36,8 +36,6 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(schema.source)
-
   override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)

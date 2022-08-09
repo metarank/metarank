@@ -29,7 +29,6 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Lo
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  override def fields                      = List(schema.source)
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {

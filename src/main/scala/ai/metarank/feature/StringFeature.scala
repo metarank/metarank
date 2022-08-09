@@ -48,8 +48,6 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(schema.source)
-
   override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)

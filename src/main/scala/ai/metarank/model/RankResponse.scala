@@ -1,9 +1,8 @@
-package ai.metarank.main
+package ai.metarank.model
 
-import ai.metarank.main.RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.Identifier._
+import ai.metarank.model.RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
-import ai.metarank.model.{FeatureValue, MValue}
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 

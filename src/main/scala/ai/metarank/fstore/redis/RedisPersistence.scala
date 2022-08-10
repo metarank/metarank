@@ -7,6 +7,7 @@ import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
 import ai.metarank.fstore.redis.client.{RedisClient, RedisPipeline}
 import ai.metarank.model.{FeatureValue, Key, Schema}
+import ai.metarank.rank.Model.Scorer
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.effect.std.Queue
@@ -30,11 +31,13 @@ case class RedisPersistence(
   override lazy val stats   = schema.stats.view.mapValues(RedisStatsEstimatorFeature(_, stateClient)).toMap
   override lazy val maps    = schema.maps.view.mapValues(RedisMapFeature(_, stateClient)).toMap
 
-  override lazy val models: Persistence.KVStore[Persistence.ModelKey, String] = RedisKVStore(modelClient)
+  import ai.metarank.rank.Model._
+  override lazy val models: Persistence.KVStore[Persistence.ModelKey, Scorer] =
+    RedisKVStore(modelClient)(KVCodec.modelKeyCodec, KVCodec.jsonCodec)
 
   override lazy val values: Persistence.KVStore[Key, FeatureValue] = RedisKVStore(valuesClient)
 
-  override lazy val cts: Persistence.ClickthroughStore = ???
+  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(ctsClient)
 
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void

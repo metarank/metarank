@@ -3,6 +3,7 @@ package ai.metarank.fstore.memory
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.model.{FeatureValue, Key, Schema}
+import ai.metarank.rank.Model.Scorer
 import cats.effect.IO
 
 case class MemPersistence(schema: Schema) extends Persistence {
@@ -14,7 +15,7 @@ case class MemPersistence(schema: Schema) extends Persistence {
   override lazy val stats            = schema.stats.view.mapValues(MemStatsEstimator(_)).toMap
   override lazy val maps             = schema.maps.view.mapValues(MemMapFeature(_)).toMap
 
-  override lazy val models: Persistence.KVStore[Persistence.ModelKey, String] = MemKVStore()
+  override lazy val models: Persistence.KVStore[Persistence.ModelKey, Scorer] = MemKVStore()
   override lazy val values: Persistence.KVStore[Key, FeatureValue]            = MemKVStore()
 
   override lazy val cts: Persistence.ClickthroughStore = MemClickthroughStore()

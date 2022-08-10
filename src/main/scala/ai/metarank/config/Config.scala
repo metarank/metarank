@@ -1,6 +1,8 @@
 package ai.metarank.config
 
+import ai.metarank.config.InputConfig.ApiInputConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.StateStoreConfig.MemoryStateConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import better.files.File
@@ -19,7 +21,26 @@ case class Config(
 
 object Config extends Logging {
 
-  implicit val configDecoder: Decoder[Config] = deriveDecoder[Config]
+  implicit val configDecoder: Decoder[Config] = Decoder.instance(c =>
+    for {
+      apiOption   <- c.downField("api").as[Option[ApiConfig]]
+      stateOption <- c.downField("state").as[Option[StateStoreConfig]]
+      inputOption <- c.downField("input").as[Option[InputConfig]]
+      env         <- c.downField("env").as[List[EnvConfig]]
+    } yield {
+      val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
+      val state = get(stateOption, MemoryStateConfig(), "state")
+      val input = get(inputOption, ApiInputConfig(), "input")
+      Config(api, state, input, env)
+    }
+  )
+
+  def get[T](opt: Option[T], default: T, name: String) = opt match {
+    case Some(value) => value
+    case None =>
+      logger.info(s"$name conf block is not defined: using default $default")
+      default
+  }
 
   def load(contents: String): IO[Config] = {
     for {
@@ -27,15 +48,6 @@ object Config extends Logging {
       decoded <- IO.fromEither(yaml.as[Config])
     } yield {
       decoded
-    }
-  }
-
-  case class NonUniqueName(name: String, count: Int) {
-    def toString(prefix: String) = s"non-unique $prefix '$name' is defined more than once"
-  }
-  private def nonUniqueNames[T](list: NonEmptyList[T], name: T => String): List[NonUniqueName] = {
-    list.map(name).groupBy(identity).filter(_._2.size > 1).toList.map { case (key, values) =>
-      NonUniqueName(key, values.size)
     }
   }
 }

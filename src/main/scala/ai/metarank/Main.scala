@@ -1,6 +1,5 @@
 package ai.metarank
 
-import ai.metarank.main.api.Api
 import ai.metarank.mode.validate.Validate
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}

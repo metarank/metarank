@@ -17,4 +17,5 @@ object NoopModel {
   case object NoopScorer extends Scorer {
     override def score(input: Query): Array[Double] = new Array[Double](input.rows)
   }
+
 }

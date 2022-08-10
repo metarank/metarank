@@ -3,11 +3,12 @@ package ai.metarank.main.api
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.fstore.Persistence
-import ai.metarank.main.RankResponse
-import RankResponse.{ItemScore, StateValues}
+import ai.metarank.model.RankResponse.{ItemScore, StateValues}
+import ai.metarank.fstore.Persistence.ModelKey
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.{Env, ItemValue}
+import ai.metarank.model.{Env, ItemValue, RankResponse}
 import ai.metarank.rank.Model.Scorer
+import ai.metarank.source.ModelCache
 import ai.metarank.util.Logging
 import cats.effect._
 import cats.implicits._
@@ -24,12 +25,12 @@ import scala.concurrent.duration._
 case class RankApi(
     mappings: List[FeatureMapping],
     store: Persistence,
-    scorers: Map[String, Scorer]
+    models: ModelCache
 ) extends Logging {
   import RankApi._
   import ai.metarank.model.Event.EventCodecs._
 
-  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / env / "rank" / model :? ExplainParamDecoder(explain) =>
+  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / env / model / "_rank" :? ExplainParamDecoder(explain) =>
     for {
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))
@@ -55,11 +56,8 @@ case class RankApi(
     }
     itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping) }
     query             <- IO { ClickthroughQuery(itemFeatureValues, 0.0, request.id.value, ranker.datasetDescriptor) }
-    scorer <- scorers.get(model) match {
-      case Some(existing) => IO.pure(existing)
-      case None           => IO.raiseError(ModelError(s"model $model is not configured"))
-    }
-    scores <- IO { scorer.score(query) }
+    scorer            <- models.get(request.env, model)
+    scores            <- IO { scorer.score(query) }
     result <- explain match {
       case true  => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
       case false => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }

@@ -19,7 +19,8 @@ trait FeatureTest {
       env = Env.default
     )
 
-    val flow = FeatureValueFlow(mapping, MemPersistence(mapping.schema), Scaffeine().maximumSize(0).build())
+    val flow =
+      FeatureValueFlow(Map(Env.default -> mapping), MemPersistence(mapping.schema), Scaffeine().maximumSize(0).build())
     val featureValues =
       Stream.emits(events).through(flow.process).compile.toList.unsafeRunSync().map(fv => fv.key -> fv).toMap
 

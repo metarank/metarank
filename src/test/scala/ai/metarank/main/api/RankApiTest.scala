@@ -1,7 +1,13 @@
 package ai.metarank.main.api
 
+import ai.metarank.fstore.Persistence.ModelKey
 import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.model.Env
+import ai.metarank.rank.Model.Scorer
+import ai.metarank.source.ModelCache
 import ai.metarank.util.{RandomScorer, TestFeatureMapping, TestRankingEvent}
+import cats.effect.IO
+import cats.effect.kernel.Ref
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -11,7 +17,9 @@ import scala.util.Random
 class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val random  = new Random(1)
   lazy val mapping = TestFeatureMapping()
-  lazy val service = RankApi(List(mapping), MemPersistence(mapping.schema), Map("random" -> RandomScorer()))
+  lazy val store   = MemPersistence(mapping.schema)
+  lazy val models  = ModelCache(store)
+  lazy val service = RankApi(List(mapping), store, models)
 
   it should "respond with the same data reranked" in {
     val response =

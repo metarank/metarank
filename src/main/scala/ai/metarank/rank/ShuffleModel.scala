@@ -1,10 +1,10 @@
 package ai.metarank.rank
 
 import ai.metarank.config.ModelConfig.ShuffleConfig
-import ai.metarank.model.{Clickthrough, Event, FeatureValue, ItemValue}
 import ai.metarank.rank.Model.Scorer
+import io.circe.Codec
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
-
+import io.circe.generic.semiauto._
 import scala.util.Random
 
 case class ShuffleModel(conf: ShuffleConfig) extends Model {
@@ -23,4 +23,6 @@ object ShuffleModel {
       }
     }
   }
+
+  implicit val shuffleScorerCodec: Codec[ShuffleScorer] = deriveCodec[ShuffleScorer]
 }

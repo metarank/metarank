@@ -3,15 +3,14 @@ package ai.metarank.rank
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ModelBackend}
 import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
 import ai.metarank.feature.BaseFeature
-import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature}
-import ai.metarank.model.ItemValue
-import ai.metarank.model.{Clickthrough, Event, FeatureValue}
 import ai.metarank.rank.LambdaMARTModel.{Fillrate, LambdaMARTScorer}
 import ai.metarank.rank.Model.Scorer
 import cats.data.NonEmptyMap
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
+import org.apache.commons.codec.binary.Hex
 
 case class LambdaMARTModel(
     conf: LambdaMARTConfig,
@@ -97,4 +96,42 @@ object LambdaMARTModel {
       case _: XGBoostBackend  => LambdaMARTScorer(XGBoostBooster(bytes))
     }
   }
+
+  implicit val lmEncoder: Encoder[LambdaMARTScorer] = Encoder.instance {
+    case s @ LambdaMARTScorer(XGBoostBooster(_)) =>
+      Json.fromJsonObject(
+        JsonObject.fromMap(
+          Map(
+            "booster" -> Json.fromString("xgboost"),
+            "bytes"   -> Json.fromString(Hex.encodeHexString(s.booster.save()))
+          )
+        )
+      )
+    case s @ LambdaMARTScorer(LightGBMBooster(_, _)) =>
+      Json.fromJsonObject(
+        JsonObject.fromMap(
+          Map(
+            "booster" -> Json.fromString("lightgbm"),
+            "bytes"   -> Json.fromString(Hex.encodeHexString(s.booster.save()))
+          )
+        )
+      )
+    case LambdaMARTScorer(_) => ???
+  }
+
+  implicit val lmDecoder: Decoder[LambdaMARTScorer] = Decoder.instance(c =>
+    for {
+      tpe   <- c.downField("booster").as[String]
+      bytes <- c.downField("bytes").as[String].map(Hex.decodeHex)
+      booster <- tpe match {
+        case "xgboost"  => Right(XGBoostBooster(bytes))
+        case "lightgbm" => Right(LightGBMBooster(bytes))
+        case other      => Left(DecodingFailure(s"booster type $other is not supported", c.history))
+      }
+    } yield {
+      LambdaMARTScorer(booster)
+    }
+  )
+
+  implicit val lmCodec: Codec[LambdaMARTScorer] = Codec.from(lmDecoder, lmEncoder)
 }

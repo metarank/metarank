@@ -1,6 +1,7 @@
 package ai.metarank.fstore.redis.client
 
 import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
+import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.lettuce.core.{ScanArgs, RedisClient => LettuceClient, ScanCursor => LettuceCursor}
@@ -70,15 +71,16 @@ case class RedisClient(
     ).map(sc => ScanCursor(sc.getKeys.asScala.toList, sc.getCursor))
 }
 
-object RedisClient {
+object RedisClient extends Logging {
   case class ScanCursor(keys: List[String], cursor: String)
   def create(host: String, port: Int, db: Int): Resource[IO, RedisClient] = {
     Resource.make(IO {
       val client = io.lettuce.core.RedisClient.create(s"redis://$host:$port")
       val conn   = client.connect[String, String](RedisCodec.of(new StringCodec(), new StringCodec()))
       conn.sync().select(db)
+      info(s"opened connection redis://$host:$port, db=$db")
       new RedisClient(client, conn.async())
-    })(client => IO(client.lettuce.close()))
+    })(client => info("closing redis connection") *> IO(client.lettuce.close()))
   }
 
 }

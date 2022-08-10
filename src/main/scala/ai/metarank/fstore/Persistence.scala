@@ -16,6 +16,8 @@ import ai.metarank.model.Feature.{
 }
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Clickthrough, Env, EventId, FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.rank.Model.Scorer
+import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec
 
@@ -31,12 +33,12 @@ trait Persistence {
   def maps: Map[FeatureKey, MapFeature]
 
   def values: KVStore[Key, FeatureValue]
-  def models: KVStore[ModelKey, String]
+  def models: KVStore[ModelKey, Scorer]
   def cts: ClickthroughStore
   def healthcheck(): IO[Unit]
 }
 
-object Persistence {
+object Persistence extends Logging {
   case class ModelKey(env: Env, name: String)
   trait KVCodec[T] {
     def encode(value: T): String
@@ -95,7 +97,8 @@ object Persistence {
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
     case StateStoreConfig.RedisStateConfig(host, port, db) =>
       RedisPersistence.create(schema, host.value, port.value, db)
-    case StateStoreConfig.MemoryStateConfig() => Resource.make(IO(MemPersistence(schema)))(_ => IO.unit)
+    case StateStoreConfig.MemoryStateConfig() =>
+      Resource.make(info("using in-memory persistence") *> IO(MemPersistence(schema)))(_ => IO.unit)
   }
 
   def fromConfig(schemas: List[Schema], conf: StateStoreConfig): Resource[IO, Persistence] =
@@ -112,7 +115,7 @@ object Persistence {
     override def maps: Map[FeatureKey, MapFeature]                  = Map.empty
 
     override lazy val cts: ClickthroughStore             = ???
-    override lazy val models: KVStore[ModelKey, String]  = KVStore.empty
+    override lazy val models: KVStore[ModelKey, Scorer]  = KVStore.empty
     override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
     override def healthcheck(): IO[Unit]                 = IO.unit
   }

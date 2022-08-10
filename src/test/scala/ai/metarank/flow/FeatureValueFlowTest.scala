@@ -15,11 +15,12 @@ import org.scalatest.matchers.should.Matchers
 import fs2.Stream
 
 class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
-  val mapping = TestFeatureMapping()
-  val event   = TestItemEvent("p1").copy(fields = List(NumberField("price", 10)))
+  val mapping  = TestFeatureMapping()
+  val mappings = Map(Env.default -> mapping)
+  val event    = TestItemEvent("p1").copy(fields = List(NumberField("price", 10)))
 
   it should "accept writes" in {
-    val flow = FeatureValueFlow(mapping, MemPersistence(mapping.schema))
+    val flow = FeatureValueFlow(mappings, MemPersistence(mapping.schema))
     val values = Stream
       .emit(event)
       .through(flow.process)
@@ -32,7 +33,7 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
   }
 
   it should "obey refresh rate" in {
-    val flow = FeatureValueFlow(mapping, MemPersistence(mapping.schema))
+    val flow = FeatureValueFlow(mappings, MemPersistence(mapping.schema))
     val values = Stream
       .emits(List(event, event, event))
       .through(flow.process)

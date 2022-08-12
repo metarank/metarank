@@ -14,9 +14,9 @@ object ClickthroughQuery {
         label = label,
         group = math.abs(id.hashCode),
         values = item.values.flatMap {
-          case MValue.SingleValue(_, value)     => List(value)
-          case MValue.CategoryValue(_, index)   => List(index.toDouble)
-          case MValue.VectorValue(_, values, _) => values
+          case MValue.SingleValue(_, value)      => List(value)
+          case MValue.CategoryValue(_, _, index) => List(index.toDouble)
+          case MValue.VectorValue(_, values, _)  => values
         }.toArray
       )
     }

@@ -105,14 +105,15 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
         case ScopeType.SessionScopeType => request.session.map(s => Key(SessionScope(s), conf.name))
         case _                          => None
       }
-      medium <- features.get(key).flatMap {
-        case ScalarValue(_, _, SString(medium)) => possibleValues.get(medium)
+      mediumString <- features.get(key).flatMap {
+        case ScalarValue(_, _, SString(medium)) => Some(medium)
         case _                                  => None
       }
+      index <- possibleValues.get(mediumString)
     } yield {
-      CategoryValue(schema.name, medium)
+      CategoryValue(schema.name, mediumString, index)
     }
-    result.getOrElse(CategoryValue(schema.name, 0))
+    result.getOrElse(CategoryValue(schema.name, "unknown", 0))
   }
 
 }

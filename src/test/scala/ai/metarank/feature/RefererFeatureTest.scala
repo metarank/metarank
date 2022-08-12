@@ -37,6 +37,6 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "parse referer field from state" in {
     val values = process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(user = UserId("u1")))
-    values shouldBe List(List(CategoryValue(FeatureName("ref_medium"), 1)))
+    values shouldBe List(List(CategoryValue(FeatureName("ref_medium"), "search", 1)))
   }
 }

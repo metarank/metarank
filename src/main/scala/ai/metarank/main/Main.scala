@@ -14,10 +14,10 @@ import scala.util.Try
 
 object Main extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = for {
-    args       <- IO.fromEither(CliArgs.parse(args)).onError(ex => IO(CliArgs))
+    args       <- IO.fromEither(CliArgs.parse(args))
     confString <- IO.fromTry(Try(IOUtils.toString(new FileInputStream(args.conf.toFile), StandardCharsets.UTF_8)))
     conf       <- Config.load(confString)
-    mapping   <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
+    mapping    <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
     store = Persistence.fromConfig(mapping.schema, conf.state)
     _ <- args match {
       case a: ServeArgs  => Serve.run(conf, store, mapping, a)

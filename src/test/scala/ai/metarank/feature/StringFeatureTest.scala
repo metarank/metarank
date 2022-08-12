@@ -68,7 +68,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(CategoryValue(FeatureName("color"), 2)))
+    values shouldBe List(List(CategoryValue(FeatureName("color"), "green", 2)))
   }
 
   it should "scope value to user" in {
@@ -87,7 +87,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     val values =
       process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))
-    values shouldBe List(List(CategoryValue(FeatureName("country"), 2)))
+    values shouldBe List(List(CategoryValue(FeatureName("country"), "EU", 2)))
   }
 
   it should "onehot encode values" in {

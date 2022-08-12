@@ -99,9 +99,9 @@ object StringFeature {
       values.headOption match {
         case Some(first) =>
           val index = possibleValues.indexOf(first)
-          CategoryValue(name, index + 1) // zero is
+          CategoryValue(name, first, index + 1) // zero is
         case None =>
-          CategoryValue(name, 0)
+          CategoryValue(name, "nil", 0)
       }
     }
   }

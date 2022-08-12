@@ -19,7 +19,8 @@ case class RedisPersistence(
     stateClient: RedisClient,
     modelClient: RedisClient,
     valuesClient: RedisClient,
-    ctsClient: RedisClient
+    rankingsClient: RedisClient,
+    intsClient: RedisClient
 ) extends Persistence {
   override lazy val counters = schema.counters.view.mapValues(RedisCounterFeature(_, stateClient)).toMap
   override lazy val periodicCounters =
@@ -37,7 +38,7 @@ case class RedisPersistence(
 
   override lazy val values: Persistence.KVStore[Key, FeatureValue] = RedisKVStore(valuesClient)
 
-  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(ctsClient)
+  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, intsClient)
 
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void
@@ -46,12 +47,13 @@ case class RedisPersistence(
 
 object RedisPersistence {
   def create(schema: Schema, host: String, port: Int, db: DBConfig): Resource[IO, RedisPersistence] = for {
-    state  <- RedisClient.create(host, port, db.state)
-    models <- RedisClient.create(host, port, db.models)
-    values <- RedisClient.create(host, port, db.values)
-    cts    <- RedisClient.create(host, port, db.cts)
+    state    <- RedisClient.create(host, port, db.state)
+    models   <- RedisClient.create(host, port, db.models)
+    values   <- RedisClient.create(host, port, db.values)
+    rankings <- RedisClient.create(host, port, db.rankings)
+    clicks   <- RedisClient.create(host, port, db.clicks)
   } yield {
-    RedisPersistence(schema, state, models, values, cts)
+    RedisPersistence(schema, state, models, values, rankings, clicks)
   }
 
 }

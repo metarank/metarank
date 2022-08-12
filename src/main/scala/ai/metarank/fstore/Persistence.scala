@@ -4,6 +4,7 @@ import ai.metarank.config.StateStoreConfig
 import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec, KVStore, ModelName}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
+import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.Feature.{
   BoundedList,
@@ -14,8 +15,20 @@ import ai.metarank.model.Feature.{
   ScalarFeature,
   StatsEstimator
 }
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Clickthrough, EventId, FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.model.{
+  Clickthrough,
+  ClickthroughValues,
+  EventId,
+  FeatureKey,
+  FeatureValue,
+  ItemValue,
+  Key,
+  MValue,
+  Schema,
+  Scope
+}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
@@ -86,9 +99,11 @@ object Persistence extends Logging {
   }
 
   trait ClickthroughStore {
-    def put(ct: Clickthrough): IO[Unit]
-    def get(id: EventId): IO[Option[Clickthrough]]
-    def getall(): fs2.Stream[IO, Clickthrough]
+    def putRanking(ranking: RankingEvent): IO[Unit]
+    def putValues(id: EventId, values: List[ItemValue]): IO[Unit]
+    def putInteraction(id: EventId, item: ItemId, tpe: String): IO[Unit]
+    def getClickthrough(id: EventId): IO[Option[Clickthrough]]
+    def getall(): fs2.Stream[IO, ClickthroughValues]
   }
 
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
@@ -97,7 +112,6 @@ object Persistence extends Logging {
     case StateStoreConfig.MemoryStateConfig() =>
       Resource.make(info("using in-memory persistence") *> IO(MemPersistence(schema)))(_ => IO.unit)
   }
-
 
   def blackhole() = new Persistence {
     override def schema: Schema                                     = Schema(Nil)

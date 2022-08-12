@@ -69,6 +69,9 @@ case class RedisClient(
     IO.fromCompletableFuture(
       IO(commands.scan(LettuceCursor.of(cursor), ScanArgs.Builder.limit(count)).toCompletableFuture)
     ).map(sc => ScanCursor(sc.getKeys.asScala.toList, sc.getCursor))
+
+  def append(key: String, value: String): IO[Long] =
+    IO.fromCompletableFuture(IO(commands.append(key, value).toCompletableFuture)).map(_.longValue())
 }
 
 object RedisClient extends Logging {
@@ -78,7 +81,7 @@ object RedisClient extends Logging {
       val client = io.lettuce.core.RedisClient.create(s"redis://$host:$port")
       val conn   = client.connect[String, String](RedisCodec.of(new StringCodec(), new StringCodec()))
       conn.sync().select(db)
-      info(s"opened connection redis://$host:$port, db=$db")
+      logger.info(s"opened connection redis://$host:$port, db=$db")
       new RedisClient(client, conn.async())
     })(client => info("closing redis connection") *> IO(client.lettuce.close()))
   }

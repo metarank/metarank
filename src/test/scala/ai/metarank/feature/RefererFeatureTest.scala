@@ -4,7 +4,7 @@ import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.ScopeType._
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{Env, FieldName, Key, Timestamp}
+import ai.metarank.model.{FieldName, Key, Timestamp}
 import ai.metarank.model.FieldName.EventType.{Ranking, User}
 import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.Key.FeatureName
@@ -31,12 +31,12 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   it should "extract referer field" in {
     val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      Put(Key(UserScope(Env("default"), UserId("u1")), FeatureName("ref_medium")), event.timestamp, SString("search"))
+      Put(Key(UserScope(UserId("u1")), FeatureName("ref_medium")), event.timestamp, SString("search"))
     )
   }
 
   it should "parse referer field from state" in {
     val values = process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(user = UserId("u1")))
-    values shouldBe List(List(CategoryValue("ref_medium", 1)))
+    values shouldBe List(List(CategoryValue(FeatureName("ref_medium"), 1)))
   }
 }

@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Env, FeatureSchema, FieldName, Key}
+import ai.metarank.model.{FeatureSchema, FieldName, Key}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
@@ -38,7 +38,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val event  = TestItemEvent("p1", List(StringField("title", "foo, bar, baz!")))
     val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("title_words")), event.timestamp, SDouble(3))
+      Put(Key(ItemScope(ItemId("p1")), FeatureName("title_words")), event.timestamp, SDouble(3))
     )
   }
 
@@ -48,7 +48,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(SingleValue("title_words", 3.0)))
+    values shouldBe List(List(SingleValue(FeatureName("title_words"), 3.0)))
   }
 
 }

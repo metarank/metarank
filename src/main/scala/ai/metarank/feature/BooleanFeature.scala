@@ -9,7 +9,7 @@ import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Env, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.Logging
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
@@ -60,9 +60,9 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
       scalar <- value.cast[ScalarValue]
       bool   <- scalar.value.cast[SBoolean]
     } yield {
-      SingleValue(schema.name.value, if (bool.value) 1.0 else 0.0)
+      SingleValue(schema.name, if (bool.value) 1.0 else 0.0)
     }
-    result.getOrElse(SingleValue(schema.name.value, 0.0))
+    result.getOrElse(SingleValue(schema.name, 0.0))
   }
 }
 

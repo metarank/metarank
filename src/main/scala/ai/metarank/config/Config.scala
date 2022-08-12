@@ -1,22 +1,20 @@
 package ai.metarank.config
 
 import ai.metarank.config.InputConfig.ApiInputConfig
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.StateStoreConfig.MemoryStateConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
-import better.files.File
 import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.IO
 import io.circe.Decoder
-import io.circe.generic.semiauto._
 import io.circe.yaml.parser.{parse => parseYaml}
 
 case class Config(
     api: ApiConfig,
     state: StateStoreConfig,
     input: InputConfig,
-    env: List[EnvConfig]
+    features: NonEmptyList[FeatureSchema],
+    models: NonEmptyMap[String, ModelConfig]
 )
 
 object Config extends Logging {
@@ -26,12 +24,13 @@ object Config extends Logging {
       apiOption   <- c.downField("api").as[Option[ApiConfig]]
       stateOption <- c.downField("state").as[Option[StateStoreConfig]]
       inputOption <- c.downField("input").as[Option[InputConfig]]
-      env         <- c.downField("env").as[List[EnvConfig]]
+      features    <- c.downField("features").as[NonEmptyList[FeatureSchema]]
+      models      <- c.downField("models").as[NonEmptyMap[String, ModelConfig]]
     } yield {
       val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
       val state = get(stateOption, MemoryStateConfig(), "state")
       val input = get(inputOption, ApiInputConfig(), "input")
-      Config(api, state, input, env)
+      Config(api, state, input, features, models)
     }
   )
 

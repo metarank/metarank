@@ -9,7 +9,7 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.model.{Env, FieldName}
+import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
@@ -47,6 +47,6 @@ object TestFeatureMapping {
         weights = NonEmptyMap.of("click" -> 1)
       )
     )
-    FeatureMapping.fromFeatureSchema(Env.default, features, models)
+    FeatureMapping.fromFeatureSchema(features, models)
   }
 }

@@ -8,7 +8,7 @@ case class Key(scope: Scope, feature: FeatureName) {
 }
 
 object Key {
-  case class FeatureName(value: String)
+  case class FeatureName(value: String) extends AnyVal
 
   implicit val nameCodec: Codec[FeatureName] = stringCodec(_.value, FeatureName.apply)
 

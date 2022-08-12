@@ -14,7 +14,6 @@ sealed trait Event {
   def id: EventId
   def timestamp: Timestamp
   def fields: List[Field]
-  def env: Env
 
   lazy val fieldsMap = fields.map(f => f.name -> f).toMap
 }
@@ -27,7 +26,6 @@ object Event {
       item: ItemId,
       timestamp: Timestamp,
       fields: List[Field] = Nil,
-      env: Env = Env("default")
   ) extends MetadataEvent
 
   case class UserEvent(
@@ -35,7 +33,6 @@ object Event {
       user: UserId,
       timestamp: Timestamp,
       fields: List[Field] = Nil,
-      env: Env = Env("default")
   ) extends MetadataEvent
 
   sealed trait FeedbackEvent extends Event {
@@ -50,7 +47,6 @@ object Event {
       session: Option[SessionId],
       fields: List[Field] = Nil,
       items: NonEmptyList[ItemRelevancy],
-      env: Env = Env("default")
   ) extends FeedbackEvent
 
   case class InteractionEvent(
@@ -62,7 +58,6 @@ object Event {
       session: Option[SessionId],
       `type`: String,
       fields: List[Field] = Nil,
-      env: Env = Env("default")
   ) extends FeedbackEvent
 
   case class ItemRelevancy(id: ItemId, relevancy: Option[Double] = None)

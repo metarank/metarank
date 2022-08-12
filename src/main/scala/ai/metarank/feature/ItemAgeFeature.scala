@@ -69,7 +69,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
       features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue =
-    features.get(Key(ItemScope(request.env, id.id), conf.name)) match {
+    features.get(Key(ItemScope(id.id), conf.name)) match {
       case Some(ScalarValue(_, _, SDouble(value))) =>
         val updatedAt = Timestamp(math.round(value * 1000))
         SingleValue(schema.name, updatedAt.diff(request.timestamp).toSeconds.toDouble)

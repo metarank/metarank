@@ -32,7 +32,7 @@ case class RedisPersistence(
   override lazy val maps    = schema.maps.view.mapValues(RedisMapFeature(_, stateClient)).toMap
 
   import ai.metarank.rank.Model._
-  override lazy val models: Persistence.KVStore[Persistence.ModelKey, Scorer] =
+  override lazy val models: Persistence.KVStore[Persistence.ModelName, Scorer] =
     RedisKVStore(modelClient)(KVCodec.modelKeyCodec, KVCodec.jsonCodec)
 
   override lazy val values: Persistence.KVStore[Key, FeatureValue] = RedisKVStore(valuesClient)

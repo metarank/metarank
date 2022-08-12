@@ -1,6 +1,9 @@
 package ai.metarank.main
 
+import ai.metarank.config.InputConfig.SourceOffset
+import ai.metarank.config.SourceFormat
 import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs}
+import ai.metarank.source.format.JsonFormat
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -22,7 +25,9 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
   }
 
   it should "parse import" in {
-    CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString)) shouldBe Right(ImportArgs(conf, data))
+    CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString)) shouldBe Right(
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat)
+    )
   }
 
 }

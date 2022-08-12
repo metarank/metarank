@@ -71,7 +71,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
             }
           } yield {
             Put(
-              key = Key(ItemScope(event.env, item.item), itemValues.name),
+              key = Key(ItemScope(item.item), itemValues.name),
               ts = event.timestamp,
               value = SString(string)
             )
@@ -79,10 +79,10 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         }
       case int: InteractionEvent if int.`type` == schema.interaction =>
         for {
-          feature <- IO.fromOption(features.scalars.get(FeatureKey(event.env, itemValues.scope, itemValues.name)))(
+          feature <- IO.fromOption(features.scalars.get(FeatureKey(itemValues.scope, itemValues.name)))(
             new Exception(s"feature not mapped")
           )
-          scalar <- feature.computeValue(Key(ItemScope(int.env, int.item), itemValues.name), int.timestamp)
+          scalar <- feature.computeValue(Key(ItemScope(int.item), itemValues.name), int.timestamp)
         } yield {
           for {
             string <- scalar match {
@@ -102,12 +102,12 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     makeVisitorKey(event).toList ++ event.items.map(ir => makeItemKey(event, ir.id)).toList
 
   private def makeVisitorKey(request: Event.RankingEvent) = schema.scope match {
-    case SessionScopeType => request.session.map(s => Key(SessionScope(request.env, s), lastValues.name))
-    case UserScopeType    => Some(Key(UserScope(request.env, request.user), lastValues.name))
+    case SessionScopeType => request.session.map(s => Key(SessionScope(s), lastValues.name))
+    case UserScopeType    => Some(Key(UserScope(request.user), lastValues.name))
     case _                => None
   }
 
-  private def makeItemKey(request: Event.RankingEvent, id: ItemId) = Key(ItemScope(request.env, id), itemValues.name)
+  private def makeItemKey(request: Event.RankingEvent, id: ItemId) = Key(ItemScope(id), itemValues.name)
 
   override def value(
       request: Event.RankingEvent,

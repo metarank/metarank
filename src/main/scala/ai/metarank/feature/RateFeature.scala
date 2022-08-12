@@ -22,7 +22,6 @@ import scala.concurrent.duration.FiniteDuration
 
 case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
-  val names             = schema.periods.map(period => s"${schema.name.value}_$period")
 
   val top = PeriodicCounterConfig(
     scope = schema.scope,
@@ -48,7 +47,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
       case e: InteractionEvent if e.`type` == schema.top =>
         Some(
           PeriodicIncrement(
-            Key(ItemScope(event.env, e.item), top.name),
+            Key(ItemScope(e.item), top.name),
             event.timestamp,
             1
           )
@@ -56,7 +55,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
       case e: InteractionEvent if e.`type` == schema.bottom =>
         Some(
           PeriodicIncrement(
-            Key(ItemScope(event.env, e.item), bottom.name),
+            Key(ItemScope(e.item), bottom.name),
             event.timestamp,
             1
           )
@@ -73,15 +72,15 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
       id: ItemRelevancy
   ): MValue = {
     val result = for {
-      topValue    <- features.get(Key(ItemScope(request.env, id.id), top.name))
-      bottomValue <- features.get(Key(ItemScope(request.env, id.id), bottom.name))
+      topValue    <- features.get(Key(ItemScope(id.id), top.name))
+      bottomValue <- features.get(Key(ItemScope(id.id), bottom.name))
       topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim
       bottomNum   <- bottomValue.cast[PeriodicCounterValue] if (bottomNum.values.size == dim)
     } yield {
       val values = topNum.values.zip(bottomNum.values).map(x => x._1.value / x._2.value.toDouble).toArray
-      VectorValue(names, values, dim)
+      VectorValue(schema.name, values, dim)
     }
-    result.getOrElse(VectorValue.empty(names, dim))
+    result.getOrElse(VectorValue.empty(schema.name, dim))
   }
 }
 

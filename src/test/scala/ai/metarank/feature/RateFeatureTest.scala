@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Env, FeatureSchema, Key}
+import ai.metarank.model.{FeatureSchema, Key}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
@@ -30,12 +30,12 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   it should "extract writes" in {
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
     feature.writes(click, Persistence.blackhole()).unsafeRunSync().toList shouldBe List(
-      PeriodicIncrement(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("ctr_click")), click.timestamp, 1)
+      PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("ctr_click")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
     feature.writes(impression, Persistence.blackhole()).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("ctr_impression")),
+        Key(ItemScope(ItemId("p1")), FeatureName("ctr_impression")),
         impression.timestamp,
         1
       )
@@ -56,6 +56,6 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(VectorValue(List("ctr_7", "ctr_14"), Array(0.25, 0.25), 2)))
+    values shouldBe List(List(VectorValue(FeatureName("ctr"), Array(0.25, 0.25), 2)))
   }
 }

@@ -67,7 +67,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
         for {
           item <- request.items.toList
         } yield {
-          val key = Key(ItemScope(request.env, item.id), conf.name)
+          val key = Key(ItemScope(item.id), conf.name)
           val result = for {
             featureValue <- features.get(key)
             itemStringTokens <- featureValue match {

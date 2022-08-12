@@ -19,6 +19,6 @@ class RelevancyTest extends AnyFlatSpec with Matchers {
         ItemRelevancy(ItemId("p2"), 2)
       )
     )
-    feature.value(event, Map.empty, ItemRelevancy(ItemId("p1"), 1)) shouldBe SingleValue("rel", 1.0)
+    feature.value(event, Map.empty, ItemRelevancy(ItemId("p1"), 1)) shouldBe SingleValue(FeatureName("rel"), 1.0)
   }
 }

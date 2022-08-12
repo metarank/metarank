@@ -79,8 +79,8 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
   def writeField(event: Event, user: UserId, session: Option[SessionId]): Iterable[Put] = {
     for {
       key <- schema.scope match {
-        case ScopeType.UserScopeType    => Some(Key(UserScope(event.env, user), conf.name))
-        case ScopeType.SessionScopeType => session.map(s => Key(SessionScope(event.env, s), conf.name))
+        case ScopeType.UserScopeType    => Some(Key(UserScope(user), conf.name))
+        case ScopeType.SessionScopeType => session.map(s => Key(SessionScope(s), conf.name))
         case _                          => None
       }
       field <- event.fieldsMap.get(schema.source.field)
@@ -101,8 +101,8 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue]): MValue = {
     val result = for {
       key <- schema.scope match {
-        case ScopeType.UserScopeType    => Some(Key(UserScope(request.env, request.user), conf.name))
-        case ScopeType.SessionScopeType => request.session.map(s => Key(SessionScope(request.env, s), conf.name))
+        case ScopeType.UserScopeType    => Some(Key(UserScope(request.user), conf.name))
+        case ScopeType.SessionScopeType => request.session.map(s => Key(SessionScope(s), conf.name))
         case _                          => None
       }
       medium <- features.get(key).flatMap {
@@ -110,9 +110,9 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
         case _                                  => None
       }
     } yield {
-      CategoryValue(schema.name.value, medium)
+      CategoryValue(schema.name, medium)
     }
-    result.getOrElse(CategoryValue(schema.name.value, 0))
+    result.getOrElse(CategoryValue(schema.name, 0))
   }
 
 }

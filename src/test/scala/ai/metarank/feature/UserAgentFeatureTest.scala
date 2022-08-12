@@ -32,7 +32,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val values = process(List(event), feature.schema, event)
     values shouldBe List(
       List(
-        VectorValue(List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"), Array(0.0, 1.0, 0.0), 3)
+        VectorValue(FeatureName("ua_platform"), Array(0.0, 1.0, 0.0), 3)
       )
     )
   }
@@ -40,7 +40,7 @@ class UserAgentFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   it should "compute value from first ranking" in {
     val value = feature.value(event, Map.empty)
     value shouldBe VectorValue(
-      List("ua_platform_mobile", "ua_platform_desktop", "ua_platform_tablet"),
+      FeatureName("ua_platform"),
       Array(0.0, 1.0, 0.0),
       3
     )

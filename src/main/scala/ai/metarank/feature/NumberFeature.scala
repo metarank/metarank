@@ -7,7 +7,7 @@ import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.{Env, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue

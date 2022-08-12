@@ -8,7 +8,7 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{Env, FeatureKey, FieldName, Key}
+import ai.metarank.model.{FeatureKey, FieldName, Key}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName
@@ -59,7 +59,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     val writes = feature.writes(itemEvent1, Persistence.blackhole()).unsafeRunSync().toList
     writes shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("seen_color_field")),
+        Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
         itemEvent1.timestamp,
         SString("red")
       )
@@ -71,7 +71,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     val writes = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     writes shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("seen_color_field")),
+        Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
         event.timestamp,
         SString("red")
       )
@@ -86,7 +86,11 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     )
 
     values shouldBe List(
-      List(SingleValue("seen_color", 1.0), SingleValue("seen_color", 1.0), SingleValue("seen_color", 0))
+      List(
+        SingleValue(FeatureName("seen_color"), 1.0),
+        SingleValue(FeatureName("seen_color"), 1.0),
+        SingleValue(FeatureName("seen_color"), 0)
+      )
     )
   }
 }

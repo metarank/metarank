@@ -6,7 +6,7 @@ import ai.metarank.model.Field.NumberField
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SDouble
-import ai.metarank.model.{Env, Key}
+import ai.metarank.model.Key
 import ai.metarank.model.Scope.ItemScope
 import ai.metarank.util.{TestFeatureMapping, TestItemEvent}
 import cats.effect.unsafe.implicits.global
@@ -15,12 +15,11 @@ import org.scalatest.matchers.should.Matchers
 import fs2.Stream
 
 class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
-  val mapping  = TestFeatureMapping()
-  val mappings = Map(Env.default -> mapping)
-  val event    = TestItemEvent("p1").copy(fields = List(NumberField("price", 10)))
+  val mapping = TestFeatureMapping()
+  val event   = TestItemEvent("p1").copy(fields = List(NumberField("price", 10)))
 
   it should "accept writes" in {
-    val flow = FeatureValueFlow(mappings, MemPersistence(mapping.schema))
+    val flow = FeatureValueFlow(mapping, MemPersistence(mapping.schema))
     val values = Stream
       .emit(event)
       .through(flow.process)
@@ -28,12 +27,12 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
       .toList
       .unsafeRunSync()
     values shouldBe List(
-      ScalarValue(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
+      ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
     )
   }
 
   it should "obey refresh rate" in {
-    val flow = FeatureValueFlow(mappings, MemPersistence(mapping.schema))
+    val flow = FeatureValueFlow(mapping, MemPersistence(mapping.schema))
     val values = Stream
       .emits(List(event, event, event))
       .through(flow.process)
@@ -41,7 +40,7 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
       .toList
       .unsafeRunSync()
     values shouldBe List(
-      ScalarValue(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
+      ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
     )
   }
 }

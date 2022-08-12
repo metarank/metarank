@@ -103,8 +103,7 @@ object RanklensDatasetGenerator {
           ),
           m.director.map(d => StringField("director", d.name.toLowerCase())),
           m.writer.map(w => StringField("writer", w.name.toLowerCase()))
-        ),
-        env = Env("default")
+        )
       )
     })
     val actions: List[Event] = ranklens.actions.flatMap(t => {
@@ -125,8 +124,7 @@ object RanklensDatasetGenerator {
           user = UserId(t.user),
           session = Some(SessionId(t.user)),
           fields = Nil,
-          items = NonEmptyList.fromListUnsafe(t.shown).map(id => ItemRelevancy(ItemId(id.toString), 0)),
-          env = Env("default")
+          items = NonEmptyList.fromListUnsafe(t.shown).map(id => ItemRelevancy(ItemId(id.toString), 0))
         )
       )
       val clicks = t.liked.map(item =>
@@ -138,8 +136,7 @@ object RanklensDatasetGenerator {
           fields = Nil,
           item = ItemId(item.toString),
           ranking = Some(id),
-          `type` = "click",
-          env = Env("default")
+          `type` = "click"
         )
       )
       impression ++ clicks

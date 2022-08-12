@@ -32,8 +32,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           NumberField("price", 25),
           StringListField("color", List("blue", "black")),
           BooleanField("availability", true)
-        ),
-        env = Env("default")
+        )
       )
     )
   }
@@ -61,40 +60,11 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           NumberField("price", 25),
           StringListField("color", List("blue", "black")),
           BooleanField("availability", true)
-        ),
-        env = Env("default")
+        )
       )
     )
   }
-  it should "decode metadata with tenant" in {
-    val json = """{
-                 |  "event": "metadata",
-                 |  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
-                 |  "item": "product1",
-                 |  "timestamp": "1599391467000", 
-                 |  "fields": [
-                 |    {"name": "title", "value": "Nice jeans"},
-                 |    {"name": "price", "value": 25.0},
-                 |    {"name": "color", "value": ["blue", "black"]},
-                 |    {"name": "availability", "value": true}
-                 |  ],
-                 |  "env": "foo"
-                 |}""".stripMargin
-    decode[Event](json) shouldBe Right(
-      ItemEvent(
-        id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
-        item = ItemId("product1"),
-        timestamp = Timestamp(1599391467000L),
-        fields = List(
-          StringField("title", "Nice jeans"),
-          NumberField("price", 25),
-          StringListField("color", List("blue", "black")),
-          BooleanField("availability", true)
-        ),
-        env = Env("foo")
-      )
-    )
-  }
+
   it should "decode metadata with empty fields" in {
     val json = """{
                  |  "event": "metadata",
@@ -107,8 +77,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         item = ItemId("product1"),
         timestamp = Timestamp(1599391467000L),
-        fields = Nil,
-        env = Env("default")
+        fields = Nil
       )
     )
   }
@@ -145,8 +114,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           ItemRelevancy(ItemId("product3"), 2.0),
           ItemRelevancy(ItemId("product1"), 1.0),
           ItemRelevancy(ItemId("product2"), 0.5)
-        ),
-        env = Env("default")
+        )
       )
     )
   }
@@ -178,8 +146,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
         fields = List(
           NumberField("count", 2),
           StringField("shipping", "DHL")
-        ),
-        env = Env("default")
+        )
       )
     )
   }

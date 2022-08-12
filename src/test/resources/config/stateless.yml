@@ -8,22 +8,20 @@ state:
 input:
   type: api
 
-env:
-  - name: prod
-    models:
-      xgboost:
-        type: lambdamart
-        backend:
-          type: xgboost
-          iterations: 10
-          seed: 0
-        weights:
-          click: 1
-        features:
-          - popularity
-
+models:
+  xgboost:
+    type: lambdamart
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
     features:
-      - name: popularity
-        type: number
-        scope: item
-        source: metadata.popularity
+      - popularity
+
+features:
+  - name: popularity
+    type: number
+    scope: item
+    source: metadata.popularity

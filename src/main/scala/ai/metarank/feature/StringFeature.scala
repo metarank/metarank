@@ -28,13 +28,13 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   val encoder = schema.encode match {
     case OnehotEncoderName =>
       OnehotCategoricalEncoder(
-        names = schema.values.toList.map(value => s"${schema.name.value}_$value"),
+        name = schema.name,
         possibleValues = schema.values.toList,
         dim = schema.values.size
       )
     case IndexEncoderName =>
       IndexCategoricalEncoder(
-        name = schema.name.value,
+        name = schema.name,
         possibleValues = schema.values.toList
       )
   }
@@ -88,12 +88,12 @@ object StringFeature {
     def encode(values: Seq[String]): MValue
   }
 
-  case class OnehotCategoricalEncoder(names: List[String], possibleValues: List[String], dim: Int)
+  case class OnehotCategoricalEncoder(name: FeatureName, possibleValues: List[String], dim: Int)
       extends CategoricalEncoder {
     override def encode(values: Seq[String]): VectorValue =
-      VectorValue(names, OneHotEncoder.fromValues(values, possibleValues, dim), dim)
+      VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim), dim)
   }
-  case class IndexCategoricalEncoder(name: String, possibleValues: List[String]) extends CategoricalEncoder {
+  case class IndexCategoricalEncoder(name: FeatureName, possibleValues: List[String]) extends CategoricalEncoder {
     override val dim = 1
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {

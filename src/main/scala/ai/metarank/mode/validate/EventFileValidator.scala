@@ -30,7 +30,7 @@ object EventFileValidator extends Logging {
 
   def checkContents(lines: List[String]): CheckResult = {
     val parsed = lines.map(line => decode[Event](line))
-    val metadata = parsed.collect { case Right(m @ ItemEvent(_, _, _, _, _)) =>
+    val metadata = parsed.collect { case Right(m @ ItemEvent(_, _, _, _)) =>
       m
     }
     val ints = parsed.collect { case Right(i: InteractionEvent) =>

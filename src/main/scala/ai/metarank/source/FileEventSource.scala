@@ -6,18 +6,32 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import com.github.luben.zstd.ZstdInputStream
 import fs2.Stream
-import fs2.io.file.{Files, Path}
+import fs2.io.file.{Files, Flags, Path}
 import fs2.io.readInputStream
 
-import java.io.FileInputStream
+import java.io.{File, FileInputStream}
 import java.util.zip.GZIPInputStream
 
 case class FileEventSource(conf: FileInputConfig) extends EventSource with Logging {
   val decompressors = List("gz", "gzip", "zst")
   val formats       = List("json", "jsonl", "tsv")
 
-  override def stream: Stream[IO, Event] =
-    listRecursive(Path(conf.path)).filter(selectFile).flatMap(readFile).through(conf.format.parse)
+  override def stream: Stream[IO, Event] = {
+    val path = new File(conf.path)
+    if (path.isDirectory) {
+      Stream
+        .eval(info(s"path=${conf.path} is a directory, doing recursive listing"))
+        .flatMap(_ => listRecursive(Path(conf.path)).filter(selectFile).flatMap(readFile).through(conf.format.parse))
+
+    } else if (path.exists()) {
+      Stream
+        .eval(info(s"path=${conf.path} is a file"))
+        .flatMap(_ => Stream.emit(Path(conf.path)).filter(selectFile).flatMap(readFile).through(conf.format.parse))
+    } else {
+      Stream.raiseError[IO](new Exception(s"input path ${conf.path} does not exist"))
+    }
+
+  }
 
   def listRecursive(path: Path): Stream[IO, Path] = Files[IO]
     .list(path)
@@ -50,14 +64,16 @@ case class FileEventSource(conf: FileInputConfig) extends EventSource with Loggi
     path.extName match {
       case ".gz" | ".gzip" =>
         Stream
-          .exec(info(s"reading file $path (with gzip decompressor)"))
-          .append(readInputStream[IO](IO(new GZIPInputStream(new FileInputStream(name))), 64 * 1024))
+          .eval(info(s"reading file $path (with gzip decompressor)"))
+          .flatMap(_ => readInputStream[IO](IO(new GZIPInputStream(new FileInputStream(name))), 1024 * 1024))
       case ".zst" =>
         Stream
           .exec(info(s"reading file $path (with zstd decompressor)"))
-          .append(readInputStream[IO](IO(new ZstdInputStream(new FileInputStream(name))), 64 * 1024))
+          .append(readInputStream[IO](IO(new ZstdInputStream(new FileInputStream(name))), 1024 * 1024))
       case other =>
-        Stream.exec(info(s"reading file $path (no compression)")).append(Files[IO].readAll(path))
+        Stream
+          .eval(info(s"reading file $path (no compression)"))
+          .flatMap(_ => Files[IO].readAll(path, 1024 * 1024, Flags.Read))
     }
   }
 }

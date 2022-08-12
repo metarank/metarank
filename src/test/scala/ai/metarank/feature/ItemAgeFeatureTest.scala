@@ -5,7 +5,7 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField}
-import ai.metarank.model.{Env, FieldName, Key, Timestamp}
+import ai.metarank.model.{FieldName, Key, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -35,7 +35,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage")),
+        Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
         SDouble(updatedAt.toEpochSecond.toDouble)
       )
@@ -51,7 +51,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage")),
+        Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
         SDouble(updatedAt.toEpochSecond.toDouble)
       )
@@ -67,7 +67,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage")),
+        Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
         Timestamp(updatedAt.toInstant.toEpochMilli),
         SDouble(updatedAt.toEpochSecond.toDouble)
       )
@@ -75,7 +75,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   }
 
   it should "compute item age" in {
-    val key   = Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("itemage"))
+    val key   = Key(ItemScope(ItemId("p1")), FeatureName("itemage"))
     val nowts = Timestamp(now.toInstant.toEpochMilli)
     val result = feature.value(
       TestRankingEvent(List("p1")).copy(timestamp = nowts),
@@ -84,7 +84,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       ),
       ItemRelevancy(ItemId("p1"))
     )
-    result shouldBe SingleValue("itemage", 2332800.0)
+    result shouldBe SingleValue(FeatureName("itemage"), 2332800.0)
   }
 
   it should "process events" in {
@@ -97,6 +97,6 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       schema = feature.schema,
       request = TestRankingEvent(List("p1")).copy(timestamp = Timestamp(now.toInstant.toEpochMilli))
     )
-    result shouldBe List(List(SingleValue("itemage", 2332800.0)))
+    result shouldBe List(List(SingleValue(FeatureName("itemage"), 2332800.0)))
   }
 }

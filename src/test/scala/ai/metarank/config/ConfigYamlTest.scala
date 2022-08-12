@@ -6,7 +6,7 @@ import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.ScopeType.ItemScopeType
-import ai.metarank.model.{Env, FieldName}
+import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.Key.FeatureName
 import better.files.Resource
@@ -25,19 +25,14 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
-        env = List(
-          EnvConfig(
-            name = Env("prod"),
-            features = NonEmptyList.of(
-              NumberFeatureSchema(FeatureName("popularity"), FieldName(Item, "popularity"), ItemScopeType)
-            ),
-            models = NonEmptyMap.of(
-              "xgboost" -> LambdaMARTConfig(
-                XGBoostBackend(10, seed = 0),
-                NonEmptyList.of(FeatureName("popularity")),
-                NonEmptyMap.of("click" -> 1)
-              )
-            )
+        features = NonEmptyList.of(
+          NumberFeatureSchema(FeatureName("popularity"), FieldName(Item, "popularity"), ItemScopeType)
+        ),
+        models = NonEmptyMap.of(
+          "xgboost" -> LambdaMARTConfig(
+            XGBoostBackend(10, seed = 0),
+            NonEmptyList.of(FeatureName("popularity")),
+            NonEmptyMap.of("click" -> 1)
           )
         ),
         api = ApiConfig(Hostname("0.0.0.0"), Port(8080)),

@@ -26,7 +26,6 @@ import scala.concurrent.duration._
 
 case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   lazy val parser       = new Parser()
-  val names             = schema.field.possibleValues.map(value => s"${schema.name.value}_$value")
   override def dim: Int = schema.field.dim
 
   val conf = ScalarConfig(
@@ -43,7 +42,7 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
           value   <- parse(feedback)
           session <- feedback.session
         } yield {
-          Put(Key(SessionScope(event.env, session), conf.name), event.timestamp, SString(value))
+          Put(Key(SessionScope(session), conf.name), event.timestamp, SString(value))
         }
       case _ => None
     }
@@ -55,11 +54,11 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue]
   ): MValue = {
-    request.session.flatMap(session => features.get(Key(SessionScope(request.env, session), conf.name))) match {
+    request.session.flatMap(session => features.get(Key(SessionScope(session), conf.name))) match {
       case Some(ScalarValue(_, _, SString(stored))) =>
-        VectorValue(names, OneHotEncoder.fromValues(List(stored), schema.field.possibleValues, dim), dim)
+        VectorValue(schema.name, OneHotEncoder.fromValues(List(stored), schema.field.possibleValues, dim), dim)
       case _ =>
-        VectorValue(names, OneHotEncoder.fromValues(parse(request), schema.field.possibleValues, dim), dim)
+        VectorValue(schema.name, OneHotEncoder.fromValues(parse(request), schema.field.possibleValues, dim), dim)
     }
   }
 

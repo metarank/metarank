@@ -16,20 +16,20 @@ sealed trait BaseFeature {
   def writes(event: Event, features: Persistence): IO[Iterable[Write]]
 
   def writeKey(event: Event, feature: FeatureConfig): Option[Key] = (feature.scope, event) match {
-    case (GlobalScopeType, _)                    => Some(Key(GlobalScope(event.env), feature.name))
-    case (UserScopeType, e: InteractionEvent)    => Some(Key(UserScope(e.env, e.user), feature.name))
-    case (UserScopeType, e: UserEvent)           => Some(Key(UserScope(e.env, e.user), feature.name))
-    case (SessionScopeType, e: InteractionEvent) => e.session.map(s => Key(SessionScope(e.env, s), feature.name))
-    case (ItemScopeType, e: InteractionEvent)    => Some(Key(ItemScope(e.env, e.item), feature.name))
-    case (ItemScopeType, e: ItemEvent)           => Some(Key(ItemScope(e.env, e.item), feature.name))
+    case (GlobalScopeType, _)                    => Some(Key(GlobalScope, feature.name))
+    case (UserScopeType, e: InteractionEvent)    => Some(Key(UserScope(e.user), feature.name))
+    case (UserScopeType, e: UserEvent)           => Some(Key(UserScope(e.user), feature.name))
+    case (SessionScopeType, e: InteractionEvent) => e.session.map(s => Key(SessionScope(s), feature.name))
+    case (ItemScopeType, e: InteractionEvent)    => Some(Key(ItemScope(e.item), feature.name))
+    case (ItemScopeType, e: ItemEvent)           => Some(Key(ItemScope(e.item), feature.name))
     case _                                       => None
   }
 
   def readKey(event: RankingEvent, conf: FeatureConfig, id: ItemId): Option[Key] = conf.scope match {
-    case ScopeType.GlobalScopeType  => Some(Key(GlobalScope(event.env), conf.name))
-    case ScopeType.ItemScopeType    => Some(Key(ItemScope(event.env, id), conf.name))
-    case ScopeType.UserScopeType    => Some(Key(UserScope(event.env, event.user), conf.name))
-    case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(event.env, s), conf.name))
+    case ScopeType.GlobalScopeType  => Some(Key(GlobalScope, conf.name))
+    case ScopeType.ItemScopeType    => Some(Key(ItemScope(id), conf.name))
+    case ScopeType.UserScopeType    => Some(Key(UserScope(event.user), conf.name))
+    case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(s), conf.name))
   }
 
   def valueKeys(event: RankingEvent): Iterable[Key]

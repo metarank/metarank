@@ -1,7 +1,7 @@
 package ai.metarank.fstore
 
 import ai.metarank.config.StateStoreConfig
-import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec, KVStore, ModelKey}
+import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec, KVStore, ModelName}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
@@ -15,7 +15,7 @@ import ai.metarank.model.Feature.{
   StatsEstimator
 }
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Clickthrough, Env, EventId, FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.model.{Clickthrough, EventId, FeatureKey, FeatureValue, Key, Schema, Scope}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
@@ -33,13 +33,13 @@ trait Persistence {
   def maps: Map[FeatureKey, MapFeature]
 
   def values: KVStore[Key, FeatureValue]
-  def models: KVStore[ModelKey, Scorer]
+  def models: KVStore[ModelName, Scorer]
   def cts: ClickthroughStore
   def healthcheck(): IO[Unit]
 }
 
 object Persistence extends Logging {
-  case class ModelKey(env: Env, name: String)
+  case class ModelName(name: String) extends AnyVal
   trait KVCodec[T] {
     def encode(value: T): String
     def decode(str: String): Either[Throwable, T]
@@ -66,13 +66,10 @@ object Persistence extends Logging {
 
       override def encode(value: Key): String = value.asString
     }
-    implicit val modelKeyCodec: KVCodec[ModelKey] = new KVCodec[ModelKey] {
-      override def encode(value: ModelKey): String = s"${value.env.value}/${value.name}"
+    implicit val modelKeyCodec: KVCodec[ModelName] = new KVCodec[ModelName] {
+      override def encode(value: ModelName): String = value.name
 
-      override def decode(str: String): Either[Throwable, ModelKey] = str.split("/").toList match {
-        case env :: name :: Nil => Right(ModelKey(Env(env), name))
-        case _                  => Left(new Exception(s"cannot decode model key $str"))
-      }
+      override def decode(str: String): Either[Throwable, ModelName] = Right(ModelName(str))
     }
   }
 
@@ -101,11 +98,9 @@ object Persistence extends Logging {
       Resource.make(info("using in-memory persistence") *> IO(MemPersistence(schema)))(_ => IO.unit)
   }
 
-  def fromConfig(schemas: List[Schema], conf: StateStoreConfig): Resource[IO, Persistence] =
-    fromConfig(schemas.reduce((a, b) => a.merge(b)), conf)
 
   def blackhole() = new Persistence {
-    override def schema: Schema                                     = Schema(Env.default, Nil)
+    override def schema: Schema                                     = Schema(Nil)
     override def counters: Map[FeatureKey, Counter]                 = Map.empty
     override def periodicCounters: Map[FeatureKey, PeriodicCounter] = Map.empty
     override def lists: Map[FeatureKey, BoundedList]                = Map.empty
@@ -115,7 +110,7 @@ object Persistence extends Logging {
     override def maps: Map[FeatureKey, MapFeature]                  = Map.empty
 
     override lazy val cts: ClickthroughStore             = ???
-    override lazy val models: KVStore[ModelKey, Scorer]  = KVStore.empty
+    override lazy val models: KVStore[ModelName, Scorer] = KVStore.empty
     override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
     override def healthcheck(): IO[Unit]                 = IO.unit
   }

@@ -8,7 +8,7 @@ import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Env, FieldName, Key, MValue}
+import ai.metarank.model.{FieldName, Key, MValue}
 import ai.metarank.model.MValue.{CategoryValue, VectorValue}
 import ai.metarank.model.Scalar.SStringList
 import ai.metarank.model.Scope.{ItemScope, UserScope}
@@ -35,7 +35,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("color")),
+        Key(ItemScope(ItemId("p1")), FeatureName("color")),
         event.timestamp,
         SStringList(List("green"))
       )
@@ -55,7 +55,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
       Put(
-        Key(UserScope(Env("default"), UserId("u1")), FeatureName("user_gender")),
+        Key(UserScope(UserId("u1")), FeatureName("user_gender")),
         event.timestamp,
         SStringList(List("male"))
       )
@@ -68,7 +68,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(CategoryValue("color", 2)))
+    values shouldBe List(List(CategoryValue(FeatureName("color"), 2)))
   }
 
   it should "scope value to user" in {
@@ -87,7 +87,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     val values =
       process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))
-    values shouldBe List(List(CategoryValue("country", 2)))
+    values shouldBe List(List(CategoryValue(FeatureName("country"), 2)))
   }
 
   it should "onehot encode values" in {
@@ -107,7 +107,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     val values =
       process(List(event), feature.schema, TestRankingEvent(List("p1")).copy(session = Some(SessionId("s1"))))
-    values shouldBe List(List(VectorValue(List("country_us", "country_eu"), Array(0.0, 1.0), 2)))
+    values shouldBe List(List(VectorValue(FeatureName("country"), Array(0.0, 1.0), 2)))
   }
 
 }

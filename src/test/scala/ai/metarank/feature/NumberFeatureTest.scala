@@ -4,7 +4,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{Env, FeatureSchema, FieldName, Key}
+import ai.metarank.model.{FeatureSchema, FieldName, Key}
 import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.{NumberField, StringField}
@@ -43,7 +43,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
     val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
+      Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
   }
 
@@ -59,7 +59,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
     val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
+      Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
   }
 
@@ -75,7 +75,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
     val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(UserScope(Env("default"), UserId("u1")), FeatureName("user_age")), event.timestamp, SDouble(33))
+      Put(Key(UserScope(UserId("u1")), FeatureName("user_age")), event.timestamp, SDouble(33))
     )
   }
 
@@ -85,7 +85,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(SingleValue("popularity", 100.0)))
+    values shouldBe List(List(SingleValue(FeatureName("popularity"), 100.0)))
   }
 
 }

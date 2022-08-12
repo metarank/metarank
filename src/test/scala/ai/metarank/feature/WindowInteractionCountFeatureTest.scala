@@ -4,7 +4,7 @@ import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountS
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{Env, Key}
+import ai.metarank.model.Key
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scope.ItemScope
@@ -32,7 +32,7 @@ class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers with F
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
     val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      PeriodicIncrement(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
+      PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
@@ -51,6 +51,6 @@ class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers with F
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(VectorValue(List("cnt_1"), Array(3), 1)))
+    values shouldBe List(List(VectorValue(FeatureName("cnt"), Array(3), 1)))
   }
 }

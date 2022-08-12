@@ -30,10 +30,10 @@ object Feature {
     def ttl: FiniteDuration
     def refresh: FiniteDuration
     def readKeys(event: Event.RankingEvent): Iterable[Key] = scope match {
-      case ScopeType.ItemScopeType    => event.items.toList.map(ir => Key(ItemScope(event.env, ir.id), name))
-      case ScopeType.UserScopeType    => Some(Key(UserScope(event.env, event.user), name))
-      case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(event.env, s), name))
-      case ScopeType.GlobalScopeType  => Some(Key(GlobalScope(event.env), name))
+      case ScopeType.ItemScopeType    => event.items.toList.map(ir => Key(ItemScope(ir.id), name))
+      case ScopeType.UserScopeType    => Some(Key(UserScope(event.user), name))
+      case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(s), name))
+      case ScopeType.GlobalScopeType  => Some(Key(GlobalScope, name))
     }
   }
 

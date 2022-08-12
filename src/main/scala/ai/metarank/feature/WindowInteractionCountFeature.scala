@@ -20,7 +20,6 @@ import scala.concurrent.duration._
 
 case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) extends ItemFeature {
   override val dim: Int = schema.periods.size
-  val names             = schema.periods.map(period => s"${schema.name.value}_$period")
 
   val conf = PeriodicCounterConfig(
     scope = schema.scope,
@@ -57,9 +56,9 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
       value    <- features.get(key)
       valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim
     } yield {
-      VectorValue(names, valueNum.values.map(_.value.toDouble).toArray, dim)
+      VectorValue(schema.name, valueNum.values.map(_.value.toDouble).toArray, dim)
     }
-    result.getOrElse(VectorValue.empty(names, dim))
+    result.getOrElse(VectorValue.empty(schema.name, dim))
   }
 
 }

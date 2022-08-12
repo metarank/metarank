@@ -4,7 +4,7 @@ import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Env, Key}
+import ai.metarank.model.Key
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scope.{ItemScope, SessionScope}
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
@@ -27,7 +27,7 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
     val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      Increment(Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
+      Increment(Key(ItemScope(ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
@@ -42,7 +42,7 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
       TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"), session = Some(SessionId("s1")))
     val write = sf.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     write shouldBe List(
-      Increment(Key(SessionScope(Env("default"), SessionId("s1")), FeatureName("cnt")), event.timestamp, 1)
+      Increment(Key(SessionScope(SessionId("s1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
@@ -52,6 +52,6 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
       schema = feature.schema,
       request = TestRankingEvent(List("p1"))
     )
-    result shouldBe List(List(SingleValue("cnt", 3)))
+    result shouldBe List(List(SingleValue(FeatureName("cnt"), 3)))
   }
 }

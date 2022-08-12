@@ -1,7 +1,7 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
-import ai.metarank.model.{Env, EventId, Field, Timestamp}
+import ai.metarank.model.Event.InteractionEvent
+import ai.metarank.model.{EventId, Field, Timestamp}
 import ai.metarank.model.Identifier._
 
 import java.util.UUID
@@ -15,7 +15,6 @@ object TestInteractionEvent {
     fields = fields,
     item = ItemId(item),
     ranking = Some(EventId(parent)),
-    `type` = "click",
-    env = Env("default")
+    `type` = "click"
   )
 }

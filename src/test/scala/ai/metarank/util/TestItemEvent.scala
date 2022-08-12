@@ -2,7 +2,7 @@ package ai.metarank.util
 
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{Env, EventId, Field, Timestamp}
+import ai.metarank.model.{EventId, Field, Timestamp}
 
 import java.util.UUID
 
@@ -11,7 +11,6 @@ object TestItemEvent {
     id = EventId(UUID.randomUUID().toString),
     item = ItemId(id),
     timestamp = Timestamp.now,
-    fields = fields,
-    env = Env("default")
+    fields = fields
   )
 }

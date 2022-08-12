@@ -3,7 +3,7 @@ package ai.metarank.flow
 import ai.metarank.FeatureMapping
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Write._
-import ai.metarank.model.{Env, Event, Feature, FeatureKey, FeatureValue, Key, Timestamp, Write}
+import ai.metarank.model.{Event, Feature, FeatureKey, FeatureValue, Key, Timestamp, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.{Pipe, Stream}
@@ -13,24 +13,23 @@ import com.github.blemale.scaffeine.{Cache, Scaffeine}
 import scala.concurrent.duration._
 
 case class FeatureValueFlow(
-    mappings: Map[Env, FeatureMapping],
+    mapping: FeatureMapping,
     store: Persistence,
     updated: Cache[Key, Timestamp] = Scaffeine().expireAfterAccess(1.hour).build[Key, Timestamp]()
 ) extends Logging {
   def process: Pipe[IO, Event, FeatureValue] = events =>
     events
-      .flatMap(event =>
-        mappings.get(event.env) match {
-          case Some(mapping) =>
-            Stream.evalSeq(mapping.features.map(_.writes(event, store)).sequence.map(_.flatten.toList))
-          case None =>
-            Stream.raiseError[IO](new Exception(s"event ${event.id.value} uses undefined env ${event.env.value}"))
-        }
-      )
-      .evalTap(commitWrite)
+      .parEvalMap(16)(event => {
+        mapping.features.map(_.writes(event, store)).sequence.map(_.flatten.toList)
+      })
+      .flatMap(c => Stream.emits(c))
+      .parEvalMap(16)(write => {
+        commitWrite(write).map(_ => write)
+      })
       .evalFilter(shouldRefresh)
-      .evalMap(makeValue)
-      .flatMap(Stream.fromOption(_))
+      .parEvalMap(16)(write => makeValue(write))
+      .chunkN(1024)
+      .flatMap(c => Stream.emits(c.toList.flatten))
 
   def commitWrite(write: Write): IO[Unit] = write match {
     case w: Put               => commitWrite(w, store.scalars.get(FeatureKey(w.key)))
@@ -60,8 +59,8 @@ case class FeatureValueFlow(
           true
         }
       case Some(last) =>
-        mappings.get(write.key.scope.env).flatMap(mapping => mapping.schema.configs.get(FeatureKey(write.key))) match {
-          case Some(feature) => IO(write.ts.diff(last) > feature.refresh)
+        mapping.schema.configs.get(FeatureKey(write.key)) match {
+          case Some(feature) => IO.pure(write.ts.diff(last) > feature.refresh)
           case None          => IO.raiseError(new Exception(s"feature ${write.key.feature} is not defined"))
         }
     }

@@ -4,7 +4,7 @@ import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.NgramMatcher
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{Env, FieldName, Key, Schema, Timestamp}
+import ai.metarank.model.{FieldName, Key, Schema, Timestamp}
 import ai.metarank.model.FieldName.EventType.{Item, Ranking}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -27,14 +27,14 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
   )
   val now   = Timestamp.now
-  val store = MemPersistence(Schema(Env.default, feature.states))
+  val store = MemPersistence(Schema(feature.states))
   val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
 
   it should "generate puts" in {
     val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
-        Key(ItemScope(Env("default"), ItemId("p1")), FeatureName("title_match_title")),
+        Key(ItemScope(ItemId("p1")), FeatureName("title_match_title")),
         now,
         SStringList(List("bar", "foo", "oba", "oob"))
       )
@@ -47,6 +47,6 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1")).copy(fields = List(StringField("query", "foo")))
     )
-    result shouldBe List(List(SingleValue("title_match", 0.25)))
+    result shouldBe List(List(SingleValue(FeatureName("title_match"), 0.25)))
   }
 }

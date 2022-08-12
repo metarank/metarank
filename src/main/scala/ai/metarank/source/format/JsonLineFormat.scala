@@ -2,20 +2,23 @@ package ai.metarank.source.format
 
 import ai.metarank.config.SourceFormat
 import ai.metarank.model.Event
+import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.{Pipe, text}
+import fs2.{Chunk, Pipe, Stream, text}
 import io.circe.parser._
 
-object JsonLineFormat extends SourceFormat {
-  def parse: Pipe[IO, Byte, Event] =
-    _.through(text.utf8.decode)
+object JsonLineFormat extends SourceFormat with Logging {
+  def parse: Pipe[IO, Byte, Event] = bytes =>
+    bytes
+      .through(text.utf8.decode)
       .through(text.lines)
-      .flatMap {
-        case empty if empty.isEmpty => fs2.Stream.empty
-        case json =>
-          decode[Event](json) match {
-            case Left(error)  => fs2.Stream.raiseError[IO](error)
-            case Right(event) => fs2.Stream.emit(event)
-          }
+      .chunkN(1024)
+      .flatMap(c => Stream.emits(c.toList))
+      .parEvalMap(16) {
+        case ""   => IO.pure(None)
+        case json => IO.fromEither(decode[Event](json)).map(e => Option(e))
       }
+      .chunkN(1024)
+      .flatMap(c => Stream.emits(c.toList))
+      .mapChunks(c => Chunk.seq(c.toList.flatten))
 }

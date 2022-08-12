@@ -5,56 +5,52 @@ import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
 import io.circe.{Codec, Decoder, Encoder}
 
-sealed trait Scope {
-  def env: Env
+sealed trait Scope extends {
   def asString: String
   def getType: ScopeType
 }
 
 object Scope {
-  case class UserScope(env: Env, user: UserId) extends Scope {
-    override def asString: String   = s"user=${user.value}@${env.value}"
+  case class UserScope(user: UserId) extends Scope {
+    override def asString: String   = s"user=${user.value}"
     override def getType: ScopeType = UserScopeType
   }
 
-  case class ItemScope(env: Env, item: ItemId) extends Scope {
-    override def asString: String   = s"item=${item.value}@${env.value}"
+  case class ItemScope(item: ItemId) extends Scope {
+    override def asString: String   = s"item=${item.value}"
     override def getType: ScopeType = ItemScopeType
   }
 
-  case class GlobalScope(env: Env) extends Scope {
-    override def asString: String   = s"global=${env.value}"
+  case object GlobalScope extends Scope {
+    override def asString: String   = "global"
     override def getType: ScopeType = GlobalScopeType
   }
 
-  case class SessionScope(env: Env, session: SessionId) extends Scope {
-    override def asString: String   = s"session=${session.value}@${env.value}"
+  case class SessionScope(session: SessionId) extends Scope {
+    override def asString: String   = s"session=${session.value}"
     override def getType: ScopeType = SessionScopeType
   }
 
   def fromString(str: String): Either[Throwable, Scope] = {
-    val firstEq = str.indexOf("=")
-    if (firstEq > 0) {
-      val scope = str.substring(0, firstEq)
-      scope match {
-        case "global" => Right(GlobalScope(Env(str.substring(firstEq + 1))))
-        case _ =>
-          val dogPos = str.lastIndexOf("@")
-          if (dogPos > 0) {
-            val id  = str.substring(firstEq + 1, dogPos)
-            val env = str.substring(dogPos + 1)
-            scope match {
-              case "item"    => Right(ItemScope(Env(env), ItemId(id)))
-              case "user"    => Right(UserScope(Env(env), UserId(id)))
-              case "session" => Right(SessionScope(Env(env), SessionId(id)))
-              case other     => Left(new Exception(s"scope type $other not supported"))
-            }
-          } else {
-            Left(new Exception(s"cannot decode scope $str"))
-          }
+    def split(s: String): Option[(String, String)] = {
+      val firstEq = s.indexOf('='.toInt)
+      if (firstEq > 0) {
+        val left  = s.substring(0, firstEq)
+        val right = s.substring(firstEq + 1)
+        Some(left -> right)
+      } else {
+        None
       }
-    } else {
-      Left(new Exception(s"cannot decode scope $str"))
+    }
+    str match {
+      case "global" => Right(GlobalScope)
+      case other =>
+        split(other) match {
+          case Some(("item", item))    => Right(ItemScope(ItemId(item)))
+          case Some(("session", sess)) => Right(SessionScope(SessionId(sess)))
+          case Some(("user", user))    => Right(UserScope(UserId(user)))
+          case _                       => Left(new IllegalArgumentException(s"cannot parse scope $other"))
+        }
     }
   }
 

@@ -7,32 +7,29 @@ import io.circe.generic.semiauto.deriveCodec
 import java.util
 
 sealed trait MValue {
+  def name: FeatureName
   def dim: Int
 }
 
 object MValue {
-  case class SingleValue(name: String, value: Double) extends MValue {
+  case class SingleValue(name: FeatureName, value: Double) extends MValue {
     override val dim: Int = 1
   }
 
-  object SingleValue {
-    def apply(name: FeatureName, value: Double) = new SingleValue(name.value, value)
-  }
-
-  case class VectorValue(names: List[String], values: Array[Double], dim: Int) extends MValue {
+  case class VectorValue(name: FeatureName, values: Array[Double], dim: Int) extends MValue {
     // so we can chech for equality in tests without array upcasting tricks
     override def equals(obj: Any): Boolean = obj match {
-      case VectorValue(xnames, xvalues, xdim) =>
-        names.equals(xnames) && (util.Arrays.compare(values, xvalues) == 0) && (xdim == dim)
+      case VectorValue(xname, xvalues, xdim) =>
+        name.equals(xname) && (util.Arrays.compare(values, xvalues) == 0) && (xdim == dim)
       case _ => false
     }
   }
-  case class CategoryValue(name: String, index: Int) extends MValue {
+  case class CategoryValue(name: FeatureName, index: Int) extends MValue {
     override val dim: Int = 1
   }
 
   object VectorValue {
-    def empty(names: List[String], dim: Int) = VectorValue(names, new Array[Double](dim), dim)
+    def empty(name: FeatureName, dim: Int) = VectorValue(name, new Array[Double](dim), dim)
   }
 
   implicit val singleCodec: Codec[SingleValue] = deriveCodec
@@ -42,7 +39,7 @@ object MValue {
       Json.fromJsonObject(
         JsonObject.fromMap(
           Map(
-            "names"  -> Json.fromValues(vec.names.map(Json.fromString)),
+            "name"   -> Json.fromString(vec.name.value),
             "values" -> Json.fromValues(vec.values.map(Json.fromDoubleOrNull))
           )
         )
@@ -51,10 +48,10 @@ object MValue {
 
   implicit val vectorDecoder: Decoder[VectorValue] = Decoder.instance(c =>
     for {
-      names  <- c.downField("names").as[List[String]]
+      name   <- c.downField("name").as[String]
       values <- c.downField("values").as[Array[Double]]
     } yield {
-      VectorValue(names, values, values.length)
+      VectorValue(FeatureName(name), values, values.length)
     }
   )
 
@@ -65,7 +62,7 @@ object MValue {
   }
 
   implicit val mvalueDecoder: Decoder[MValue] = Decoder.instance(c => {
-    if (c.downField("names").focus.isDefined) {
+    if (c.downField("values").focus.isDefined) {
       vectorDecoder(c)
     } else {
       if (c.downField("index").focus.isDefined) {

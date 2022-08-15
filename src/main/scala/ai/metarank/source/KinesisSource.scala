@@ -10,7 +10,12 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.kinesis.KinesisAsyncClient
-import software.amazon.awssdk.services.kinesis.model.{GetRecordsRequest, GetShardIteratorRequest, ListShardsRequest, ShardIteratorType}
+import software.amazon.awssdk.services.kinesis.model.{
+  GetRecordsRequest,
+  GetShardIteratorRequest,
+  ListShardsRequest,
+  ShardIteratorType
+}
 import software.amazon.awssdk.utils.AttributeMap
 
 import scala.jdk.CollectionConverters._

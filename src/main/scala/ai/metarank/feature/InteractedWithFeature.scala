@@ -88,9 +88,9 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
             key <- writeKey(int, lastValues)
           } yield {
             val strings = scalar match {
-              case Some(ScalarValue(_, _, SString(value))) => List(value)
+              case Some(ScalarValue(_, _, SString(value)))      => List(value)
               case Some(ScalarValue(_, _, SStringList(values))) => values
-              case _ => Nil
+              case _                                            => Nil
             }
             Append(key, SStringList(strings), int.timestamp)
           }

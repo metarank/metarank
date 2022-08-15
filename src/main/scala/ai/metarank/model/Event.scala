@@ -25,14 +25,14 @@ object Event {
       id: EventId,
       item: ItemId,
       timestamp: Timestamp,
-      fields: List[Field] = Nil,
+      fields: List[Field] = Nil
   ) extends MetadataEvent
 
   case class UserEvent(
       id: EventId,
       user: UserId,
       timestamp: Timestamp,
-      fields: List[Field] = Nil,
+      fields: List[Field] = Nil
   ) extends MetadataEvent
 
   sealed trait FeedbackEvent extends Event {
@@ -46,7 +46,7 @@ object Event {
       user: UserId,
       session: Option[SessionId],
       fields: List[Field] = Nil,
-      items: NonEmptyList[ItemRelevancy],
+      items: NonEmptyList[ItemRelevancy]
   ) extends FeedbackEvent
 
   case class InteractionEvent(
@@ -57,7 +57,7 @@ object Event {
       user: UserId,
       session: Option[SessionId],
       `type`: String,
-      fields: List[Field] = Nil,
+      fields: List[Field] = Nil
   ) extends FeedbackEvent
 
   case class ItemRelevancy(id: ItemId, relevancy: Option[Double] = None)

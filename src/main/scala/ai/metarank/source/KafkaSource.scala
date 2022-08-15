@@ -7,7 +7,13 @@ import ai.metarank.source.KafkaSource.Consumer.ConsumerOps
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists
-import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRebalanceListener, KafkaConsumer, OffsetAndMetadata, OffsetCommitCallback}
+import org.apache.kafka.clients.consumer.{
+  ConsumerConfig,
+  ConsumerRebalanceListener,
+  KafkaConsumer,
+  OffsetAndMetadata,
+  OffsetCommitCallback
+}
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import fs2.{Chunk, Stream}
 import org.apache.kafka.common.TopicPartition

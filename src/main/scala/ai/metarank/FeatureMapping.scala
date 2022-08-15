@@ -39,7 +39,7 @@ object FeatureMapping {
 
   def fromFeatureSchema(
       schema: NonEmptyList[FeatureSchema],
-      models: NonEmptyMap[String, ModelConfig]
+      models: Map[String, ModelConfig]
   ) = {
     val features: List[BaseFeature] = schema.collect {
       case c: NumberFeatureSchema          => NumberFeature(c)
@@ -58,7 +58,7 @@ object FeatureMapping {
       case c: RefererSchema                => RefererFeature(c)
     }
     val featurySchema = Schema(features.flatMap(_.states))
-    val m = models.toNel.toList.map {
+    val m = models.toList.map {
       case (name, conf: LambdaMARTConfig) =>
         val modelFeatures = for {
           featureName <- conf.features.toList

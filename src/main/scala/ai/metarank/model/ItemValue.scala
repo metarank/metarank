@@ -25,7 +25,12 @@ object ItemValue {
       feature
     }
 
-    val rankingValues = rankingFeatures.map(_.value(ranking, state))
+    val rankingValues = rankingFeatures.map(feature => {
+      val value = feature.value(ranking, state)
+      if (feature.dim != value.dim)
+        throw new IllegalStateException(s"for ${feature.schema} dim mismatch: ${feature.dim} != ${value.dim}")
+      value
+    })
 
     val itemValuesMatrix = itemFeatures
       .map(feature => {

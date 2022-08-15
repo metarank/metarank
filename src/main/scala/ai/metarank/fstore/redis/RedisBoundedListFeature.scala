@@ -5,7 +5,8 @@ import ai.metarank.model.Feature.BoundedList
 import ai.metarank.model.Feature.BoundedList.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
-import ai.metarank.model.{Key, Timestamp}
+import ai.metarank.model.Scalar.{SDouble, SString}
+import ai.metarank.model.{Key, Scalar, Timestamp}
 import ai.metarank.model.Write.Append
 import cats.effect.IO
 import io.circe.syntax._
@@ -17,7 +18,18 @@ case class RedisBoundedListFeature(
     client: RedisClient
 ) extends BoundedList {
   override def put(action: Append): IO[Unit] = {
-    client.lpush(action.key.asString, TimeValue(action.ts, action.value).asJson.noSpaces).void
+    val records = action.value match {
+      case Scalar.SStringList(value) => value.map(v => TimeValue(action.ts, SString(v)))
+      case Scalar.SDoubleList(value) => value.map(v => TimeValue(action.ts, SDouble(v)))
+      case other                     => List(TimeValue(action.ts, other))
+    }
+    if (records.nonEmpty) {
+      client
+        .lpush(action.key.asString, records.map(_.asJson.noSpaces))
+        .flatMap(_ => client.ltrim(action.key.asString, 0, config.count).void)
+    } else {
+      IO.unit
+    }
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[BoundedListValue]] = for {

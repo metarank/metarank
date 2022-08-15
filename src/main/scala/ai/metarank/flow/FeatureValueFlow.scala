@@ -19,15 +19,15 @@ case class FeatureValueFlow(
 ) extends Logging {
   def process: Pipe[IO, Event, FeatureValue] = events =>
     events
-      .parEvalMap(16)(event => {
+      .evalMap(event => {
         mapping.features.map(_.writes(event, store)).sequence.map(_.flatten.toList)
       })
       .flatMap(c => Stream.emits(c))
-      .parEvalMap(16)(write => {
+      .evalMapChunk(write => {
         commitWrite(write).map(_ => write)
       })
       .evalFilter(shouldRefresh)
-      .parEvalMap(16)(write => makeValue(write))
+      .evalMapChunk(write => makeValue(write))
       .chunkN(1024)
       .flatMap(c => Stream.emits(c.toList.flatten))
 

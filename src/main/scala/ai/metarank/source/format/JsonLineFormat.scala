@@ -14,11 +14,10 @@ object JsonLineFormat extends SourceFormat with Logging {
       .through(text.lines)
       .chunkN(1024)
       .flatMap(c => Stream.emits(c.toList))
-      .parEvalMap(16) {
+      .evalMapChunk {
         case ""   => IO.pure(None)
         case json => IO.fromEither(decode[Event](json)).map(e => Option(e))
       }
       .chunkN(1024)
-      .flatMap(c => Stream.emits(c.toList))
-      .mapChunks(c => Chunk.seq(c.toList.flatten))
+      .flatMap(c => Stream.emits(c.toList.flatten))
 }

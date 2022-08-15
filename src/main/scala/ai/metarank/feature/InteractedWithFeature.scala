@@ -44,7 +44,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
   val lastValues = BoundedListConfig(
     scope = schema.scope,
     name = FeatureName(schema.name.value + s"_last"),
-    count = schema.count.getOrElse(10),
+    count = schema.count.getOrElse(100),
     duration = schema.duration.getOrElse(24.hours),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
@@ -64,7 +64,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         IO {
           for {
             field <- item.fieldsMap.get(schema.field.field).toSeq
-            string <- field match {
+            string = field match {
               case Field.StringField(_, value)     => List(value)
               case Field.StringListField(_, value) => value
               case _                               => Nil
@@ -73,7 +73,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
             Put(
               key = Key(ItemScope(item.item), itemValues.name),
               ts = event.timestamp,
-              value = SString(string)
+              value = SStringList(string)
             )
           }
         }
@@ -85,14 +85,14 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
           scalar <- feature.computeValue(Key(ItemScope(int.item), itemValues.name), int.timestamp)
         } yield {
           for {
-            string <- scalar match {
-              case Some(ScalarValue(_, _, SString(value)))      => List(value)
-              case Some(ScalarValue(_, _, SStringList(values))) => values
-              case _                                            => Nil
-            }
             key <- writeKey(int, lastValues)
           } yield {
-            Append(key, SString(string), int.timestamp)
+            val strings = scalar match {
+              case Some(ScalarValue(_, _, SString(value))) => List(value)
+              case Some(ScalarValue(_, _, SStringList(values))) => values
+              case _ => Nil
+            }
+            Append(key, SStringList(strings), int.timestamp)
           }
         }
       case _ => IO.pure(Nil)
@@ -109,29 +109,34 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
 
   private def makeItemKey(request: Event.RankingEvent, id: ItemId) = Key(ItemScope(id), itemValues.name)
 
-  override def value(
-      request: Event.RankingEvent,
-      features: Map[Key, FeatureValue],
-      id: ItemRelevancy
-  ): MValue = {
-    val result = for {
+  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: ItemRelevancy): MValue = ???
+
+  override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue]): List[MValue] = {
+    val visitorMap = (for {
       visitorKey      <- makeVisitorKey(request)
       interactedValue <- features.get(visitorKey)
       interactedList  <- interactedValue.cast[BoundedListValue]
-      itemKey = makeItemKey(request, id.id)
-      itemFieldValue <- features.get(itemKey).flatMap(_.cast[ScalarValue])
     } yield {
       val interactedValues = interactedList.values.map(_.value).collect { case SString(value) => value }
-      val itemValues = itemFieldValue.value match {
-        case SString(value)      => List(value)
-        case SStringList(values) => values
-        case _                   => Nil
+      interactedValues.groupBy(identity).map { case (k, v) => k -> v.size }
+    }).getOrElse(Map.empty[String, Int])
+    for {
+      item <- request.items.toList
+    } yield {
+      val itemKey = makeItemKey(request, item.id)
+      val result = for {
+        itemFieldValue <- features.get(itemKey).flatMap(_.cast[ScalarValue])
+      } yield {
+        val itemValues = itemFieldValue.value match {
+          case SString(value)      => List(value)
+          case SStringList(values) => values
+          case _                   => Nil
+        }
+        val value = itemValues.foldLeft(0)((acc, next) => acc + visitorMap.getOrElse(next, 0))
+        SingleValue(schema.name, value)
       }
-      val counts = interactedValues.groupBy(identity).map { case (k, v) => k -> v.size }
-      val value  = itemValues.foldLeft(0)((acc, next) => acc + counts.getOrElse(next, 0))
-      SingleValue(schema.name, value)
+      result.getOrElse(SingleValue(schema.name, 0))
     }
-    result.getOrElse(SingleValue(schema.name, 0))
   }
 
 }

@@ -1,14 +1,12 @@
 package ai.metarank.main
 
 import ai.metarank.config.InputConfig.SourceOffset
-import ai.metarank.config.SourceFormat
-import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs}
+import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TrainArgs}
 import ai.metarank.source.format.JsonFormat
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.Files
-import scala.util.Try
 
 class CliArgsTest extends AnyFlatSpec with Matchers {
   lazy val conf = Files.createTempFile("metarank-test-conf", ".yaml")
@@ -24,9 +22,21 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
     result.isLeft shouldBe true
   }
 
-  it should "parse import" in {
+  it should "parse import, short" in {
     CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString)) shouldBe Right(
       ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat)
+    )
+  }
+
+  it should "parse import, long" in {
+    CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString)) shouldBe Right(
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat)
+    )
+  }
+
+  it should "parse train args, short" in {
+    CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost")) shouldBe Right(
+      TrainArgs(conf, "xgboost")
     )
   }
 

@@ -65,7 +65,7 @@ lazy val root = (project in file("."))
       "commons-io"                 % "commons-io"               % "2.11.0",
       "com.google.guava"           % "guava"                    % "31.1-jre"
     ),
-    Compile / mainClass             := Some("ai.metarank.Main"),
+    Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),
     docker / dockerfile := {
       val artifact: File     = assembly.value

@@ -17,7 +17,7 @@ import io.circe.generic.semiauto.deriveCodec
 
 case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient) extends ClickthroughStore with Logging {
   import RedisClickthroughStore._
-  val BATCH_SIZE = 128
+  val BATCH_SIZE = 512
 
   override def putRanking(ranking: Event.RankingEvent): IO[Unit] =
     rankings.set(ranking.id.value, cts.encode(Clickthrough(ranking.timestamp, ranking.items.toList.map(_.id)))).void
@@ -40,11 +40,17 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient) exte
         scanned <- rankings.scan(cursor, BATCH_SIZE)
         cts     <- rankings.mget(scanned.keys).flatMap(decodeMap[Clickthrough])
         values  <- hist.mget(scanned.keys).flatMap(decodeMap[List[ItemValue]])
+        _       <- info(s"fetched next page of ${cts.size} clickthroughs, ${values.size} feature values")
       } yield {
-        val decoded = cts.map { case (id, ct) => ClickthroughValues(ct, values.getOrElse(id, Nil)) }.toList
+        val decoded = for {
+          (id, ct) <- cts if ct.interactions.nonEmpty
+          vals     <- values.get(id)
+        } yield {
+          ClickthroughValues(ct, vals)
+        }
         scanned.cursor match {
-          case "0"  => decoded -> None
-          case next => decoded -> Some(next)
+          case "0"  => decoded.toList -> None
+          case next => decoded.toList -> Some(next)
         }
       }
     )

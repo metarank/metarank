@@ -8,9 +8,9 @@ import io.circe.generic.semiauto._
 import scala.util.Random
 
 case class ShuffleModel(conf: ShuffleConfig) extends Model {
-  override val features                                                  = Nil
-  override def datasetDescriptor: DatasetDescriptor                      = DatasetDescriptor(Map.empty, Nil, 0)
-  override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = None
+  override val features                                          = Nil
+  override def datasetDescriptor: DatasetDescriptor              = DatasetDescriptor(Map.empty, Nil, 0)
+  override def train(train: Dataset, test: Dataset): Array[Byte] = Array.emptyByteArray
 }
 
 object ShuffleModel {

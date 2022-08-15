@@ -14,7 +14,7 @@ case class Config(
     state: StateStoreConfig,
     input: InputConfig,
     features: NonEmptyList[FeatureSchema],
-    models: NonEmptyMap[String, ModelConfig]
+    models: Map[String, ModelConfig]
 )
 
 object Config extends Logging {
@@ -25,7 +25,7 @@ object Config extends Logging {
       stateOption <- c.downField("state").as[Option[StateStoreConfig]]
       inputOption <- c.downField("input").as[Option[InputConfig]]
       features    <- c.downField("features").as[NonEmptyList[FeatureSchema]]
-      models      <- c.downField("models").as[NonEmptyMap[String, ModelConfig]]
+      models      <- c.downField("models").as[Map[String, ModelConfig]]
     } yield {
       val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
       val state = get(stateOption, MemoryStateConfig(), "state")

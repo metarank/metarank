@@ -54,9 +54,11 @@ case class RankApi(
       case None           => IO.raiseError(ModelError(s"model $model is not configured"))
     }
     itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping) }
-    query             <- IO { ClickthroughQuery(itemFeatureValues, 0.0, request.id.value, ranker.datasetDescriptor) }
-    scorer            <- models.get(model)
-    scores            <- IO { scorer.score(query) }
+    query <- IO {
+      ClickthroughQuery(itemFeatureValues, request.id.value, ranker.datasetDescriptor)
+    }
+    scorer <- models.get(model)
+    scores <- IO { scorer.score(query) }
     result <- explain match {
       case true  => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
       case false => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }

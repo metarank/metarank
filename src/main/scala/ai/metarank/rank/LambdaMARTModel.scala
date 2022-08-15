@@ -16,10 +16,10 @@ case class LambdaMARTModel(
     conf: LambdaMARTConfig,
     features: List[BaseFeature],
     datasetDescriptor: DatasetDescriptor,
-    weights: NonEmptyMap[String, Double]
+    weights: Map[String, Double]
 ) extends Model {
 
-  override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = {
+  override def train(train: Dataset, test: Dataset): Array[Byte] = {
     val booster = conf.backend match {
       case LightGBMBackend(it, lr, ndcg, depth, seed, leaves) =>
         val opts = LightGBMOptions(
@@ -38,7 +38,7 @@ case class LambdaMARTModel(
     val model = booster.fit()
     logger.info(s"Feature stats (queries=${train.groups.size}, items=${train.itemCount}): ")
     fieldStats(train, model.weights()).foreach(field => logger.info(field.print()))
-    Some(model.save())
+    model.save()
   }
 
   private def fieldStats(ds: Dataset, weights: Array[Double]) = {

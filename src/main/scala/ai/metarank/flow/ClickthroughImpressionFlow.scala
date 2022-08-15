@@ -12,7 +12,7 @@ import fs2.{Pipe, Stream}
 case class ClickthroughImpressionFlow(state: Persistence, mapping: FeatureMapping) extends Logging {
   def process: Pipe[IO, Event, Event] = events =>
     events
-      .evalMap(event => {
+      .evalMapChunk(event => {
         val br = 1
         event match {
           case event: RankingEvent     => handleRanking(event).map(e => List(e))

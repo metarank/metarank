@@ -40,11 +40,11 @@ object TestFeatureMapping {
       )
     )
 
-    val models = NonEmptyMap.of(
+    val models = Map(
       "random" -> LambdaMARTConfig(
         backend = XGBoostBackend(),
         features = features.map(_.name),
-        weights = NonEmptyMap.of("click" -> 1)
+        weights = Map("click" -> 1)
       )
     )
     FeatureMapping.fromFeatureSchema(features, models)

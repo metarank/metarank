@@ -17,7 +17,7 @@ object ModelConfig {
   case class LambdaMARTConfig(
       backend: ModelBackend,
       features: NonEmptyList[FeatureName],
-      weights: NonEmptyMap[String, Double]
+      weights: Map[String, Double]
   ) extends ModelConfig
   case class ShuffleConfig(maxPositionChange: Int) extends ModelConfig
   case class NoopConfig()                          extends ModelConfig

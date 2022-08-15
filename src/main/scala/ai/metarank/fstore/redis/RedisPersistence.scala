@@ -51,7 +51,7 @@ object RedisPersistence {
     models   <- RedisClient.create(host, port, db.models)
     values   <- RedisClient.create(host, port, db.values)
     rankings <- RedisClient.create(host, port, db.rankings)
-    clicks   <- RedisClient.create(host, port, db.clicks)
+    clicks   <- RedisClient.create(host, port, db.hist)
   } yield {
     RedisPersistence(schema, state, models, values, rankings, clicks)
   }

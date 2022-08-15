@@ -28,11 +28,11 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         features = NonEmptyList.of(
           NumberFeatureSchema(FeatureName("popularity"), FieldName(Item, "popularity"), ItemScopeType)
         ),
-        models = NonEmptyMap.of(
+        models = Map(
           "xgboost" -> LambdaMARTConfig(
             XGBoostBackend(10, seed = 0),
             NonEmptyList.of(FeatureName("popularity")),
-            NonEmptyMap.of("click" -> 1)
+            Map("click" -> 1)
           )
         ),
         api = ApiConfig(Hostname("0.0.0.0"), Port(8080)),

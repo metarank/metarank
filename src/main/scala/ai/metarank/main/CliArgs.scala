@@ -6,6 +6,7 @@ import ai.metarank.config.SourceFormat
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.Logging
+import org.bouncycastle.crypto.params.Argon2Parameters
 import org.rogach.scallop.{ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter}
 
 import java.nio.file.Path
@@ -16,14 +17,19 @@ sealed trait CliArgs {
   def conf: Path
 }
 object CliArgs extends Logging {
-  case class ServeArgs(conf: Path)                                                          extends CliArgs
-  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
+  case class ServeArgs(conf: Path)                                                                   extends CliArgs
+  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)          extends CliArgs
+  case class TrainArgs(conf: Path, model: String)                                                    extends CliArgs
+  case class SortArgs(conf: Path, data: Path, out: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
+
+  def printHelp() = new ArgParser(Nil).printHelp()
 
   def parse(args: List[String]): Either[Throwable, CliArgs] = {
-    Try(new ArgParser(args)) match {
+    val parser = new ArgParser(args)
+    Try(parser.verify()) match {
       case Failure(ex) =>
         Left(new Exception(ex.getMessage))
-      case Success(parser) =>
+      case Success(_) =>
         parser.subcommand match {
           case Some(parser.serve) =>
             for {
@@ -39,6 +45,23 @@ object CliArgs extends Logging {
               format <- parse(parser.`import`.format)
             } yield {
               ImportArgs(conf, data, offset, format)
+            }
+          case Some(parser.train) =>
+            for {
+              conf  <- parse(parser.train.config)
+              model <- parse(parser.train.model)
+            } yield {
+              TrainArgs(conf, model)
+            }
+          case Some(parser.sort) =>
+            for {
+              conf   <- parse(parser.sort.config)
+              data   <- parse(parser.sort.data)
+              out    <- parse(parser.sort.out)
+              offset <- parse(parser.sort.offset)
+              format <- parse(parser.sort.format)
+            } yield {
+              SortArgs(conf, data, out, offset, format)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -62,22 +85,46 @@ object CliArgs extends Logging {
 
     object serve extends Subcommand("serve") with ConfigOption
 
+    object sort extends Subcommand("sort") with ConfigOption {
+      val data = opt[Path](
+        "data",
+        required = true,
+        short = 'd',
+        descr = "path to a directory with input files",
+        validate = pathExists
+      )
+      val out = opt[Path](
+        "out",
+        required = true,
+        short = 'o',
+        descr = "output file path"
+      )
+      val offset = opt[SourceOffset](
+        name = "offset",
+        required = false,
+        descr = s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h",
+        default = Some(Earliest)
+      )
+      val format = opt[SourceFormat](
+        name = "format",
+        required = false,
+        short = 'f',
+        descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json",
+        default = Some(JsonFormat)
+      )
+
+    }
+
+    object train extends Subcommand("train") with ConfigOption {
+      val model = opt[String](
+        "model",
+        required = true,
+        short = 'm',
+        descr = "model name to train"
+      )
+    }
+
     object `import` extends Subcommand("import") with ConfigOption {
-      implicit val offsetConverter: ValueConverter[SourceOffset] = singleArgConverter(conv = {
-        case "earliest"                 => SourceOffset.Earliest
-        case "latest"                   => SourceOffset.Earliest
-        case SourceOffset.tsPattern(ts) => SourceOffset.ExactTimestamp(ts.toLong)
-        case SourceOffset.durationPattern(num, suffix) =>
-          SourceOffset.RelativeDuration(FiniteDuration(num.toLong, suffix))
-        case other => throw new IllegalArgumentException(s"cannot parse offset $other")
-      })
-      implicit val formatConverter: ValueConverter[SourceFormat] = singleArgConverter(conv = {
-        case "json"          => JsonFormat
-        case "snowplow"      => SnowplowTSVFormat
-        case "snowplow:tsv"  => SnowplowTSVFormat
-        case "snowplow:json" => SnowplowJSONFormat
-        case other           => throw new IllegalArgumentException(s"format $other is not supported")
-      })
       val data = opt[Path](
         "data",
         required = true,
@@ -105,12 +152,31 @@ object CliArgs extends Logging {
 
     addSubcommand(serve)
     addSubcommand(`import`)
+    addSubcommand(train)
+    addSubcommand(sort)
     version("Metarank v0.5.x")
     banner("""Usage: metarank <subcommand> <options>
              |Options:
              |""".stripMargin)
     footer("\nFor all other tricks, consult the docs on https://docs.metarank.ai")
-    errorMessageHandler = (message: String) => { logger.error(message) }
-    verify()
+
+    override protected def onError(e: Throwable): Unit = throw e
   }
+
+  implicit val offsetConverter: ValueConverter[SourceOffset] = singleArgConverter(conv = {
+    case "earliest"                 => SourceOffset.Earliest
+    case "latest"                   => SourceOffset.Earliest
+    case SourceOffset.tsPattern(ts) => SourceOffset.ExactTimestamp(ts.toLong)
+    case SourceOffset.durationPattern(num, suffix) =>
+      SourceOffset.RelativeDuration(FiniteDuration(num.toLong, suffix))
+    case other => throw new IllegalArgumentException(s"cannot parse offset $other")
+  })
+  implicit val formatConverter: ValueConverter[SourceFormat] = singleArgConverter(conv = {
+    case "json"          => JsonFormat
+    case "snowplow"      => SnowplowTSVFormat
+    case "snowplow:tsv"  => SnowplowTSVFormat
+    case "snowplow:json" => SnowplowJSONFormat
+    case other           => throw new IllegalArgumentException(s"format $other is not supported")
+  })
+
 }

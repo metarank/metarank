@@ -13,7 +13,7 @@ import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.Scalar.SString
+import ai.metarank.model.Scalar.{SString, SStringList}
 import ai.metarank.model.Scope.{ItemScope, SessionScope}
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
 import ai.metarank.model.Write.{Append, Put}
@@ -61,7 +61,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
         itemEvent1.timestamp,
-        SString("red")
+        SStringList(List("red"))
       )
     )
   }
@@ -73,7 +73,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
         event.timestamp,
-        SString("red")
+        SStringList(List("red"))
       )
     )
   }
@@ -92,5 +92,18 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
         SingleValue(FeatureName("seen_color"), 0)
       )
     )
+  }
+
+  it should "compute values for list fields" in {
+    val values = process(
+      List(
+        TestItemEvent("p1", List(StringListField("color", List("red", "green", "blue")))),
+        TestItemEvent("p2", List(StringListField("color", List("brown", "red", "green")))),
+        TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
+      ),
+      feature.schema,
+      TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
+    )
+    val br = 1
   }
 }

@@ -12,7 +12,7 @@ object StateStoreConfig extends Logging {
   case class RedisStateConfig(host: Hostname, port: Port, db: DBConfig = DBConfig()) extends StateStoreConfig
 
   object RedisStateConfig {
-    case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, clicks: Int = 3, models: Int = 4)
+    case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, hist: Int = 3, models: Int = 4)
     implicit val dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
   }
 

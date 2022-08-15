@@ -15,7 +15,7 @@ trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
     val mapping = FeatureMapping.fromFeatureSchema(
       schema = NonEmptyList.of(schema),
-      models = NonEmptyMap.of("random" -> ShuffleConfig(10))
+      models = Map("random" -> ShuffleConfig(10))
     )
 
     val flow =

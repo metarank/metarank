@@ -16,7 +16,7 @@ trait Model extends Logging {
   def conf: ModelConfig
   def features: List[BaseFeature]
   def datasetDescriptor: DatasetDescriptor
-  def train(train: Dataset, test: Dataset): Option[Array[Byte]]
+  def train(train: Dataset, test: Dataset): Array[Byte]
 }
 
 object Model {

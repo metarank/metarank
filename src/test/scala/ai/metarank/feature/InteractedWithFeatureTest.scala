@@ -87,7 +87,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
     values shouldBe List(
       List(
-        SingleValue(FeatureName("seen_color"), 1.0),
+        SingleValue(FeatureName("seen_color"), 0.0),
         SingleValue(FeatureName("seen_color"), 1.0),
         SingleValue(FeatureName("seen_color"), 0)
       )

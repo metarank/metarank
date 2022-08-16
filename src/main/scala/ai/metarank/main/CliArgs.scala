@@ -83,9 +83,12 @@ object CliArgs extends Logging {
         opt[Path]("config", required = true, short = 'c', descr = "path to config file", validate = pathExists)
     }
 
-    object serve extends Subcommand("serve") with ConfigOption
+    object serve extends Subcommand("serve") with ConfigOption {
+      descr("run the inference API")
+    }
 
     object sort extends Subcommand("sort") with ConfigOption {
+      descr("sort the input file by timestamp")
       val data = opt[Path](
         "data",
         required = true,
@@ -116,6 +119,7 @@ object CliArgs extends Logging {
     }
 
     object train extends Subcommand("train") with ConfigOption {
+      descr("train the ML model")
       val model = opt[String](
         "model",
         required = true,
@@ -125,6 +129,7 @@ object CliArgs extends Logging {
     }
 
     object `import` extends Subcommand("import") with ConfigOption {
+      descr("import historical clickthrough data")
       val data = opt[Path](
         "data",
         required = true,

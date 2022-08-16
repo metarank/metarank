@@ -72,9 +72,9 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"ubuntu:jammy-20220801")
+        from(s"adoptopenjdk:11.0.11_9-jdk-hotspot-focal")
         run("apt-get", "update")
-        run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping", "openjdk-17-jdk-headless")
+        run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping")
         run("apt-get", "-y", "install", "libgomp1")
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)

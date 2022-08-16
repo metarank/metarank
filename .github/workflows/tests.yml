@@ -28,7 +28,7 @@ jobs:
       uses: shogo82148/actions-setup-redis@v1
       with:
         redis-version: '7.x'
-        
+
     - uses: actions/cache@v2
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache

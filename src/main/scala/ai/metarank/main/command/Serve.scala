@@ -1,7 +1,7 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{ApiConfig, Config}
 import ai.metarank.flow.{ClickthroughImpressionFlow, FeatureValueFlow, FeatureValueSink}
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ServeArgs
@@ -26,24 +26,38 @@ object Serve {
   ): IO[Unit] = {
     val flowResource = for {
       store <- storeResource
-      queue <- Resource.liftK(Queue.dropping[IO, Option[Event]](1024))
-      routes = HealthApi(store).routes <+> RankApi(mapping, store, MemoryModelCache(store)).routes <+> FeedbackApi(
-        queue
-      ).routes
-      httpApp = Router("/" -> routes).orNotFound
-      api = BlazeServerBuilder[IO]
-        .bindHttp(conf.api.port.value, conf.api.host.value)
-        .withHttpApp(httpApp)
-        .withBanner(Logo.lines)
-
-      _ <- api.serve.compile.drain.background
-      ct    = ClickthroughImpressionFlow(store, mapping)
-      event = FeatureValueFlow(mapping, store)
-      sink  = FeatureValueSink(store)
-      flow  = fs2.Stream.fromQueueNoneTerminated(queue).through(ct.process).through(event.process).through(sink.write)
+      queue <- Resource.liftK(Queue.bounded[IO, Option[Event]](1024))
+      _     <- api(store, queue, mapping, conf.api).background
     } yield {
-      flow
+      (store, queue)
     }
-    flowResource.use(_.compile.drain)
+    flowResource.use { case (store, queue) => serve(store, queue, mapping) }
+  }
+
+  def serve(store: Persistence, queue: Queue[IO, Option[Event]], mapping: FeatureMapping): IO[Unit] = {
+    val ct    = ClickthroughImpressionFlow(store, mapping)
+    val event = FeatureValueFlow(mapping, store)
+    val sink  = FeatureValueSink(store)
+    fs2.Stream
+      .fromQueueNoneTerminated(queue)
+      .through(ct.process)
+      .through(event.process)
+      .through(sink.write)
+      .compile
+      .drain
+  }
+
+  def api(store: Persistence, queue: Queue[IO, Option[Event]], mapping: FeatureMapping, conf: ApiConfig) = {
+    val health   = HealthApi(store).routes
+    val rank     = RankApi(mapping, store, MemoryModelCache(store)).routes
+    val feedback = FeedbackApi(queue).routes
+    val routes   = health <+> rank <+> feedback
+    val httpApp  = Router("/" -> routes).orNotFound
+    val api = BlazeServerBuilder[IO]
+      .bindHttp(conf.port.value, conf.host.value)
+      .withHttpApp(httpApp)
+      .withBanner(Logo.lines)
+
+    api.serve.compile.drain
   }
 }

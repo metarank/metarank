@@ -35,5 +35,6 @@ case class MemClickthroughStore(
       cache.getIfPresent(id.value).map(_.ct)
     }
 
-  override def getall(): fs2.Stream[IO, ClickthroughValues] = fs2.Stream.emits(cache.asMap().values.toList)
+  override def getall(): fs2.Stream[IO, ClickthroughValues] =
+    fs2.Stream.emits(cache.asMap().values.toList.filter(_.ct.interactions.nonEmpty))
 }

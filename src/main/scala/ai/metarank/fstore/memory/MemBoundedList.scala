@@ -14,7 +14,14 @@ case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, List[Time
     extends BoundedList {
   override def put(action: Append): IO[Unit] = IO {
     cache.getIfPresent(action.key) match {
-      case None => cache.put(action.key, List(TimeValue(action.ts, action.value)))
+      case None =>
+        val result = action.value match {
+          case Scalar.SStringList(values) => values.map(s => TimeValue(action.ts, SString(s)))
+          case Scalar.SDoubleList(values) => values.map(s => TimeValue(action.ts, SDouble(s)))
+          case other                      => List(TimeValue(action.ts, action.value))
+        }
+
+        cache.put(action.key, result)
       case Some(cached) =>
         val result = action.value match {
           case Scalar.SStringList(values) => values.map(s => TimeValue(action.ts, SString(s))) ++ cached

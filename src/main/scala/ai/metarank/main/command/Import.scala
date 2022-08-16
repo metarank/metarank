@@ -19,21 +19,26 @@ object Import {
       mapping: FeatureMapping,
       args: ImportArgs
   ): IO[Unit] = {
-    val flowResource = for {
-      store <- storeResource
-      ct    = ClickthroughImpressionFlow(store, mapping)
-      event = FeatureValueFlow(mapping, store)
-      sink  = FeatureValueSink(store)
-      flow = FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream
-        .through(OrderCheckFlow.process)
-        .through(ai.metarank.flow.PrintProgress.tap)
-        .through(ct.process)
-        .through(event.process)
-        .through(sink.write)
-    } yield {
-      flow
-    }
-    flowResource.use(_.compile.drain)
+    storeResource.use(store => slurp(store, mapping, args))
+  }
+
+  def slurp(store: Persistence, mapping: FeatureMapping, args: ImportArgs): IO[Unit] = {
+    slurp(FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream, store, mapping)
+  }
+
+  def slurp(source: fs2.Stream[IO, Event], store: Persistence, mapping: FeatureMapping): IO[Unit] = {
+    val ct    = ClickthroughImpressionFlow(store, mapping)
+    val event = FeatureValueFlow(mapping, store)
+    val sink  = FeatureValueSink(store)
+    source
+      .through(OrderCheckFlow.process)
+      .through(ai.metarank.flow.PrintProgress.tap)
+      .through(ct.process)
+      .through(event.process)
+      .through(sink.write)
+      .compile
+      .drain
+
   }
 
 }

@@ -8,7 +8,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: foo
   AWS_SECRET_ACCESS_KEY: bar
-  
+
 jobs:
   build:
     timeout-minutes: 20

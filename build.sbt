@@ -28,7 +28,7 @@ lazy val root = (project in file("."))
       "org.typelevel"            %% "log4cats-slf4j"           % log4catsVersion,
       "org.scalatest"            %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"            %% "scalactic"                % scalatestVersion % "test,it",
-      "org.scalatestplus"        %% "scalacheck-1-16"          % "3.2.12.0"       % "test,it",
+      "org.scalatestplus"        %% "scalacheck-1-16"          % "3.2.13.0"       % "test,it",
       "ch.qos.logback"            % "logback-classic"          % "1.2.11",
       "io.circe"                 %% "circe-yaml"               % circeYamlVersion,
       "io.circe"                 %% "circe-core"               % circeVersion,
@@ -42,7 +42,7 @@ lazy val root = (project in file("."))
       "com.github.blemale"       %% "scaffeine"                % "5.2.0",
       "com.github.fppt"           % "jedis-mock"               % "1.0.3"          % "test,it",
       "org.scala-lang"            % "scala-reflect"            % scalaVersion.value,
-      "org.apache.kafka"          % "kafka-clients"            % "3.2.0",
+      "org.apache.kafka"          % "kafka-clients"            % "3.2.1",
       "org.apache.pulsar"         % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"         % "pulsar-client-admin"      % pulsarVersion    % "test",
       "org.http4s"               %% "http4s-dsl"               % http4sVersion,
@@ -59,11 +59,10 @@ lazy val root = (project in file("."))
       "org.apache.lucene"         % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"         % "lucene-analysis-stempel"  % luceneVersion,
       "org.apache.httpcomponents" % "httpclient"               % "4.5.13",
-      "software.amazon.awssdk"    % "kinesis"                  % "2.17.242",
-//      "com.fasterxml.jackson.core" % "jackson-annotations"          % "2.12.4", // should match flink's version
-      "io.lettuce"       % "lettuce-core" % "6.2.0.RELEASE",
-      "commons-io"       % "commons-io"   % "2.11.0",
-      "com.google.guava" % "guava"        % "31.1-jre"
+      "software.amazon.awssdk"    % "kinesis"                  % "2.17.253",
+      "io.lettuce"                % "lettuce-core"             % "6.2.0.RELEASE",
+      "commons-io"                % "commons-io"               % "2.11.0",
+      "com.google.guava"          % "guava"                    % "31.1-jre"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),
@@ -79,7 +78,7 @@ lazy val root = (project in file("."))
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
         entryPoint("/metarank.sh")
-        cmd("help") // entrypoint unsets it from the parent flink image
+        cmd("--help")
       }
     },
     docker / imageNames := Seq(

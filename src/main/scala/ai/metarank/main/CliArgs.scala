@@ -159,7 +159,7 @@ object CliArgs extends Logging {
     addSubcommand(`import`)
     addSubcommand(train)
     addSubcommand(sort)
-    version("Metarank v0.5.x")
+    version(Logo.raw)
     banner("""Usage: metarank <subcommand> <options>
              |Options:
              |""".stripMargin)

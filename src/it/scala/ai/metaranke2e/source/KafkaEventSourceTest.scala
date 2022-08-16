@@ -3,7 +3,7 @@ package ai.metaranke2e.source
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.model.Event
 import ai.metarank.source.KafkaSource
-import ai.metarank.util.TestItemEvent
+import ai.metarank.util.{Logging, TestItemEvent}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import io.circe.syntax._
@@ -16,7 +16,7 @@ import org.scalatest.matchers.should.Matchers
 import java.util.{Collections, Properties}
 import scala.util.Random
 
-class KafkaEventSourceTest extends AnyFlatSpec with Matchers {
+class KafkaEventSourceTest extends AnyFlatSpec with Matchers with Logging {
 
   implicit val serializer: Serializer[String] = new StringSerializer()
   val event: Event                            = TestItemEvent("p1")
@@ -27,19 +27,23 @@ class KafkaEventSourceTest extends AnyFlatSpec with Matchers {
     val sourceConfig = KafkaInputConfig(
       brokers = NonEmptyList.of(s"localhost:9092"),
       topic = topic,
-      groupId = "metarank",
+      groupId = s"metarank${Random.nextInt()}",
       offset = Some(SourceOffset.Earliest)
     )
     val props = new Properties()
     props.setProperty(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
     val admin = Admin.create(props)
     admin.createTopics(Collections.singleton(new NewTopic(topic, 1, 1.toShort)))
+    logger.info(s"Topic $topic created")
     val producer = new KafkaProducer[String, String](props, serializer, serializer)
     val record   = new ProducerRecord[String, String](topic, null, event.asJson.noSpaces)
     producer.send(record).get()
     producer.flush()
+    logger.info("Message sent, sleeping")
     Thread.sleep(1000)
+    logger.info("Pulling single event from topic")
     val recieved = KafkaSource(sourceConfig).stream.take(1).compile.toList.unsafeRunSync()
+    logger.info("Pull done")
     recieved shouldBe List(event)
 
   }

@@ -69,11 +69,13 @@ object KafkaSource {
     }
 
     implicit class ConsumerOps(client: KafkaConsumer[Array[Byte], Array[Byte]]) {
-      def subscribe(topic: String, offset: Option[SourceOffset]) =
+      def subscribe(topic: String, offset: Option[SourceOffset]): Unit =
         client.subscribe(
           Collections.singleton(topic),
           new ConsumerRebalanceListener {
-            override def onPartitionsRevoked(partitions: util.Collection[TopicPartition]): Unit = {}
+            override def onPartitionsRevoked(partitions: util.Collection[TopicPartition]): Unit = {
+              logger.info(s"partitions $partitions were revoked")
+            }
 
             override def onPartitionsAssigned(partitions: util.Collection[TopicPartition]): Unit = {
               logger.info(s"assigned partitions $partitions")
@@ -130,7 +132,7 @@ object KafkaSource {
         IO(client.partitionsFor(topic).asScala.map(pi => new TopicPartition(pi.topic(), pi.partition())).toList)
 
       def poll2(freq: Duration): IO[Messages] = for {
-        messages <- IO(client.poll(freq))
+        messages <- IO.blocking(client.poll(freq))
         _        <- debug(s"polled ${messages.count()} messages from kafka")
       } yield {
         val events = messages.asScala.map(_.value()).toList
@@ -143,27 +145,27 @@ object KafkaSource {
         Messages(events, offsets)
       }
 
-      def commit(offsets: Map[TopicPartition, OffsetAndMetadata]): IO[Unit] = {
-        IO.async_(callback =>
-          IO(
-            client.commitAsync(
-              offsets.asJava,
-              new OffsetCommitCallback {
-                override def onComplete(offsets: util.Map[TopicPartition, OffsetAndMetadata], exception: Exception) = {
-                  Option(exception) match {
-                    case Some(error) =>
-                      logger.error(s"error committing to kafka: ${error.getMessage}", error)
-                      callback(Left(error))
-                    case None =>
-                      logger.debug(s"commit successful")
-                      callback(Right({}))
-                  }
+      def commit(offsets: Map[TopicPartition, OffsetAndMetadata]): IO[Unit] =
+        IO {
+          client.commitAsync(
+            offsets.asJava,
+            new OffsetCommitCallback {
+              // called only on subsequent poll, see https://issues.apache.org/jira/browse/KAFKA-10576
+              override def onComplete(
+                  offsets: util.Map[TopicPartition, OffsetAndMetadata],
+                  exception: Exception
+              ) = {
+                Option(exception) match {
+                  case Some(error) =>
+                    logger.error(s"error committing to kafka: ${error.getMessage}", error)
+                  case None =>
+                    logger.debug(s"commit successful")
                 }
               }
-            )
+            }
           )
-        )
-      }
+        }
+
     }
   }
 }

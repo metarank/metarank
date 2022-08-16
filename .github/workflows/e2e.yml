@@ -30,7 +30,7 @@ jobs:
           java-version: '11'
 
       - name:  Run docker-compose
-        run: docker-compose -f .github/compose-redis.yaml up -d
+        run: docker compose -f .github/compose-redis.yaml up -d
 
       - name: Make assembly and docker image
         run: sbt -mem 3000 assembly docker

@@ -33,7 +33,7 @@ jobs:
           java-version: '11'
 
       - name:  Run docker-compose
-        run: docker compose -f .github/compose-connectors.yaml up -d
+        run: docker-compose -f .github/compose-connectors.yaml up -d
 
       - name: Run integration tests
         run: sbt -mem 3000 IntegrationTest/test

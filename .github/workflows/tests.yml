@@ -25,7 +25,7 @@ jobs:
         lfs: 'true'
 
     - name:  Run docker-compose
-      run: docker compose -f .github/compose-redis.yaml up -d
+      run: docker-compose -f .github/compose-redis.yaml up -d
 
     - uses: actions/cache@v2
       with:

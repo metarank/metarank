@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: install libomp
-      run: brew install libomp docker docker-compose
+      run: brew install libomp
       if: runner.os == 'macOS'
 
 
@@ -24,9 +24,11 @@ jobs:
       with:
         lfs: 'true'
 
-    - name:  Run docker-compose
-      run: docker-compose -f .github/compose-redis.yaml up -d
-
+    - name: Start Redis
+      uses: shogo82148/actions-setup-redis@v1
+      with:
+        redis-version: '7.x'
+        
     - uses: actions/cache@v2
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache

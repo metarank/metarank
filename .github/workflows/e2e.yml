@@ -29,8 +29,10 @@ jobs:
           distribution: 'adopt-hotspot'
           java-version: '11'
 
-      - name:  Run docker-compose
-        run: docker-compose -f .github/compose-redis.yaml up -d
+      - name: Start Redis
+        uses: shogo82148/actions-setup-redis@v1
+        with:
+          redis-version: '7.x'
 
       - name: Make assembly and docker image
         run: sbt -mem 3000 assembly docker

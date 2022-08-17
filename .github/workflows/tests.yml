@@ -12,7 +12,15 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-22.04, macos-12, windows-2022]
+        include:
+          - jvm: 11
+            platform: ubuntu-22.04
+          - jvm: 17
+            platform: ubuntu-22.04
+          - jvm: 11
+            platform: macos-12
+          - jvm: 11
+            platform: windows-2022
 
     steps:
     - name: install libomp
@@ -43,8 +51,7 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
-        distribution: 'adopt-hotspot'
-        java-version: '11'
+        java-version: ${{ matrix.jvm }}
 
     - name: Run tests
       run: sbt -mem 3000 test

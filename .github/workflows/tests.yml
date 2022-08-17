@@ -28,7 +28,7 @@ jobs:
       if: runner.os == 'Linux'
 
     - name: Start Redis on Mac
-      run: brew install redis
+      run: brew install redis && brew services start redis
       if: runner.os == 'macOS'
 
     - name: Start Redis on Windows

@@ -1,6 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.config.InputConfig.ApiInputConfig
+import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.StateStoreConfig.MemoryStateConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
@@ -19,20 +20,22 @@ case class Config(
 
 object Config extends Logging {
 
-  implicit val configDecoder: Decoder[Config] = Decoder.instance(c =>
-    for {
-      apiOption   <- c.downField("api").as[Option[ApiConfig]]
-      stateOption <- c.downField("state").as[Option[StateStoreConfig]]
-      inputOption <- c.downField("input").as[Option[InputConfig]]
-      features    <- c.downField("features").as[NonEmptyList[FeatureSchema]]
-      models      <- c.downField("models").as[Map[String, ModelConfig]]
-    } yield {
-      val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
-      val state = get(stateOption, MemoryStateConfig(), "state")
-      val input = get(inputOption, ApiInputConfig(), "input")
-      Config(api, state, input, features, models)
-    }
-  )
+  implicit val configDecoder: Decoder[Config] = Decoder
+    .instance(c =>
+      for {
+        apiOption   <- c.downField("api").as[Option[ApiConfig]]
+        stateOption <- c.downField("state").as[Option[StateStoreConfig]]
+        inputOption <- c.downField("input").as[Option[InputConfig]]
+        features    <- c.downField("features").as[NonEmptyList[FeatureSchema]]
+        models      <- c.downField("models").as[Map[String, ModelConfig]]
+      } yield {
+        val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
+        val state = get(stateOption, MemoryStateConfig(), "state")
+        val input = get(inputOption, ApiInputConfig(), "input")
+        Config(api, state, input, features, models)
+      }
+    )
+    .ensure(Validations.checkFeatureModelReferences)
 
   def get[T](opt: Option[T], default: T, name: String) = opt match {
     case Some(value) => value
@@ -47,6 +50,19 @@ object Config extends Logging {
       decoded <- IO.fromEither(yaml.as[Config])
     } yield {
       decoded
+    }
+  }
+
+  object Validations {
+    def checkFeatureModelReferences(config: Config): List[String] = {
+      config.models.toList.flatMap {
+        case (name, LambdaMARTConfig(_, features, _)) =>
+          features.toList.flatMap(feature =>
+            if (config.features.exists(_.name == feature)) None
+            else Some(s"feature ${feature.value} referenced in model '$name', but missing in features section")
+          )
+        case _ => Nil
+      }
     }
   }
 }

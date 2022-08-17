@@ -1,12 +1,10 @@
-package ai.metaranke2e.e2e
+package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.InputConfig.{SourceOffset, conf}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.{Config, Hostname, Port, SourceFormat}
-import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.fstore.redis.{RedisPersistence, RedisTest}
 import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.main.api.RankApi
 import ai.metarank.main.command.{Import, Train}
@@ -14,13 +12,10 @@ import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{EventId, Timestamp}
 import ai.metarank.rank.LambdaMARTModel
-import ai.metarank.source.ModelCache
 import ai.metarank.source.ModelCache.MemoryModelCache
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.RanklensEvents
-import better.files.File
 import cats.data.NonEmptyList
-import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
@@ -28,8 +23,6 @@ import org.scalatest.matchers.should.Matchers
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import scala.util.Random
-import scala.concurrent.duration._
 import io.circe.syntax._
 
 import java.io.FileOutputStream

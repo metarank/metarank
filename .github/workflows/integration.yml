@@ -1,4 +1,4 @@
-name: Connector integration tests
+name: Integration tests
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-20.04, ubuntu-22.04]
+        platform: [ubuntu-22.04]
 
     steps:
       - uses: actions/checkout@v2
@@ -37,3 +37,9 @@ jobs:
 
       - name: Run integration tests
         run: sbt -mem 3000 IntegrationTest/test
+
+      - name: Make docker image
+        run: sbt docker
+
+      - name: Run docker image
+        run: docker run metarank/metarank:latest

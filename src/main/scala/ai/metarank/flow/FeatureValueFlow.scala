@@ -71,7 +71,9 @@ case class FeatureValueFlow(
       case Some(last) =>
         mapping.schema.configs.get(FeatureKey(write.key)) match {
           case Some(feature) =>
-            IO { write.ts.diff(last) >= feature.refresh }
+            IO {
+              write.ts.diff(last) >= feature.refresh
+            }
           case None => IO.raiseError(new Exception(s"feature ${write.key.feature} is not defined"))
         }
     }

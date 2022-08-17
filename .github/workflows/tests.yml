@@ -12,13 +12,12 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-22.04, macos-11, macos-12]
+        platform: [ubuntu-22.04, macos-12]
 
     steps:
     - name: install libomp
       run: brew install libomp
       if: runner.os == 'macOS'
-
 
     - uses: actions/checkout@v2
       with:

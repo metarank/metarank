@@ -26,6 +26,7 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
       .compile
       .toList
       .unsafeRunSync()
+      .flatten
     values shouldBe List(
       ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
     )
@@ -39,6 +40,7 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
       .compile
       .toList
       .unsafeRunSync()
+      .flatten
     values shouldBe List(
       ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
     )

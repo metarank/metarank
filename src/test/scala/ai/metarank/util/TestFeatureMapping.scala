@@ -20,7 +20,7 @@ import scala.concurrent.duration._
 object TestFeatureMapping {
   def apply() = {
     val features = NonEmptyList.of(
-      NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType),
+      NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, refresh = Some(1.minute)),
       WordCountSchema(FeatureName("title_length"), FieldName(Item, "title"), ItemScopeType),
       StringFeatureSchema(
         FeatureName("category"),

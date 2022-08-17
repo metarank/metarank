@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-22.04, macos-12]
+        platform: [ubuntu-22.04, macos-12, windows-2022]
 
     steps:
     - name: install libomp
@@ -23,10 +23,18 @@ jobs:
       with:
         lfs: 'true'
 
-    - name: Start Redis
-      uses: shogo82148/actions-setup-redis@v1
-      with:
-        redis-version: '7.x'
+    - name: Start Redis on Linux
+      run: sudo apt-get install redis-server
+      if: runner.os == 'Linux'
+
+    - name: Start Redis on Mac
+      run: brew install redis && brew services start redis
+      if: runner.os == 'macOS'
+
+    - name: Start Redis on Windows
+      run: choco install memurai-developer
+      if: runner.os == 'Windows'
+
 
     - uses: actions/cache@v2
       with:
@@ -39,4 +47,4 @@ jobs:
         java-version: '11'
 
     - name: Run tests
-      run: sbt -mem 3000 scalafmtCheck test
+      run: sbt -mem 3000 test

@@ -24,7 +24,7 @@ jobs:
         lfs: 'true'
 
     - name: Start Redis on Linux
-      run: apt-get install redis-server
+      run: sudo apt-get install redis-server
       if: runner.os == 'Linux'
 
     - name: Start Redis on Mac
@@ -34,7 +34,7 @@ jobs:
     - name: Start Redis on Windows
       run: choco install memurai-developer
       if: runner.os == 'Windows'
-    
+
 
     - uses: actions/cache@v2
       with:

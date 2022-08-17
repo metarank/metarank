@@ -39,7 +39,10 @@ jobs:
         run: sbt -mem 3000 IntegrationTest/test
 
       - name: Make docker image
-        run: sbt docker
+        run: sbt assembly docker
 
       - name: Run docker image
         run: docker run metarank/metarank:latest
+
+      - name: Run e2e test
+        run: ./run_e2e.sh target/scala-2.13/metarank.jar

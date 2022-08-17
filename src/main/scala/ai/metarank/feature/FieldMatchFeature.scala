@@ -3,56 +3,53 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher}
-import ai.metarank.flow.FieldStore
-import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.Field.{StringField, StringListField}
+import ai.metarank.fstore.Persistence
+import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
+import ai.metarank.model.FeatureValue.ScalarValue
+import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType._
-import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FieldName, MValue}
-import ai.metarank.util.{Logging, OneHotEncoder, TextAnalyzer}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.Scalar.SStringList
+import ai.metarank.model.Scope.ItemScope
+import ai.metarank.model.ScopeType.ItemScopeType
+import ai.metarank.model.Write.Put
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, Write}
+import ai.metarank.util.Logging
+import cats.effect.IO
 import io.circe.{Decoder, DecodingFailure}
-import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SString, SStringList, ScalarValue, Write}
-import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.FeatureName
-import io.findify.featury.model.Write.Put
-import ai.metarank.model.Identifier._
-import org.apache.lucene.analysis.Analyzer
-import org.apache.lucene.analysis.Analyzer.TokenStreamComponents
-import org.apache.lucene.analysis.icu.segmentation.ICUTokenizer
+import io.circe.generic.semiauto.deriveDecoder
 
-import java.util
-import java.util.Comparator
-import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.duration._
 
 case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
 
   private val conf = ScalarConfig(
-    scope = schema.scope.scope,
-    name = FeatureName(schema.name + "_" + schema.itemField.field),
+    scope = schema.scope,
+    name = FeatureName(schema.name.value + "_" + schema.itemField.field),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(schema.itemField, schema.rankingField)
-
-  override def writes(event: Event, fields: FieldStore): Iterable[Write] = for {
-    key   <- keyOf(event)
-    field <- event.fields.find(_.name == schema.itemField.field)
-    fieldValue <- field match {
-      case StringField(_, value) => Some(SStringList(schema.method.tokenize(value).toList))
-      case other =>
-        logger.warn(s"field extractor ${schema.name} expects a string, but got $other in event $event")
-        None
+  override def writes(event: Event, features: Persistence): IO[Iterable[Write]] = IO {
+    for {
+      key   <- writeKey(event, conf)
+      field <- event.fields.find(_.name == schema.itemField.field)
+      fieldValue <- field match {
+        case StringField(_, value) => Some(SStringList(schema.method.tokenize(value).toList))
+        case other =>
+          logger.warn(s"field extractor ${schema.name} expects a string, but got $other in event $event")
+          None
+      }
+    } yield {
+      Put(key, event.timestamp, fieldValue)
     }
-  } yield {
-    Put(key, event.timestamp, fieldValue)
   }
-
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = conf.readKeys(event)
   // we have a batch method overridden, so ??? is deliberate
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue =
     ???
@@ -70,8 +67,8 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
         for {
           item <- request.items.toList
         } yield {
+          val key = Key(ItemScope(item.id), conf.name)
           val result = for {
-            key          <- keyOf(request, Some(item.id))
             featureValue <- features.get(key)
             itemStringTokens <- featureValue match {
               case ScalarValue(_, _, SStringList(value)) => Some(value.toArray)
@@ -95,14 +92,14 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
 object FieldMatchFeature {
   import ai.metarank.util.DurationJson._
   case class FieldMatchSchema(
-      name: String,
+      name: FeatureName,
       rankingField: FieldName,
       itemField: FieldName,
       method: FieldMatcher,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
-    override val scope = ItemScope
+    override val scope = ItemScopeType
   }
 
   implicit val matchDecoder: Decoder[FieldMatcher] = Decoder.instance[FieldMatcher](c =>

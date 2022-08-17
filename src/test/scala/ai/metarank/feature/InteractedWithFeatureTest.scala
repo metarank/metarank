@@ -1,35 +1,48 @@
 package ai.metarank.feature
 
+import ai.metarank.FeatureMapping
+import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.flow.FieldStore
+import ai.metarank.flow.FeatureValueFlow
+import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldId.ItemFieldId
-import ai.metarank.model.{FieldId, FieldName}
+import ai.metarank.model.{FeatureKey, FieldName, Key}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
+import ai.metarank.model.Scalar.{SString, SStringList}
+import ai.metarank.model.Scope.{ItemScope, SessionScope}
+import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
+import ai.metarank.model.Write.{Append, Put}
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestSchema}
+import cats.data.{NonEmptyList, NonEmptyMap}
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
-import io.findify.featury.model.{BoundedListValue, Key, SString, SStringList, ScalarValue, TimeValue, Timestamp}
-import io.findify.featury.model.Key.{FeatureName, Scope, Tag, Tenant}
-import io.findify.featury.model.Write.{Append, Put}
 
 import scala.concurrent.duration._
 
 class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf = InteractedWithSchema(
-    name = "seen_color",
+    name = FeatureName("seen_color"),
     interaction = "impression",
     field = FieldName(Item, "color"),
-    scope = SessionScope,
+    scope = SessionScopeType,
     count = Some(10),
     duration = Some(24.hours)
   )
   val feature = InteractedWithFeature(conf)
+
+  val itemEvent1 = TestItemEvent("p1", List(StringField("color", "red")))
+  val itemEvent2 = TestItemEvent("p2", List(StringField("color", "green")))
+  val interactionEvent1 =
+    TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
+  val interactionEvent2 =
+    TestInteractionEvent("p2", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
 
   it should "decode config" in {
     val yaml =
@@ -43,104 +56,54 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   }
 
   it should "emit writes on meta field" in {
-    val writes1 =
-      feature.writes(TestItemEvent("p1", List(StringField("color", "red"))), FieldStore.empty)
-
-    writes1.collect {
-      case Put(
-            Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
-            _,
-            SString(value)
-          ) =>
-        value
-    } shouldBe List("red")
+    val writes = feature.writes(itemEvent1, Persistence.blackhole()).unsafeRunSync().toList
+    writes shouldBe List(
+      Put(
+        Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
+        itemEvent1.timestamp,
+        SStringList(List("red"))
+      )
+    )
   }
 
   it should "emit writes on meta list field" in {
-    val event   = TestItemEvent("p1", List(StringListField("color", List("red"))))
-    val writes1 = feature.writes(event, FieldStore.empty)
-    val result = writes1.collect {
-      case Put(
-            Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default")),
-            _,
-            SString(value)
-          ) =>
-        value
-    }
-    result shouldBe List("red")
-  }
-
-  it should "emit bounded list appends" in {
-    val writes1 =
-      feature.writes(
-        TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression"),
-        FieldStore.map(
-          Map(ItemFieldId(Tenant("default"), ItemId("p1"), "color") -> StringField("color", "red"))
-        )
+    val event  = TestItemEvent("p1", List(StringListField("color", List("red"))))
+    val writes = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    writes shouldBe List(
+      Put(
+        Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
+        event.timestamp,
+        SStringList(List("red"))
       )
-    val result = writes1.collect {
-      case Append(
-            Key(Tag(SessionScope.scope, "s1"), FeatureName("seen_color_last"), Tenant("default")),
-            value,
-            _
-          ) =>
-        value
-    }
-    result shouldBe List(SString("red"))
+    )
   }
 
   it should "compute values" in {
-    val itemKey1 = Key(Tag(ItemScope.scope, "p1"), FeatureName("seen_color_field"), Tenant("default"))
-    val itemKey2 = Key(Tag(ItemScope.scope, "p2"), FeatureName("seen_color_field"), Tenant("default"))
-    val itemKey3 = Key(Tag(ItemScope.scope, "p3"), FeatureName("seen_color_field"), Tenant("default"))
-    val sesKey =
-      Key(Tag(SessionScope.scope, "s1"), FeatureName("seen_color_last"), Tenant("default"))
-    val state = Map(
-      itemKey1 -> ScalarValue(itemKey1, Timestamp.now, SString("red")),
-      itemKey2 -> ScalarValue(itemKey2, Timestamp.now, SString("red")),
-      itemKey3 -> ScalarValue(itemKey3, Timestamp.now, SString("green")),
-      sesKey   -> BoundedListValue(sesKey, Timestamp.now, List(TimeValue(Timestamp.now, SString("red"))))
+    val values = process(
+      List(itemEvent1, itemEvent2, interactionEvent1, interactionEvent2),
+      feature.schema,
+      TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
     )
-    val request = TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
 
-    val values2 = feature.value(
-      request = request,
-      features = state,
-      ItemRelevancy(ItemId("p2"))
+    values shouldBe List(
+      List(
+        SingleValue(FeatureName("seen_color"), 1.0),
+        SingleValue(FeatureName("seen_color"), 1.0),
+        SingleValue(FeatureName("seen_color"), 0)
+      )
     )
-    values2 shouldBe SingleValue("seen_color", 1)
-    val values3 = feature.value(
-      request = request,
-      features = state,
-      ItemRelevancy(ItemId("p3"))
-    )
-    values3 shouldBe SingleValue("seen_color", 0)
-    val values4 = feature.value(
-      request = request,
-      features = state,
-      ItemRelevancy(ItemId("404"))
-    )
-    values4 shouldBe SingleValue("seen_color", 0)
   }
 
-  it should "process events" in {
-    val conf = InteractedWithSchema(
-      name = "seen_color",
-      interaction = "click",
-      field = FieldName(Item, "color"),
-      scope = SessionScope,
-      count = Some(10),
-      duration = Some(24.hours)
-    )
-    val result = process(
-      events = List(
-        TestItemEvent("p1", List(StringListField("color", List("red")))),
-        TestInteractionEvent("p1", "x")
+  it should "compute values for list fields" in {
+    val values = process(
+      List(
+        TestItemEvent("p1", List(StringListField("color", List("red", "green", "blue")))),
+        TestItemEvent("p2", List(StringListField("color", List("brown", "red", "green")))),
+        TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
       ),
-      schema = conf,
-      request = TestRankingEvent(List("p1"))
+      feature.schema,
+      TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
     )
-    result should matchPattern { case List(List(SingleValue("seen_color", 1.0))) =>
-    }
+    val br = 1
   }
 }

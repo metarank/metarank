@@ -7,8 +7,6 @@ import ai.metarank.model.Field.BooleanField
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import cats.data.NonEmptyList
-import io.findify.featury.model.Key.Tenant
-import io.findify.featury.model.Timestamp
 import org.scalacheck.Gen
 
 //object DatasetGen {

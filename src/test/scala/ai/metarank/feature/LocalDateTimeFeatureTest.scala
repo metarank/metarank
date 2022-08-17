@@ -12,6 +12,7 @@ import ai.metarank.feature.LocalDateTimeFeature.{
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, MValue}
 import ai.metarank.model.FieldName.EventType.Ranking
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.util.TestRankingEvent
 import io.circe.yaml.parser.parse
@@ -22,8 +23,10 @@ import java.time.format.DateTimeFormatter
 import java.time.{ZoneId, ZonedDateTime}
 
 class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
-  lazy val timeofday = LocalDateTimeFeature(LocalDateTimeSchema("x", FieldName(Ranking, "localts"), TimeOfDay))
-  val now            = ZonedDateTime.of(2022, 3, 28, 12, 0, 0, 0, ZoneId.of("UTC+2"))
+  lazy val timeofday = LocalDateTimeFeature(
+    LocalDateTimeSchema(FeatureName("x"), FieldName(Ranking, "localts"), TimeOfDay)
+  )
+  val now = ZonedDateTime.of(2022, 3, 28, 12, 0, 0, 0, ZoneId.of("UTC+2"))
 
   it should "complain on improper source event type" in {
     val decoded = parse("name: foo\nsource: metadata.foo\nparse: time_of_day").flatMap(_.as[LocalDateTimeSchema])
@@ -32,18 +35,18 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "decode ranking as source event type" in {
     val decoded = parse("name: foo\nsource: ranking.foo\nparse: time_of_day").flatMap(_.as[LocalDateTimeSchema])
-    decoded shouldBe Right(LocalDateTimeSchema("foo", FieldName(Ranking, "foo"), TimeOfDay))
+    decoded shouldBe Right(LocalDateTimeSchema(FeatureName("foo"), FieldName(Ranking, "foo"), TimeOfDay))
   }
 
   it should "ignore on format errors" in {
     val result =
       timeofday.value(TestRankingEvent(List("p1")).copy(fields = List(StringField("localts", "now"))), Map.empty)
-    result shouldBe SingleValue("x", 0.0)
+    result shouldBe SingleValue(FeatureName("x"), 0.0)
   }
 
   it should "ignore on missing field" in {
     val result = timeofday.value(TestRankingEvent(List("p1")), Map.empty)
-    result shouldBe SingleValue("x", 0.0)
+    result shouldBe SingleValue(FeatureName("x"), 0.0)
   }
 
   it should "parse time of day" in {
@@ -67,7 +70,9 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
   }
 
   def value(ts: ZonedDateTime, mapper: DateTimeMapper): Double = {
-    lazy val feature = LocalDateTimeFeature(LocalDateTimeSchema("x", FieldName(Ranking, "localts"), mapper))
+    lazy val feature = LocalDateTimeFeature(
+      LocalDateTimeSchema(FeatureName("x"), FieldName(Ranking, "localts"), mapper)
+    )
     val result =
       feature.value(
         TestRankingEvent(List("p1"))

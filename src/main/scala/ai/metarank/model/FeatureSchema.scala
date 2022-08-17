@@ -12,17 +12,18 @@ import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
-import ai.metarank.feature.WindowCountFeature.WindowCountSchema
+import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, DecodingFailure}
 
 import scala.concurrent.duration.FiniteDuration
 
 trait FeatureSchema {
-  def name: String
+  def name: FeatureName
   def refresh: Option[FiniteDuration]
   def ttl: Option[FiniteDuration]
-  def scope: FeatureScope
+  def scope: ScopeType
 }
 
 object FeatureSchema {
@@ -38,7 +39,7 @@ object FeatureSchema {
         case "rate"              => implicitly[Decoder[RateFeatureSchema]].apply(c)
         case "interacted_with"   => implicitly[Decoder[InteractedWithSchema]].apply(c)
         case "interaction_count" => implicitly[Decoder[InteractionCountSchema]].apply(c)
-        case "window_count"      => implicitly[Decoder[WindowCountSchema]].apply(c)
+        case "window_count"      => implicitly[Decoder[WindowInteractionCountSchema]].apply(c)
         case "ua"                => implicitly[Decoder[UserAgentSchema]].apply(c)
         case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
         case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)

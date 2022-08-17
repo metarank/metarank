@@ -1,30 +1,33 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.flow.FieldStore
+import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.{FeatureSchema, FieldName}
-import ai.metarank.model.FeatureScope.{ItemScope, UserScope}
+import ai.metarank.model.{FeatureSchema, FieldName, Key}
+import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.{NumberField, StringField}
-import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.Identifier.{ItemId, UserId}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{SingleValue, VectorValue}
-import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
+import ai.metarank.model.Scalar.SDouble
+import ai.metarank.model.Scope.{ItemScope, UserScope}
+import ai.metarank.model.Write.Put
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestSchema, TestUserEvent}
+import cats.effect.unsafe.implicits.global
 import io.circe.yaml.parser.parse
-import io.findify.featury.model.Key.Tenant
-import io.findify.featury.model.{Key, SDouble, SString, ScalarValue, Timestamp}
-import io.findify.featury.model.Write.Put
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-class NumberFeatureTest extends AnyFlatSpec with Matchers {
+class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = NumberFeature(
     NumberFeatureSchema(
-      name = "popularity",
+      name = FeatureName("popularity"),
       source = FieldName(Item, "popularity"),
-      scope = ItemScope
+      scope = ItemScopeType
     )
   )
 
@@ -32,58 +35,57 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers {
     parse("name: price\ntype: number\nscope: item\nsource: metadata.price\nrefresh: 1m").flatMap(
       _.as[FeatureSchema]
     ) shouldBe Right(
-      NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope, Some(1.minute))
+      NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, Some(1.minute))
     )
   }
 
   it should "extract field from metadata" in {
     val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
+      Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
   }
 
   it should "extract field from interaction" in {
     val feature = NumberFeature(
       NumberFeatureSchema(
-        name = "popularity",
+        name = FeatureName("popularity"),
         source = FieldName(Interaction("click"), "popularity"),
-        scope = ItemScope
+        scope = ItemScopeType
       )
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(feature.states.head, Tenant("default"), "p1"), event.timestamp, SDouble(100))
+      Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
   }
 
   it should "extract field from user profile" in {
     val feature = NumberFeature(
       NumberFeatureSchema(
-        name = "user_age",
+        name = FeatureName("user_age"),
         source = FieldName(User, "age"),
-        scope = UserScope
+        scope = UserScopeType
       )
     )
 
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
-    val result = feature.writes(event, FieldStore.empty).toList
+    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(feature.states.head, Tenant("default"), "u1"), event.timestamp, SDouble(33))
+      Put(Key(UserScope(UserId("u1")), FeatureName("user_age")), event.timestamp, SDouble(33))
     )
   }
 
   it should "compute value" in {
-    val key = Key(feature.states.head, Tenant("default"), "p1")
-    val result = feature.value(
-      request = TestRankingEvent(List("p1")),
-      features = Map(key -> ScalarValue(key, Timestamp.now, SDouble(100))),
-      id = ItemRelevancy(ItemId("p1"))
+    val values = process(
+      List(TestItemEvent("p1", List(NumberField("popularity", 100)))),
+      feature.schema,
+      TestRankingEvent(List("p1"))
     )
-    result shouldBe SingleValue("popularity", 100.0)
+    values shouldBe List(List(SingleValue(FeatureName("popularity"), 100.0)))
   }
 
 }

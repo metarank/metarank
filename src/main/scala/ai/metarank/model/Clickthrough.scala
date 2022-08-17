@@ -1,17 +1,24 @@
 package ai.metarank.model
 
-import ai.metarank.model.Clickthrough.ItemValues
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
+import ai.metarank.model.Clickthrough.TypedInteraction
+import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.ItemId
-import io.findify.featury.model.{FeatureValue, Key}
+import io.circe.Codec
+import io.circe.generic.semiauto._
 
 case class Clickthrough(
-    ranking: RankingEvent,
-    interactions: List[InteractionEvent],
-    features: List[FeatureValue] = Nil,
-    values: List[ItemValues] = Nil
-)
+    ts: Timestamp,
+    items: List[ItemId],
+    interactions: List[TypedInteraction] = Nil
+) {
+  def withInteraction(item: ItemId, tpe: String): Clickthrough =
+    copy(interactions = TypedInteraction(item, tpe) +: interactions)
+
+}
 
 object Clickthrough {
-  case class ItemValues(id: ItemId, label: Double, values: List[MValue], score: Double = 0)
+  case class TypedInteraction(item: ItemId, tpe: String)
+  import ai.metarank.model.Event.EventCodecs._
+  implicit val wiCodec: Codec[TypedInteraction] = deriveCodec[TypedInteraction]
+  implicit val ctCodec: Codec[Clickthrough]     = deriveCodec[Clickthrough]
 }

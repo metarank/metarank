@@ -1,20 +1,23 @@
 package ai.metarank.config
 
+import ai.metarank.model.Key.FeatureName
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
 
+import scala.concurrent.duration._
 import scala.util.Random
 
 sealed trait ModelConfig
 
 object ModelConfig {
   import io.circe.generic.extras.semiauto._
+  import ai.metarank.util.DurationJson._
+
   case class LambdaMARTConfig(
-      path: MPath,
       backend: ModelBackend,
-      features: NonEmptyList[String],
-      weights: NonEmptyMap[String, Double]
+      features: NonEmptyList[FeatureName],
+      weights: Map[String, Double]
   ) extends ModelConfig
   case class ShuffleConfig(maxPositionChange: Int) extends ModelConfig
   case class NoopConfig()                          extends ModelConfig
@@ -42,6 +45,7 @@ object ModelConfig {
         maxDepth: Int = 8,
         seed: Int = Random.nextInt(Int.MaxValue)
     ) extends ModelBackend
+
     implicit val conf =
       Configuration.default
         .withDiscriminator("type")

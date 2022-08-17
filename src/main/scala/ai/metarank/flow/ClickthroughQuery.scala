@@ -1,25 +1,63 @@
 package ai.metarank.flow
 
-import ai.metarank.model.Clickthrough.ItemValues
-import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.MValue
+import ai.metarank.model.Clickthrough.TypedInteraction
+import ai.metarank.model.{ItemValue, MValue}
+import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}
 import io.github.metarank.ltrlib.model.{DatasetDescriptor, LabeledItem, Query}
 
 object ClickthroughQuery {
-  def apply(values: List[ItemValues], id: String, dataset: DatasetDescriptor) = {
+  def apply(
+      values: List[ItemValue],
+      ints: List[TypedInteraction],
+      id: Any,
+      weights: Map[String, Double],
+      dataset: DatasetDescriptor
+  ): Query = {
     val items = for {
       item <- values
     } yield {
       LabeledItem(
-        label = item.label,
+        label = ints.find(_.item == item.id).flatMap(tpe => weights.get(tpe.tpe)).getOrElse(0.0),
         group = math.abs(id.hashCode),
-        values = item.values.flatMap {
-          case MValue.SingleValue(_, value)     => List(value)
-          case MValue.CategoryValue(_, index)   => List(index.toDouble)
-          case MValue.VectorValue(_, values, _) => values
-        }.toArray
+        values = collectFeatureValues(dataset, item.values)
       )
     }
     Query(dataset, items)
+  }
+
+  def apply(
+      values: List[ItemValue],
+      id: Any,
+      dataset: DatasetDescriptor
+  ): Query = {
+    val items = for {
+      item <- values
+    } yield {
+      LabeledItem(
+        label = 0.0,
+        group = math.abs(id.hashCode),
+        values = collectFeatureValues(dataset, item.values)
+      )
+    }
+    Query(dataset, items)
+  }
+
+  def collectFeatureValues(dataset: DatasetDescriptor, values: List[MValue]): Array[Double] = {
+    val buffer = new Array[Double](dataset.dim)
+    for {
+      value <- values
+    } {
+      value match {
+        case MValue.SingleValue(name, value) =>
+          dataset.offsets.get(SingularFeature(name.value)).foreach(o => buffer(o) = value)
+        case MValue.VectorValue(name, values, dim) =>
+          dataset.offsets
+            .get(VectorFeature(name.value, dim))
+            .foreach(o => System.arraycopy(values, 0, buffer, o, values.length))
+        case MValue.CategoryValue(name, cat, index) =>
+          dataset.offsets.get(CategoryFeature(name.value)).foreach(o => buffer(o) = index)
+      }
+    }
+    buffer
   }
 }

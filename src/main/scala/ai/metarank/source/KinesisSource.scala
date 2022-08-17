@@ -1,84 +1,131 @@
 package ai.metarank.source
 
-import ai.metarank.config.EventSourceConfig.{KinesisSourceConfig, SourceOffset}
-import ai.metarank.config.SourceFormat
-import ai.metarank.model.Event
-import ai.metarank.source.KinesisSource.KinesisEventSchema
+import ai.metarank.config.InputConfig.{KinesisInputConfig, SourceOffset}
+import ai.metarank.model.{Event, Timestamp}
+import ai.metarank.source.KinesisSource.Consumer
 import ai.metarank.util.Logging
-import io.findify.featury.model.Timestamp
-import io.findify.flink.api.{DataStream, StreamExecutionEnvironment}
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.kinesis.shaded.org.apache.flink.connector.aws.config.AWSConfigConstants
-import org.apache.flink.streaming.connectors.kinesis.FlinkKinesisConsumer
-import org.apache.flink.streaming.connectors.kinesis.config.ConsumerConfigConstants
-import org.apache.flink.streaming.connectors.kinesis.serialization.KinesisDeserializationSchema
+import cats.effect.IO
+import fs2.{Chunk, Stream}
+import software.amazon.awssdk.http.SdkHttpConfigurationOption
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.kinesis.KinesisAsyncClient
+import software.amazon.awssdk.services.kinesis.model.{
+  GetRecordsRequest,
+  GetShardIteratorRequest,
+  ListShardsRequest,
+  ShardIteratorType
+}
+import software.amazon.awssdk.utils.AttributeMap
 
-import java.nio.charset.StandardCharsets
-import java.util.Properties
+import scala.jdk.CollectionConverters._
+import java.net.URI
+import java.time.{Duration, Instant}
+import scala.concurrent.duration._
 
-case class KinesisSource(conf: KinesisSourceConfig) extends EventSource with Logging {
-  import ai.metarank.flow.DataStreamOps._
-  override def eventStream(env: StreamExecutionEnvironment, bounded: Boolean)(implicit
-      ti: TypeInformation[Event]
-  ): DataStream[Event] = {
-    val props = new Properties()
-    props.put(AWSConfigConstants.AWS_REGION, conf.region)
-    props.put(AWSConfigConstants.AWS_CREDENTIALS_PROVIDER, "AUTO")
-    conf.offset match {
-      case SourceOffset.Latest   => props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "LATEST")
-      case SourceOffset.Earliest => props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "TRIM_HORIZON")
-      case SourceOffset.ExactTimestamp(ts) =>
-        props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "AT_TIMESTAMP")
-        props.put(ConsumerConfigConstants.STREAM_INITIAL_TIMESTAMP, (ts / 1000.0).toString)
-      case SourceOffset.RelativeDuration(duration) =>
-        props.put(ConsumerConfigConstants.STREAM_INITIAL_POSITION, "AT_TIMESTAMP")
-        props.put(
-          ConsumerConfigConstants.STREAM_INITIAL_TIMESTAMP,
-          (Timestamp.now.minus(duration).ts / 1000.0).toString
-        )
-    }
-    conf.options match {
-      case Some(options) =>
-        logger.info("AWS Kinesis Connector has option overrides")
-        options.foreach { case (key, value) =>
-          logger.info(s"'$key' = '$value'")
-          props.put(key, value)
-        }
-      case None => //
-    }
-    val consumer = new FlinkKinesisConsumer(conf.topic, KinesisEventSchema(conf.format, ti), props)
-    env
-      .addSource(consumer)
-      .id("kinesis-source")
-      .assignTimestampsAndWatermarks(EventWatermarkStrategy())
-      .id("kinesis-watermarks")
-  }
+case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logging {
+  val GETRECORDS_TIMEOUT = 200.millis
+  override def stream: fs2.Stream[IO, Event] =
+    Stream
+      .bracket(Consumer.create(conf))(_.close())
+      .flatMap(consumer => {
+        Stream
+          .emits(consumer.shards)
+          .map(shard => shardStream(consumer, shard, conf.offset))
+          .reduce((a, b) => a.merge(b))
+          .flatten
+      })
+
+  def shardStream(consumer: Consumer, shard: String, offset: SourceOffset): Stream[IO, Event] =
+    Stream
+      .eval(consumer.getShardIterator(conf.topic, shard, offset))
+      .flatMap(iterator => {
+        Stream
+          .unfoldChunkEval[IO, String, Array[Byte]](iterator)(it => {
+            consumer
+              .getRecords(it)
+              .map(records => {
+                val chunk = Chunk.seq(records.events)
+                val next  = records.next
+                Some(chunk, next)
+              })
+          })
+          .metered(GETRECORDS_TIMEOUT)
+          .flatMap(bytes => Stream.emits(bytes).through(conf.format.parse))
+      })
 }
 
 object KinesisSource {
-  case class KinesisEventSchema(format: SourceFormat, ti: TypeInformation[Event])
-      extends KinesisDeserializationSchema[Event]
-      with Logging {
-    override def deserialize(
-        recordValue: Array[Byte],
-        partitionKey: String,
-        seqNum: String,
-        approxArrivalTimestamp: Long,
-        stream: String,
-        shardId: String
-    ): Event = {
-      format.parse(recordValue) match {
-        case Left(value) =>
-          val string = new String(recordValue, StandardCharsets.UTF_8)
-          logger.error(s"cannot parse event $string", value)
-          null
-        case Right(Some(value)) =>
-          value
-        case Right(None) =>
-          null
+  case class Records(events: List[Array[Byte]], next: String)
+  case class Consumer(client: KinesisAsyncClient, shards: List[String]) extends Logging {
+    def close(): IO[Unit] = IO(client.close())
+
+    def getShardIterator(topic: String, shard: String, offset: SourceOffset): IO[String] = {
+      val builder = GetShardIteratorRequest.builder().streamName(topic).shardId(shard)
+      val request = offset match {
+        case SourceOffset.Latest   => builder.shardIteratorType(ShardIteratorType.LATEST).build()
+        case SourceOffset.Earliest => builder.shardIteratorType(ShardIteratorType.TRIM_HORIZON).build()
+        case SourceOffset.ExactTimestamp(ts) =>
+          builder.shardIteratorType(ShardIteratorType.AT_TIMESTAMP).timestamp(Instant.ofEpochMilli(ts)).build()
+        case SourceOffset.RelativeDuration(duration) =>
+          builder
+            .shardIteratorType(ShardIteratorType.AT_TIMESTAMP)
+            .timestamp(Instant.ofEpochMilli(Timestamp.now.minus(duration).ts))
+            .build()
       }
+      IO.fromCompletableFuture(IO(client.getShardIterator(request)))
+        .map(_.shardIterator())
+        .flatTap(it => debug(s"initial shard iterator: $it"))
     }
 
-    override def getProducedType: TypeInformation[Event] = ti
+    def getRecords(it: String): IO[Records] = {
+      IO
+        .fromCompletableFuture(IO(client.getRecords(GetRecordsRequest.builder().shardIterator(it).build())))
+        .map(response =>
+          Records(response.records().asScala.toList.map(_.data().asByteArray()), response.nextShardIterator())
+        )
+        .flatTap(rec => debug(s"getRecords: received ${rec.events.size} records"))
+    }
+  }
+
+  object Consumer extends Logging {
+    def create(config: KinesisInputConfig): IO[Consumer] = {
+      val builder = KinesisAsyncClient
+        .builder()
+        .region(Region.of(config.region))
+        .httpClient(
+          NettyNioAsyncHttpClient
+            .builder()
+            .buildWithDefaults(
+              AttributeMap
+                .builder()
+                .put(
+                  SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES,
+                  java.lang.Boolean.valueOf(config.skipCertVerification)
+                )
+                .build()
+            )
+        )
+      for {
+        client <- IO {
+          config.endpoint match {
+            case None           => builder.build()
+            case Some(endpoint) => builder.endpointOverride(URI.create(endpoint)).build()
+          }
+        }
+        _ <- info(s"created kinesis consumer: ${client}")
+        shards <- IO
+          .fromCompletableFuture(
+            IO(
+              client
+                .listShards(ListShardsRequest.builder().streamName(config.topic).build())
+            )
+          )
+          .map(_.shards().asScala.map(_.shardId()).toList)
+        _ <- info(s"detected topic ${config.topic} shards: $shards")
+      } yield {
+        new Consumer(client, shards)
+      }
+    }
   }
 }

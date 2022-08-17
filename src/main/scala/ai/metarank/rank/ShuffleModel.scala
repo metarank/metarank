@@ -1,25 +1,16 @@
 package ai.metarank.rank
 
 import ai.metarank.config.ModelConfig.ShuffleConfig
-import ai.metarank.model.{Clickthrough, Event}
 import ai.metarank.rank.Model.Scorer
-import io.findify.featury.model.{FeatureValue, Schema}
+import io.circe.Codec
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
-
+import io.circe.generic.semiauto._
 import scala.util.Random
 
 case class ShuffleModel(conf: ShuffleConfig) extends Model {
-  override val features                             = Nil
-  override def datasetDescriptor: DatasetDescriptor = DatasetDescriptor(Map.empty, Nil, 0)
-  override def featureValues(
-      ranking: Event.RankingEvent,
-      source: List[FeatureValue],
-      interactions: List[Event.InteractionEvent]
-  ): List[Clickthrough.ItemValues] = {
-    NoopModel.noop(ranking)
-  }
-
-  override def train(train: Dataset, test: Dataset): Option[Array[Byte]] = None
+  override val features                                          = Nil
+  override def datasetDescriptor: DatasetDescriptor              = DatasetDescriptor(Map.empty, Nil, 0)
+  override def train(train: Dataset, test: Dataset): Array[Byte] = Array.emptyByteArray
 }
 
 object ShuffleModel {
@@ -32,4 +23,6 @@ object ShuffleModel {
       }
     }
   }
+
+  implicit val shuffleScorerCodec: Codec[ShuffleScorer] = deriveCodec[ShuffleScorer]
 }

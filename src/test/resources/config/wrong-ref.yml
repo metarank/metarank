@@ -1,0 +1,28 @@
+api:
+  port: 8080
+  host: "0.0.0.0"
+
+state:
+  type: memory
+
+input:
+  type: api
+
+models:
+  xgboost:
+    type: lambdamart
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
+    features:
+      - popularity
+      - price
+
+features:
+  - name: popularity
+    type: number
+    scope: item
+    source: metadata.popularity

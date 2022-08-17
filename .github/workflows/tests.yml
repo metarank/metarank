@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-20.04, ubuntu-22.04, macos-11, macos-12]
+        platform: [ubuntu-22.04, macos-12]
 
     steps:
     - name: install libomp
@@ -22,6 +22,11 @@ jobs:
     - uses: actions/checkout@v2
       with:
         lfs: 'true'
+
+    - name: Start Redis
+      uses: shogo82148/actions-setup-redis@v1
+      with:
+        redis-version: '7.x'
 
     - uses: actions/cache@v2
       with:

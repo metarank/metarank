@@ -4,8 +4,6 @@ import ai.metarank.util.TextAnalyzer
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, DecodingFailure}
 
-import java.util
-import java.util.Comparator
 import scala.collection.mutable.ArrayBuffer
 
 case class NgramMatcher(n: Int, language: TextAnalyzer) extends FieldMatcher {

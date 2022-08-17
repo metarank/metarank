@@ -2,26 +2,23 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
-import ai.metarank.feature.StringFeature.{
-  CategoricalEncoder,
-  IndexCategoricalEncoder,
-  OnehotCategoricalEncoder,
-  StringFeatureSchema
-}
-import ai.metarank.flow.FieldStore
+import ai.metarank.feature.StringFeature.{IndexCategoricalEncoder, OnehotCategoricalEncoder, StringFeatureSchema}
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
+import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
+import ai.metarank.model.Scalar.SStringList
+import ai.metarank.model.Write.Put
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
+import cats.effect.IO
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
-import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.FeatureConfig.ScalarConfig
-import io.findify.featury.model.Key.{FeatureName, Scope, Tenant}
-import io.findify.featury.model.Write.Put
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, SString, SStringList, ScalarValue}
 import io.circe.generic.extras.semiauto._
 
 import scala.concurrent.duration._
@@ -31,7 +28,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   val encoder = schema.encode match {
     case OnehotEncoderName =>
       OnehotCategoricalEncoder(
-        names = schema.values.toList.map(value => s"${schema.name}_$value"),
+        name = schema.name,
         possibleValues = schema.values.toList,
         dim = schema.values.size
       )
@@ -44,18 +41,16 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   override def dim: Int = encoder.dim
 
   private val conf = ScalarConfig(
-    scope = schema.scope.scope,
-    name = FeatureName(schema.name),
+    scope = schema.scope,
+    name = schema.name,
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def fields = List(schema.source)
-
-  override def writes(event: Event, fields: FieldStore): Iterable[Put] = {
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {
     for {
-      key   <- keyOf(event)
+      key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.source.field)
       fieldValue <- field match {
         case StringField(_, value)     => Some(SStringList(List(value)))
@@ -69,18 +64,15 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
     }
   }
 
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = conf.readKeys(event)
+
+  // todo: should load field directly from ranking
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
       id: ItemRelevancy
   ): MValue = {
-    val result = for {
-      key   <- keyOf(request, Some(id.id))
-      value <- features.get(key)
-    } yield {
-      value
-    }
-    result match {
+    readKey(request, conf, id.id).flatMap(features.get) match {
       case Some(ScalarValue(_, _, SStringList(values))) => encoder.encode(values)
       case _                                            => encoder.encode(Nil)
     }
@@ -96,20 +88,20 @@ object StringFeature {
     def encode(values: Seq[String]): MValue
   }
 
-  case class OnehotCategoricalEncoder(names: List[String], possibleValues: List[String], dim: Int)
+  case class OnehotCategoricalEncoder(name: FeatureName, possibleValues: List[String], dim: Int)
       extends CategoricalEncoder {
     override def encode(values: Seq[String]): VectorValue =
-      VectorValue(names, OneHotEncoder.fromValues(values, possibleValues, dim), dim)
+      VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim), dim)
   }
-  case class IndexCategoricalEncoder(name: String, possibleValues: List[String]) extends CategoricalEncoder {
+  case class IndexCategoricalEncoder(name: FeatureName, possibleValues: List[String]) extends CategoricalEncoder {
     override val dim = 1
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {
         case Some(first) =>
           val index = possibleValues.indexOf(first)
-          CategoryValue(name, index + 1) // zero is
+          CategoryValue(name, first, index + 1) // zero is
         case None =>
-          CategoryValue(name, 0)
+          CategoryValue(name, "nil", 0)
       }
     }
   }
@@ -126,9 +118,9 @@ object StringFeature {
   }
 
   case class StringFeatureSchema(
-      name: String,
+      name: FeatureName,
       source: FieldName,
-      scope: FeatureScope,
+      scope: ScopeType,
       encode: EncoderName = IndexEncoderName,
       values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,

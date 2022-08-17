@@ -6,7 +6,6 @@ services:
     environment:
       - INITIALIZE_STREAMS=events:1
     ports:
-      - '4568:4568'
       - '4567:4567'
 
   kafka:
@@ -24,7 +23,7 @@ services:
       - ALLOW_PLAINTEXT_LISTENER=yes
 
   pulsar:
-    image: apachepulsar/pulsar:2.8.0
+    image: apachepulsar/pulsar:2.10.1
     ports:
       - 8080:8080
       - 6650:6650

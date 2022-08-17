@@ -1,0 +1,29 @@
+api:
+  port: 8080
+  host: "0.0.0.0"
+
+state:
+  type: redis
+  host: localhost
+  port: 6379
+
+input:
+  type: api
+
+models:
+  xgboost:
+    type: lambdamart
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
+    features:
+      - popularity
+
+features:
+  - name: popularity
+    type: number
+    scope: item
+    source: metadata.popularity

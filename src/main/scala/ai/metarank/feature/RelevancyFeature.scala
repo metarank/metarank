@@ -2,27 +2,28 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
-import ai.metarank.flow.FieldStore
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.FeatureScope.ItemScope
-import ai.metarank.model.{Event, FeatureSchema, FeatureScope, FieldName, MValue}
-import ai.metarank.model.Identifier._
+import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.ScopeType.ItemScopeType
+import ai.metarank.model.Write.Put
+import cats.effect.IO
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.findify.featury.model.Write.Put
-import io.findify.featury.model.{FeatureConfig, FeatureValue, Key, SDouble, ScalarValue}
 
 import scala.concurrent.duration.FiniteDuration
 
 case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
   override def dim: Int = 1
 
-  override def fields: List[FieldName] = Nil
-
   override def states: List[FeatureConfig] = Nil
 
-  override def writes(event: Event, fields: FieldStore): Iterable[Put] = Nil
+  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
+
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
 
   override def value(
       request: Event.RankingEvent,
@@ -33,10 +34,10 @@ case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
 }
 
 object RelevancyFeature {
-  case class RelevancySchema(name: String) extends FeatureSchema {
+  case class RelevancySchema(name: FeatureName) extends FeatureSchema {
     lazy val refresh: Option[FiniteDuration] = None
     lazy val ttl: Option[FiniteDuration]     = None
-    lazy val scope: FeatureScope             = ItemScope
+    lazy val scope: ScopeType                = ItemScopeType
   }
 
   implicit val relDecoder: Decoder[RelevancySchema] =

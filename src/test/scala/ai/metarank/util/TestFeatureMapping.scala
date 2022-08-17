@@ -1,7 +1,6 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.MPath
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
@@ -10,10 +9,10 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.model.FeatureScope.{ItemScope, SessionScope}
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
-import better.files.File
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
 import cats.data.{NonEmptyList, NonEmptyMap}
 
 import scala.concurrent.duration._
@@ -21,32 +20,31 @@ import scala.concurrent.duration._
 object TestFeatureMapping {
   def apply() = {
     val features = NonEmptyList.of(
-      NumberFeatureSchema("price", FieldName(Item, "price"), ItemScope),
-      WordCountSchema("title_length", FieldName(Item, "title"), ItemScope),
+      NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, refresh = Some(1.minute)),
+      WordCountSchema(FeatureName("title_length"), FieldName(Item, "title"), ItemScopeType),
       StringFeatureSchema(
-        "category",
+        FeatureName("category"),
         FieldName(Item, "category"),
-        ItemScope,
+        ItemScopeType,
         IndexEncoderName,
         NonEmptyList.of("socks", "shirts")
       ),
-      RateFeatureSchema("ctr", "impression", "click", 24.hours, List(7, 30), ItemScope),
+      RateFeatureSchema(FeatureName("ctr"), "impression", "click", 24.hours, List(7, 30), ItemScopeType),
       InteractedWithSchema(
-        "clicked_category",
+        FeatureName("clicked_category"),
         "click",
         FieldName(Item, "category"),
-        SessionScope,
+        SessionScopeType,
         Some(10),
         Some(24.hours)
       )
     )
 
-    val models = NonEmptyMap.of(
+    val models = Map(
       "random" -> LambdaMARTConfig(
-        path = MPath(File.newTemporaryFile().deleteOnExit()),
         backend = XGBoostBackend(),
         features = features.map(_.name),
-        weights = NonEmptyMap.of("click" -> 1)
+        weights = Map("click" -> 1)
       )
     )
     FeatureMapping.fromFeatureSchema(features, models)

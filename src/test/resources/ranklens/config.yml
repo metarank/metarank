@@ -1,52 +1,15 @@
-bootstrap:
-  source:
-    type: file
-    path: src/test/resources/ranklens/events/
-  workdir: /tmp/bootstrap
-
-inference:
-  port: 8080
-  host: "0.0.0.0"
-  source:
-    type: rest
-  state:
-    type: redis
-    host: localhost
-    format: protobuf
+state:
+  type: redis
+  host: localhost
+  port: 6379
 
 models:
-#  lightgbm:
-#    type: lambdamart
-#    path: /tmp/lightgbm.model
-#    backend:
-#      type: lightgbm
-#      iterations: 100
-#      seed: 0
-#    weights:
-#      click: 1
-#    features:
-#      - popularity
-#      - vote_avg
-#      - vote_cnt
-#      - budget
-#      - release_date
-#      - runtime
-#      - title_length
-#      - genre
-#      - ctr
-#      - liked_genre
-#      - liked_actors
-#      - liked_tags
-#      - liked_director
-#      - visitor_click_count
-#      - global_item_click_count
-#      - day_item_click_count
   xgboost:
     type: lambdamart
-    path: /tmp/xgboost.model
     backend:
       type: xgboost
-      iterations: 10
+      iterations: 100
+      maxDepth: 8
       seed: 0
     weights:
       click: 1
@@ -138,7 +101,7 @@ features:
     interaction: click
     field: metadata.genres
     scope: session
-    count: 10
+    count: 100
     duration: 24h
 
   - name: liked_actors
@@ -146,7 +109,7 @@ features:
     interaction: click
     field: metadata.actors
     scope: session
-    count: 10
+    count: 100
     duration: 24h
 
   - name: liked_tags
@@ -154,7 +117,7 @@ features:
     interaction: click
     field: metadata.tags
     scope: session
-    count: 10
+    count: 100
     duration: 24h
 
   - name: liked_director
@@ -162,7 +125,7 @@ features:
     interaction: click
     field: metadata.director
     scope: session
-    count: 10
+    count: 100
     duration: 24h
 
   - name: visitor_click_count

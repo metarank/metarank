@@ -47,4 +47,4 @@ jobs:
         java-version: '11'
 
     - name: Run tests
-      run: sbt -mem 3000 scalafmtCheck test
+      run: sbt -mem 3000 test

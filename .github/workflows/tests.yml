@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-22.04, macos-12]
+        platform: [ubuntu-22.04, macos-12, windows-2022]
 
     steps:
     - name: install libomp

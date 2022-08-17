@@ -19,6 +19,7 @@ sealed trait CliArgs {
 object CliArgs extends Logging {
   case class ServeArgs(conf: Path)                                                                   extends CliArgs
   case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)          extends CliArgs
+  case class StandaloneArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)      extends CliArgs
   case class TrainArgs(conf: Path, model: String)                                                    extends CliArgs
   case class SortArgs(conf: Path, data: Path, out: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
 
@@ -45,6 +46,15 @@ object CliArgs extends Logging {
               format <- parse(parser.`import`.format)
             } yield {
               ImportArgs(conf, data, offset, format)
+            }
+          case Some(parser.standalone) =>
+            for {
+              conf   <- parse(parser.standalone.config)
+              data   <- parse(parser.standalone.data)
+              offset <- parse(parser.standalone.offset)
+              format <- parse(parser.standalone.format)
+            } yield {
+              StandaloneArgs(conf, data, offset, format)
             }
           case Some(parser.train) =>
             for {
@@ -83,12 +93,7 @@ object CliArgs extends Logging {
         opt[Path]("config", required = true, short = 'c', descr = "path to config file", validate = pathExists)
     }
 
-    object serve extends Subcommand("serve") with ConfigOption {
-      descr("run the inference API")
-    }
-
-    object sort extends Subcommand("sort") with ConfigOption {
-      descr("sort the input file by timestamp")
+    trait ImportLikeOption { this: Subcommand =>
       val data = opt[Path](
         "data",
         required = true,
@@ -96,26 +101,35 @@ object CliArgs extends Logging {
         descr = "path to a directory with input files",
         validate = pathExists
       )
-      val out = opt[Path](
-        "out",
-        required = true,
-        short = 'o',
-        descr = "output file path"
-      )
       val offset = opt[SourceOffset](
         name = "offset",
         required = false,
-        descr = s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h",
+        short = 'o',
+        descr =
+          s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h (optional, default=earliest)",
         default = Some(Earliest)
       )
       val format = opt[SourceFormat](
         name = "format",
         required = false,
         short = 'f',
-        descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json",
+        descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json (optional, default=json)",
         default = Some(JsonFormat)
       )
+    }
 
+    object serve extends Subcommand("serve") with ConfigOption {
+      descr("run the inference API")
+    }
+
+    object sort extends Subcommand("sort") with ConfigOption with ImportLikeOption {
+      descr("sort the input file by timestamp")
+      val out = opt[Path](
+        "out",
+        required = true,
+        short = 'o',
+        descr = "output file path"
+      )
     }
 
     object train extends Subcommand("train") with ConfigOption {
@@ -128,36 +142,20 @@ object CliArgs extends Logging {
       )
     }
 
-    object `import` extends Subcommand("import") with ConfigOption {
+    object `import` extends Subcommand("import") with ConfigOption with ImportLikeOption {
       descr("import historical clickthrough data")
-      val data = opt[Path](
-        "data",
-        required = true,
-        short = 'd',
-        descr = "path to a directory with input files",
-        validate = pathExists
-      )
-      val offset = opt[SourceOffset](
-        name = "offset",
-        required = false,
-        short = 'o',
-        descr = s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h",
-        default = Some(Earliest)
-      )
-      val format = opt[SourceFormat](
-        name = "format",
-        required = false,
-        short = 'f',
-        descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json",
-        default = Some(JsonFormat)
-      )
+    }
+
+    object standalone extends Subcommand("standalone") with ConfigOption with ImportLikeOption {
+      descr("import, train and serve at once")
     }
 
     def pathExists(path: Path) = path.toFile.exists()
 
-    addSubcommand(serve)
     addSubcommand(`import`)
     addSubcommand(train)
+    addSubcommand(serve)
+    addSubcommand(standalone)
     addSubcommand(sort)
     version(Logo.raw)
     banner("""Usage: metarank <subcommand> <options>

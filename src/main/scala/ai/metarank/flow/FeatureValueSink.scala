@@ -7,9 +7,8 @@ import fs2.Pipe
 import scala.concurrent.duration._
 
 case class FeatureValueSink(store: Persistence) {
-  def write: Pipe[IO, FeatureValue, Nothing] = values =>
+  def write: Pipe[IO, List[FeatureValue], Nothing] = values =>
     values
-      .groupWithin(1024, 1.second)
-      .parEvalMapUnordered(16)(chunk => store.values.put(chunk.toList.map(fv => fv.key -> fv).toMap))
+      .evalMap(chunk => store.values.put(chunk.map(fv => fv.key -> fv).toMap))
       .drain
 }

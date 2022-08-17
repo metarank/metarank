@@ -19,7 +19,7 @@ class FeatureValueSinkTest extends AnyFlatSpec with Matchers {
     val key   = Key(ItemScope(ItemId("p1")), FeatureName("foo"))
     val value = ScalarValue(key, Timestamp.now, SString("bar"))
     fs2.Stream
-      .emit[IO, FeatureValue](value)
+      .emit[IO, List[FeatureValue]](List(value))
       .through(FeatureValueSink(store).write)
       .compile
       .drain

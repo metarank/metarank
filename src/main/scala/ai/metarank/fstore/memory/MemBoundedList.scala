@@ -4,14 +4,19 @@ import ai.metarank.model.Feature.BoundedList
 import ai.metarank.model.Feature.BoundedList.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
+import ai.metarank.model.Identifier.SessionId
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.{SDouble, SString}
+import ai.metarank.model.Scope.SessionScope
 import ai.metarank.model.{Key, Scalar, Timestamp}
 import ai.metarank.model.Write.Append
+import ai.metarank.util.Logging
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
 case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, List[TimeValue]] = Scaffeine().build())
-    extends BoundedList {
+    extends BoundedList
+    with Logging {
   override def put(action: Append): IO[Unit] = IO {
     cache.getIfPresent(action.key) match {
       case None =>
@@ -33,7 +38,8 @@ case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, List[Time
     }
   }
 
-  override def computeValue(key: Key, ts: Timestamp): IO[Option[BoundedListValue]] =
-    IO(cache.getIfPresent(key).map(BoundedListValue(key, ts, _)))
+  override def computeValue(key: Key, ts: Timestamp): IO[Option[BoundedListValue]] = IO {
+    cache.getIfPresent(key).map(BoundedListValue(key, ts, _))
+  }
 
 }

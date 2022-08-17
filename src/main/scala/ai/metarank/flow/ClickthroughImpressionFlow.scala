@@ -3,8 +3,10 @@ package ai.metarank.flow
 import ai.metarank.FeatureMapping
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{Clickthrough, Event, EventId, ItemValue}
+import ai.metarank.model.Identifier.{ItemId, SessionId}
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.Scope.SessionScope
+import ai.metarank.model.{Clickthrough, Event, EventId, ItemValue, Key}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.{Pipe, Stream}
@@ -12,21 +14,17 @@ import fs2.{Pipe, Stream}
 case class ClickthroughImpressionFlow(state: Persistence, mapping: FeatureMapping) extends Logging {
   def process: Pipe[IO, Event, Event] = events =>
     events
-      .evalMapChunk(event => {
+      .flatMap(event => {
         val br = 1
         event match {
-          case event: RankingEvent     => handleRanking(event).map(e => List(e))
-          case event: InteractionEvent => handleInteraction(event)
-          case other                   => IO.pure(List(other))
+          case event: RankingEvent     => Stream.eval(handleRanking(event))
+          case event: InteractionEvent => Stream.evalSeq(handleInteraction(event))
+          case other                   => Stream.emit(other)
 
         }
       })
-      .flatMap(list => Stream.emits(list))
-      .chunkN(1024)
-      .flatMap(c => Stream.emits(c.toList))
 
   def handleRanking(event: RankingEvent): IO[Event] = {
-    val br = 1
     for {
       keys    <- IO(mapping.features.flatMap(_.valueKeys(event)))
       values  <- state.values.get(keys)

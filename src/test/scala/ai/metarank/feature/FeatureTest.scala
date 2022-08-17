@@ -21,7 +21,7 @@ trait FeatureTest {
     val flow =
       FeatureValueFlow(mapping, MemPersistence(mapping.schema), Scaffeine().maximumSize(0).build())
     val featureValues =
-      Stream.emits(events).through(flow.process).compile.toList.unsafeRunSync().map(fv => fv.key -> fv).toMap
+      Stream.emits(events).through(flow.process).compile.toList.map(_.flatten).unsafeRunSync().map(fv => fv.key -> fv).toMap
 
     mapping.features.map {
       case feature: BaseFeature.ItemFeature    => feature.values(request, featureValues)

@@ -2,6 +2,10 @@ package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
+import ai.metarank.model.Identifier.SessionId
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.Scope.SessionScope
 import ai.metarank.model.Write._
 import ai.metarank.model.{Event, Feature, FeatureKey, FeatureValue, Key, Timestamp, Write}
 import ai.metarank.util.Logging
@@ -17,19 +21,25 @@ case class FeatureValueFlow(
     store: Persistence,
     updated: Cache[Key, Timestamp] = Scaffeine().expireAfterAccess(1.hour).build[Key, Timestamp]()
 ) extends Logging {
-  def process: Pipe[IO, Event, FeatureValue] = events =>
+  def process: Pipe[IO, Event, List[FeatureValue]] = events =>
     events
       .evalMap(event => {
         mapping.features.map(_.writes(event, store)).sequence.map(_.flatten.toList)
       })
-      .flatMap(c => Stream.emits(c))
-      .evalMapChunk(write => {
-        commitWrite(write).map(_ => write)
+      .evalMapChunk(writes => {
+        writes.map(write => commitWrite(write).map(_ => write)).sequence
       })
-      .evalFilter(shouldRefresh)
-      .evalMapChunk(write => makeValue(write))
-      .chunkN(1024)
-      .flatMap(c => Stream.emits(c.toList.flatten))
+      .evalMap(writes =>
+        writes
+          .map(w =>
+            shouldRefresh(w).flatMap {
+              case true  => makeValue(w)
+              case false => IO.pure(Nil)
+            }
+          )
+          .sequence
+          .map(_.flatten)
+      )
 
   def commitWrite(write: Write): IO[Unit] = write match {
     case w: Put               => commitWrite(w, store.scalars.get(FeatureKey(w.key)))
@@ -60,8 +70,9 @@ case class FeatureValueFlow(
         }
       case Some(last) =>
         mapping.schema.configs.get(FeatureKey(write.key)) match {
-          case Some(feature) => IO.pure(write.ts.diff(last) > feature.refresh)
-          case None          => IO.raiseError(new Exception(s"feature ${write.key.feature} is not defined"))
+          case Some(feature) =>
+            IO { write.ts.diff(last) >= feature.refresh }
+          case None => IO.raiseError(new Exception(s"feature ${write.key.feature} is not defined"))
         }
     }
   }

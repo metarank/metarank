@@ -8,7 +8,7 @@ models:
     type: lambdamart
     backend:
       type: xgboost
-      iterations: 50
+      iterations: 100
       maxDepth: 8
       seed: 0
     weights:

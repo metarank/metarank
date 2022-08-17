@@ -7,7 +7,6 @@ import ai.metarank.flow.{ClickthroughImpressionFlow, FeatureValueFlow, FeatureVa
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.model.Event
-import ai.metarank.model.Event.{FeedbackEvent, ItemEvent, UserEvent}
 import ai.metarank.source.FileEventSource
 import cats.effect.IO
 import cats.effect.kernel.Resource

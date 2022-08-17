@@ -36,6 +36,7 @@ import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Random
 
 case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeature with Logging {
   override def dim: Int = 1
@@ -137,6 +138,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
       }
       result.getOrElse(SingleValue(schema.name, 0))
     }
+
   }
 
 }

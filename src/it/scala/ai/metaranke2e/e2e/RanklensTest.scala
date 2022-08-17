@@ -65,33 +65,50 @@ class RanklensTest extends AnyFlatSpec with Matchers {
       user = UserId("u1"),
       session = Some(SessionId("s1")),
       items = NonEmptyList.of(
-        ItemRelevancy(ItemId("7346"), 0.0),
-        ItemRelevancy(ItemId("1971"), 0.0),
-        ItemRelevancy(ItemId("69844"), 0.0),
-        ItemRelevancy(ItemId("1246"), 0.0),
-        ItemRelevancy(ItemId("3243"), 0.0),
-        ItemRelevancy(ItemId("1644"), 0.0),
-        ItemRelevancy(ItemId("6593"), 0.0),
-        ItemRelevancy(ItemId("2599"), 0.0),
-        ItemRelevancy(ItemId("3916"), 0.0)
+        ItemRelevancy(ItemId("96610"), 0.0),
+        ItemRelevancy(ItemId("8371"), 0.0),
+        ItemRelevancy(ItemId("4975"), 0.0),
+        ItemRelevancy(ItemId("7163"), 0.0),
+        ItemRelevancy(ItemId("111759"), 0.0),
+        ItemRelevancy(ItemId("102880"), 0.0),
+        ItemRelevancy(ItemId("109487"), 0.0),
+        ItemRelevancy(ItemId("95309"), 0.0),
+        ItemRelevancy(ItemId("115713"), 0.0),
+        ItemRelevancy(ItemId("122882"), 0.0),
+        ItemRelevancy(ItemId("134130"), 0.0),
+        ItemRelevancy(ItemId("8644"), 0.0),
+        ItemRelevancy(ItemId("49278"), 0.0),
+        ItemRelevancy(ItemId("2916"), 0.0),
+        ItemRelevancy(ItemId("2012"), 0.0),
+        ItemRelevancy(ItemId("68358"), 0.0),
+        ItemRelevancy(ItemId("132046"), 0.0),
+        ItemRelevancy(ItemId("2709"), 0.0),
+        ItemRelevancy(ItemId("79357"), 0.0),
+        ItemRelevancy(ItemId("5903"), 0.0),
+        ItemRelevancy(ItemId("107406"), 0.0),
+        ItemRelevancy(ItemId("1210"), 0.0),
+        ItemRelevancy(ItemId("85056"), 0.0),
+        ItemRelevancy(ItemId("1270"), 0.0)
       )
     )
-    val interaction = InteractionEvent(
+    val i1 = InteractionEvent(
       id = EventId("event2"),
-      item = ItemId("1246"),
+      item = ItemId("102880"),
       timestamp = Timestamp(1636993838000L),
       user = UserId("u1"),
       session = Some(SessionId("s1")),
       `type` = "click",
       ranking = Some(EventId("event1"))
     )
+    val i2 = i1.copy(item = ItemId("109487"))
+    val i3 = i1.copy(item = ItemId("8644"))
 
     val ranker = RankApi(mapping, store, MemoryModelCache(store))
     val resp1  = ranker.rerank(mapping, ranking, "xgboost", true).unsafeRunSync()
-    val br     = 1
 
-    Import.slurp(fs2.Stream.emits(List(ranking, interaction)), store, mapping).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping).unsafeRunSync()
     val resp2 = ranker.rerank(mapping, ranking, "xgboost", true).unsafeRunSync()
     resp1 shouldNot be(resp2)
+    resp1.items.map(_.item.value) shouldNot be(resp2.items.map(_.item.value))
   }
 }

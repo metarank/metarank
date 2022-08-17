@@ -23,10 +23,18 @@ jobs:
       with:
         lfs: 'true'
 
-    - name: Start Redis
-      uses: shogo82148/actions-setup-redis@v1
-      with:
-        redis-version: '7.x'
+    - name: Start Redis on Linux
+      run: apt-get install redis-server
+      if: runner.os == 'Linux'
+
+    - name: Start Redis on Mac
+      run: brew install --cask redis
+      if: runner.os == 'Linux'
+
+    - name: Start Redis on Windows
+      run: choco install memurai-developer
+      if: runner.os == 'Windows'
+    
 
     - uses: actions/cache@v2
       with:

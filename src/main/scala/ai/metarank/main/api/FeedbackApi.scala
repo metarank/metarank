@@ -12,16 +12,6 @@ import cats.implicits._
 
 case class FeedbackApi(queue: Queue[IO, Option[Event]]) extends Logging {
   val routes = HttpRoutes.of[IO] {
-    case GET -> Root / "feedback" =>
-      for {
-        eventOption <- queue.tryTake
-        response <- eventOption match {
-          case None        => NoContent()
-          case Some(event) => Ok(event.asJson.noSpaces)
-        }
-      } yield {
-        response
-      }
     case post @ POST -> Root / "feedback" =>
       for {
         eventsJson <- post.as[String]

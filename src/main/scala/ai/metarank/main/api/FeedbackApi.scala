@@ -44,8 +44,12 @@ case class FeedbackApi(queue: Queue[IO, Option[Event]]) extends Logging {
     }
   }
 
-  def decodeEvent(json: String) = decode[Event](json) match {
-    case Left(value)  => decode[List[Event]](json)
+  def decodeEvent(json: String): Either[Throwable, List[Event]] = decode[Event](json) match {
+    case Left(value) =>
+      decode[List[Event]](json) match {
+        case Left(value)  => json.split('\n').toList.map(e => decode[Event](e)).sequence
+        case Right(value) => Right(value)
+      }
     case Right(value) => Right(List(value))
   }
 }

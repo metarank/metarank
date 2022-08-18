@@ -14,6 +14,16 @@ object Field {
   case class StringListField(name: String, value: List[String]) extends Field
   case class NumberListField(name: String, value: List[Double]) extends Field
 
+  def toString(fields: List[Field]) = fields
+    .map {
+      case Field.StringField(name, value)     => s"$name=$value"
+      case Field.BooleanField(name, value)    => s"$name=$value"
+      case Field.NumberField(name, value)     => s"$name=$value"
+      case Field.StringListField(name, value) => s"$name=${value.mkString(",")}"
+      case Field.NumberListField(name, value) => s"$name=${value.mkString(",")}"
+    }
+    .mkString("[", ", ", "]")
+
   implicit val fieldDecoder: Decoder[Field] = Decoder.instance(c =>
     for {
       name <- c.downField("name").as[String]

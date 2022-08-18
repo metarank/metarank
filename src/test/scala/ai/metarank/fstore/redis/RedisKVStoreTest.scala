@@ -1,11 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.{RedisPipeline, RedisClient}
-import cats.effect.IO
-import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
-import com.github.microwww.redis.RedisServer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

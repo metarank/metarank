@@ -30,7 +30,8 @@ case class RankApi(
   import RankApi._
   import ai.metarank.model.Event.EventCodecs._
 
-  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / env / model / "_rank" :? ExplainParamDecoder(explain) =>
+  val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
+
     for {
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))

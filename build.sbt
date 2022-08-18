@@ -64,9 +64,7 @@ lazy val root = (project in file("."))
 
       new Dockerfile {
         from(s"adoptopenjdk:11.0.11_9-jdk-hotspot-focal")
-        // run("apt-get", "update")
-        run("apt-get", "-y", "install", "htop", "procps", "curl", "inetutils-ping", "libgomp1")
-        // run("apt-get", "-y", "install", "libgomp1")
+        runRaw("apt-get update && apt-get -y install htop procps curl inetutils-ping libgomp1")
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
         entryPoint("/metarank.sh")

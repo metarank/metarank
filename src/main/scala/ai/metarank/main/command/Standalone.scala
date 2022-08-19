@@ -28,13 +28,7 @@ object Standalone extends Logging {
           case (other, _) =>
             info(s"skipping model $other")
         }.sequence
-        queue <- Queue.bounded[IO, Option[Event]](1024)
-        _ <- Serve
-          .serve(store, queue, mapping)
-          .background
-          .use(_ => {
-            info("feedback processing started") *> Serve.api(store, queue, mapping, conf.api)
-          })
+        _ <- Serve.api(store, mapping, conf.api)
       } yield {}
     )
   }

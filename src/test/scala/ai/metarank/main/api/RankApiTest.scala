@@ -33,14 +33,13 @@ class RankApiTest extends AnyFlatSpec with Matchers {
   it should "accept ranking json event" in {
     val request = Request[IO](
       method = Method.POST,
-      uri = Uri.unsafeFromString("http://localhost:8080/rank/random"),
+      uri = Uri.unsafeFromString("http://localhost:8080/rank/random?explain=true"),
       entity = Entity.strict(Chunk.array(TestRankingEvent.event(List("p1", "p2", "p3")).asJson.noSpaces.getBytes))
     )
     val response = service.routes.apply(request).value.unsafeRunSync()
     response.map(_.status.code) shouldBe Some(200)
-    val ranked = response.flatMap(r =>
-      decode[RankResponse](new String(r.entity.body.compile.toList.unsafeRunSync().toArray)).toOption
-    )
+    val json   = response.map(r => new String(r.entity.body.compile.toList.unsafeRunSync().toArray))
+    val ranked = json.flatMap(s => decode[RankResponse](s).toOption)
     ranked.map(_.items.size) shouldBe Some(3)
   }
 

@@ -1,7 +1,8 @@
 package ai.metarank.main.api
 
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event
-import ai.metarank.util.TestRankingEvent
+import ai.metarank.util.{TestFeatureMapping, TestRankingEvent}
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
@@ -10,38 +11,57 @@ import io.circe.Encoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
-import org.http4s.{Entity, Method, Request, Uri}
+import org.http4s.{Entity, Method, Request, Response, Uri}
+
+import java.util.zip.GZIPInputStream
 
 class FeedbackApiTest extends AnyFlatSpec with Matchers {
-  val queue   = Queue.unbounded[IO, Option[Event]].unsafeRunSync()
-  val service = FeedbackApi(queue)
+  val mapping = TestFeatureMapping()
+  val store   = MemPersistence(mapping.schema)
+  val service = FeedbackApi(store, mapping)
 
   it should "accept feedback events in json format" in {
-    val event = TestRankingEvent.event(List("p1")).asJson.noSpaces
-    val request = Request[IO](
-      method = Method.POST,
-      uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
-      entity = Entity.strict(Chunk.array(event.getBytes()))
-    )
-
-    val response = service.routes(request).value.unsafeRunSync()
-    response.map(_.status.code) shouldBe Some(200)
-    queue.take.unsafeRunSync().isDefined shouldBe true
+    val event    = TestRankingEvent.event(List("p1")).asJson.noSpaces
+    val response = send(event)
+    response.status.code shouldBe 200
   }
+
+  it should "accept feedback events in json-line format" in {
+    val event    = TestRankingEvent.event(List("p1")).asJson.noSpaces
+    val response = send(event + "\n" + event)
+    response.status.code shouldBe 200
+  }
+
   it should "accept feedback events in json-array format" in {
     val event =
       Encoder
         .encodeList[Event]
         .apply(List(TestRankingEvent.event(List("p1")), TestRankingEvent.event(List("p1"))))
         .noSpaces
+
+    val response = send(event)
+    response.status.code shouldBe 200
+  }
+
+  it should "accept large batch of events" in {
+    val events = new GZIPInputStream(this.getClass.getResourceAsStream("/ranklens/events/events.jsonl.gz"))
+    val stream = fs2.io.readInputStream[IO](IO(events), 10 * 1024, closeAfterUse = false)
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
-      entity = Entity.strict(Chunk.array(event.getBytes()))
+      entity = Entity(stream)
+    )
+    val response = service.routes(request).value.unsafeRunSync().get
+    response.status.code shouldBe 200
+  }
+
+  def send(payload: String): Response[IO] = {
+    val request = Request[IO](
+      method = Method.POST,
+      uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
+      entity = Entity.strict(Chunk.array(payload.getBytes()))
     )
 
-    val response = service.routes(request).value.unsafeRunSync()
-    response.map(_.status.code) shouldBe Some(200)
-    queue.take.unsafeRunSync().isDefined shouldBe true
+    service.routes(request).value.unsafeRunSync().get
   }
 }

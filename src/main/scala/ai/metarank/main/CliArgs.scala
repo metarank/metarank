@@ -150,7 +150,11 @@ object CliArgs extends Logging {
       descr("import, train and serve at once")
     }
 
-    def pathExists(path: Path) = path.toFile.exists()
+    def pathExists(path: Path) = {
+      val result = path.toFile.exists()
+      if (!result) logger.error(s"Path $path does not exist")
+      result
+    }
 
     addSubcommand(`import`)
     addSubcommand(train)

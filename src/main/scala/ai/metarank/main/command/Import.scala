@@ -3,7 +3,7 @@ package ai.metarank.main.command
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.InputConfig.FileInputConfig
-import ai.metarank.flow.{ClickthroughImpressionFlow, FeatureValueFlow, FeatureValueSink, OrderCheckFlow}
+import ai.metarank.flow.{ClickthroughImpressionFlow, FeatureValueFlow, FeatureValueSink, MetarankFlow, OrderCheckFlow}
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.model.Event
@@ -26,18 +26,7 @@ object Import {
   }
 
   def slurp(source: fs2.Stream[IO, Event], store: Persistence, mapping: FeatureMapping): IO[Unit] = {
-    val ct    = ClickthroughImpressionFlow(store, mapping)
-    val event = FeatureValueFlow(mapping, store)
-    val sink  = FeatureValueSink(store)
-    source
-      .through(OrderCheckFlow.process)
-      .through(ai.metarank.flow.PrintProgress.tap)
-      .through(ct.process)
-      .through(event.process)
-      .through(sink.write)
-      .compile
-      .drain
-
+    MetarankFlow.process(store, source, mapping)
   }
 
 }

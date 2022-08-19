@@ -10,6 +10,7 @@ import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
 trait ModelCache {
   def get(name: String): IO[Scorer]
+  def invalidate(name: String): IO[Unit]
 }
 
 object ModelCache {
@@ -18,6 +19,7 @@ object ModelCache {
       cache: Cache[String, Scorer] = Scaffeine().expireAfterWrite(5.minutes).build[String, Scorer]()
   ) extends ModelCache
       with Logging {
+    override def invalidate(name: String): IO[Unit] = IO { cache.invalidate(name) }
     def get(name: String): IO[Scorer] = for {
       scorerOption <- IO(cache.getIfPresent(name))
       scorer <- scorerOption match {

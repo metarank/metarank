@@ -3,9 +3,9 @@ package ai.metarank.rank
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ModelBackend}
 import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
 import ai.metarank.feature.BaseFeature
-import ai.metarank.rank.LambdaMARTModel.{Fillrate, LambdaMARTScorer}
-import ai.metarank.rank.Model.Scorer
-import cats.data.NonEmptyMap
+import ai.metarank.model.FeatureWeight
+import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
+import ai.metarank.rank.Model.{Scorer, TrainedModel}
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
@@ -19,7 +19,7 @@ case class LambdaMARTModel(
     weights: Map[String, Double]
 ) extends Model {
 
-  override def train(train: Dataset, test: Dataset): Array[Byte] = {
+  override def train(train: Dataset, test: Dataset): TrainedModel = {
     val booster = conf.backend match {
       case LightGBMBackend(it, lr, ndcg, depth, seed, leaves) =>
         val opts = LightGBMOptions(
@@ -35,37 +35,22 @@ case class LambdaMARTModel(
         val opts = XGBoostOptions(trees = it, randomSeed = seed, learningRate = lr, ndcgCutoff = ndcg, maxDepth = depth)
         LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
-    val model = booster.fit()
-    logger.info(s"Feature stats (queries=${train.groups.size}, items=${train.itemCount}): ")
-    fieldStats(train, model.weights()).foreach(field => logger.info(field.print()))
-    model.save()
+    val result = booster.fit()
+    TrainedModel(result.model.save(), weightsMap(train, result.model.weights()), result.iterations)
   }
 
-  private def fieldStats(ds: Dataset, weights: Array[Double]) = {
-    val zeroes    = new Array[Int](ds.desc.dim)
-    val nonzeroes = new Array[Int](ds.desc.dim)
-    for {
-      group <- ds.groups
-      i     <- 0 until group.rows
-      row = group.getRow(i)
-      (value, j) <- row.zipWithIndex
-    } {
-      if (value == 0.0) {
-        zeroes(j) += 1
-      } else {
-        nonzeroes(j) += 1
+  private def weightsMap(ds: Dataset, weights: Array[Double]): Map[String, FeatureWeight] = {
+    val result = for {
+      feature <- ds.desc.features
+      offset  <- ds.desc.offsets.get(feature)
+    } yield {
+      feature match {
+        case Feature.SingularFeature(_)     => feature.name -> SingularWeight(weights(offset))
+        case Feature.VectorFeature(_, size) => feature.name -> VectorWeight(weights.slice(offset, offset + size))
+        case Feature.CategoryFeature(_)     => feature.name -> SingularWeight(weights(offset))
       }
     }
-    val expanded = ds.desc.features.flatMap {
-      case Feature.SingularFeature(name)     => List(name)
-      case Feature.CategoryFeature(name)     => List(name)
-      case Feature.VectorFeature(name, size) => (0 until size).map(i => s"${name}_$i")
-    }
-    for {
-      (feature, index) <- expanded.zipWithIndex
-    } yield {
-      Fillrate(feature, zeroes(index), nonzeroes(index), weights(index))
-    }
+    result.toMap
   }
 }
 

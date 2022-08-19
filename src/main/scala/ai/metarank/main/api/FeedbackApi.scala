@@ -8,8 +8,7 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserE
 import ai.metarank.source.format.{JsonFormat, JsonLineFormat}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
-import fs2.{Chunk, text}
+import fs2.Chunk
 import org.http4s.dsl.io._
 import org.http4s.{HttpRoutes, Response, Status}
 import cats.implicits._

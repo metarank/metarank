@@ -26,9 +26,7 @@ object FieldStats extends Logging {
       this
     }
     def print() = {
-      val pc = new Percentile()
-      val dist =
-        (10.to(90).by(10).map(q => pc.evaluate(samples.get(), q.toDouble))).toList.map(d => String.format("%.2f", d))
+      val dist = samples.percentiles().map(d => String.format("%.2f", d))
       logger.info(s"$name: zero=${zero} nz=${nonZero} dist=$dist")
     }
   }
@@ -42,6 +40,11 @@ object FieldStats extends Logging {
         values(Random.nextInt(values.length)) = value
       }
       this
+    }
+
+    def percentiles(): List[Double] = {
+      val pc = new Percentile()
+      (10.to(90).by(10).map(q => pc.evaluate(get(), q.toDouble))).toList
     }
 
     def get(): Array[Double] = java.util.Arrays.copyOf(values, cursor)

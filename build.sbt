@@ -20,7 +20,8 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
-      "-Xfatal-warnings"
+      "-Xfatal-warnings",
+      "-target:jvm-1.8"
     ),
     libraryDependencies ++= Seq(
       "org.typelevel"         %% "cats-effect"              % "3.3.14",
@@ -42,7 +43,7 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
       "org.http4s"            %% "http4s-blaze-server"      % http4sVersion,
       "org.http4s"            %% "http4s-blaze-client"      % http4sVersion,
-      "io.github.metarank"    %% "ltrlib"                   % "0.1.13",
+      "io.github.metarank"    %% "ltrlib"                   % "0.1.14",
       "com.github.ua-parser"   % "uap-java"                 % "1.5.3",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,

@@ -24,33 +24,13 @@ object Serve {
       mapping: FeatureMapping,
       args: ServeArgs
   ): IO[Unit] = {
-    val flowResource = for {
-      store <- storeResource
-      queue <- Resource.liftK(Queue.bounded[IO, Option[Event]](1024))
-      _     <- api(store, queue, mapping, conf.api).background
-    } yield {
-      (store, queue)
-    }
-    flowResource.use { case (store, queue) => serve(store, queue, mapping) }
+    storeResource.use(store => api(store, mapping, conf.api))
   }
 
-  def serve(store: Persistence, queue: Queue[IO, Option[Event]], mapping: FeatureMapping): IO[Unit] = {
-    val ct    = ClickthroughImpressionFlow(store, mapping)
-    val event = FeatureValueFlow(mapping, store)
-    val sink  = FeatureValueSink(store)
-    fs2.Stream
-      .fromQueueNoneTerminated(queue)
-      .through(ct.process)
-      .through(event.process)
-      .through(sink.write)
-      .compile
-      .drain
-  }
-
-  def api(store: Persistence, queue: Queue[IO, Option[Event]], mapping: FeatureMapping, conf: ApiConfig) = {
+  def api(store: Persistence, mapping: FeatureMapping, conf: ApiConfig) = {
     val health   = HealthApi(store).routes
     val rank     = RankApi(mapping, store, MemoryModelCache(store)).routes
-    val feedback = FeedbackApi(queue).routes
+    val feedback = FeedbackApi(store, mapping).routes
     val routes   = health <+> rank <+> feedback
     val httpApp  = Router("/" -> routes).orNotFound
     val api = BlazeServerBuilder[IO]

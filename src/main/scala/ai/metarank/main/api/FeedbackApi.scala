@@ -5,7 +5,7 @@ import ai.metarank.flow.MetarankFlow
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.{Event, Field}
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
-import ai.metarank.source.format.JsonFormat
+import ai.metarank.source.format.{JsonFormat, JsonLineFormat}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
@@ -16,14 +16,6 @@ import org.http4s.{HttpRoutes, Response, Status}
 case class FeedbackApi(store: Persistence, mapping: FeatureMapping) extends Logging {
   val routes = HttpRoutes.of[IO] {
     case post @ POST -> Root / "feedback" => {
-      val x = post.entity.body
-        .through(text.utf8.decode)
-        .through(text.lines)
-        .compile
-        .toList
-        .unsafeRunSync()
-      val br = 1
-
       for {
         stream <- IO(post.entity.body.through(JsonFormat.parse).evalTap(logEvent))
         _      <- MetarankFlow.process(store, stream, mapping)

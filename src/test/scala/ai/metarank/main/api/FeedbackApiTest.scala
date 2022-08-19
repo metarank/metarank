@@ -13,6 +13,8 @@ import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
 import org.http4s.{Entity, Method, Request, Response, Uri}
 
+import java.util.zip.GZIPInputStream
+
 class FeedbackApiTest extends AnyFlatSpec with Matchers {
   val mapping = TestFeatureMapping()
   val store   = MemPersistence(mapping.schema)
@@ -38,6 +40,18 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
         .noSpaces
 
     val response = send(event)
+    response.status.code shouldBe 200
+  }
+
+  it should "accept large batch of events" in {
+    val events = new GZIPInputStream(this.getClass.getResourceAsStream("/ranklens/events/events.jsonl.gz"))
+    val stream = fs2.io.readInputStream[IO](IO(events), 10 * 1024, closeAfterUse = false)
+    val request = Request[IO](
+      method = Method.POST,
+      uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
+      entity = Entity(stream)
+    )
+    val response = service.routes(request).value.unsafeRunSync().get
     response.status.code shouldBe 200
   }
 

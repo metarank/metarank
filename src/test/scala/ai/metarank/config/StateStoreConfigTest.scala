@@ -1,9 +1,11 @@
 package ai.metarank.config
 
+import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig}
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.concurrent.duration._
 
 class StateStoreConfigTest extends AnyFlatSpec with Matchers {
   it should "decode redis" in {
@@ -14,6 +16,29 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
          |port: 1234""".stripMargin
     val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
     conf shouldBe Right(RedisStateConfig(Hostname("localhost"), Port(1234)))
+  }
+
+  it should "decode redis with cache and dboptions" in {
+    val yaml =
+      s"""
+         |type: redis
+         |host: localhost
+         |port: 1234
+         |db:
+         |  state: 4
+         |  values: 3
+         |  rankings: 2
+         |  hist: 1
+         |  models: 0
+         |cache:
+         |  pipelineSize: 10
+         |  ttl: 24h
+         |  maxSize: 1024
+         |""".stripMargin
+    val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
+    conf shouldBe Right(
+      RedisStateConfig(Hostname("localhost"), Port(1234), DBConfig(4, 3, 2, 1, 0), CacheConfig(10, 24.hours, 1024))
+    )
   }
 
   it should "decode memory" in {

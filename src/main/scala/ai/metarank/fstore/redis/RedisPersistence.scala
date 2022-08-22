@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
-import ai.metarank.config.StateStoreConfig.RedisStateConfig.DBConfig
+import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
@@ -46,7 +46,7 @@ case class RedisPersistence(
 }
 
 object RedisPersistence {
-  def create(schema: Schema, host: String, port: Int, db: DBConfig): Resource[IO, RedisPersistence] = for {
+  def create(schema: Schema, host: String, port: Int, db: DBConfig, cache: CacheConfig): Resource[IO, RedisPersistence] = for {
     state    <- RedisClient.create(host, port, db.state)
     models   <- RedisClient.create(host, port, db.models)
     values   <- RedisClient.create(host, port, db.values)

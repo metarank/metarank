@@ -55,10 +55,6 @@ case class LambdaMARTModel(
 }
 
 object LambdaMARTModel {
-  case class Fillrate(name: String, zeroes: Int, nonzeroes: Int, weight: Double) {
-    def print() = s"$name: zero=$zeroes nonzero=$nonzeroes weight=$weight"
-  }
-
   case class LambdaMARTScorer(booster: Booster[_]) extends Scorer {
     override def score(input: Query): Array[Double] = {
       val features = new Array[Double](input.rows * input.columns)

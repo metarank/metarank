@@ -107,8 +107,8 @@ object Persistence extends Logging {
   }
 
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db) =>
-      RedisPersistence.create(schema, host.value, port.value, db)
+    case StateStoreConfig.RedisStateConfig(host, port, db, cache) =>
+      RedisPersistence.create(schema, host.value, port.value, db, cache)
     case StateStoreConfig.MemoryStateConfig() =>
       Resource.make(info("using in-memory persistence") *> IO(MemPersistence(schema)))(_ => IO.unit)
   }

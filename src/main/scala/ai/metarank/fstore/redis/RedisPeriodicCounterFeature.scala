@@ -1,7 +1,5 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.HINCRBY
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.PeriodicCounter
 import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
@@ -9,7 +7,6 @@ import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PeriodicIncrement
 import cats.effect.IO
-import cats.effect.std.Queue
 import cats.implicits._
 
 case class RedisPeriodicCounterFeature(config: PeriodicCounterConfig, client: RedisClient) extends PeriodicCounter {

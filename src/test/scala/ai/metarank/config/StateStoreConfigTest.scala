@@ -1,10 +1,11 @@
 package ai.metarank.config
 
-import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig}
+import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.concurrent.duration._
 
 class StateStoreConfigTest extends AnyFlatSpec with Matchers {
@@ -31,13 +32,21 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
          |  hist: 1
          |  models: 0
          |cache:
-         |  pipelineSize: 10
          |  ttl: 24h
          |  maxSize: 1024
+         |pipeline:
+         |  maxSize: 123
+         |  ttl: 1h
          |""".stripMargin
     val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
     conf shouldBe Right(
-      RedisStateConfig(Hostname("localhost"), Port(1234), DBConfig(4, 3, 2, 1, 0), CacheConfig(10, 24.hours, 1024))
+      RedisStateConfig(
+        Hostname("localhost"),
+        Port(1234),
+        DBConfig(4, 3, 2, 1, 0),
+        CacheConfig(1024, 24.hours),
+        PipelineConfig(123, 1.hour)
+      )
     )
   }
 

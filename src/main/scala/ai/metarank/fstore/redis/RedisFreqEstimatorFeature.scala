@@ -1,7 +1,5 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{LPUSH, LTRIM}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.{FreqEstimator, shouldSample}
 import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
@@ -9,7 +7,6 @@ import ai.metarank.model.FeatureValue.FrequencyValue
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutFreqSample
 import cats.effect.IO
-import cats.effect.std.Queue
 
 case class RedisFreqEstimatorFeature(config: FreqEstimatorConfig, client: RedisClient) extends FreqEstimator {
   override def put(action: PutFreqSample): IO[Unit] = {

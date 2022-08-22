@@ -1,15 +1,14 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.config.StateStoreConfig.RedisStateConfig.CacheConfig
 import ai.metarank.fstore.Persistence.{KVCodec, KVStore}
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{HSET, MSET}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.util.Logging
 import cats.effect.IO
-import cats.effect.std.Queue
 import cats.implicits._
+import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
-case class RedisKVStore[K, V](client: RedisClient)(implicit
+case class RedisKVStore[K, V](client: RedisClient, cache: Cache[K, V])(implicit
     kc: KVCodec[K],
     vc: KVCodec[V]
 ) extends KVStore[K, V]
@@ -33,4 +32,9 @@ case class RedisKVStore[K, V](client: RedisClient)(implicit
   override def put(values: Map[K, V]): IO[Unit] = {
     client.mset(values.map { case (k, v) => kc.encode(k) -> vc.encode(v) }).void
   }
+}
+
+object RedisKVStore {
+  def apply[K: KVCodec, V: KVCodec](client: RedisClient, conf: CacheConfig) =
+    new RedisKVStore[K, V](client, Scaffeine().maximumSize(conf.maxSize).expireAfterWrite(conf.ttl).build())
 }

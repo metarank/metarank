@@ -1,7 +1,5 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.SET
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -9,7 +7,6 @@ import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.{Key, Scalar, Timestamp}
 import ai.metarank.model.Write.Put
 import cats.effect.IO
-import cats.effect.std.Queue
 import io.circe.syntax._
 import io.circe.parser._
 

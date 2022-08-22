@@ -1,7 +1,5 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.{LPUSH, LTRIM}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.Feature.{StatsEstimator, shouldSample}
 import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
@@ -9,7 +7,6 @@ import ai.metarank.model.FeatureValue.NumStatsValue
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutStatSample
 import cats.effect.IO
-import cats.effect.std.Queue
 import cats.implicits._
 
 case class RedisStatsEstimatorFeature(config: StatsEstimatorConfig, client: RedisClient) extends StatsEstimator {

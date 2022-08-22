@@ -1,10 +1,7 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec}
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.LPUSH
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, EventId, Identifier, ItemValue, Timestamp}

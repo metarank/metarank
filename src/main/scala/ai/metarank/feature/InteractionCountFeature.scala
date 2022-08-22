@@ -4,7 +4,7 @@ import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.ItemRelevancy
-import ai.metarank.model.Feature.Counter.CounterConfig
+import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.FeatureValue.CounterValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Key, MValue, ScopeType}

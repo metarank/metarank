@@ -1,6 +1,6 @@
 package ai.metarank.fstore
 
-import ai.metarank.model.Feature.Counter.CounterConfig
+import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType

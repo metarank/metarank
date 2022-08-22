@@ -12,21 +12,28 @@ import cats.implicits._
 import io.circe.{Codec, Decoder, Encoder}
 import io.circe.generic.semiauto.deriveCodec
 
-case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient) extends ClickthroughStore with Logging {
+case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient, ctPrefix: String, histPrefix: String)
+    extends ClickthroughStore
+    with Logging {
   import RedisClickthroughStore._
   val BATCH_SIZE = 512
 
   override def putRanking(ranking: Event.RankingEvent): IO[Unit] =
-    rankings.set(ranking.id.value, cts.encode(Clickthrough(ranking.timestamp, ranking.items.toList.map(_.id)))).void
+    rankings
+      .set(
+        ctPrefix + "/" + ranking.id.value,
+        cts.encode(Clickthrough(ranking.timestamp, ranking.items.toList.map(_.id)))
+      )
+      .void
 
   override def putValues(id: EventId, values: List[ItemValue]): IO[Unit] =
-    hist.set(id.value, ivc.encode(values)).void
+    hist.set(histPrefix + "/" + id.value, ivc.encode(values)).void
 
   override def putInteraction(id: EventId, item: Identifier.ItemId, tpe: String): IO[Unit] =
-    rankings.append(id.value, s"${item.value}@$tpe,").void
+    rankings.append(ctPrefix + "/" + id.value, s"${item.value}@$tpe,").void
 
   override def getClickthrough(id: EventId): IO[Option[Clickthrough]] =
-    rankings.get(id.value).flatMap {
+    rankings.get(ctPrefix + "/" + id.value).flatMap {
       case None      => IO.pure(None)
       case Some(str) => IO.fromEither(cts.decode(str)).map(Option.apply)
     }
@@ -35,8 +42,8 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient) exte
     .unfoldLoopEval[IO, String, List[ClickthroughValues]]("0")(cursor =>
       for {
         scanned <- rankings.scan(cursor, BATCH_SIZE)
-        cts     <- rankings.mget(scanned.keys).flatMap(decodeMap[Clickthrough])
-        values  <- hist.mget(scanned.keys).flatMap(decodeMap[List[ItemValue]])
+        cts     <- rankings.mget(scanned.keys).flatMap(decodeMap[Clickthrough](ctPrefix, _))
+        values  <- hist.mget(scanned.keys).flatMap(decodeMap[List[ItemValue]](histPrefix, _))
         _       <- info(s"fetched next page of ${cts.size} clickthroughs, ${values.size} feature values")
       } yield {
         val decoded = for {
@@ -53,10 +60,10 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient) exte
     )
     .flatMap(batch => Stream.emits(batch))
 
-  private def decodeMap[T](map: Map[String, String])(implicit dec: KVCodec[T]): IO[Map[String, T]] = {
+  private def decodeMap[T](prefix: String, map: Map[String, String])(implicit dec: KVCodec[T]): IO[Map[String, T]] = {
     map.toList
       .map { case (key, value) =>
-        IO.fromEither(dec.decode(value)).map(value => key -> value)
+        IO.fromEither(dec.decode(value)).map(value => key.substring(prefix.length + 1) -> value)
       }
       .sequence
       .map(_.toMap)

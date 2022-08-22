@@ -1,6 +1,6 @@
 package ai.metarank.fstore
 
-import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
+import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.FeatureValue.FrequencyValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType

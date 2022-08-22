@@ -6,5 +6,5 @@ import ai.metarank.model.Write.Put
 
 class RedisScalarFeatureTest extends ScalarFeatureSuite with RedisFeatureTest[Put, ScalarFeature] {
   override def feature: ScalarFeature =
-    RedisScalarFeature(config, client)
+    RedisScalarFeature(config, client, "x")
 }

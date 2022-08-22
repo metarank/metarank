@@ -7,13 +7,13 @@ import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.Feature.{
-  BoundedList,
-  Counter,
-  FreqEstimator,
+  BoundedListFeature,
+  CounterFeature,
+  FreqEstimatorFeature,
   MapFeature,
-  PeriodicCounter,
+  PeriodicCounterFeature,
   ScalarFeature,
-  StatsEstimator
+  StatsEstimatorFeature
 }
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -37,12 +37,12 @@ import io.circe.Codec
 trait Persistence {
 
   def schema: Schema
-  def counters: Map[FeatureKey, Counter]
-  def periodicCounters: Map[FeatureKey, PeriodicCounter]
-  def lists: Map[FeatureKey, BoundedList]
-  def freqs: Map[FeatureKey, FreqEstimator]
+  def counters: Map[FeatureKey, CounterFeature]
+  def periodicCounters: Map[FeatureKey, PeriodicCounterFeature]
+  def lists: Map[FeatureKey, BoundedListFeature]
+  def freqs: Map[FeatureKey, FreqEstimatorFeature]
   def scalars: Map[FeatureKey, ScalarFeature]
-  def stats: Map[FeatureKey, StatsEstimator]
+  def stats: Map[FeatureKey, StatsEstimatorFeature]
   def maps: Map[FeatureKey, MapFeature]
 
   def values: KVStore[Key, FeatureValue]
@@ -77,7 +77,7 @@ object Persistence extends Logging {
         }
       }
 
-      override def encode(value: Key): String = value.asString
+      override def encode(value: Key): String = s"${value.scope.asString}/${value.feature.value}"
     }
     implicit val modelKeyCodec: KVCodec[ModelName] = new KVCodec[ModelName] {
       override def encode(value: ModelName): String = value.name
@@ -114,14 +114,14 @@ object Persistence extends Logging {
   }
 
   def blackhole() = new Persistence {
-    override def schema: Schema                                     = Schema(Nil)
-    override def counters: Map[FeatureKey, Counter]                 = Map.empty
-    override def periodicCounters: Map[FeatureKey, PeriodicCounter] = Map.empty
-    override def lists: Map[FeatureKey, BoundedList]                = Map.empty
-    override def freqs: Map[FeatureKey, FreqEstimator]              = Map.empty
-    override def scalars: Map[FeatureKey, ScalarFeature]            = Map.empty
-    override def stats: Map[FeatureKey, StatsEstimator]             = Map.empty
-    override def maps: Map[FeatureKey, MapFeature]                  = Map.empty
+    override def schema: Schema                                            = Schema(Nil)
+    override def counters: Map[FeatureKey, CounterFeature]                 = Map.empty
+    override def periodicCounters: Map[FeatureKey, PeriodicCounterFeature] = Map.empty
+    override def lists: Map[FeatureKey, BoundedListFeature]                = Map.empty
+    override def freqs: Map[FeatureKey, FreqEstimatorFeature]              = Map.empty
+    override def scalars: Map[FeatureKey, ScalarFeature]                   = Map.empty
+    override def stats: Map[FeatureKey, StatsEstimatorFeature]             = Map.empty
+    override def maps: Map[FeatureKey, MapFeature]                         = Map.empty
 
     override lazy val cts: ClickthroughStore             = ???
     override lazy val models: KVStore[ModelName, Scorer] = KVStore.empty

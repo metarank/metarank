@@ -1,6 +1,6 @@
 package ai.metarank.fstore
 
-import ai.metarank.model.Feature.PeriodicCounter.{PeriodRange, PeriodicCounterConfig}
+import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import ai.metarank.model.Key.FeatureName

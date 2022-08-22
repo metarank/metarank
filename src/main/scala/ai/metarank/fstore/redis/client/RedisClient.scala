@@ -18,6 +18,7 @@ import scala.concurrent.duration._
 case class RedisClient(
     lettuce: LettuceClient,
     reader: RedisAsyncCommands[String, String],
+    readerConn: StatefulRedisConnection[String, String],
     writer: RedisAsyncCommands[String, String],
     writerConn: StatefulRedisConnection[String, String],
     bufferSize: Ref[IO, Int],
@@ -153,6 +154,7 @@ object RedisClient extends Logging {
     new RedisClient(
       client,
       readConnection.async(),
+      readConnection,
       writeConnection.async(),
       writeConnection,
       buffer,

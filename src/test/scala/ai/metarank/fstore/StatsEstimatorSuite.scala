@@ -1,6 +1,6 @@
 package ai.metarank.fstore
 
-import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
+import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.NumStatsValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType

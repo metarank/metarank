@@ -1,12 +1,12 @@
 package ai.metarank.model
 
-import ai.metarank.model.Feature.BoundedList.BoundedListConfig
-import ai.metarank.model.Feature.Counter.CounterConfig
-import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
+import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
+import ai.metarank.model.Feature.CounterFeature.CounterConfig
+import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.Feature.MapFeature.MapConfig
-import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
+import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import ai.metarank.model.Write._
 import ai.metarank.model.FeatureValue._
@@ -37,6 +37,7 @@ object Feature {
     }
   }
 
+
   trait ScalarFeature extends Feature[Put, ScalarValue] {
     def config: ScalarConfig
   }
@@ -63,11 +64,11 @@ object Feature {
     ) extends FeatureConfig
   }
 
-  trait Counter extends Feature[Increment, CounterValue] {
+  trait CounterFeature extends Feature[Increment, CounterValue] {
     def config: CounterConfig
   }
 
-  object Counter {
+  object CounterFeature {
     case class CounterConfig(
         scope: ScopeType,
         name: FeatureName,
@@ -77,11 +78,11 @@ object Feature {
 
   }
 
-  trait BoundedList extends Feature[Append, BoundedListValue] {
+  trait BoundedListFeature extends Feature[Append, BoundedListValue] {
     def config: BoundedListConfig
   }
 
-  object BoundedList {
+  object BoundedListFeature {
     case class BoundedListConfig(
         scope: ScopeType,
         name: FeatureName,
@@ -92,7 +93,7 @@ object Feature {
     ) extends FeatureConfig
   }
 
-  trait FreqEstimator extends Feature[PutFreqSample, FrequencyValue] {
+  trait FreqEstimatorFeature extends Feature[PutFreqSample, FrequencyValue] {
     def config: FreqEstimatorConfig
 
     def freqFromSamples(samples: List[String]): Option[Map[String, Double]] = {
@@ -108,7 +109,7 @@ object Feature {
     }
   }
 
-  object FreqEstimator {
+  object FreqEstimatorFeature {
     case class FreqEstimatorConfig(
         scope: ScopeType,
         name: FeatureName,
@@ -120,7 +121,7 @@ object Feature {
 
   }
 
-  trait PeriodicCounter extends Feature[PeriodicIncrement, PeriodicCounterValue] {
+  trait PeriodicCounterFeature extends Feature[PeriodicIncrement, PeriodicCounterValue] {
     def config: PeriodicCounterConfig
     def fromMap(map: Map[Timestamp, Long]): List[PeriodicValue] = {
       for {
@@ -139,7 +140,7 @@ object Feature {
     }
   }
 
-  object PeriodicCounter {
+  object PeriodicCounterFeature {
     case class PeriodRange(startOffset: Int, endOffset: Int)
 
     case class PeriodicCounterConfig(
@@ -157,7 +158,7 @@ object Feature {
 
   }
 
-  trait StatsEstimator extends Feature[PutStatSample, NumStatsValue] {
+  trait StatsEstimatorFeature extends Feature[PutStatSample, NumStatsValue] {
     def config: StatsEstimatorConfig
     import scala.jdk.CollectionConverters._
     def fromPool(key: Key, ts: Timestamp, pool: Seq[Double]): NumStatsValue = {
@@ -179,7 +180,7 @@ object Feature {
     }
   }
 
-  object StatsEstimator {
+  object StatsEstimatorFeature {
     case class StatsEstimatorConfig(
         scope: ScopeType,
         name: FeatureName,

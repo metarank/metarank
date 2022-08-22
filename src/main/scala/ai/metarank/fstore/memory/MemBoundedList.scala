@@ -1,7 +1,7 @@
 package ai.metarank.fstore.memory
 
-import ai.metarank.model.Feature.BoundedList
-import ai.metarank.model.Feature.BoundedList.BoundedListConfig
+import ai.metarank.model.Feature.BoundedListFeature
+import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Identifier.SessionId
@@ -15,7 +15,7 @@ import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
 case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, List[TimeValue]] = Scaffeine().build())
-    extends BoundedList
+    extends BoundedListFeature
     with Logging {
   override def put(action: Append): IO[Unit] = IO {
     cache.getIfPresent(action.key) match {

@@ -12,7 +12,7 @@
     <logger name="akka" level="WARN"/>
     <logger name="ai.metarank.main.api.FeedbackApi" level="WARN"/>
     <logger name="ai.metarank.flow" level="WARN"/>
-    <logger name="ai.metarank.fstore.redis" level="DEBUG"/>
+    <logger name="ai.metarank.fstore.redis" level="WARN"/>
 
     <root level="error">
         <appender-ref ref="STDOUT"/>

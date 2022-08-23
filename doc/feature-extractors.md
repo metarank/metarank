@@ -7,7 +7,7 @@ Most common learn-to-rank tasks usually have typical shared set of ML features. 
 
 When Metarank receives a stream of events (both online during inference, and offline while training), it joins them together
 into a single view of visitor click chain:
-* For an each ranking event, we do a per-item join of item metadata events (and also pull user metadata events)
+* For each ranking event, we do a per-item join of item metadata events (and also pull user metadata events)
 * All the interaction events like clicks and purchases are also joined together
 
 So each feature extractor has full access to complete view of the click chain. Then a sequence of differently scoped
@@ -15,6 +15,41 @@ extractors take this view as an input and emit feature values in the following o
 * item: uses only item metadata as a source
 * session: session-specific values
 * interaction: ones from interaction events
+
+## Scoping
+
+Metarank uses scopes for computing and storing feature values. Feature values are stored not as atomic
+values but as a time-based changelog, where *scope* is a unique key for this particular
+instance of the ML feature.
+
+Metarank has four predefined types of scopes:
+
+* *global*: the feature is scoped globally , for example, air temperature outside the server room.
+* *item*: take the item id for a feature changelog, for example: an item popularity.
+* *user*: use user id as a unique id, for example: number of past sessions.
+* *session*: use session id as a unique id, for example: number of items in a cart right now.
+
+Scoping is also used for optimizing feature grouping while doing inference and model training:
+we compute all the ML features defined in the configuration for all candidate items, but some of the features are
+constant for the full ranking: if you have a site-global feature of air temperature outside, then it will be
+the same for all the items in the ranking, so no need to repeat the computation again.
+
+While building training data for the offline bootstrapping stage, this optimization technique can save a lot of raw processing power.
+
+### Scoping example
+
+All ML feature extractors in Metarank have a `scope` option in their configuration. For example:
+
+```yaml
+- name: popularity
+  type: number
+  field: item.popularity // must be a number
+  scope: item
+  refresh: 0s // optional, how frequently we should update the value, 0s by default
+  ttl: 90d // optional, how long should we store this field
+```
+
+The `scope: item` means that the extracted popularity field from item metadata should be stored by an item identifier key.
 
 ## Configuration
 

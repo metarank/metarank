@@ -39,7 +39,7 @@ jobs:
         run: sbt -mem 3000 IntegrationTest/test
 
       - name:  Stop docker-compose
-        run: docker-compose -f .github/compose-connectors.yaml down -d
+        run: docker-compose -f .github/compose-connectors.yaml down
 
       - name: Make docker image
         run: sbt assembly docker

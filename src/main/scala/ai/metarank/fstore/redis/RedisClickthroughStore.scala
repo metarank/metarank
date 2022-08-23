@@ -43,8 +43,10 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient, ctPr
       for {
         scanned <- rankings.scan(cursor, BATCH_SIZE)
         cts     <- rankings.mget(scanned.keys).flatMap(decodeMap[Clickthrough](ctPrefix, _))
-        values  <- hist.mget(scanned.keys).flatMap(decodeMap[List[ItemValue]](histPrefix, _))
-        _       <- info(s"fetched next page of ${cts.size} clickthroughs, ${values.size} feature values")
+        values <- hist
+          .mget(replacePrefix(scanned.keys, ctPrefix, histPrefix))
+          .flatMap(decodeMap[List[ItemValue]](histPrefix, _))
+        _ <- info(s"fetched next page of ${cts.size} clickthroughs, ${values.size} feature values")
       } yield {
         val decoded = for {
           (id, ct) <- cts if ct.interactions.nonEmpty
@@ -60,6 +62,9 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient, ctPr
     )
     .flatMap(batch => Stream.emits(batch))
 
+  private def replacePrefix(keys: List[String], prefix: String, replacement: String): List[String] = {
+    keys.map(key => replacement + key.substring(prefix.length))
+  }
   private def decodeMap[T](prefix: String, map: Map[String, String])(implicit dec: KVCodec[T]): IO[Map[String, T]] = {
     map.toList
       .map { case (key, value) =>

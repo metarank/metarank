@@ -36,7 +36,7 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
          |  maxSize: 1024
          |pipeline:
          |  maxSize: 123
-         |  ttl: 1h
+         |  flushPeriod: 1h
          |""".stripMargin
     val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
     conf shouldBe Right(

@@ -10,7 +10,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class RedisClickthroughStoreTest extends AnyFlatSpec with Matchers with RedisTest {
-  lazy val stream = RedisClickthroughStore(client, client2)
+  lazy val stream = RedisClickthroughStore(client, client2, "a", "b")
 
   val rank      = TestRankingEvent(List("p1")).copy(id = EventId("1"))
   val itemValue = ItemValue(ItemId("p1"), List(SingleValue(FeatureName("foo"), 1)))

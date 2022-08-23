@@ -7,5 +7,5 @@ class RedisPeriodicCounterFeatureTest
     extends PeriodicCounterSuite
     with RedisFeatureTest[PeriodicIncrement, RedisPeriodicCounterFeature] {
   override def feature: RedisPeriodicCounterFeature =
-    RedisPeriodicCounterFeature(config, client)
+    RedisPeriodicCounterFeature(config, client, "x")
 }

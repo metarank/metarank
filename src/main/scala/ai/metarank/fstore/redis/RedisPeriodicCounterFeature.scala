@@ -1,26 +1,28 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp
-import ai.metarank.fstore.redis.client.RedisPipeline.RedisOp.HINCRBY
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.model.Feature.PeriodicCounter
-import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature
+import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PeriodicIncrement
 import cats.effect.IO
-import cats.effect.std.Queue
 import cats.implicits._
 
-case class RedisPeriodicCounterFeature(config: PeriodicCounterConfig, client: RedisClient) extends PeriodicCounter {
+case class RedisPeriodicCounterFeature(
+    config: PeriodicCounterConfig,
+    client: RedisClient,
+    prefix: String
+) extends PeriodicCounterFeature
+    with RedisFeature {
   override def put(action: PeriodicIncrement): IO[Unit] = {
-    val key = action.ts.toStartOfPeriod(config.period)
-    client.hincrby(action.key.asString, key.ts.toString, action.inc).void
+    val period = action.ts.toStartOfPeriod(config.period)
+    client.hincrby(str(action.key), period.ts.toString, action.inc).void
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[PeriodicCounterValue]] = {
     for {
-      map     <- client.hgetAll(key.asString)
+      map     <- client.hgetAll(str(key))
       decoded <- map.toList.map { case (k, v) => decode(k, v) }.sequence
     } yield {
       if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(decoded.toMap)))

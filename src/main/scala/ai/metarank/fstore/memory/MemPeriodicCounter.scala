@@ -1,7 +1,7 @@
 package ai.metarank.fstore.memory
 
-import ai.metarank.model.Feature.PeriodicCounter
-import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature
+import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.model.{Key, Timestamp}
@@ -11,7 +11,7 @@ import com.github.blemale.scaffeine.{Cache, Scaffeine}
 case class MemPeriodicCounter(
     config: PeriodicCounterConfig,
     cache: Cache[Key, Map[Timestamp, Long]] = Scaffeine().build()
-) extends PeriodicCounter {
+) extends PeriodicCounterFeature {
   override def put(action: PeriodicIncrement): IO[Unit] = IO {
     cache.getIfPresent(action.key) match {
       case None =>

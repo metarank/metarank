@@ -1,7 +1,7 @@
 package ai.metarank.fstore.memory
 
-import ai.metarank.model.Feature.FreqEstimator
-import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
+import ai.metarank.model.Feature.FreqEstimatorFeature
+import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.FeatureValue.FrequencyValue
 import ai.metarank.model.{Feature, Key, Timestamp}
 import ai.metarank.model.Write.PutFreqSample
@@ -9,7 +9,7 @@ import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
 case class MemFreqEstimator(config: FreqEstimatorConfig, cache: Cache[Key, List[String]] = Scaffeine().build())
-    extends FreqEstimator {
+    extends FreqEstimatorFeature {
   override def put(action: PutFreqSample): IO[Unit] = IO {
     if (Feature.shouldSample(config.sampleRate)) {
       cache.getIfPresent(action.key) match {

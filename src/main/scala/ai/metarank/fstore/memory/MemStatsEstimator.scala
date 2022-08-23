@@ -1,7 +1,7 @@
 package ai.metarank.fstore.memory
 
-import ai.metarank.model.Feature.StatsEstimator
-import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
+import ai.metarank.model.Feature.StatsEstimatorFeature
+import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.NumStatsValue
 import ai.metarank.model.Write.PutStatSample
 import ai.metarank.model.{Feature, Key, Timestamp}
@@ -11,7 +11,7 @@ import com.github.blemale.scaffeine.{Cache, Scaffeine}
 import scala.util.Random
 
 case class MemStatsEstimator(config: StatsEstimatorConfig, cache: Cache[Key, List[Double]] = Scaffeine().build())
-    extends StatsEstimator {
+    extends StatsEstimatorFeature {
   override def put(action: PutStatSample): IO[Unit] = IO {
     if (Feature.shouldSample(config.sampleRate)) {
       cache.getIfPresent(action.key) match {

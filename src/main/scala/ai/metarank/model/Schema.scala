@@ -1,13 +1,13 @@
 package ai.metarank.model
 
-import ai.metarank.model.Feature.BoundedList.BoundedListConfig
-import ai.metarank.model.Feature.Counter.CounterConfig
+import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
+import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FeatureConfig
-import ai.metarank.model.Feature.FreqEstimator.FreqEstimatorConfig
+import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.Feature.MapFeature.MapConfig
-import ai.metarank.model.Feature.PeriodicCounter.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.Feature.StatsEstimator.StatsEstimatorConfig
+import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 
 case class Schema(
     counters: Map[FeatureKey, CounterConfig],

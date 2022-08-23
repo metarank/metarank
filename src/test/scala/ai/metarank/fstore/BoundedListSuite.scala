@@ -1,6 +1,6 @@
 package ai.metarank.fstore
 
-import ai.metarank.model.Feature.BoundedList.BoundedListConfig
+import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Key.FeatureName

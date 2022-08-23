@@ -4,7 +4,7 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
-import ai.metarank.model.Feature.BoundedList.BoundedListConfig
+import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{BoundedListValue, ScalarValue}

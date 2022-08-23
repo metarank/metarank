@@ -5,7 +5,7 @@ import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountS
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.Feature.FeatureConfig
-import ai.metarank.model.Feature.PeriodicCounter.{PeriodRange, PeriodicCounterConfig}
+import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue

@@ -5,5 +5,5 @@ import ai.metarank.model.Write.PutTuple
 
 class RedisMapFeatureTest extends MapFeatureSuite with RedisFeatureTest[PutTuple, RedisMapFeature] {
   override def feature: RedisMapFeature =
-    RedisMapFeature(config, client)
+    RedisMapFeature(config, client, "x")
 }

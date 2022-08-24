@@ -70,40 +70,20 @@ Here we will interact with several movies by clicking on one of them and observi
 
 ```bash
 # tell Metarank which items were presented to the user and in which order
-curl -X POST http://localhost:8080/feedback -d '{
-    "event": "ranking",
-    "fields": [],
-    "id": "test-ranking",
-    "items": [{"id": "192389"}, {"id": "95510"}, {"id": "5349"}, {"id": "52722"}, {"id": "110553"}],
-    "user": "test2",
-    "session": "test2",
-    "timestamp": 1661345221008
-}'
+curl -X POST http://localhost:8080/feedback \
+ -H "Content-Type: application/json" \
+ -d '{"event": "ranking", "fields": [], "id": "test-ranking", "items": [{"id": "192389"}, {"id": "95510"}, {"id": "5349"}, {"id": "52722"}, {"id": "110553"}], "user": "test2", "session": "test2",  "timestamp": 1661345221008}'
 
 # click on the item with id 110553
-curl -X POST http://localhost:8080/feedback -d '{
-    "event": "interaction",
-    "type": "click",
-    "fields": [],
-    "id": "test-interaction",
-    "ranking": "test-ranking",
-    "item": "110553",
-    "user": "test",
-    "session": "test",
-    "timestamp": 1661345223008
-}'
+curl -X POST http://localhost:8080/feedback \ 
+ -H "Content-Type: application/json" \
+ -d '{"event": "interaction", "type": "click", "fields": [], "id": "test-interaction", "ranking": "test-ranking", "item": "110553", "user": "test", "session": "test", "timestamp": 166134522300}'
 
 # personalize the same list of items
 # they will be returned in a different order by Metarank
-curl -X POST http://localhost:8080/rank/xgboost -d '{
-    "event": "ranking",
-    "fields": [],
-    "id": "test-personalized",
-    "items": [{"id": "192389"}, {"id": "95510"}, {"id": "5349"}, {"id": "52722"}, {"id": "110553"}],
-    "user": "test",
-    "session": "test",
-    "timestamp": 1661345231008
-}'
+curl -X POST http://localhost:8080/rank/xgboost 
+ -H "Content-Type: application/json" \
+ -d '{"event": "ranking","fields": [],"id": "test-personalized","items": [{"id": "192389"}, {"id": "95510"}, {"id": "5349"}, {"id": "52722"}, {"id": "110553"}],"user": "test","session": "test","timestamp": 1661345231008}'
 ```
 
 ## Useful Links

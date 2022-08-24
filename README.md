@@ -64,9 +64,12 @@ With the final step we will use Metarank’s `standalone` mode that combines tra
 docker run metarank/metarank:latest standalone --config config.yml --data events.jsonl.gz
 ```
 
-You will see some useful output while Metarank is starting and grinding through the data. Once this is done, you can send requests to `localhost:8080` to get personalized results:
+You will see some useful output while Metarank is starting and grinding through the data. Once this is done, you can send requests to `localhost:8080` to get personalized results.
+
+Here we will interact with several movies by clicking on one of them and observing the results. 
 
 ```bash
+# tell Metarank which items were presented to the user and in which order
 curl -X POST http://localhost:8080/feedback -d '{
     "event": "ranking",
     "fields": [],
@@ -77,6 +80,7 @@ curl -X POST http://localhost:8080/feedback -d '{
     "timestamp": 1661345221008
 }'
 
+# click on the item with id 110553
 curl -X POST http://localhost:8080/feedback -d '{
     "event": "interaction",
     "type": "click",
@@ -89,6 +93,8 @@ curl -X POST http://localhost:8080/feedback -d '{
     "timestamp": 1661345223008
 }'
 
+# personalize the same list of items
+# they will be returned in a different order by Metarank
 curl -X POST http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",
     "fields": [],

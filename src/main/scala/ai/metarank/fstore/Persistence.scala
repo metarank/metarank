@@ -110,7 +110,11 @@ object Persistence extends Logging {
     case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline) =>
       RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline)
     case StateStoreConfig.MemoryStateConfig() =>
-      Resource.make(info("using in-memory persistence") *> IO(MemPersistence(schema)))(_ => IO.unit)
+      Resource.make(
+        info("using in-memory persistence")
+          .flatMap(_ => warn("in-memory persistence IS NOT FOR PRODUCTION, you will lose all the state upon restart"))
+          .flatMap(_ => IO(MemPersistence(schema)))
+      )(_ => IO.unit)
   }
 
   def blackhole() = new Persistence {

@@ -15,18 +15,18 @@ class JsonArrayFormatTest extends AnyFlatSpec with Matchers {
 
   it should "decode events" in {
     val bytes   = ("[" + json + "," + json + "]").getBytes()
-    val decoded = fs2.Stream.emits(bytes).through(JsonArrayFormat.parse).compile.toList.unsafeRunSync()
+    val decoded = fs2.Stream.emits(bytes).through(JsonFormat.parse).compile.toList.unsafeRunSync()
     decoded shouldBe List(event, event)
   }
 
   it should "decode empty arrays" in {
     val bytes   = ("[]").getBytes()
-    val decoded = fs2.Stream.emits(bytes).through(JsonArrayFormat.parse).compile.toList.unsafeRunSync()
+    val decoded = fs2.Stream.emits(bytes).through(JsonFormat.parse).compile.toList.unsafeRunSync()
     decoded shouldBe Nil
   }
 
   it should "fail on non-json" in {
-    val decoded = Try(fs2.Stream.emits("YOLO".getBytes()).through(JsonArrayFormat.parse).compile.toList.unsafeRunSync())
+    val decoded = Try(fs2.Stream.emits("YOLO".getBytes()).through(JsonFormat.parse).compile.toList.unsafeRunSync())
     decoded.isFailure shouldBe true
   }
 

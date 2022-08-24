@@ -24,7 +24,9 @@ object JsonFormat extends SourceFormat with Logging {
     bytes
       .scanChunks(AsyncParser[Json](mode))((parser, next) => {
         parser.absorb(next.toByteBuffer) match {
-          case Left(value)  => throw value
+          case Left(value) =>
+            logger.error(s"Cannot parse json input: '${new String(next.toArray)}'", value)
+            throw value
           case Right(value) => (parser, Chunk.seq(value))
         }
       })

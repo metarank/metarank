@@ -50,5 +50,35 @@ docker run metarank/metarank:latest standalone --config config.yml --data events
 You will see some useful output while Metarank is starting and grinding through the data. Once this is done, you can send requests to `localhost:8080` to get personalized results:
 
 ```bash
+curl -X POST http://localhost:8080/feedback -d '{
+    "event": "ranking",
+    "fields": [],
+    "id": "test-ranking",
+    "items": [{"id": "192389"}, {"id": "95510"}, {"id": "5349"}, {"id": "52722"}, {"id": "110553"}],
+    "user": "test2",
+    "session": "test2",
+    "timestamp": 1661345221008
+}'
 
+curl -X POST http://localhost:8080/feedback -d '{
+    "event": "interaction",
+    "type": "click",
+    "fields": [],
+    "id": "test-interaction",
+    "ranking": "test-ranking",
+    "item": "110553",
+    "user": "test",
+    "session": "test",
+    "timestamp": 1661345223008
+}'
+
+curl -X POST http://localhost:8080/rank/xgboost -d '{
+    "event": "ranking",
+    "fields": [],
+    "id": "test-personalized",
+    "items": [{"id": "192389"}, {"id": "95510"}, {"id": "5349"}, {"id": "52722"}, {"id": "110553"}],
+    "user": "test",
+    "session": "test",
+    "timestamp": 1661345231008
+}'
 ```

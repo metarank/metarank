@@ -15,53 +15,69 @@
 [![Join our slack](https://img.shields.io/badge/Slack-join%20the%20community-blue?logo=slack&style=social)](https://metarank.ai/slack)
 
 
-## What is *personalization*?
+## What is Metarank?
 
-Personalization is showing the *same* items but in *different order* for *different users*.
+Metarank is a personalization service that can be easily integrated into existing systems and used to personalize different types of content. 
 
-The order of posts in FB, photos in Instagram, products in Amazon, and search results in Google is *personalized for each visitor*, as it directly affects user engagement: click rate and conversion. We've done **50+ a/b tests** in different ecommerce verticals to confirm it.
+Like Instagram’s personalized feed that is based on the posts that you’ve seen and liked, Facebook’s new friends recommendation widget or Amazon’s personalized results, you can add personalization to your application. You can combine different features, both user-based like location or gender and item-based like tags with different actions: clicks, likes, purchases to create a personalized experience for your users.
 
-If you have items that are presented to a user in a specific order, you can personalize this order to improve your product's KPIs.
+Thanks to Metarank’s simple API and YAML configuration, you don’t need any prio machine learning experience to start improving your key metrics and run experiments.
 
-## Why Metarank?
+![Demo](./doc/img//demo.gif)
 
-Metarank can run on-premises or in the cloud, making it easy to get state-of-the-art ML technologies by teams having little to no ML experience. 
+Personalization is showing items that have unique order for each and every user. Personalization can be done based on user properties: location, gender, preferences and user actions: clicks, likes and other interactions. You can see personalized widgets everywhere: Facebook uses personalization to suggest you new friends and show posts that will most likely get your attention first; AirBnB uses personalization for their experiences offering, suggesting new experiences based on your location and previous actions. 
 
-Building an in-house personalization solution can take around 6 months by an experienced team, and only large companies can afford it.
+With Metarank you implement similar systems thanks to flexible configuration and keep control of your user data.
 
-With Metarank, you can get up and running with personalization in *days instead of months* and be in control of **data privacy**, **optimization goals** and how Metarank is integrated into the infrastructure with **minimal vendor-lock**.
+## Metarank in One Minute
 
-## Demo 
+Let us show how you can start personalizing content in just under a minute (depends on your internet speed!). 
 
-We have a built a [Demo](https://demo.metarank.ai) which showcases how you can use [Metarank](https://metarank.ai) in the wild. 
+### Step 1: Get Metarank
 
-The [Demo](https://demo.metarank.ai) utilizes [Ranklens](https://github.com/metarank/ranklens) dataset that we have built 
-using [Toloka](https://toloka.ai/) service to gather user interactions. 
+```bash
+docker pull metarank:latest
+```
 
-Application code can be found [here](https://github.com/metarank/demo) and you can see how easy it is to query
-[Metarank](https://metarank.ai) installation to get real-time personalization. 
+### Step 2: Prepare data
 
-Check out the step-by-step **[Tutorial](doc/tutorial_ranklens.md)** of running Metarank Demo locally.
+We will use the [ranklens dataset](https://github.com/metarank/ranklens), which is used in our [Demo](https://demo.metarank.ai), so just download the data file
 
-## Running Metarank
+```bash
+wget https://github.com/metarank/metarank/raw/master/src/test/resources/ranklens/events/events.jsonl.gz
+```
 
-* [Overview](doc/README.md#overview) of the way it can be integrated in your existing tech stack.
-* [Configuration](doc/README.md#configure)
-* [Run & Deploy](doc/README.md#run-and-deploy)
-* [Tutorials](doc/README.md#tutorials)
+### Step 3: Prepare configuration file
+
+We will again use the configuration file from our [Demo](https://demo.metarank.ai). It utilizes in-memory store, so no other dependencies are needed.
+
+
+```bash
+wget https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml
+```
+
+### Step 4: Start Metarank!
+
+With the final step we will use Metarank’s `standalone` mode that combines training and running the API into one command:
+
+```bash
+docker run metarank/metarank:latest standalone --config config.yml --data events.jsonl.gz
+```
+
+You will see some useful output while Metarank is starting and grinding through the data. Once this is done, you can send requests to `localhost:8080` to get personalized results:
+
+```bash
+
+```
+
+## Useful Links
+
+* [Documentation](https://docs.metarank.ai)
+* [Ranklens Dataset](https://github.com/metarank/ranklens) - the dataset used in the demo
 * [Contribution guide](CONTRIBUTING.md)
 * [License](LICENSE)
-
-### Technical prerequisites
-
-We recommend running Metarank with [Docker](doc/deploy/docker.md).
-
-If you would like to try it natively, here are the requirements:
-
-* Linux or MacOS on x86. Apple M1 and Windows support are coming soon.
-* [JVM 11](https://www.oracle.com/java/technologies/downloads/)
 
 
 Licence
 =====
-This project is released under the Apache 2.0 license, as specified in the LICENSE file.
+This project is released under the Apache 2.0 license, as specified in the [License](LICENSE) file.

@@ -33,14 +33,14 @@ class ClickthroughImpressionFlowTest extends AnyFlatSpec with Matchers {
   it should "select impressions on first click" in {
     val flow  = ClickthroughImpressionFlow(MemPersistence(fm.schema), fm)
     val event = TestRankingEvent(List("p1", "p2", "p3"))
-    val ct    = Clickthrough(event.timestamp, event.items.toList.map(_.id))
+    val ct    = Clickthrough(event.id, event.timestamp, event.items.toList.map(_.id))
     flow.impressions(ct, TestInteractionEvent("p2", "x")) shouldBe List(ItemId("p1"), ItemId("p2"))
   }
 
   it should "select impressions on multi click" in {
     val flow   = ClickthroughImpressionFlow(MemPersistence(fm.schema), fm)
     val event  = TestRankingEvent(List("p1", "p2", "p3", "p4"))
-    val ct     = Clickthrough(event.timestamp, event.items.toList.map(_.id))
+    val ct     = Clickthrough(event.id, event.timestamp, event.items.toList.map(_.id))
     val click1 = TestInteractionEvent("p2", "x")
     flow.impressions(ct, click1) shouldBe List(ItemId("p1"), ItemId("p2"))
     flow.impressions(ct.withInteraction(ItemId("p2"), "x"), TestInteractionEvent("p4", "x")) shouldBe List(

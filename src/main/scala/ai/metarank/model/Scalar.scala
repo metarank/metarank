@@ -10,6 +10,9 @@ object Scalar {
   case class SDouble(value: Double)           extends Scalar
   case class SBoolean(value: Boolean)         extends Scalar
   case class SStringList(value: List[String]) extends Scalar
+  object SStringList {
+    def apply(value: String) = new SStringList(List(value))
+  }
   case class SDoubleList(value: List[Double]) extends Scalar
 
   implicit val stringCodec: Codec[SString] =

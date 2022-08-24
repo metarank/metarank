@@ -12,9 +12,14 @@ sealed trait MValue {
 }
 
 object MValue {
+  def apply(name: String, value: Double) = new SingleValue(FeatureName(name), value)
+  def apply(name: String, values: Array[Double]) = new VectorValue(FeatureName(name), values, values.length)
+  def apply(name: String, value: String, index: Int) = new CategoryValue(FeatureName(name), value, index)
+
   case class SingleValue(name: FeatureName, value: Double) extends MValue {
     override val dim: Int = 1
   }
+
 
   case class VectorValue(name: FeatureName, values: Array[Double], dim: Int) extends MValue {
     // so we can chech for equality in tests without array upcasting tricks
@@ -24,14 +29,14 @@ object MValue {
       case _ => false
     }
   }
+  object VectorValue {
+    def empty(name: FeatureName, dim: Int)         = VectorValue(name, new Array[Double](dim), dim)
+  }
 
   case class CategoryValue(name: FeatureName, cat: String, index: Int) extends MValue {
     override val dim: Int = 1
   }
 
-  object VectorValue {
-    def empty(name: FeatureName, dim: Int) = VectorValue(name, new Array[Double](dim), dim)
-  }
 
   implicit val mvalueListEncoder: Encoder[List[MValue]] = Encoder.instance(values =>
     Json.fromJsonObject(JsonObject.fromMap(values.map {
@@ -72,45 +77,4 @@ object MValue {
     }
   )
 
-//  implicit val singleCodec: Codec[SingleValue] = deriveCodec
-//  implicit val catCodec: Codec[CategoryValue]  = deriveCodec
-//  implicit val vectorEncoder: Encoder[VectorValue] =
-//    Encoder.instance(vec =>
-//      Json.fromJsonObject(
-//        JsonObject.fromMap(
-//          Map(
-//            "name"   -> Json.fromString(vec.name.value),
-//            "values" -> Json.fromValues(vec.values.map(Json.fromDoubleOrNull))
-//          )
-//        )
-//      )
-//    )
-//
-//  implicit val vectorDecoder: Decoder[VectorValue] = Decoder.instance(c =>
-//    for {
-//      name   <- c.downField("name").as[String]
-//      values <- c.downField("values").as[Array[Double]]
-//    } yield {
-//      VectorValue(FeatureName(name), values, values.length)
-//    }
-//  )
-//
-//  implicit val mvalueEncoder: Encoder[MValue] = Encoder.instance {
-//    case s: SingleValue   => singleCodec(s)
-//    case c: CategoryValue => catCodec(c)
-//    case v: VectorValue   => vectorEncoder(v)
-//  }
-//
-//  implicit val mvalueDecoder: Decoder[MValue] = Decoder.instance(c => {
-//    if (c.downField("values").focus.isDefined) {
-//      vectorDecoder(c)
-//    } else {
-//      if (c.downField("index").focus.isDefined) {
-//        catCodec(c)
-//      } else {
-//        singleCodec(c)
-//      }
-//
-//    }
-//  })
 }

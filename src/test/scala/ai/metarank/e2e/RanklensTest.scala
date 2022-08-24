@@ -11,7 +11,7 @@ import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{EventId, Timestamp}
-import ai.metarank.rank.LambdaMARTModel
+import ai.metarank.rank.{LambdaMARTModel, Ranker}
 import ai.metarank.source.ModelCache.MemoryModelCache
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.RanklensEvents
@@ -96,11 +96,11 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val i2 = i1.copy(item = ItemId("109487"))
     val i3 = i1.copy(item = ItemId("8644"))
 
-    val ranker = RankApi(mapping, store, MemoryModelCache(store))
-    val resp1  = ranker.rerank(mapping, ranking, "xgboost", true).unsafeRunSync()
+    val ranker = Ranker(mapping, store)
+    val resp1  = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
 
     Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping).unsafeRunSync()
-    val resp2 = ranker.rerank(mapping, ranking, "xgboost", true).unsafeRunSync()
+    val resp2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     resp1 shouldNot be(resp2)
     resp1.items.map(_.item.value) shouldNot be(resp2.items.map(_.item.value))
   }

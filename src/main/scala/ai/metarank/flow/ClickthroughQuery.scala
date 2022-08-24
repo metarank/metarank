@@ -49,13 +49,20 @@ object ClickthroughQuery {
     } {
       value match {
         case MValue.SingleValue(name, value) =>
-          dataset.offsets.get(SingularFeature(name.value)).foreach(o => buffer(o) = value)
+          dataset.offsets.get(SingularFeature(name.value)) match {
+            case Some(o) => buffer(o) = value
+            case None    => throw new IllegalStateException("offset missing")
+          }
         case MValue.VectorValue(name, values, dim) =>
-          dataset.offsets
-            .get(VectorFeature(name.value, dim))
-            .foreach(o => System.arraycopy(values, 0, buffer, o, values.length))
-        case MValue.CategoryValue(name, cat, index) =>
-          dataset.offsets.get(CategoryFeature(name.value)).foreach(o => buffer(o) = index)
+          dataset.offsets.get(VectorFeature(name.value, dim)) match {
+            case Some(o) => System.arraycopy(values, 0, buffer, o, values.length)
+            case None    => throw new IllegalStateException("offset missing")
+          }
+        case MValue.CategoryValue(name, _, index) =>
+          dataset.offsets.get(CategoryFeature(name.value)) match {
+            case Some(o) => buffer(o) = index
+            case None    => throw new IllegalStateException("offset missing")
+          }
       }
     }
     buffer

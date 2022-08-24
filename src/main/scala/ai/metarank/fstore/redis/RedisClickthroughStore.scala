@@ -22,7 +22,7 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient, ctPr
     rankings
       .set(
         ctPrefix + "/" + ranking.id.value,
-        cts.encode(Clickthrough(ranking.timestamp, ranking.items.toList.map(_.id)))
+        cts.encode(Clickthrough(ranking.id, ranking.timestamp, ranking.items.toList.map(_.id)))
       )
       .void
 
@@ -35,7 +35,7 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient, ctPr
   override def getClickthrough(id: EventId): IO[Option[Clickthrough]] =
     rankings.get(ctPrefix + "/" + id.value).flatMap {
       case None      => IO.pure(None)
-      case Some(str) => IO.fromEither(cts.decode(str)).map(Option.apply)
+      case Some(str) => IO.fromEither(cts.decode(str)).map(ct => Some(ct.copy(id = id)))
     }
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] = Stream
@@ -49,10 +49,10 @@ case class RedisClickthroughStore(rankings: RedisClient, hist: RedisClient, ctPr
         _ <- info(s"fetched next page of ${cts.size} clickthroughs, ${values.size} feature values")
       } yield {
         val decoded = for {
-          (id, ct) <- cts if ct.interactions.nonEmpty
+          (id, ct) <- cts
           vals     <- values.get(id)
         } yield {
-          ClickthroughValues(ct, vals)
+          ClickthroughValues(ct.copy(id = EventId(id)), vals)
         }
         scanned.cursor match {
           case "0"  => decoded.toList -> None
@@ -96,7 +96,7 @@ object RedisClickthroughStore {
           items <- decodeRec[ItemId](itemsStr.split(',').toList, decodeItem)
           ints  <- decodeRec[TypedInteraction](intsStr.split(',').toList, decodeInt)
         } yield {
-          Clickthrough(ts, items, ints)
+          Clickthrough(EventId("0"), ts, items, ints)
         }
       case other => Left(new Exception(s"cannot decode ct $other"))
     }

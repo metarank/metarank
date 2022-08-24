@@ -21,13 +21,15 @@ import ai.metarank.model.{
   Clickthrough,
   ClickthroughValues,
   EventId,
+  Feature,
   FeatureKey,
   FeatureValue,
   ItemValue,
   Key,
   MValue,
   Schema,
-  Scope
+  Scope,
+  Write
 }
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
@@ -89,6 +91,7 @@ object Persistence extends Logging {
   trait KVStore[K, V] {
     def put(values: Map[K, V]): IO[Unit]
     def get(keys: List[K]): IO[Map[K, V]]
+    def get(key: K): IO[Option[V]] = get(List(key)).map(_.get(key))
   }
 
   object KVStore {

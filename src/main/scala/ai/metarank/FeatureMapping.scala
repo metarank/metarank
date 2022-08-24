@@ -21,6 +21,7 @@ import ai.metarank.feature._
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
 import ai.metarank.rank.{LambdaMARTModel, Model, NoopModel, ShuffleModel}
+import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}
@@ -35,28 +36,37 @@ case class FeatureMapping(
   }
 }
 
-object FeatureMapping {
+object FeatureMapping extends Logging {
 
   def fromFeatureSchema(
       schema: NonEmptyList[FeatureSchema],
       models: Map[String, ModelConfig]
   ) = {
-    val features: List[BaseFeature] = schema.collect {
-      case c: NumberFeatureSchema          => NumberFeature(c)
-      case c: StringFeatureSchema          => StringFeature(c)
-      case c: BooleanFeatureSchema         => BooleanFeature(c)
-      case c: WordCountSchema              => WordCountFeature(c)
-      case c: RateFeatureSchema            => RateFeature(c)
-      case c: InteractionCountSchema       => InteractionCountFeature(c)
-      case c: RelevancySchema              => RelevancyFeature(c)
-      case c: UserAgentSchema              => UserAgentFeature(c)
-      case c: WindowInteractionCountSchema => WindowInteractionCountFeature(c)
-      case c: LocalDateTimeSchema          => LocalDateTimeFeature(c)
-      case c: ItemAgeSchema                => ItemAgeFeature(c)
-      case c: FieldMatchSchema             => FieldMatchFeature(c)
-      case c: InteractedWithSchema         => InteractedWithFeature(c)
-      case c: RefererSchema                => RefererFeature(c)
-    }
+    val usedFeatures = models.values.flatMap {
+      case LambdaMARTConfig(_, features, _) => features.toList
+      case ShuffleConfig(maxPositionChange) => Nil
+      case NoopConfig()                     => Nil
+    }.toSet
+
+    val features: List[BaseFeature] = schema
+      .collect {
+        case c: NumberFeatureSchema          => NumberFeature(c)
+        case c: StringFeatureSchema          => StringFeature(c)
+        case c: BooleanFeatureSchema         => BooleanFeature(c)
+        case c: WordCountSchema              => WordCountFeature(c)
+        case c: RateFeatureSchema            => RateFeature(c)
+        case c: InteractionCountSchema       => InteractionCountFeature(c)
+        case c: RelevancySchema              => RelevancyFeature(c)
+        case c: UserAgentSchema              => UserAgentFeature(c)
+        case c: WindowInteractionCountSchema => WindowInteractionCountFeature(c)
+        case c: LocalDateTimeSchema          => LocalDateTimeFeature(c)
+        case c: ItemAgeSchema                => ItemAgeFeature(c)
+        case c: FieldMatchSchema             => FieldMatchFeature(c)
+        case c: InteractedWithSchema         => InteractedWithFeature(c)
+        case c: RefererSchema                => RefererFeature(c)
+      }
+      .filter(f => usedFeatures.contains(f.schema.name))
+    logger.info(s"features: used=${usedFeatures.size} defined=${schema.size}")
     val featurySchema = Schema(features.flatMap(_.states))
     val m = models.toList.map {
       case (name, conf: LambdaMARTConfig) =>

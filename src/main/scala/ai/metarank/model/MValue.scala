@@ -12,14 +12,13 @@ sealed trait MValue {
 }
 
 object MValue {
-  def apply(name: String, value: Double) = new SingleValue(FeatureName(name), value)
-  def apply(name: String, values: Array[Double]) = new VectorValue(FeatureName(name), values, values.length)
+  def apply(name: String, value: Double)             = new SingleValue(FeatureName(name), value)
+  def apply(name: String, values: Array[Double])     = new VectorValue(FeatureName(name), values, values.length)
   def apply(name: String, value: String, index: Int) = new CategoryValue(FeatureName(name), value, index)
 
   case class SingleValue(name: FeatureName, value: Double) extends MValue {
     override val dim: Int = 1
   }
-
 
   case class VectorValue(name: FeatureName, values: Array[Double], dim: Int) extends MValue {
     // so we can chech for equality in tests without array upcasting tricks
@@ -30,13 +29,12 @@ object MValue {
     }
   }
   object VectorValue {
-    def empty(name: FeatureName, dim: Int)         = VectorValue(name, new Array[Double](dim), dim)
+    def empty(name: FeatureName, dim: Int) = VectorValue(name, new Array[Double](dim), dim)
   }
 
   case class CategoryValue(name: FeatureName, cat: String, index: Int) extends MValue {
     override val dim: Int = 1
   }
-
 
   implicit val mvalueListEncoder: Encoder[List[MValue]] = Encoder.instance(values =>
     Json.fromJsonObject(JsonObject.fromMap(values.map {

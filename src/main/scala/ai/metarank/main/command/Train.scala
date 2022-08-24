@@ -9,9 +9,7 @@ import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.main.CliArgs.{ServeArgs, TrainArgs}
 import ai.metarank.main.command.util.FieldStats
 import ai.metarank.main.command.util.FieldStats.FieldStat
-import ai.metarank.model.FeatureWeight.SingularWeight
 import ai.metarank.model.{ClickthroughValues, MValue, TrainResult}
-import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
@@ -19,10 +17,6 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
-import org.apache.commons.math3.stat.descriptive.rank.Percentile
-
-import java.util
-import scala.collection.mutable
 import scala.util.Random
 
 object Train extends Logging {

@@ -23,5 +23,4 @@ object JsonArrayFormat extends SourceFormat {
         case Left(error)  => Stream.raiseError[IO](error)
         case Right(event) => Stream.emit(event)
       })
-
 }

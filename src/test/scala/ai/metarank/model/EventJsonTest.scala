@@ -151,6 +151,21 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "decode simple interaction" in {
+    val json = """{
+                 |    "event": "interaction",
+                 |    "type": "click",
+                 |    "fields": [],
+                 |    "id": "test-interaction",
+                 |    "ranking": "test-ranking",
+                 |    "item": "110553",
+                 |    "user": "test1",
+                 |    "session": "test1",
+                 |    "timestamp": 1661345221008
+                 |}""".stripMargin
+    decode[Event](json) shouldBe Right(Nil)
+  }
+
   it should "decode timestamp as long/string/iso" in {
     import Event.EventCodecs._
     decode[Timestamp]("123") shouldBe Right(Timestamp(123L))

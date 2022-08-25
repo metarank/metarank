@@ -2,6 +2,7 @@ package ai.metarank.main.api
 
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.RankResponse
+import ai.metarank.rank.Ranker
 import ai.metarank.util.{RandomScorer, TestFeatureMapping, TestModelCache, TestRankingEvent}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
@@ -15,18 +16,17 @@ import io.circe.parser._
 class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val mapping = TestFeatureMapping()
   lazy val store   = MemPersistence(mapping.schema)
-  lazy val models  = TestModelCache(RandomScorer())
-  lazy val service = RankApi(mapping, store, models)
+  lazy val service = RankApi(Ranker(mapping, store))
 
   it should "respond with the same data reranked" in {
     val response =
-      service.rerank(mapping, TestRankingEvent(List("p1", "p2", "p3")), "random", explain = false).unsafeRunSync()
-    response.items.map(_.item.value) shouldBe List("p1", "p3", "p2")
+      service.ranker.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", explain = false).unsafeRunSync()
+    response.items.map(_.item.value) shouldBe List("p1", "p2", "p3")
   }
 
   it should "emit feature values" in {
     val response =
-      service.rerank(mapping, TestRankingEvent(List("p1", "p2", "p3")), "random", explain = true).unsafeRunSync()
+      service.ranker.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", explain = true).unsafeRunSync()
     response.items.forall(_.features.size == 5) shouldBe true
   }
 

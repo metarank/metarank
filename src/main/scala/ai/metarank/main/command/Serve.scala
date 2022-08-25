@@ -8,6 +8,7 @@ import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
 import ai.metarank.main.api.{FeedbackApi, HealthApi, RankApi, TrainApi}
 import ai.metarank.model.Event
+import ai.metarank.rank.Ranker
 import ai.metarank.source.ModelCache
 import ai.metarank.source.ModelCache.MemoryModelCache
 import cats.effect.IO
@@ -30,7 +31,7 @@ object Serve {
   def api(store: Persistence, mapping: FeatureMapping, conf: ApiConfig) = {
     val health   = HealthApi(store).routes
     val cache    = MemoryModelCache(store)
-    val rank     = RankApi(mapping, store, cache).routes
+    val rank     = RankApi(Ranker(mapping, store)).routes
     val feedback = FeedbackApi(store, mapping).routes
     val train    = TrainApi(mapping, store, cache).routes
     val routes   = health <+> rank <+> feedback <+> train

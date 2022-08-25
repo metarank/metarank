@@ -9,26 +9,27 @@ models:
     backend:
       type: xgboost
       iterations: 50
+      ndcgCutoff: 50
       seed: 0
     weights:
       click: 1
     features:
-      - popularity
+#      - popularity
       - vote_avg
-      - vote_cnt
+#      - vote_cnt
       - budget
       - release_date
       - runtime
       - title_length
       - genre
-      - ctr
+#      - ctr
       - liked_genre
       - liked_actors
       - liked_tags
       - liked_director
-      - visitor_click_count
-      - global_item_click_count
-      - day_item_click_count
+#      - visitor_click_count
+#      - global_item_click_count
+#      - day_item_click_count
 features:
   - name: popularity
     type: number
@@ -69,7 +70,7 @@ features:
     type: string
     scope: item
     source: metadata.genres
-    encode: index
+    encode: onehot
     values:
       - drama
       - comedy

@@ -1,7 +1,8 @@
 package ai.metarank.feature
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.ShuffleConfig
+import ai.metarank.config.ModelConfig.ModelBackend.LightGBMBackend
+import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ShuffleConfig}
 import ai.metarank.flow.FeatureValueFlow
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankingEvent
@@ -15,13 +16,21 @@ trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
     val mapping = FeatureMapping.fromFeatureSchema(
       schema = NonEmptyList.of(schema),
-      models = Map("random" -> ShuffleConfig(10))
+      models = Map("random" -> LambdaMARTConfig(LightGBMBackend(), NonEmptyList.of(schema.name), Map("click" -> 1)))
     )
 
     val flow =
       FeatureValueFlow(mapping, MemPersistence(mapping.schema), Scaffeine().maximumSize(0).build())
     val featureValues =
-      Stream.emits(events).through(flow.process).compile.toList.map(_.flatten).unsafeRunSync().map(fv => fv.key -> fv).toMap
+      Stream
+        .emits(events)
+        .through(flow.process)
+        .compile
+        .toList
+        .map(_.flatten)
+        .unsafeRunSync()
+        .map(fv => fv.key -> fv)
+        .toMap
 
     mapping.features.map {
       case feature: BaseFeature.ItemFeature    => feature.values(request, featureValues)

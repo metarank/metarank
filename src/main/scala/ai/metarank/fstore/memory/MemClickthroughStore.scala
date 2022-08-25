@@ -15,7 +15,7 @@ case class MemClickthroughStore(
     IO {
       cache.put(
         ranking.id.value,
-        ClickthroughValues(Clickthrough(ranking.timestamp, ranking.items.toList.map(_.id)), values = Nil)
+        ClickthroughValues(Clickthrough(ranking.id, ranking.timestamp, ranking.items.toList.map(_.id)), values = Nil)
       )
     }
 
@@ -36,5 +36,5 @@ case class MemClickthroughStore(
     }
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] =
-    fs2.Stream.emits(cache.asMap().values.toList.filter(_.ct.interactions.nonEmpty))
+    fs2.Stream.emits(cache.asMap().values.toList)
 }

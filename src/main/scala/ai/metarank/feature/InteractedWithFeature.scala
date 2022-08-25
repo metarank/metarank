@@ -119,8 +119,9 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
       interactedList  <- interactedValue.cast[BoundedListValue]
     } yield {
       val interactedValues = interactedList.values.map(_.value).collect { case SString(value) => value }
-      interactedValues.groupBy(identity).map { case (k, v) => k -> v.size }
-    }).getOrElse(Map.empty[String, Int])
+      val sum              = interactedValues.size.toDouble
+      interactedValues.groupBy(identity).map { case (k, v) => k -> v.size / sum }
+    }).getOrElse(Map.empty[String, Double])
     for {
       item <- request.items.toList
     } yield {
@@ -133,7 +134,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
           case SStringList(values) => values
           case _                   => Nil
         }
-        val value = itemValues.foldLeft(0)((acc, next) => acc + visitorMap.getOrElse(next, 0))
+        val value = itemValues.foldLeft(0.0)((acc, next) => acc + visitorMap.getOrElse(next, 0.0))
         SingleValue(schema.name, value)
       }
       result.getOrElse(SingleValue(schema.name, 0))

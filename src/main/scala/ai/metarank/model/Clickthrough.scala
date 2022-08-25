@@ -7,6 +7,7 @@ import io.circe.Codec
 import io.circe.generic.semiauto._
 
 case class Clickthrough(
+    id: EventId,
     ts: Timestamp,
     items: List[ItemId],
     interactions: List[TypedInteraction] = Nil

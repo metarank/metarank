@@ -23,7 +23,7 @@ class RedisClickthroughStoreTest extends AnyFlatSpec with Matchers with RedisTes
   it should "write rankings" in {
     stream.putRanking(rank).unsafeRunSync()
     val ct = stream.getClickthrough(rank.id).unsafeRunSync()
-    ct shouldBe Some(Clickthrough(rank.timestamp, rank.items.toList.map(_.id), Nil))
+    ct shouldBe Some(Clickthrough(rank.id, rank.timestamp, rank.items.toList.map(_.id), Nil))
   }
 
   it should "write values" in {

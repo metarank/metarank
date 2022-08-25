@@ -101,9 +101,14 @@ configuration file, describing how to map visitor events to ML features
 a dump of historical visitor interactions used for ML training.
 
 ```bash
-$ curl -o config.yml https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml
-$ curl -o events.jsonl.gz https://media.githubusercontent.com/media/metarank/metarank/master/src/test/resources/ranklens/events/events.jsonl.gz
-$ ls -l
+curl -o config.yml https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml
+```
+
+```bash
+curl -o events.jsonl.gz https://media.githubusercontent.com/media/metarank/metarank/master/src/test/resources/ranklens/events/events.jsonl.gz
+```
+```bash
+ls -l
 
 total 172
 drwxr-xr-x  2 user user   4096 Aug 23 14:24 .
@@ -136,7 +141,7 @@ We're going to send a set of initial candidates for reranking into Metarank's RE
 them to maximize CTR:
 
 ```bash
-curl -X POST http://localhost:8080/rank/xgboost -d '{
+curl http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",
     "id": "id1",
     "items": [
@@ -160,7 +165,7 @@ curl -X POST http://localhost:8080/rank/xgboost -d '{
     ],
     "user": "alice",
     "session": "alice1",
-    "timestamp": 1661345221008
+    "timestamp": 1661431892711
 }'
 ```
 
@@ -201,7 +206,7 @@ only items from the current page.
 In our case, the impression event is a set of top 12 movies from the previous `/rank` request, 
 starting with `Terminator 2` and ending with `MIIB`:
 ```bash
-curl -X POST http://localhost:8080/feedback -d '{
+curl http://localhost:8080/feedback -d '{
     "event": "ranking",
     "id": "id1",
     "items": [
@@ -211,13 +216,13 @@ curl -X POST http://localhost:8080/feedback -d '{
     ],
     "user": "alice",
     "session": "alice1",
-    "timestamp": 1661345221008
+    "timestamp": 1661431894711
 }'
 ```
 
 Now let's send a click on `Men in Black` with id=1580:
 ```bash
-curl -X POST -v http://localhost:8080/feedback -d '{
+curl http://localhost:8080/feedback -d '{
     "event": "interaction",
     "type": "click",
     "id": "id2",
@@ -225,7 +230,7 @@ curl -X POST -v http://localhost:8080/feedback -d '{
     "item": "1580",
     "user": "alice",
     "session": "alice1",
-    "timestamp": 1661345221008
+    "timestamp": 1661431896711
 }'
 ```
 
@@ -236,7 +241,7 @@ Now, we are ready to get some personalized!
 Let's send the same first ranking request with top-100 sci-fi movies we did before, and see how response will change 
 after providing some visitor feedback:
 ```bash
-curl -X POST http://localhost:8080/rank/xgboost -d '{
+curl http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",
     "id": "id1",
     "items": [
@@ -260,7 +265,7 @@ curl -X POST http://localhost:8080/rank/xgboost -d '{
     ],
     "user": "alice",
     "session": "alice1",
-    "timestamp": 1661345221008
+    "timestamp": 1661431898711
 }'
 ```
 

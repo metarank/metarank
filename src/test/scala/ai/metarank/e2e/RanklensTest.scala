@@ -1,12 +1,12 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
+import ai.metarank.api.routes.RankApi
 import ai.metarank.config.InputConfig.{SourceOffset, conf}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.{Config, Hostname, Port, SourceFormat}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.CliArgs.ImportArgs
-import ai.metarank.main.api.RankApi
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}

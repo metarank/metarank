@@ -1,12 +1,13 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
+import ai.metarank.api.routes
+import ai.metarank.api.routes.{FeedbackApi, HealthApi, RankApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config}
 import ai.metarank.flow.{ClickthroughImpressionFlow, FeatureValueFlow, FeatureValueSink}
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
-import ai.metarank.main.api.{FeedbackApi, HealthApi, RankApi, TrainApi}
 import ai.metarank.model.Event
 import ai.metarank.rank.Ranker
 import ai.metarank.source.ModelCache
@@ -18,7 +19,7 @@ import cats.implicits._
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
 
-object Serve {
+object Serve extends Logging {
   def run(
       conf: Config,
       storeResource: Resource[IO, Persistence],
@@ -41,6 +42,6 @@ object Serve {
       .withHttpApp(httpApp)
       .withBanner(Logo.lines)
 
-    api.serve.compile.drain
+    api.serve.compile.drain.flatTap(_ => inf)
   }
 }

@@ -1,5 +1,6 @@
 package ai.metarank.main.api
 
+import ai.metarank.api.routes.{FeedbackApi, TrainApi}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.TrainResult
 import ai.metarank.source.ModelCache.MemoryModelCache

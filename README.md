@@ -156,6 +156,6 @@ curl http://localhost:8080/rank/xgboost \
 * [License](LICENSE)
 
 
-Licence
+License
 =====
 This project is released under the Apache 2.0 license, as specified in the [License](LICENSE) file.

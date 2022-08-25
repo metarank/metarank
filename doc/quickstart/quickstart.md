@@ -221,7 +221,7 @@ curl -X POST -v http://localhost:8080/feedback -d '{
     "event": "interaction",
     "type": "click",
     "id": "id2",
-    "ranking": "id1", // id of the previous impression
+    "ranking": "id1",
     "item": "1580",
     "user": "alice",
     "session": "alice1",

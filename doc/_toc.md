@@ -3,7 +3,7 @@
 ## Introduction
 
 * [What is Metarank?](intro.md)
-* [Quickstart](quickstart.md)
+* [Quickstart](quickstart/quickstart.md)
 
 ## Reference
 * [Installation](installation.md)

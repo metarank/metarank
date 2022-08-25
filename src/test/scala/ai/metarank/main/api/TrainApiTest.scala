@@ -1,8 +1,8 @@
 package ai.metarank.main.api
 
+import ai.metarank.api.routes.{FeedbackApi, TrainApi}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.TrainResult
-import ai.metarank.source.ModelCache.MemoryModelCache
 import ai.metarank.util.RandomDataset
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
@@ -16,7 +16,7 @@ import io.circe.parser._
 class TrainApiTest extends AnyFlatSpec with Matchers {
   lazy val dataset  = RandomDataset.generate(1000)
   lazy val state    = MemPersistence(dataset.mapping.schema)
-  lazy val train    = TrainApi(dataset.mapping, state, MemoryModelCache(state))
+  lazy val train    = TrainApi(dataset.mapping, state)
   lazy val feedback = FeedbackApi(state, dataset.mapping)
 
   it should "ingest mock events" in {

@@ -4,10 +4,10 @@ import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.ModelName
-import ai.metarank.main.api.RankApi.ModelError
+import ai.metarank.api.routes.RankApi.{ModelError, RankResponse}
 import ai.metarank.model.Event.RankingEvent
-import ai.metarank.model.RankResponse.{ItemScore, StateValues}
-import ai.metarank.model.{FeatureValue, ItemValue, Key, RankResponse}
+import ai.metarank.api.routes.RankApi.RankResponse.{ItemScore, StateValues}
+import ai.metarank.model.{FeatureValue, ItemValue, Key}
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.Ranker.QueryValues
 import ai.metarank.rank.ShuffleModel.ShuffleScorer

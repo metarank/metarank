@@ -5,20 +5,18 @@ import ai.metarank.api.JsonChunk
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.command.Train
 import ai.metarank.rank.LambdaMARTModel
-import ai.metarank.source.ModelCache
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk
 import org.http4s.dsl.io._
 import org.http4s.{Entity, HttpRoutes, Response, Status}
 
-case class TrainApi(mapping: FeatureMapping, store: Persistence, models: ModelCache) extends Logging {
+case class TrainApi(mapping: FeatureMapping, store: Persistence) extends Logging {
   def routes = HttpRoutes.of[IO] { case POST -> Root / "train" / modelName =>
     mapping.models.get(modelName) match {
       case Some(model @ LambdaMARTModel(conf, _, _, _)) =>
         Train
           .train(store, model, modelName, conf.backend)
-          .flatTap(_ => models.invalidate(modelName))
           .map(result => Response(entity = Entity.strict(JsonChunk(result))))
       case None =>
         error(Status.NotFound, s"Model $modelName is not defined in config")

@@ -45,7 +45,7 @@ object ClickthroughQuery {
   def collectFeatureValues(dataset: DatasetDescriptor, values: List[MValue]): Array[Double] = {
     val buffer = new Array[Double](dataset.dim)
     for {
-      value <- values
+      value <- values if (dataset.dim > 0)
     } {
       value match {
         case MValue.SingleValue(name, value) =>

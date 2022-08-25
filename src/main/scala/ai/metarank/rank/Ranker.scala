@@ -24,7 +24,7 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
         case Some(existing) => IO.pure(existing)
         case None           => IO.raiseError(ModelError(s"model $modelName is not configured"))
       }
-      queryValues <- makeQuery(request, model)
+      queryValues <- makeQuery(request, model.datasetDescriptor)
       stateTook   <- IO { System.currentTimeMillis() }
       scorer      <- loadScorer(model, modelName)
       scores      <- IO { scorer.score(queryValues.query) }
@@ -54,13 +54,6 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
       }
     case NoopModel(_)       => IO.pure(NoopScorer)
     case ShuffleModel(conf) => IO.pure(ShuffleScorer(conf.maxPositionChange))
-  }
-
-  def makeQuery(request: RankingEvent, model: Model) = model match {
-    case LambdaMARTModel(_, _, datasetDescriptor, _) => makeQuery(request, datasetDescriptor)
-    case NoopModel(conf)                             => IO(QueryValues())
-    case ShuffleModel(conf)                          => ???
-    case _                                           => ???
   }
 
   def makeQuery(request: RankingEvent, ds: DatasetDescriptor) = for {

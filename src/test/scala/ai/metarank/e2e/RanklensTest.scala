@@ -31,20 +31,14 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   val config = Config
     .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8))
     .unsafeRunSync()
-  val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models)
+  val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
   lazy val file   = Files.createTempFile("events", ".jsonl")
   lazy val store  = MemPersistence(mapping.schema)
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTModel]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
 
-  it should "write events file" in {
-    val stream = new FileOutputStream(file.toFile)
-    IOUtils.write(RanklensEvents().map(_.asJson.noSpaces).mkString("\n"), stream, StandardCharsets.UTF_8)
-    stream.close()
-  }
-
   it should "import events" in {
-    Import.slurp(store, mapping, ImportArgs(file, file, SourceOffset.Earliest, JsonFormat)).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping).unsafeRunSync()
   }
 
   it should "train the xgboost model" in {

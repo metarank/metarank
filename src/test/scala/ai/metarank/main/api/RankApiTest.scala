@@ -21,7 +21,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
   it should "respond with the same data reranked" in {
     val response =
       service.ranker.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", explain = false).unsafeRunSync()
-    response.items.map(_.item.value) shouldBe List("p1", "p3", "p2")
+    response.items.map(_.item.value) shouldBe List("p1", "p2", "p3")
   }
 
   it should "emit feature values" in {

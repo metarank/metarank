@@ -15,24 +15,30 @@ class JsonLineFormatTest extends AnyFlatSpec with Matchers {
 
   it should "parse test events from bytes with no newline at end" in {
     val bytes   = (json + "\n" + json).getBytes()
-    val decoded = fs2.Stream.emits(bytes).through(JsonLineFormat.parse).compile.toList.unsafeRunSync()
+    val decoded = fs2.Stream.emits(bytes).through(JsonFormat.parse).compile.toList.unsafeRunSync()
     decoded shouldBe List(event, event)
+  }
+
+  it should "parse pretty printed jsons" in {
+    val bytes   = event.asInstanceOf[Event].asJson.spaces2.getBytes()
+    val decoded = fs2.Stream.emits(bytes).through(JsonFormat.parse).compile.toList.unsafeRunSync()
+    decoded shouldBe List(event)
   }
 
   it should "parse test events from bytes with newline at end" in {
     val bytes   = (json + "\n" + json + "\n").getBytes()
-    val decoded = fs2.Stream.emits(bytes).through(JsonLineFormat.parse).compile.toList.unsafeRunSync()
+    val decoded = fs2.Stream.emits(bytes).through(JsonFormat.parse).compile.toList.unsafeRunSync()
     decoded shouldBe List(event, event)
   }
 
   it should "parse empty file" in {
     val bytes   = Array.emptyByteArray
-    val decoded = fs2.Stream.emits(bytes).through(JsonLineFormat.parse).compile.toList.unsafeRunSync()
+    val decoded = fs2.Stream.emits(bytes).through(JsonFormat.parse).compile.toList.unsafeRunSync()
     decoded shouldBe Nil
   }
 
   it should "fail on non-json" in {
-    val decoded = Try(fs2.Stream.emits("YOLO".getBytes()).through(JsonLineFormat.parse).compile.toList.unsafeRunSync())
+    val decoded = Try(fs2.Stream.emits("YOLO".getBytes()).through(JsonFormat.parse).compile.toList.unsafeRunSync())
     decoded.isFailure shouldBe true
   }
 }

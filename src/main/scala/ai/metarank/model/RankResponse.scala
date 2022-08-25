@@ -6,7 +6,7 @@ import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScope
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
-case class RankResponse(state: StateValues, items: List[ItemScore])
+case class RankResponse(state: Option[StateValues], items: List[ItemScore])
 
 object RankResponse {
   case class StateValues(
@@ -26,7 +26,7 @@ object RankResponse {
     }
   }
 
-  case class ItemScore(item: ItemId, score: Double, features: List[MValue])
+  case class ItemScore(item: ItemId, score: Double, features: Option[List[MValue]])
   implicit val itemScoreCodec: Codec[ItemScore]       = deriveCodec
   implicit val stateValuesCodec: Codec[StateValues]   = deriveCodec
   implicit val rankResponseCodec: Codec[RankResponse] = deriveCodec

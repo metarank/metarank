@@ -5,7 +5,7 @@ import ai.metarank.flow.MetarankFlow
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.{Event, Field}
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
-import ai.metarank.source.format.{JsonFormat, JsonLineFormat}
+import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk

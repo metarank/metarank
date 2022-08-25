@@ -9,9 +9,7 @@ import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.main.CliArgs.{ServeArgs, TrainArgs}
 import ai.metarank.main.command.util.FieldStats
 import ai.metarank.main.command.util.FieldStats.FieldStat
-import ai.metarank.model.FeatureWeight.SingularWeight
 import ai.metarank.model.{ClickthroughValues, MValue, TrainResult}
-import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
@@ -19,10 +17,6 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
-import org.apache.commons.math3.stat.descriptive.rank.Percentile
-
-import java.util
-import scala.collection.mutable
 import scala.util.Random
 
 object Train extends Logging {
@@ -46,12 +40,13 @@ object Train extends Logging {
   }
 
   def train(store: Persistence, model: LambdaMARTModel, name: String, backend: ModelBackend): IO[TrainResult] = for {
-    clickthroughts <- store.cts.getall().compile.toList.map(_.sortBy(_.ct.ts.ts))
-    _              <- info(s"loaded ${clickthroughts.size} clickthroughs")
+    clickthroughtsRaw <- store.cts.getall().compile.toList.map(_.sortBy(_.ct.ts.ts))
+    clickthroughs     <- IO(clickthroughtsRaw.filter(_.ct.interactions.nonEmpty))
+    _                 <- info(s"loaded ${clickthroughtsRaw.size} clickthroughs, ${clickthroughs.size} with clicks")
     queries <- IO(
-      clickthroughts.map(ct =>
-        ClickthroughQuery(ct.values, ct.ct.interactions, ct, model.weights, model.datasetDescriptor)
-      )
+      clickthroughs
+        .sortBy(_.ct.ts.ts)
+        .map(ct => ClickthroughQuery(ct.values, ct.ct.interactions, ct, model.weights, model.datasetDescriptor))
     )
     dataset <- IO(Dataset(model.datasetDescriptor, queries))
     (train, test) = split(dataset, 80)
@@ -61,8 +56,8 @@ object Train extends Logging {
     _            <- store.models.put(Map(ModelName(name) -> scorer))
     _            <- info(s"model uploaded to store, ${trainedModel.bytes.length} bytes")
   } yield {
-    val stats = FieldStats(clickthroughts)
-    TrainResult(
+    val stats = FieldStats(clickthroughs)
+    val result = TrainResult(
       iterations = trainedModel.iterations.map(r => IterationStatus(r.index, r.took, r.trainMetric, r.testMetric)),
       sizeBytes = trainedModel.bytes.length,
       features = trainedModel.weights.map { case (name, weight) =>
@@ -70,5 +65,7 @@ object Train extends Logging {
         FeatureStatus(name, weight, stat.zero, stat.nonZero, percentiles = stat.samples.percentiles())
       }.toList
     )
+    result.features.sortBy(_.name).foreach(fs => logger.info(fs.asPrintString))
+    result
   }
 }

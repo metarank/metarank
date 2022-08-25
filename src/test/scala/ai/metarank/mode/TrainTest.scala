@@ -10,7 +10,7 @@ import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.{Clickthrough, ClickthroughValues, FieldName, ItemValue, Timestamp}
+import ai.metarank.model.{Clickthrough, ClickthroughValues, EventId, FieldName, ItemValue, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -56,6 +56,7 @@ class TrainTest extends AnyFlatSpec with Matchers {
   it should "convert ranking+impression to query" in {
     val ct = ClickthroughValues(
       ct = Clickthrough(
+        id = EventId("i1"),
         ts = now,
         items = List(ItemId("p1"), ItemId("p2"), ItemId("p3")),
         interactions = List(TypedInteraction(ItemId("p2"), "click"))

@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
+import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
@@ -41,11 +41,7 @@ object TestFeatureMapping {
     )
 
     val models = Map(
-      "random" -> LambdaMARTConfig(
-        backend = XGBoostBackend(),
-        features = features.map(_.name),
-        weights = Map("click" -> 1)
-      )
+      "random" -> NoopConfig()
     )
     FeatureMapping.fromFeatureSchema(features, models)
   }

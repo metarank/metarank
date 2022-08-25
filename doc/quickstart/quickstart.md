@@ -7,7 +7,7 @@ sample data and issue queries.
 
 * Docker: [Docker Desktop for Mac/Windows](https://docs.docker.com/engine/install/), or Docker for Linux
 * Operating system: Linux, macOS, or Windows 10+
-* Architecture: x86_64. For M1, see [Apple M1 support](installation.md#apple-m1-support)
+* Architecture: x86_64. For M1, see [Apple M1 support](../installation.md#installing-on-macos)
 * Memory: 2Gb dedicated to Docker
 
 This guide is tested with Docker for linux v20.10.16, and [metarank/metarank:0.5.0](https://hub.docker.com/r/metarank/metarank/tags) docker image.

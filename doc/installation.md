@@ -9,8 +9,9 @@ Metarank docker images are published on DockerHub as [metarank/metarank](https:/
 * `latest` tag may point to pre-release versions, use an exact pinned version for stability.
 * on Mac M1 you can use x86_64 docker images, or try running the JAR file directly.
 
+To start using metarank with docker, just run:
 ```bash
-docker pull metarank/metarank:0.5.0
+docker run metarank/metarank:0.5.0 --help
 ```
 
 ## JAR File

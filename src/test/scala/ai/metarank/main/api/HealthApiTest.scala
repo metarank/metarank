@@ -1,5 +1,6 @@
 package ai.metarank.main.api
 
+import ai.metarank.api.routes.HealthApi
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.util.{TestConfig, TestFeatureMapping}
 import cats.effect.unsafe.implicits.global

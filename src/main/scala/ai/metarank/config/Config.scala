@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.InputConfig.ApiInputConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.StateStoreConfig.MemoryStateConfig
+import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyMap}
@@ -48,9 +48,20 @@ object Config extends Logging {
     for {
       yaml    <- IO.fromEither(parseYaml(contents))
       decoded <- IO.fromEither(yaml.as[Config])
+      _       <- logConfig(decoded)
     } yield {
       decoded
     }
+  }
+
+  def logConfig(conf: Config): IO[Unit] = IO {
+    val stateType = conf.state match {
+      case RedisStateConfig(host, port, db, cache, pipeline) => s"redis://$host:$port"
+      case MemoryStateConfig()                               => "memory"
+    }
+    val features = conf.features.map(_.name.value).toList.mkString("[", ",", "]")
+    val models   = conf.models.keys.mkString("[", ",", "]")
+    logger.info(s"Loaded config file, state=$stateType, features=$features, models=$models")
   }
 
   object Validations {

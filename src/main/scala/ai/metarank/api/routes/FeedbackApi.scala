@@ -1,26 +1,33 @@
-package ai.metarank.main.api
+package ai.metarank.api.routes
 
 import ai.metarank.FeatureMapping
+import ai.metarank.api.JsonChunk
+import ai.metarank.api.routes.FeedbackApi.FeedbackResponse
 import ai.metarank.flow.MetarankFlow
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.{Event, Field}
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
+import ai.metarank.model.{Event, Field}
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk
 import org.http4s.dsl.io._
-import org.http4s.{HttpRoutes, Response, Status}
+import org.http4s.{Entity, HttpRoutes, Response, Status}
 import cats.implicits._
+import io.circe.Codec
+import io.circe.generic.semiauto._
 
 case class FeedbackApi(store: Persistence, mapping: FeatureMapping) extends Logging {
   val routes = HttpRoutes.of[IO] {
     case post @ POST -> Root / "feedback" => {
       for {
         stream <- IO(post.entity.body.through(JsonFormat.parse).chunkN(1024).evalTap(logEvents))
-        _      <- MetarankFlow.process(store, stream.unchunks, mapping)
+        result <- MetarankFlow.process(store, stream.unchunks, mapping)
       } yield {
-        Response(status = Status.Ok)
+        Response(
+          status = Status.Ok,
+          entity = Entity.strict(JsonChunk(FeedbackResponse("ok", result.events, result.updates, result.tookMillis)))
+        )
       }
     }
   }
@@ -55,4 +62,9 @@ case class FeedbackApi(store: Persistence, mapping: FeatureMapping) extends Logg
         )
     }
   }
+}
+
+object FeedbackApi {
+  case class FeedbackResponse(status: String, accepted: Long, updated: Long, tookMillis: Long)
+  implicit val feedbackResponseCodec: Codec[FeedbackResponse] = deriveCodec[FeedbackResponse]
 }

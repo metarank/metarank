@@ -20,8 +20,8 @@ object Standalone extends Logging {
   ): IO[Unit] = {
     storeResource.use(store =>
       for {
-        _ <- Import.slurp(store, mapping, ImportArgs(args.conf, args.data, args.offset, args.format))
-        _ <- info("Import done, training models")
+        result <- Import.slurp(store, mapping, ImportArgs(args.conf, args.data, args.offset, args.format))
+        _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
         _ <- mapping.models.toList.map {
           case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
             Train.train(store, m, name, conf.backend) *> info("model training finished")

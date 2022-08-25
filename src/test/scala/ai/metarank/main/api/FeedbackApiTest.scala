@@ -1,5 +1,6 @@
 package ai.metarank.main.api
 
+import ai.metarank.api.routes.FeedbackApi
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event
 import ai.metarank.util.{TestFeatureMapping, TestRankingEvent}

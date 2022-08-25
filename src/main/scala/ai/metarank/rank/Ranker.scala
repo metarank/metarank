@@ -30,8 +30,8 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
       scores      <- IO { scorer.score(queryValues.query) }
       result <- explain match {
         case true =>
-          IO { queryValues.values.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)).sortBy(-_.score) }
-        case false => IO { queryValues.values.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)).sortBy(-_.score) }
+          IO { queryValues.values.zip(scores).map(x => ItemScore(x._1.id, x._2, Some(x._1.values))).sortBy(-_.score) }
+        case false => IO { queryValues.values.zip(scores).map(x => ItemScore(x._1.id, x._2, None)).sortBy(-_.score) }
       }
       _ <- IO {
         val items   = result.map(is => s"${is.item.value}=${String.format("%.2f", is.score)}").mkString(",")
@@ -43,7 +43,7 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
       }
 
     } yield {
-      RankResponse(state = StateValues(queryValues.state.values.toList), items = result)
+      RankResponse(state = Option.when(explain)(StateValues(queryValues.state.values.toList)), items = result)
     }
 
   def loadScorer(model: Model, name: String) = model match {

@@ -21,7 +21,6 @@ import org.http4s.dsl.io._
 import org.http4s.headers.`Content-Type`
 
 import java.nio.charset.StandardCharsets
-import scala.concurrent.duration._
 
 case class RankApi(ranker: Ranker) extends Logging {
   import RankApi._

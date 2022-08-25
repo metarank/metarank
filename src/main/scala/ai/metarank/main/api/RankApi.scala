@@ -62,8 +62,8 @@ case class RankApi(
     scorer <- models.get(model)
     scores <- IO { scorer.score(query) }
     result <- explain match {
-      case true  => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)) }
-      case false => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, Nil)) }
+      case true  => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, Some(x._1.values))) }
+      case false => IO { itemFeatureValues.zip(scores).map(x => ItemScore(x._1.id, x._2, None)) }
     }
     _ <- IO {
       val items = result.map(is => s"${is.item.value}=${String.format("%.2f", is.score)}").mkString(",")
@@ -72,7 +72,7 @@ case class RankApi(
     }
 
   } yield {
-    RankResponse(state = StateValues(state.values.toList), items = result.sortBy(-_.score))
+    RankResponse(state = if (explain) Some(StateValues(state.values.toList)) else None, items = result.sortBy(-_.score))
   }
 
   def logRequest(r: RankingEvent) = {

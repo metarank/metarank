@@ -34,7 +34,7 @@ The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) websit
     {"name": "runtime", "value": 92.0},
     {"name": "release_date", "value": 9.412416E+8},
     {"name": "genres", "value": ["animation", "comedy", "family"]},
-    {"name": "tags", "value": ["pixar", "disney", "animation", "computer animation", "sequel", "tom hanks", "funny"]},
+    {"name": "tags", "value": ["pixar", "disney", "animation", "sequel"]},
     {"name": "actors", "value": ["tom hanks", "joan cusack", "frank welker"]},
     {"name": "director", "value": "john lasseter"},
     {"name": "writer", "value": "andrew stanton"}
@@ -52,23 +52,23 @@ The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) websit
   "event": "ranking",
   "id": "id1",
   "items": [
-    {"id":"72998"}, {"id":"67197"}, {"id":"77561"}, {"id":"68358"}, {"id":"79132"}, {"id":"103228"},
-    {"id":"72378"}, {"id":"85131"}, {"id":"94864"}, {"id":"68791"}, {"id":"93363"}, {"id":"112623"},
-    {"id":"109487"}, {"id":"59315"}, {"id":"120466"}, {"id":"90405"}, {"id":"122918"}, {"id":"70286"},
-    {"id":"117529"}, {"id":"130490"}, {"id":"92420"}, {"id":"122882"}, {"id":"87306"}, {"id":"82461"},
-    {"id":"113345"}, {"id":"2571"}, {"id":"122900"}, {"id":"88744"}, {"id":"111360"}, {"id":"134130"},
-    {"id":"95875"}, {"id":"60069"}, {"id":"2021"}, {"id":"135567"}, {"id":"103253"}, {"id":"111759"},
-    {"id":"122902"}, {"id":"104243"}, {"id":"112852"}, {"id":"102880"}, {"id":"56174"}, {"id":"107406"},
-    {"id":"96610"}, {"id":"741"}, {"id":"166528"}, {"id":"164179"}, {"id":"187595"}, {"id":"589"},
-    {"id":"71057"}, {"id":"3527"}, {"id":"6365"}, {"id":"6934"}, {"id":"1270"}, {"id":"6502"},
-    {"id":"114935"}, {"id":"8810"}, {"id":"173291"}, {"id":"1580"}, {"id":"182715"}, {"id":"166635"},
-    {"id":"1917"}, {"id":"135569"}, {"id":"106920"}, {"id":"1240"}, {"id":"5502"}, {"id":"316"},
-    {"id":"85056"}, {"id":"780"}, {"id":"1527"}, {"id":"5459"}, {"id":"94018"}, {"id":"33493"},
-    {"id":"8644"}, {"id":"60684"}, {"id":"7254"}, {"id":"44191"}, {"id":"101864"}, {"id":"132046"},
-    {"id":"97752"}, {"id":"2628"}, {"id":"541"}, {"id":"106002"}, {"id":"1200"}, {"id":"5378"},
-    {"id":"2012"}, {"id":"79357"}, {"id":"6283"}, {"id":"113741"}, {"id":"90345"}, {"id":"2011"},
-    {"id":"27660"}, {"id":"34048"}, {"id":"1882"}, {"id":"1748"}, {"id":"2985"}, {"id":"104841"},
-    {"id":"34319"}, {"id":"1097"}, {"id":"115713"}, {"id":"2916"}
+    {"id":"72998"},  {"id":"67197"},  {"id":"77561"},  {"id":"68358"},
+    {"id":"72378"},  {"id":"85131"},  {"id":"94864"},  {"id":"68791"},
+    {"id":"109487"}, {"id":"59315"},  {"id":"120466"}, {"id":"90405"},
+    {"id":"117529"}, {"id":"130490"}, {"id":"92420"},  {"id":"122882"},
+    {"id":"113345"}, {"id":"2571"},   {"id":"122900"}, {"id":"88744"},
+    {"id":"95875"},  {"id":"60069"},  {"id":"2021"},   {"id":"135567"},
+    {"id":"122902"}, {"id":"104243"}, {"id":"112852"}, {"id":"102880"},
+    {"id":"96610"},  {"id":"741"},    {"id":"166528"}, {"id":"164179"},
+    {"id":"71057"},  {"id":"3527"},   {"id":"6365"},   {"id":"6934"},
+    {"id":"114935"}, {"id":"8810"},   {"id":"173291"}, {"id":"1580"},
+    {"id":"1917"},   {"id":"135569"}, {"id":"106920"}, {"id":"1240"},
+    {"id":"85056"},  {"id":"780"},    {"id":"1527"},   {"id":"5459"},
+    {"id":"8644"},   {"id":"60684"},  {"id":"7254"},   {"id":"44191"},
+    {"id":"97752"},  {"id":"2628"},   {"id":"541"},    {"id":"106002"},
+    {"id":"2012"},   {"id":"79357"},  {"id":"6283"},   {"id":"113741"},
+    {"id":"27660"},  {"id":"34048"},  {"id":"1882"},   {"id":"1748"},
+    {"id":"34319"},  {"id":"1097"},   {"id":"115713"}, {"id":"2916"}
   ],
   "user": "alice",
   "session": "alice1",
@@ -101,9 +101,9 @@ configuration file, describing how to map visitor events to ML features
 a dump of historical visitor interactions used for ML training.
 
 ```bash
-[demo] $ wget https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml
-[demo] $ wget https://github.com/metarank/metarank/raw/master/src/test/resources/ranklens/events/events.jsonl.gz
-[demo] $ ls -l
+$ curl -o config.yml https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml
+$ curl -o events.jsonl.gz https://media.githubusercontent.com/media/metarank/metarank/master/src/test/resources/ranklens/events/events.jsonl.gz
+$ ls -l
 
 total 172
 drwxr-xr-x  2 user user   4096 Aug 23 14:24 .
@@ -116,17 +116,18 @@ drwxr-xr-x 81 user user  16384 Aug 23 14:24 ..
 ## Running Metarank in Docker
 
 ```bash
-[demo] docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:latest standalone\
+docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank\ 
+    metarank/metarank:0.5.0 standalone\
     --config /opt/metarank/config.yml\
     --data /opt/metarank/events.jsonl.gz
 ```
 
 This command will:
 * run the dataset import process from the current directory,
-* train the [ML model for ranking](supported-ranking-models.md),
-* start the [API](api_schema.md) on port 8080.
+* train the [ML model for ranking](../supported-ranking-models.md),
+* start the [API](../api_schema.md) on port 8080.
 
-![asciicast](img/training.gif)]
+![import and training process](img/training.gif)
 
 ## First query
 
@@ -220,7 +221,7 @@ curl -X POST -v http://localhost:8080/feedback -d '{
     "event": "interaction",
     "type": "click",
     "id": "id2",
-    "ranking": "id1", // id of the previous impression
+    "ranking": "id1",
     "item": "1580",
     "user": "alice",
     "session": "alice1",

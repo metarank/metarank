@@ -1,22 +1,22 @@
 # Quickstart
 
-This guide shows how to install and run Metarank on a single machine using Docker. We're going to run the service, feed it with
+This guide shows how to install and run Metarank on a single machine using Docker. We will run the service, feed it with
 sample data and issue queries.
 
 ## Prerequisites
 
 * Docker: [Docker Desktop for Mac/Windows](https://docs.docker.com/engine/install/), or Docker for Linux
-* Operating system: Linux, macOS or Windows 10+
+* Operating system: Linux, macOS, or Windows 10+
 * Architecture: x86_64. For M1, see [Apple M1 support](installation.md#apple-m1-support)
 * Memory: 2Gb dedicated to Docker
 
-This guide is tested with docker for linux v20.10.16, and [metarank/metarank:0.5.0](https://hub.docker.com/r/metarank/metarank/tags) docker image.
+This guide is tested with Docker for linux v20.10.16, and [metarank/metarank:0.5.0](https://hub.docker.com/r/metarank/metarank/tags) docker image.
 
 ## Getting the dataset
 
-For the quickstart, we're going to use an open [RankLens](https://github.com/metarank/ranklens) dataset and personalize
-a set of pre-computed movie recommendations based on a visitor activity. 
-The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) website, and includes the following event types:
+For the quickstart, we will use an open [RankLens](https://github.com/metarank/ranklens) dataset and personalize
+a set of pre-computed movie recommendations based on visitor activity. 
+The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) website and includes the following event types:
  
 <details><summary>Movie metadata: genres, actors, tags, votes.</summary>
 
@@ -77,7 +77,7 @@ The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) websit
 ```
 </details>
 
-<details><summary>Visitor interactions: which movies visitor liked after observing the ranking.</summary>
+<details><summary>Visitor interactions: which movies the visitor liked after observing the ranking.</summary>
 
 ```json
 {
@@ -116,7 +116,7 @@ drwxr-xr-x 81 user user  16384 Aug 23 14:24 ..
 ## Running Metarank in Docker
 
 ```bash
-[demo] docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:0.5.0-SNAPSHOT-M1 standalone\
+[demo] docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:latest standalone\
     --config /opt/metarank/config.yml\
     --data /opt/metarank/events.jsonl.gz
 ```
@@ -130,7 +130,7 @@ This command will:
 
 ## First query
 
-We're going to send a set of initial candidates for reranking into the Metarank's REST API `/rank` endpoint for an 
+We're going to send a set of initial candidates for reranking into Metarank's REST API `/rank` endpoint for an 
 `xgboost` model defined in config.yml. Let's take top-100 popular movies tagged as Sci-Fi, and ask Metarank to reorder 
 them to maximize CTR:
 
@@ -163,7 +163,7 @@ curl -X POST http://localhost:8080/rank/xgboost -d '{
 }'
 ```
 
-The API will respond with a list of 100 reranked movie ids:
+The API will respond with a list of 100 re-ranked movie ids:
 ```json5
 {
   "items": [
@@ -184,15 +184,15 @@ The API will respond with a list of 100 reranked movie ids:
 }
 ```
 
-Which are some diverse set of sci-fi movies with some generic non-personalized ranking, as we haven't sent any 
-interaction events.
+Which looks like a diverse set of sci-fi movies with some generic non-personalized ranking, as we haven't sent any 
+interaction events yet.
 
 ![sci-fi movies](img/ranking1.jpg)
 
 ## Sending visitor feedback
 
-Metarank expects to receive impression events (what was displayed to the visitor) and interaction events (what visitor
-did after seeing the listing). In our case the impression event is a set of top 12 movies from the previous `/rank` request, 
+Metarank expects to receive impression events (what was displayed to the visitor) and interaction events (what the visitor
+did after seeing the listing). In our case, the impression event is a set of top 12 movies from the previous `/rank` request, 
 starting with `Terminator 2` and ending with `MIIB`:
 ```bash
 curl -X POST http://localhost:8080/feedback -d '{
@@ -224,8 +224,8 @@ curl -X POST -v http://localhost:8080/feedback -d '{
 ```
 ## Getting personalized ranking
 
-Let's send the first ranking request with top-100 sci-fi movies and see how it will change after providing a bit
-of visitor feedback:
+Let's send the same first ranking request with top-100 sci-fi movies we did before, and see how response will change 
+after providing some visitor feedback:
 ```bash
 curl -X POST http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",
@@ -255,7 +255,7 @@ curl -X POST http://localhost:8080/rank/xgboost -d '{
 }'
 ```
 
-The response will be absolutely different from the previous attempt:
+The response will be quite different from the previous attempt:
 ```json5
 {
   "items": [
@@ -277,7 +277,10 @@ The response will be absolutely different from the previous attempt:
 ```
 ![reranked](img/ranking2.jpg)
 
-So you probably like some other space-related movies like `Armageddon` and `Men in Black 2`.
+As ranking was adjusted to a taste of the visitor, we can see that:
+* `Men in Black 2` went to the top, as it has similar tags and actors.
+* other space movies also went up (like `Armageddon`), as they're also space-related.
+* both parts of `Back to the Future` went significantly down, as not related to past visitor's clicks.
 
 ## What's next?
 

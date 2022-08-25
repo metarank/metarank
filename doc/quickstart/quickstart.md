@@ -179,7 +179,7 @@ The API will respond with a list of 100 re-ranked movie ids:
     {"item": "1580",   "score": 1.5384368896484375},
     {"item": "109487", "score": 1.5244081020355225},
     {"item": "79132",  "score": 1.4934355020523071},
-    // other 88 items skipped
+    // other 88 items are skipped
   ]
 }
 ```
@@ -192,7 +192,12 @@ interaction events yet.
 ## Sending visitor feedback
 
 Metarank expects to receive impression events (what was displayed to the visitor) and interaction events (what the visitor
-did after seeing the listing). In our case, the impression event is a set of top 12 movies from the previous `/rank` request, 
+did after seeing the listing). 
+
+Impression event contains only the items that were displayed to the user, so if your response is paginated, impression event will indicate
+only items from the current page.
+
+In our case, the impression event is a set of top 12 movies from the previous `/rank` request, 
 starting with `Terminator 2` and ending with `MIIB`:
 ```bash
 curl -X POST http://localhost:8080/feedback -d '{
@@ -219,10 +224,13 @@ curl -X POST -v http://localhost:8080/feedback -d '{
     "item": "1580",
     "user": "alice",
     "session": "alice1",
-    "timestamp": "1661345221008"
+    "timestamp": 1661345221008
 }'
 ```
+
 ## Getting personalized ranking
+
+Now, we are ready to get some personalized!
 
 Let's send the same first ranking request with top-100 sci-fi movies we did before, and see how response will change 
 after providing some visitor feedback:
@@ -255,7 +263,7 @@ curl -X POST http://localhost:8080/rank/xgboost -d '{
 }'
 ```
 
-The response will be quite different from the previous attempt:
+As you can see, the response is quite different from the first attempt:
 ```json5
 {
   "items": [
@@ -277,7 +285,7 @@ The response will be quite different from the previous attempt:
 ```
 ![reranked](img/ranking2.jpg)
 
-As ranking was adjusted to a taste of the visitor, we can see that:
+Ranking was adjusted to a taste of the visitor, we can see that:
 * `Men in Black 2` went to the top, as it has similar tags and actors.
 * other space movies also went up (like `Armageddon`), as they're also space-related.
 * both parts of `Back to the Future` went significantly down, as not related to past visitor's clicks.

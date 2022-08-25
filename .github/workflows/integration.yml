@@ -47,5 +47,5 @@ jobs:
       - name: Run docker image
         run: docker run metarank/metarank:latest
 
-      - name: Run e2e test
-        run: ./run_e2e.sh target/scala-2.13/metarank.jar
+      - name: Run quickstart test
+        run: ./run_quickstart.sh target/scala-2.13/metarank.jar

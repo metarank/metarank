@@ -1,19 +1,14 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
-import ai.metarank.api.routes.RankApi
-import ai.metarank.config.InputConfig.{SourceOffset, conf}
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.{Config, Hostname, Port, SourceFormat}
+import ai.metarank.config.Config
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{EventId, Timestamp}
 import ai.metarank.rank.{LambdaMARTModel, Ranker}
-import ai.metarank.source.ModelCache.MemoryModelCache
-import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.RanklensEvents
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
@@ -23,9 +18,6 @@ import org.scalatest.matchers.should.Matchers
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import io.circe.syntax._
-
-import java.io.FileOutputStream
 
 class RanklensTest extends AnyFlatSpec with Matchers {
   val config = Config

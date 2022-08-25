@@ -23,6 +23,11 @@ page. As it bundles a couple of native libraries (interfaces to [LightGBM](https
 * Windows: x86_64, Windows 10+, JVM 11+
 * MacOS: x86_64, AArch64, MacOS 11+, JVM 11+
 
+To start metarank JAR file, just run:
+```bash
+java -jar metarank.jar --help
+```
+
 ### Java
 
 To run JVM applications, you need the JVM itself. If you have no JRE/JDK installed,

@@ -17,9 +17,5 @@ class KendallCorrelationTest extends AnyFlatSpec with Matchers {
     kendall(List("a", "b", "c"), List("c", "b", "a")) shouldBe -1.0
   }
 
-  it should "deal with new items" in {
-    kendall(List("a", "b", "c"), List("d", "e", "f")) shouldBe 0.0
-  }
-
   def kendall(a: List[String], b: List[String]) = KendallCorrelation(a.map(ItemId.apply), b.map(ItemId.apply))
 }

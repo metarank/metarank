@@ -16,7 +16,6 @@ import io.circe.parser._
 class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val mapping = TestFeatureMapping()
   lazy val store   = MemPersistence(mapping.schema)
-  lazy val models  = TestModelCache(RandomScorer())
   lazy val service = RankApi(Ranker(mapping, store))
 
   it should "respond with the same data reranked" in {

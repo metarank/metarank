@@ -8,8 +8,8 @@ import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Query}
 import java.util
 
 case class NoopModel(conf: NoopConfig) extends Model {
-  override val features                             = Nil
-  override def datasetDescriptor: DatasetDescriptor = DatasetDescriptor(Map.empty, Nil, 0)
+  override val features = Nil
+  // override def datasetDescriptor: DatasetDescriptor = DatasetDescriptor(Map.empty, Nil, 0)
   override def train(train: Dataset, test: Dataset) = TrainedModel(Array.emptyByteArray, Map.empty)
 }
 

@@ -8,7 +8,9 @@ import ai.metarank.main.api.RankApi.ModelError
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.RankResponse.{ItemScore, StateValues}
 import ai.metarank.model.{FeatureValue, ItemValue, Key, RankResponse}
+import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.Ranker.QueryValues
+import ai.metarank.rank.ShuffleModel.ShuffleScorer
 import ai.metarank.util.KendallCorrelation
 import cats.effect.IO
 import io.github.metarank.ltrlib.input.CSVInputFormat.logger
@@ -22,13 +24,10 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
         case Some(existing) => IO.pure(existing)
         case None           => IO.raiseError(ModelError(s"model $modelName is not configured"))
       }
-      queryValues <- makeQuery(request, model.datasetDescriptor)
+      queryValues <- makeQuery(request, model)
       stateTook   <- IO { System.currentTimeMillis() }
-      scorer <- store.models.get(ModelName(modelName)).flatMap {
-        case Some(s) => IO.pure(s)
-        case None    => IO.raiseError(ModelError(s"model scorer $modelName is not yet trained"))
-      }
-      scores <- IO { scorer.score(queryValues.query) }
+      scorer      <- loadScorer(model, modelName)
+      scores      <- IO { scorer.score(queryValues.query) }
       result <- explain match {
         case true =>
           IO { queryValues.values.zip(scores).map(x => ItemScore(x._1.id, x._2, x._1.values)).sortBy(-_.score) }
@@ -46,6 +45,23 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
     } yield {
       RankResponse(state = StateValues(queryValues.state.values.toList), items = result)
     }
+
+  def loadScorer(model: Model, name: String) = model match {
+    case _: LambdaMARTModel =>
+      store.models.get(ModelName(name)).flatMap {
+        case Some(s) => IO.pure(s)
+        case None    => IO.raiseError(ModelError(s"model scorer $name is not yet trained"))
+      }
+    case NoopModel(_)       => IO.pure(NoopScorer)
+    case ShuffleModel(conf) => IO.pure(ShuffleScorer(conf.maxPositionChange))
+  }
+
+  def makeQuery(request: RankingEvent, model: Model) = model match {
+    case LambdaMARTModel(_, _, datasetDescriptor, _) => makeQuery(request, datasetDescriptor)
+    case NoopModel(conf)                             => IO(QueryValues())
+    case ShuffleModel(conf)                          => ???
+    case _                                           => ???
+  }
 
   def makeQuery(request: RankingEvent, ds: DatasetDescriptor) = for {
     keys              <- IO { mapping.stateReadKeys(request) }

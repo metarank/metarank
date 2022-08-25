@@ -134,7 +134,7 @@ We're going to send a set of initial candidates for reranking into the Metarank'
 `xgboost` model defined in config.yml. Let's take top-100 popular movies tagged as Sci-Fi, and ask Metarank to reorder 
 them to maximize CTR:
 
-```json
+```bash
 curl -X POST http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",
     "id": "id1",
@@ -194,7 +194,7 @@ interaction events.
 Metarank expects to receive impression events (what was displayed to the visitor) and interaction events (what visitor
 did after seeing the listing). In our case the impression event is a set of top 12 movies from the previous `/rank` request, 
 starting with `Terminator 2` and ending with `MIIB`:
-```json
+```bash
 curl -X POST http://localhost:8080/feedback -d '{
     "event": "ranking",
     "id": "id1",
@@ -210,7 +210,7 @@ curl -X POST http://localhost:8080/feedback -d '{
 ```
 
 Now let's send a click on `Men in Black` with id=1580:
-```json5
+```bash
 curl -X POST -v http://localhost:8080/feedback -d '{
     "event": "interaction",
     "type": "click",
@@ -226,7 +226,7 @@ curl -X POST -v http://localhost:8080/feedback -d '{
 
 Let's send the first ranking request with top-100 sci-fi movies and see how it will change after providing a bit
 of visitor feedback:
-```json
+```bash
 curl -X POST http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",
     "id": "id1",

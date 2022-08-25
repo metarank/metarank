@@ -1,73 +1,131 @@
-# Introduction
+# What is Metarank?
 
-When a company is interested in personalization of it's content (product listings in e-commerce, movies in online theatres, blogs and any other types of content), 
-it has to solve the same problems again and again:
-* Collecting feedback data (events like clicks in item lists, add to carts or other actions performed by a user)
-* Storing this data in a way suitable both for Machine Learning model training and online inference
-* Backtesting the whole event history to perform offline model evaluation
-* Online/offline feature recomputation
-* Online low-latency model inference
+Metarank is a personalization service that can be easily integrated into existing systems and used to personalize different types of content. 
 
-All of these steps are not new and there is a lot of literature and common knowledge about solving
-these tasks separately. However, glueing a single integrated solution from these parts is not an easy 
-task, usually requiring hiring a team of developers, data scientists and infrastructure engineers to build 
-this system from scratch.
+Like Instagram’s personalized feed that is based on the posts that you’ve seen and liked, Facebook’s new friends recommendation widget or Amazon’s personalized results, you can add personalization to your application. You can combine different features, both user-based like location or gender and item-based like tags with different actions: clicks, likes, purchases to create a personalized experience for your users.
 
-Companies that have such systems already have the building blocks, but they are internal and not available for general public, 
-so when a new company wants to build the same system it has to go over the same problems again and again.
+Thanks to Metarank’s simple API and YAML configuration, you don’t need any prio machine learning experience to start improving your key metrics and run experiments.
 
-## Metarank
+![Demo](./img/demo.gif)
 
-[Metarank](https://www.metarank.ai/) (METAdata RANKer) is a LTR (learn-to-rank) all-in-one application, which solves common pain 
-points while building typical ranking systems:
-* Simple API to perform **secondary** item reranking. *Primary* ranking should be done by existing 
-IR systems like ElasticSearch, Solr, Sphinx, Spark, etc
-* Item-agnostic Machine Learning model serving that can be used to rank items in search results, 
-category (or item collections), recommendations and autocomplete suggestions
-* Feature store that is suitable both for backtesting and online model serving, 
-with plugins for different DBs
-* Data collection API, which can backfill historical data and receive a stream of online clickthroughs
-* A set of basic feature value extractors, so you can build a trivial LTR model without any coding
-Feature extractor interface should also be extensible so you can plug your own implementation
-* Support different ranking algorithms and libraries. Planned ones are XGBoost, LightGBM, Catboost 
-and RankLib
+Personalization is showing items that have unique order for each and every user. Personalization can be done based on user properties: location, gender, preferences and user actions: clicks, likes and other interactions. You can see personalized widgets everywhere: Facebook uses personalization to suggest you new friends and show posts that will most likely get your attention first; AirBnB uses personalization for their experiences offering, suggesting new experiences based on your location and previous actions. 
 
-With [Metarank](https://www.metarank.ai/) you don't need to have a team of engineers to introduce personalization, you can set it up and run in a matter of hours locally 
-and deploy it easily to your infrastructure.
+With Metarank you implement similar systems thanks to flexible configuration and keep control of your user data.
 
-## Why Metarank
+## Metarank in One Minute
 
-In theory, if a company has a strong team of data scientists, software and devops engineers, it can glue a similar 
-system together in quite a short period of time (around 3-6 months). However, usually such existing teams do not enough experience with ranking problems, and the first 
-version of the system can be a complete failure (a quote from airbnb LTR article), requiring a redesign and major refactoring.
+Let us show how you can start personalizing content in just under a minute (depends on your internet speed!). 
 
-The teams that build yet another LTR system usually face the same problems:
-* Feature storage for both online and offline evaluations is tricky to design and implement. 
-Existing ones are operationally complex as they are too generic.
-* Backtesting new models requires a lot of hand-written code to glue existing libraries together.
-* Existing ML systems are not really focused on ranking problems and have weak integrations with existing LTR libraries.
+### Step 1: Prepare data
 
-Metarank should solve these problems by being a very narrowly scoped and a bit opinionated system, mostly focused on non-LTR-experts:
-* Easy to test and deploy.
-* Documented and plain API for raw clickthrough ingestion with strict event schema.
-* DB-agnostic feature store.
-* API for online ranking.
+We will use the [ranklens dataset](https://github.com/metarank/ranklens), which is used in our [Demo](https://demo.metarank.ai), so just download the data file
 
-## Who can be interested in Metarank?
+```bash
+curl -O -L https://github.com/metarank/metarank/raw/master/src/test/resources/ranklens/events/events.jsonl.gz
+```
 
-Metarank is mostly focused on medium and large companies having their own discovery teams that work on ranking and recommendations. 
-Metarank should help discovery teams to simplify their LTR stack for data collection, backtesting and model serving. 
-As an open source project, it can also become an umbrella project to combine contributions from different companies in the area of ranking.
+### Step 2: Prepare configuration file
 
-## Similar solutions
+We will again use the configuration file from our [Demo](https://demo.metarank.ai). It utilizes in-memory store, so no other dependencies are needed.
 
-We’re not the first ones thinking about how to solve this problem, there are several similar solutions 
-in the market:
-* ElasticSearch-LTR plugin. This plugin has a much narrower scope: *feature management*, *backtesting* and *training* phases should be implemented separately, which is really complicated. ES-LTR only serves XGBoost models inside ElasticSearch and supports some basic product-based feature extraction.
-* prediction.io can also solve the same problem, but:
-    * Abandoned after SalesForce acquisition.
-    * Requires HDFS and a ton of pre-installed infrastructure to operate.
-    * Not focused on ranking, so still requires a lot of manual work to operate.
+```bash
+curl -O -L https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml
+```
 
-Metarank feature store also looks similar to some existing generic feature stores 
-like Feast or Hopsworks, but is less generic.
+### Step 3: Start Metarank!
+
+With the final step we will use Metarank’s `standalone` mode that combines training and running the API into one command:
+
+```bash
+docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:latest standalone\
+    --config /opt/metarank/config.yml\
+    --data /opt/metarank/events.jsonl.gz
+```
+
+You will see some useful output while Metarank is starting and grinding through the data. Once this is done, you can send requests to `localhost:8080` to get personalized results.
+
+Here we will interact with several movies by clicking on one of them and observing the results. 
+
+> First, let's see the initial output provided by Metarank without before we interact with it
+
+```bash
+# get initial ranking for some items
+curl http://localhost:8080/rank/xgboost \
+    -d '{
+    "event": "ranking",
+    "id": "id1",
+    "items": [
+        {"id":"72998"}, {"id":"67197"}, {"id":"77561"},
+        {"id":"68358"}, {"id":"79132"}, {"id":"103228"}, 
+        {"id":"72378"}, {"id":"85131"}, {"id":"94864"}, 
+        {"id":"68791"}, {"id":"93363"}, {"id":"112623"}
+    ],
+    "user": "alice",
+    "session": "alice1",
+    "timestamp": 1661431886711
+}'
+
+# {"item":"72998","score":0.9602446652021992},{"item":"79132","score":0.7819134441404151},{"item":"68358","score":0.33377910321385645},{"item":"112623","score":0.32591281190727805},{"item":"103228","score":0.31640256043322723},{"item":"77561","score":0.3040782705414116},{"item":"94864","score":0.17659007036183608},{"item":"72378","score":0.06164568676567339},{"item":"93363","score":0.058120639770243385},{"item":"68791","score":0.026919880032451306},{"item":"85131","score":-0.35794106000271037},{"item":"67197","score":-0.48735167237049154}
+```
+
+```bash
+# tell Metarank which items were presented to the user and in which order from the previous request
+# optionally, we can include the score calculated by Metarank or your internal retrieval system
+curl http://localhost:8080/feedback \
+ -d '{
+  "event": "ranking",
+  "fields": [],
+  "id": "test-ranking",
+  "items": [
+    {"id":"72998","score":0.9602446652021992},{"id":"79132","score":0.7819134441404151},{"id":"68358","score":0.33377910321385645},
+    {"id":"112623","score":0.32591281190727805},{"id":"103228","score":0.31640256043322723},{"id":"77561","score":0.3040782705414116},
+    {"id":"94864","score":0.17659007036183608},{"id":"72378","score":0.06164568676567339},{"id":"93363","score":0.058120639770243385},
+    {"id":"68791","score":0.026919880032451306},{"id":"85131","score":-0.35794106000271037},{"id":"67197","score":-0.48735167237049154}
+  ],
+  "user": "test2",
+  "session": "test2",
+  "timestamp": 1661431888711
+}'
+```
+
+> Now, let's intereact with the items `93363`
+
+```bash
+# click on the item with id 93363
+curl http://localhost:8080/feedback \
+ -d '{
+  "event": "interaction",
+  "type": "click",
+  "fields": [],
+  "id": "test-interaction",
+  "ranking": "test-ranking",
+  "item": "93363",
+  "user": "test",
+  "session": "test",
+  "timestamp": 1661431890711
+}'
+```
+
+> Now, Metarank will personalize the items, the order of the items in the response will be different
+
+```bash
+# personalize the same list of items
+# they will be returned in a different order by Metarank
+curl http://localhost:8080/rank/xgboost \
+ -d '{
+  "event": "ranking",
+  "fields": [],
+  "id": "test-personalized",
+  "items": [
+    {"id":"72998"}, {"id":"67197"}, {"id":"77561"},
+    {"id":"68358"}, {"id":"79132"}, {"id":"103228"}, 
+    {"id":"72378"}, {"id":"85131"}, {"id":"94864"}, 
+    {"id":"68791"}, {"id":"93363"}, {"id":"112623"}
+  ],
+  "user": "test",
+  "session": "test",
+  "timestamp": 1661431892711
+}'
+
+# {"items":[{"item":"93363","score":2.2013986484185124},{"item":"72998","score":1.1542776301073876},{"item":"68358","score":0.9828904282341605},{"item":"112623","score":0.9521647429731446},{"item":"79132","score":0.9258841742518286},{"item":"77561","score":0.8990921381835769},{"item":"103228","score":0.8990921381835769},{"item":"94864","score":0.7131600718467729},{"item":"68791","score":0.624462038351694},{"item":"72378","score":0.5269765094008626},{"item":"85131","score":0.29198666089255343},{"item":"67197","score":0.16412780810560743}]}
+```

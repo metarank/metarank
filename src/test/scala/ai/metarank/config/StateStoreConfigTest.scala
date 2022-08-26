@@ -57,4 +57,14 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
     conf shouldBe Right(MemoryStateConfig())
   }
 
+  it should "decode partial redis cache config" in {
+    val conf = parse("ttl: 77h").flatMap(_.as[CacheConfig])
+    conf shouldBe Right(CacheConfig(ttl = 77.hour))
+  }
+
+  it should "decode partial redis pipeline config" in {
+    val conf = parse("flushPeriod: 77h").flatMap(_.as[PipelineConfig])
+    conf shouldBe Right(PipelineConfig(flushPeriod = 77.hour))
+  }
+
 }

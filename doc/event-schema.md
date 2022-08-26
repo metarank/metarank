@@ -120,7 +120,7 @@ or other score that your system generated. The value is optional and can be unde
 
 Interaction event identifies which actions the visitor performed on the items displayed. 
 Some of the example of such events are: click, like, purchase.
-The `type` field must match the `name` provided in the [Configuration](configuration.md).
+The `type` field must match the `name` provided in the [Configuration](configuration/overview.md).
 
 ### Event format
 

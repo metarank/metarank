@@ -21,7 +21,7 @@ The clickthrough is the smallest essential block of the training process:
 
 The point of Metarank is to optimize a *metric*, making your ranking somehow better. But what metric can be used to
 track the "goodness" of the ranking? It depends on your business goals, but metarank supports 
-[multiple ranking models](supported-ranking-models.md) with the [NDCG](https://en.wikipedia.org/wiki/Discounted_cumulative_gain) 
+[multiple ranking models](configuration/supported-ranking-models.md) with the [NDCG](https://en.wikipedia.org/wiki/Discounted_cumulative_gain) 
 as a metric to optimize for.
 
 In a simple words, NDCG is a number between 0.0 and 1.0:
@@ -85,7 +85,7 @@ items using only their feature values.
 Next time the model sees an item with feature values looking similarly to something in the training dataset, it will
 remember it and may assume how (ir)relevant this item should be based on already seen data.
 
-Metarank supports multiple [ranking models](./supported-ranking-models.md), but the LambdaMART model is probably a good start.
+Metarank supports multiple [ranking models](configuration/supported-ranking-models.md), but the LambdaMART model is probably a good start.
 
 ## Cascade model and Click-Through-Rate
 

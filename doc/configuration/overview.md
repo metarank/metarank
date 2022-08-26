@@ -1,12 +1,15 @@
 # Configuration
 
 Metarank YAML config file contains the following sections:
-* Feature extractors: how features are computed on top of incoming events
-* Model configuration
-* Bootstrapping options
+* [Persistence](persistence.md)
+* [Model Configuration](supported-ranking-models.md)
+* [Feature extractors](feature-extractors.md): how features are computed on top of incoming events
 * Inference options
 
 ```yaml
+state:
+  type: memory
+
 features:
   - name: popularity
     type: number
@@ -17,15 +20,10 @@ features:
     type: string
     scope: item
     source: item.genres
-    values:
-      - drama
-      - comedy
-      - thriller
 
 models:
   default:
     type: lambdamart
-    path: /tmp/xgboost.model
     backend:
       type: xgboost
       iterations: 10
@@ -36,37 +34,12 @@ models:
       - popularity
       - genre
 
-bootstrap:
-  source:
-    type: file
-    path file:///ranklens/events/
-  workdir: file:///tmp/bootstrap
-
 inference:
   port: 8080
   host: "0.0.0.0"
-  source:
-    type: rest
-  state:
-    type: redis
-    host: localhost
-    format: json
 ```
 
 See the [sample-config.yml](sample-config.yml) file for more detailed config format description.
-
-## Interaction weights
-
-Interaction define the way your users interact with the items you want to personalize, e.g. `click`, `add-to-wishlist`, `purchase`, `like`.
-
-Interactions can be used in the feature extractors, for example to calculate the click-through rate and 
-by defining `weight` you can control the optimization goal of your model: do you want to increase the amount of likes or purchases or balance between them.
-
-You can define interaction by `name` and set `weight` for how much this interaction affects the model: 
-
-```yaml
-  click: 1.0
-```
 
 ## Event schema
 
@@ -86,10 +59,6 @@ So, given the following feature extractor configuration:
     type: string
     scope: item
     source: item.genres
-    values:
-      - drama
-      - comedy
-      - thriller
 ```
 
 Metarank will expect the `popularity` field to be a number and the `genres` to be a string or a list of strings and
@@ -107,12 +76,4 @@ the metadata event will have the following structure
   ]
 }
 ```
-
-Read more about [sending events in this doc](event-schema.md).
-
-## Feature extractor configuration
-
-Feature extractor configuration defines the way fields are mapped to features.
-
-You can follow the [feature extractors](feature-extractors.md) section of docs for more details on configuring 
-extractors.
+Check out [Event Format](../event-schema.md) for more information.

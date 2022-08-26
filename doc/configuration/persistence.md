@@ -4,7 +4,7 @@ Metarank supports two possible persistence modes:
 * [Memory](persistence.md#memory-persistence): ephemeral; all state is in RAM. 
 * [Redis](persistence.md#redis-persistence): state persisted in remote Redis.
 
-Persistence mode is configured by the optional `state` section in the [configuration file](configuration.md).
+Persistence mode is configured by the optional `state` section in the [configuration file](overview.md).
 By default, if the section is not defined, Metarank uses [memory persistence](persistence.md#memory-persistence).
 
 ## Memory persistence
@@ -25,7 +25,7 @@ state:
 ## Redis persistence
 
 Metarank can use [Redis 6+](https://redis.io) as a persistence method. To enable it, use the following 
-[config file](configuration.md) snippet:
+[config file](overview.md) snippet:
 ```yaml
 state:
   type: redis

@@ -49,6 +49,19 @@ during inference. It can also read-write it to/from S3-like filesystem.
 * `weights`: *required*, *list of string:number pairs*, specifies what interaction events are used for training. You can specify multiple events with different weights.
 * `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature-extractors.md) documentation.
 
+### Interaction weight
+
+Interactions define the way your users interact with the items you want to personalize, e.g. `click`, `add-to-wishlist`, `purchase`, `like`.
+
+Interactions can be used in the feature extractors, for example to calculate the click-through rate and 
+by defining `weight` you can control the optimization goal of your model: do you want to increase the amount of likes or purchases or balance between them.
+
+You can define interaction by `name` and set `weight` for how much this interaction affects the model: 
+
+```yaml
+  click: 1.0
+```
+
 ### XGBoost and LightGBM backend options
 
 * *iterations*: *optional*, *number*, default: *100*, number of trees in the model.

@@ -22,6 +22,7 @@
   * [Models](supported-ranking-models.md)
   * [Data Sources](data-sources.md)
   * [Persistence](persistence.md)
+  * [Command-line options](deploy/cli-options.md)
 * [Deployment](deploy/overview.md) 
   * [Standalone](deploy/standalone.md)
   * [Docker](deploy/docker.md)

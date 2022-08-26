@@ -23,10 +23,10 @@ object CliArgs extends Logging {
   case class TrainArgs(conf: Path, model: String)                                                    extends CliArgs
   case class SortArgs(conf: Path, data: Path, out: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
 
-  def printHelp() = new ArgParser(Nil).printHelp()
+  def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
-  def parse(args: List[String]): Either[Throwable, CliArgs] = {
-    val parser = new ArgParser(args)
+  def parse(args: List[String], env: Map[String, String]): Either[Throwable, CliArgs] = {
+    val parser = new ArgParser(args, env)
     Try(parser.verify()) match {
       case Failure(ex) =>
         Left(new Exception(ex.getMessage))
@@ -86,11 +86,18 @@ object CliArgs extends Logging {
     }
   }
 
-  class ArgParser(args: List[String]) extends ScallopConf(args) {
+  class ArgParser(args: List[String], env: Map[String, String]) extends ScallopConf(args) {
     trait ConfigOption {
       this: Subcommand =>
       lazy val config =
-        opt[Path]("config", required = true, short = 'c', descr = "path to config file", validate = pathExists)
+        opt[Path](
+          name = "config",
+          required = true,
+          short = 'c',
+          descr = "path to config file",
+          default = env.get("METARANK_CONFIG").map(Path.of(_)),
+          validate = pathExists
+        )
     }
 
     trait ImportLikeOption { this: Subcommand =>

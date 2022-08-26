@@ -16,7 +16,15 @@ extractors take this view as an input and emit feature values in the following o
 * session: session-specific values
 * interaction: ones from interaction events
 
-## Scoping
+## Configuration
+
+All the feature extractors have a set of common fields:
+* `name`: *required*, *string*. Feature name, should be unique across the whole config.
+* `refresh`: *optional*, *time*, default value is specific to the extractor. How frequently this feature is updated.
+* `ttl`: *optional*, *time*, default: *90d* (3 months). How long should this feature store it's value.
+* `scope`: *optional*. See the [Scoping chapter](feature-extractors.md#scoping) for more information.
+
+### Scoping
 
 Metarank uses scopes for computing and storing feature values. Feature values are stored not as atomic
 values but as a time-based changelog, where *scope* is a unique key for this particular
@@ -51,14 +59,6 @@ All ML feature extractors in Metarank have a `scope` option in their configurati
 
 The `scope: item` means that the extracted popularity field from item metadata should be stored by an item identifier key.
 
-## Configuration
-
-All the feature extractors have a set of common fields:
-* `name`: *required*, *string*. Feature name, should be unique across the whole config.
-* `refresh`: *optional*, *time*, default value is specific to the extractor. How frequently this feature is updated.
-* `ttl`: *optional*, *time*, default: *90d* (3 months). How long should this feature store it's value.
-* `scope`: *optional*. See the [Scopes documentation](scopes.md) for more information.
-
 ## Feature types
 
 ### Generic feature extractors
@@ -69,7 +69,7 @@ All the feature extractors have a set of common fields:
 * [relative_number](features/generic.md#relative-number): scales a numerical field to make it fit 0..1 range.
 * [list_size](features/generic.md#list-size): size of string or numerical list.
 * [time_diff](features/generic.md#time-difference): difference in seconds between current timestamp and the numerical field value.
-* [field_match](features/text.md#fieldmatch): match ranking field over item fields.
+* [field_match](features/text.md#field_match): match ranking field over item fields.
 
 ### User session feature extractors
 * [ua/platform](/doc/features/user-session.md#user-agent-field-extractor): a one-hot encoded platform (mobile, desktop, tablet).
@@ -78,7 +78,7 @@ All the feature extractors have a set of common fields:
 * [interacted_with](features/user-session.md#interacted-with): for the current item, did this visitor have an interaction with other item with the same field.
 * *[coming soon]* ip_country: a GeoIP-based country.
 * *[coming soon]* ip_city: a GeoIP-based city.
-* *[coming soon]* ref_source: a source of traffic for this customer.
+* [referer_medium](features/user-session.md#referer): a source of traffic for this customer.
 * *[coming soon]* session_length: length of the current visitor session in seconds.
 * *[coming soon]* session_count: number of total sessions tracked for this customer.
 
@@ -93,5 +93,5 @@ All the feature extractors have a set of common fields:
 * [rate](features/counters.md#rate): rate of interaction events of type A over interaction events of type B. Useful for CTR/CVR rates.
 
 ### Date and time
-* [local_time](features/datetime.md#localtime-extractor): map local visitor date-time to catch seasonality.
-* [item_age](features/datetime.md#itemage): how much time passed since the item was updated?
+* [local_time](features/datetime.md#local_time-extractor): map local visitor date-time to catch seasonality.
+* [item_age](features/datetime.md#item_age): how much time passed since the item was updated?

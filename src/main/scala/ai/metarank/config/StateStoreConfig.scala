@@ -25,10 +25,30 @@ object StateStoreConfig extends Logging {
     implicit val dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
 
     case class PipelineConfig(maxSize: Int = 128, flushPeriod: FiniteDuration = 1.second)
-    implicit val pipelineConfigDecoder: Decoder[PipelineConfig] = deriveDecoder[PipelineConfig]
+    implicit val pipelineConfigDecoder: Decoder[PipelineConfig] = Decoder.instance(c =>
+      for {
+        maxSize     <- c.downField("maxSize").as[Option[Int]]
+        flushPeriod <- c.downField("flushPeriod").as[Option[FiniteDuration]]
+      } yield {
+        PipelineConfig(
+          maxSize = maxSize.getOrElse(PipelineConfig().maxSize),
+          flushPeriod = flushPeriod.getOrElse(PipelineConfig().flushPeriod)
+        )
+      }
+    )
 
-    case class CacheConfig(maxSize: Int = 32 * 1024, ttl: FiniteDuration = 1.hour)
-    implicit val cacheConfigDecoder: Decoder[CacheConfig] = deriveDecoder[CacheConfig]
+    case class CacheConfig(maxSize: Int = 1024, ttl: FiniteDuration = 1.hour)
+    implicit val cacheConfigDecoder: Decoder[CacheConfig] = Decoder.instance(c =>
+      for {
+        maxSize <- c.downField("maxSize").as[Option[Int]]
+        ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
+      } yield {
+        CacheConfig(
+          maxSize = maxSize.getOrElse(CacheConfig().maxSize),
+          ttl = ttl.getOrElse(CacheConfig().ttl)
+        )
+      }
+    )
   }
 
   case class MemoryStateConfig() extends StateStoreConfig

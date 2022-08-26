@@ -64,7 +64,6 @@ object InputConfig {
       endpoint: Option[String] = None,
       skipCertVerification: Boolean = false,
       getRecordsPeriod: FiniteDuration = 200.millis,
-      // options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
   ) extends InputConfig
 

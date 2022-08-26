@@ -7,9 +7,6 @@ state:
   host: localhost
   port: 6379
 
-input:
-  type: api
-
 models:
   xgboost:
     type: lambdamart

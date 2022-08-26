@@ -3,11 +3,13 @@ package ai.metarank.main.command
 import ai.metarank.FeatureMapping
 import ai.metarank.api.routes
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, RankApi, TrainApi}
-import ai.metarank.config.{ApiConfig, Config}
+import ai.metarank.config.{ApiConfig, Config, InputConfig}
+import ai.metarank.flow.MetarankFlow
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
 import ai.metarank.rank.Ranker
+import ai.metarank.source.EventSource
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -22,7 +24,19 @@ object Serve extends Logging {
       mapping: FeatureMapping,
       args: ServeArgs
   ): IO[Unit] = {
-    storeResource.use(store => api(store, mapping, conf.api))
+    storeResource.use(store => {
+      conf.input match {
+        case None =>
+          info("no stream input defined in config, using only REST API") *> api(store, mapping, conf.api)
+        case Some(sourceConfig) =>
+          val source = EventSource.fromConfig(sourceConfig)
+          MetarankFlow
+            .process(store, source.stream, mapping)
+            .background
+            .use(_ => info(s"started ${source.conf} source") *> api(store, mapping, conf.api))
+      }
+
+    })
   }
 
   def api(store: Persistence, mapping: FeatureMapping, conf: ApiConfig) = {

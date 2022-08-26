@@ -64,11 +64,11 @@ object PulsarEventSource {
       consumerBuilder <- IO(
         client
           .newConsumer()
+          .loadConf(conf.options.getOrElse(Map.empty).map[String, AnyRef](identity).asJava)
           .topic(conf.topic)
           .consumerName("metarank")
           .subscriptionName(conf.subscriptionName)
           .subscriptionType(subscriptionType)
-          .properties(conf.options.getOrElse(Map.empty).asJava)
       )
       consumer <- conf.offset match {
         case None => IO.fromCompletableFuture(IO(consumerBuilder.subscribeAsync()))

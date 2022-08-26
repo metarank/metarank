@@ -100,13 +100,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
       KinesisInputConfig(
         topic = "events",
         offset = SourceOffset.Earliest,
-        region = "us-east-1",
-        options = Some(
-          Map(
-            "foo.baz" -> "bar",
-            "foo.qux" -> "8"
-          )
-        )
+        region = "us-east-1"
       )
     )
   }
@@ -140,8 +134,7 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
       KinesisInputConfig(
         topic = "events",
         offset = SourceOffset.Earliest,
-        region = "us-east-1",
-        options = None
+        region = "us-east-1"
       )
     )
   }
@@ -169,12 +162,6 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
         options = Some(Map("foo.bar" -> "baz"))
       )
     )
-  }
-
-  it should "decode rest config" in {
-    val yaml    = "type: api"
-    val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
-    decoded shouldBe Right(ApiInputConfig(bufferSize = 10000))
   }
 
   it should "decode file config" in {

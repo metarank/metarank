@@ -1,6 +1,5 @@
 package ai.metarank.config
 
-import ai.metarank.config.InputConfig.ApiInputConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.model.FeatureSchema
@@ -13,7 +12,7 @@ import io.circe.yaml.parser.{parse => parseYaml}
 case class Config(
     api: ApiConfig,
     state: StateStoreConfig,
-    input: InputConfig,
+    input: Option[InputConfig],
     features: NonEmptyList[FeatureSchema],
     models: Map[String, ModelConfig]
 )
@@ -31,8 +30,7 @@ object Config extends Logging {
       } yield {
         val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
         val state = get(stateOption, MemoryStateConfig(), "state")
-        val input = get(inputOption, ApiInputConfig(), "input")
-        Config(api, state, input, features, models)
+        Config(api, state, inputOption, features, models)
       }
     )
     .ensure(Validations.checkFeatureModelReferences)

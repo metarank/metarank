@@ -8,6 +8,7 @@ Overally there are 2 endpoints that must be integrated:
 ## Feedback
 
 **API Endpoint**: `/feedback`
+**Method**: `POST`
 
 Feedback endpoint receives several types of events: item, user, interaction, ranking. 
 
@@ -19,7 +20,9 @@ You can find events and their description on the [Supported events](event-schema
 ## Ranking
 
 **API Endpoint**: `/rank/<model name>`
+
 **Method**: `POST`
+
 **Querystring Parameters**:
 - `explain: boolean`: used to provide extra information in the response containing calculated feature values.
 

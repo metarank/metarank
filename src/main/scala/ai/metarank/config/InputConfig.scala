@@ -64,12 +64,8 @@ object InputConfig {
       endpoint: Option[String] = None,
       skipCertVerification: Boolean = false,
       getRecordsPeriod: FiniteDuration = 200.millis,
-      options: Option[Map[String, String]] = None,
+      // options: Option[Map[String, String]] = None,
       format: SourceFormat = JsonFormat
-  ) extends InputConfig
-
-  case class ApiInputConfig(
-      bufferSize: Int = 10000
   ) extends InputConfig
 
   implicit val conf = Configuration.default
@@ -79,7 +75,6 @@ object InputConfig {
       case "FileInputConfig"    => "file"
       case "KafkaInputConfig"   => "kafka"
       case "PulsarInputConfig"  => "pulsar"
-      case "ApiInputConfig"     => "api"
       case "KinesisInputConfig" => "kinesis"
     })
   implicit val eventSourceDecoder: Decoder[InputConfig] = deriveConfiguredDecoder

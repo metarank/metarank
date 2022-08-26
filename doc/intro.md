@@ -129,3 +129,9 @@ curl http://localhost:8080/rank/xgboost \
 
 # {"items":[{"item":"93363","score":2.2013986484185124},{"item":"72998","score":1.1542776301073876},{"item":"68358","score":0.9828904282341605},{"item":"112623","score":0.9521647429731446},{"item":"79132","score":0.9258841742518286},{"item":"77561","score":0.8990921381835769},{"item":"103228","score":0.8990921381835769},{"item":"94864","score":0.7131600718467729},{"item":"68791","score":0.624462038351694},{"item":"72378","score":0.5269765094008626},{"item":"85131","score":0.29198666089255343},{"item":"67197","score":0.16412780810560743}]}
 ```
+
+## What's next? 
+
+Check out a more in-depth [Quickstart](quickstart/quickstart.md) full [Reference](installation.md). 
+
+If you have any questions, don't hesitate to join our [Slack](https://communityinviter.com/apps/metarank/metarank)!

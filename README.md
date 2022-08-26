@@ -155,6 +155,12 @@ curl http://localhost:8080/rank/xgboost \
 * [Contribution guide](CONTRIBUTING.md)
 * [License](LICENSE)
 
+## What's next? 
+
+Check out a more in-depth [Quickstart](/doc/quickstart/quickstart.md) full [Reference](/doc/installation.md). 
+
+If you have any questions, don't hesitate to join our [Slack](https://communityinviter.com/apps/metarank/metarank)!
+
 
 License
 =====

@@ -17,11 +17,11 @@ sealed trait CliArgs {
   def conf: Path
 }
 object CliArgs extends Logging {
-  case class ServeArgs(conf: Path)                                                                   extends CliArgs
-  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)          extends CliArgs
-  case class StandaloneArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)      extends CliArgs
-  case class TrainArgs(conf: Path, model: String)                                                    extends CliArgs
-  case class SortArgs(conf: Path, data: Path, out: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
+  case class ServeArgs(conf: Path)                                                              extends CliArgs
+  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)     extends CliArgs
+  case class StandaloneArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
+  case class TrainArgs(conf: Path, model: String)                                               extends CliArgs
+  case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)   extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -63,15 +63,14 @@ object CliArgs extends Logging {
             } yield {
               TrainArgs(conf, model)
             }
-          case Some(parser.sort) =>
+          case Some(parser.validate) =>
             for {
-              conf   <- parse(parser.sort.config)
-              data   <- parse(parser.sort.data)
-              out    <- parse(parser.sort.out)
-              offset <- parse(parser.sort.offset)
-              format <- parse(parser.sort.format)
+              conf   <- parse(parser.validate.config)
+              data   <- parse(parser.validate.data)
+              offset <- parse(parser.validate.offset)
+              format <- parse(parser.validate.format)
             } yield {
-              SortArgs(conf, data, out, offset, format)
+              ValidateArgs(conf, data, offset, format)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -129,14 +128,8 @@ object CliArgs extends Logging {
       descr("run the inference API")
     }
 
-    object sort extends Subcommand("sort") with ConfigOption with ImportLikeOption {
-      descr("sort the input file by timestamp")
-      val out = opt[Path](
-        "out",
-        required = true,
-        short = 'o',
-        descr = "output file path"
-      )
+    object validate extends Subcommand("validate") with ConfigOption with ImportLikeOption {
+      descr("run the input data validation suite")
     }
 
     object train extends Subcommand("train") with ConfigOption {
@@ -167,7 +160,7 @@ object CliArgs extends Logging {
     addSubcommand(train)
     addSubcommand(serve)
     addSubcommand(standalone)
-    addSubcommand(sort)
+    addSubcommand(validate)
     version(Logo.raw)
     banner("""Usage: metarank <subcommand> <options>
              |Options:

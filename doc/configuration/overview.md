@@ -4,7 +4,7 @@ Metarank YAML config file contains the following sections:
 * [Persistence](persistence.md)
 * [Model Configuration](supported-ranking-models.md)
 * [Feature extractors](feature-extractors.md): how features are computed on top of incoming events
-* Inference options
+* [API options](#api-options)
 
 ```yaml
 state:
@@ -34,7 +34,7 @@ models:
       - popularity
       - genre
 
-inference:
+api:
   port: 8080
   host: "0.0.0.0"
 ```
@@ -77,3 +77,15 @@ the metadata event will have the following structure
 }
 ```
 Check out [Event Format](../event-schema.md) for more information.
+
+## API options
+
+You can specify a custom port and host where Metarank's API will be running. 
+
+By default Metarank uses the following configuration:
+
+```yaml
+api:
+  port: 8080
+  host: "0.0.0.0"
+```

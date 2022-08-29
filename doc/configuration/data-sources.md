@@ -153,8 +153,8 @@ It's possible to ingest real-time feedback events directly using the REST API of
 
 The `/feedback` endpoint is always enabled and there is no need to configure it explicitly.
 
-You can read more about Metarank REST API in the [API Documentation](../api_schema.md). 
-You can bundle multiple events in a single batch using [batch payloads](../api_schema.md#feedback), so REST API can be used
+You can read more about Metarank REST API in the [API Documentation](../api.md). 
+You can bundle multiple events in a single batch using [batch payloads](../api.md#feedback), so REST API can be used
 for batch dataset import instead of a separate `import` step:
 
 ```bash

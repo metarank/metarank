@@ -306,7 +306,7 @@ for Metarank exclusively, you can use Metarank's RESTful API as an event bus:
 ![no event bus diagram](../../img/requirements-no-bus.png)
 
 So instead of sending these events to the bus, you post them into the Metarank's `/feedback` 
-[endpoint](../../api_schema.md) and the following happens:
+[endpoint](../../api.md) and the following happens:
 * Events are buffered in in-memory queue inside the API
 * Feature update job polls the API for updates
 * If something is pulled from the queue, it's later processed as usual.

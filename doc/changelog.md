@@ -1,6 +1,15 @@
 # Changelog
 
-In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases)
+In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
+Check our [blog](https://medium.com/metarank) for more detailed updates.
+
+## 0.5.1
+
+Highlights of this release are:
+* Flink is rermoved. As a result only `memory` and `redis` [persistance](configuration/persistence.md) modes are supported now.
+* [Configuration file](configuration/sample-config.yml) now has updated structure and is not compatible with previous format.
+* CLI is updated, most of the options are moved to [configuration](configuration/overview.md).
+  * We have updated the [`validate`](cli.md#validation) mode of the CLI, so you can use it to validate your data and configuration.
 
 ## 0.4.0
 

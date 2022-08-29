@@ -130,7 +130,7 @@ docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank\
 This command will:
 * run the dataset import process from the current directory,
 * train the [ML model for ranking](/doc/configuration/supported-ranking-models.md),
-* start the [API](../api_schema.md) on port 8080.
+* start the [API](../api.md) on port 8080.
 
 ![import and training process](img/training.gif)
 

@@ -5,7 +5,9 @@ Metarank CLI has a set of command-line options to control its behavior.
 To run the main app, download the [latest jar file](https://github.com/metarank/metarank/releases) and run the following command:
 
 ```shell
-$ java -jar metarank-x.x.x.jar
+java -jar metarank-x.x.x.jar
+```
+```shell
                 __                              __    
   _____   _____/  |______ ____________    ____ |  | __
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
@@ -62,14 +64,8 @@ For all other tricks, consult the docs on https://docs.metarank.ai
 
 The command-line argument structure is:
 ```shell
-$ java -jar metarank.jar <command> <args>
+java -jar metarank.jar <command> <args>
 ```
-
-## CLI Options
-
-Originally Metarank used a very complicated set of command line switches to control its behavior. But more things it
-supported, more obscure the switches become. So for now metarank is configured using a separate config file. See
-a [sample config file](../configuration/sample-config.yml) for a source of inspiration and basic options description.
 
 
 ## Running modes
@@ -79,6 +75,22 @@ Metarank CLI has a set of different running modes:
 * `train`: train the ML model with XGBoost/LightGBM.
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.
+* `validate`: validates data nd configuration files.
+
+### Validation
+
+Metarank CLI provides `validate` command to validate both your data and configuration file. 
+
+You can validate your data file, configuration file or both at the same time.
+```shell
+java -jar metarank-x.x.x.jar validate --config config.yml --data events.jsonl.gz
+```
+
+The above command will output validation checks performed on the files provided and will output information similar to the following:
+
+```shell
+```
+
 
 ## Environment variables
 

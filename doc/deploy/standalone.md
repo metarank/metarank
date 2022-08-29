@@ -14,7 +14,7 @@ Metarank has multiple running modes:
 * `validate` - a set of sanity checks on your configuration file and event dataset.
 
 Metarank's standalone mode is made to simplify the initial onboarding on the system:
-* it's a shortcut to run [`import`, `train` and `serve`](cli.md) tasks all at once
+* it's a shortcut to run [`import`, `train` and `serve`](/doc/cli.md) tasks all at once
 * with [memory persistence](../configuration/persistence.md#memory-persistence) it can process large clickthrough 
 histories almost instantly.
 

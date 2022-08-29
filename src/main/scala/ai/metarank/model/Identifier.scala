@@ -7,7 +7,9 @@ sealed trait Identifier extends Any {
 }
 
 object Identifier {
-  case class UserId(value: String) extends AnyVal with Identifier
+  case class UserId(value: String) extends AnyVal with Identifier {
+    override def toString: String = value
+  }
 
   object UserId {
     implicit val userEncoder: Encoder[UserId] = Encoder.encodeString.contramap(_.value)
@@ -16,7 +18,9 @@ object Identifier {
     implicit val userCodec: Codec[UserId] = Codec.from(userDecoder, userEncoder)
   }
 
-  case class ItemId(value: String) extends AnyVal with Identifier
+  case class ItemId(value: String) extends AnyVal with Identifier {
+    override def toString: String = value
+  }
 
   object ItemId {
     implicit val itemEncoder: Encoder[ItemId] = Encoder.encodeString.contramap(_.value)
@@ -25,7 +29,9 @@ object Identifier {
     implicit val itemCodec: Codec[ItemId] = Codec.from(itemDecoder, itemEncoder)
   }
 
-  case class SessionId(value: String) extends AnyVal with Identifier
+  case class SessionId(value: String) extends AnyVal with Identifier {
+    override def toString: String = value
+  }
 
   object SessionId {
     implicit val sessionEncoder: Encoder[SessionId] = Encoder.encodeString.contramap(_.value)

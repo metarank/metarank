@@ -1,4 +1,4 @@
-package ai.metarank.mode
+package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
@@ -8,21 +8,20 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.{Clickthrough, ClickthroughValues, EventId, FieldName, ItemValue, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.ScopeType._
+import ai.metarank.model._
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-class TrainTest extends AnyFlatSpec with Matchers {
+class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
   lazy val features = NonEmptyList.of(
     NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType),
     StringFeatureSchema(

@@ -20,7 +20,9 @@ object Key {
     }
   }
 
-  case class FeatureName(value: String) extends AnyVal
+  case class FeatureName(value: String) extends AnyVal {
+    override def toString = value
+  }
 
   implicit val nameCodec: Codec[FeatureName] = stringCodec(_.value, FeatureName.apply)
 

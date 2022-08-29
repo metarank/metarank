@@ -3,8 +3,8 @@ package ai.metarank.main
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.fstore.Persistence
-import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, SortArgs, StandaloneArgs, TrainArgs}
-import ai.metarank.main.command.{Import, Serve, Sort, Standalone, Train}
+import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, StandaloneArgs, TrainArgs, ValidateArgs}
+import ai.metarank.main.command.{Import, Serve, Standalone, Train, Validate}
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.commons.io.IOUtils
@@ -34,7 +34,7 @@ object Main extends IOApp with Logging {
           case a: ServeArgs      => Serve.run(conf, store, mapping, a)
           case a: ImportArgs     => Import.run(conf, store, mapping, a)
           case a: TrainArgs      => Train.run(conf, store, mapping, a)
-          case a: SortArgs       => Sort.run(a)
+          case a: ValidateArgs   => Validate.run(conf, a)
           case a: StandaloneArgs => Standalone.run(conf, store, mapping, a)
         }
         _ <- info("My job is done, exiting.")

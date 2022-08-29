@@ -10,7 +10,7 @@ sample data and issue queries.
 * Architecture: x86_64. For M1, see [Apple M1 support](../installation.md#installing-on-macos)
 * Memory: 2Gb dedicated to Docker
 
-This guide is tested with Docker for linux v20.10.16, and [metarank/metarank:0.5.0](https://hub.docker.com/r/metarank/metarank/tags) docker image.
+This guide is tested with Docker for linux v20.10.16, and [metarank/metarank:0.5.1](https://hub.docker.com/r/metarank/metarank/tags) docker image.
 
 ## Getting the dataset
 
@@ -122,7 +122,7 @@ drwxr-xr-x 81 user user  16384 Aug 23 14:24 ..
 
 ```bash
 docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank\ 
-    metarank/metarank:0.5.0 standalone\
+    metarank/metarank:0.5.1 standalone\
     --config /opt/metarank/config.yml\
     --data /opt/metarank/events.jsonl.gz
 ```

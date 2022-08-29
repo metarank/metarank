@@ -9,7 +9,7 @@ version.
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](/doc/cli.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.5.0 --help
+$ docker run metarank/metarank:0.5.1 --help
 
 + exec /opt/java/openjdk/bin/java -jar /app/metarank.jar --help
 

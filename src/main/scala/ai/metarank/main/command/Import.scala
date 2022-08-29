@@ -22,14 +22,16 @@ object Import extends Logging {
   ): IO[Unit] = {
     storeResource.use(store =>
       for {
-        result <- slurp(store, mapping, args)
+        result <- slurp(store, mapping, args, conf)
         _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")
       } yield {}
     )
   }
 
-  def slurp(store: Persistence, mapping: FeatureMapping, args: ImportArgs): IO[ProcessResult] = {
-    slurp(FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream, store, mapping)
+  def slurp(store: Persistence, mapping: FeatureMapping, args: ImportArgs, conf: Config): IO[ProcessResult] = {
+    val stream   = FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream
+    val validate = IO.whenA(args.validation)(Validate.validate(conf, stream).void)
+    validate *> slurp(stream, store, mapping)
   }
 
   def slurp(source: fs2.Stream[IO, Event], store: Persistence, mapping: FeatureMapping): IO[ProcessResult] = {

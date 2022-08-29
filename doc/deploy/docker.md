@@ -52,14 +52,15 @@ Subcommand: standalone - import, train and serve at once
                         (optional, default=earliest)
   -h, --help            Show help message
 
-Subcommand: sort - sort the input file by timestamp
+Subcommand: validate - run the input data validation suite
   -c, --config  <arg>   path to config file
   -d, --data  <arg>     path to a directory with input files
   -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
                         snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661778589, last=1h
                         (optional, default=earliest)
-      --out  <arg>      output file path
+  -v, --validation      should input validation be enabled (optional,
+                        default=yes)
   -h, --help            Show help message
 
 For all other tricks, consult the docs on https://docs.metarank.ai

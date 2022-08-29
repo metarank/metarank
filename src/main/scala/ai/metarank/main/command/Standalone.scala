@@ -20,7 +20,12 @@ object Standalone extends Logging {
   ): IO[Unit] = {
     storeResource.use(store =>
       for {
-        result <- Import.slurp(store, mapping, ImportArgs(args.conf, args.data, args.offset, args.format))
+        result <- Import.slurp(
+          store,
+          mapping,
+          ImportArgs(args.conf, args.data, args.offset, args.format, args.validation),
+          conf
+        )
         _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
         _ <- mapping.models.toList.map {
           case (name, m @ LambdaMARTModel(conf, _, _, _)) =>

@@ -17,11 +17,13 @@ sealed trait CliArgs {
   def conf: Path
 }
 object CliArgs extends Logging {
-  case class ServeArgs(conf: Path)                                                              extends CliArgs
-  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)     extends CliArgs
-  case class StandaloneArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
-  case class TrainArgs(conf: Path, model: String)                                               extends CliArgs
-  case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat)   extends CliArgs
+  case class ServeArgs(conf: Path) extends CliArgs
+  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, validation: Boolean)
+      extends CliArgs
+  case class StandaloneArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, validation: Boolean)
+      extends CliArgs
+  case class TrainArgs(conf: Path, model: String)                                             extends CliArgs
+  case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -40,21 +42,23 @@ object CliArgs extends Logging {
             }
           case Some(parser.`import`) =>
             for {
-              conf   <- parse(parser.`import`.config)
-              data   <- parse(parser.`import`.data)
-              offset <- parse(parser.`import`.offset)
-              format <- parse(parser.`import`.format)
+              conf     <- parse(parser.`import`.config)
+              data     <- parse(parser.`import`.data)
+              offset   <- parse(parser.`import`.offset)
+              format   <- parse(parser.`import`.format)
+              validate <- parse(parser.`import`.validation)
             } yield {
-              ImportArgs(conf, data, offset, format)
+              ImportArgs(conf, data, offset, format, validate)
             }
           case Some(parser.standalone) =>
             for {
-              conf   <- parse(parser.standalone.config)
-              data   <- parse(parser.standalone.data)
-              offset <- parse(parser.standalone.offset)
-              format <- parse(parser.standalone.format)
+              conf     <- parse(parser.standalone.config)
+              data     <- parse(parser.standalone.data)
+              offset   <- parse(parser.standalone.offset)
+              format   <- parse(parser.standalone.format)
+              validate <- parse(parser.standalone.validation)
             } yield {
-              StandaloneArgs(conf, data, offset, format)
+              StandaloneArgs(conf, data, offset, format, validate)
             }
           case Some(parser.train) =>
             for {
@@ -122,6 +126,13 @@ object CliArgs extends Logging {
         descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json (optional, default=json)",
         default = Some(JsonFormat)
       )
+      val validation = opt[Boolean](
+        name = "validation",
+        required = false,
+        descr = "should input validation be enabled (optional, default=yes)",
+        default = Some(true)
+      )
+
     }
 
     object serve extends Subcommand("serve") with ConfigOption {

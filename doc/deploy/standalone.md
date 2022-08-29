@@ -11,6 +11,7 @@ Metarank has multiple running modes:
 * `train` - run traing the machine learning model using the imported data
 * `serve` - start the ranking inference API
 * `standalone` - which is a shortcut for `import`, `train` and `serve` jobs run together.
+* `validate` - a set of sanity checks on your configuration file and event dataset.
 
 Metarank's standalone mode is made to simplify the initial onboarding on the system:
 * it's a shortcut to run [`import`, `train` and `serve`](cli.md) tasks all at once

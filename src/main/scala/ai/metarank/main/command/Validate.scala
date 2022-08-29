@@ -23,9 +23,7 @@ import java.io.FileOutputStream
 object Validate extends Logging {
   def run(conf: Config, args: ValidateArgs): IO[Unit] = for {
     _ <- validate(conf, FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream)
-  } yield {
-    logger.info("Validation done")
-  }
+  } yield {}
 
   def validate(conf: Config, eventStream: fs2.Stream[IO, Event]) = {
     val validators = List(
@@ -38,7 +36,10 @@ object Validate extends Logging {
       InteractionTypeValidation
     )
     for {
+      _      <- info("Dataset validation is enabled")
+      _      <- info("Validation loads all events to RAM, so use --validation=false to skip in case of OOM")
       events <- eventStream.compile.toList
+      _      <- info("Validation done")
     } yield {
       validators.flatMap(v => v.validate(conf, events))
     }

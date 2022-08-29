@@ -8,7 +8,7 @@ import ai.metarank.main.command.{Import, Serve, Sort, Standalone, Train}
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.commons.io.IOUtils
-
+import scala.jdk.CollectionConverters._
 import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 import scala.util.Try
@@ -19,7 +19,7 @@ object Main extends IOApp with Logging {
     case _ =>
       for {
         args <- IO
-          .fromEither(CliArgs.parse(args))
+          .fromEither(CliArgs.parse(args, System.getenv().asScala.toMap))
           .onError(ex =>
             IO {
               logger.error(s"Cannot parse args: ${ex.getMessage}\n\n")

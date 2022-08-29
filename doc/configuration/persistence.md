@@ -13,7 +13,7 @@ Memory persistence is no persistence at all: the complete Metarank state is stor
 ephemeral, and will be entirely lost on each service restart. 
 
 Nevertheless, memory persistence can be useful:
-* While testing Metarank locally in a [standalone mode](deploy/standalone.md), as it has no external service dependencies.
+* While testing Metarank locally in a [standalone mode](../deploy/standalone.md), as it has no external service dependencies.
 * As a staging env to validate configuration changes before going to production.
 
 To configure memory persistence, use the `type: memory` option:

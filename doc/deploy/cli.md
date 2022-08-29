@@ -1,18 +1,11 @@
-# Metarank and Docker
+# Metarank CLI
 
-Metarank official image is published in docker hub as [metarank/metarank](https://hub.docker.com/r/metarank/metarank/tags).
+Metarank CLI has a set of command-line options to control its behavior. 
 
-We publish the `:latest` tag, although it's not always recommended to have any production deployments without pinning a specific
-version. 
+To run the main app, download the [latest jar file](https://github.com/metarank/metarank/releases) and run the following command:
 
-## Running the docker image
-
-All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](cli.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.5.0 --help
-
-+ exec /opt/java/openjdk/bin/java -jar /app/metarank.jar --help
-
+$ java -jar metarank-x.x.x.jar
                 __                              __    
   _____   _____/  |______ ____________    ____ |  | __
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
@@ -30,7 +23,7 @@ Subcommand: import - import historical clickthrough data
   -d, --data  <arg>     path to a directory with input files
   -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
                         snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661516516, last=1h
                         (optional, default=earliest)
   -h, --help            Show help message
 
@@ -48,7 +41,7 @@ Subcommand: standalone - import, train and serve at once
   -d, --data  <arg>     path to a directory with input files
   -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
                         snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661516516, last=1h
                         (optional, default=earliest)
   -h, --help            Show help message
 
@@ -57,7 +50,7 @@ Subcommand: sort - sort the input file by timestamp
   -d, --data  <arg>     path to a directory with input files
   -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
                         snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661516516, last=1h
                         (optional, default=earliest)
       --out  <arg>      output file path
   -h, --help            Show help message
@@ -66,20 +59,28 @@ For all other tricks, consult the docs on https://docs.metarank.ai
 
 ```
 
-### Resources
-
-Metarank image exposes a `/data` volume to handle all the local IO. 
-For example, you can pass the input training dataset from your local host using the docker's `-v` switch:
+The command-line argument structure is:
 ```shell
-docker -v /data:/home/user/input run metarank/metarank:latest train <opts>
+$ java -jar metarank.jar <command> <args>
 ```
 
-### Ports
+## CLI Options
 
-The image exposes the following ports:
-* 8080 for API access for the inference and ingestion APIs
+Originally Metarank used a very complicated set of command line switches to control its behavior. But more things it
+supported, more obscure the switches become. So for now metarank is configured using a separate config file. See
+a [sample config file](../configuration/sample-config.yml) for a source of inspiration and basic options description.
 
-To map these ports to your host, use the `-p` flag:
-```shell
-docker run -p 8080:8080 metarank/metarank:latest serve <opts>
-```
+
+## Running modes
+
+Metarank CLI has a set of different running modes:
+* `import`: import and process historical data, writing state to the chosen [persistecnce backend](../configuration/persistence.md) like Redis.
+* `train`: train the ML model with XGBoost/LightGBM.
+* `serve`: run the inference API to do realtime reranking
+* `standalone`: run `import`, `train` and `serve` tasks at once.
+
+## Environment variables
+
+Config file can be passed to the Metarank not only as a command-line argument, but also as an environment variable.
+This is typically used in docker and k8s-based deployments:
+* `METARANK_CONFIG`: path to config file, for example `s3://bucket/prefix/config.yml`

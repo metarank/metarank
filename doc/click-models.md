@@ -89,7 +89,7 @@ Metarank supports multiple [ranking models](configuration/supported-ranking-mode
 
 ## Cascade model and Click-Through-Rate
 
-Another perk of a *cascade model* is that it can be used for a more precise [CTR calculation](features/counters.md):
+Another perk of a *cascade model* is that it can be used for a more precise [CTR calculation](configuration/features/counters.md):
 * CTR is literally clicks divided by impressions.
 * It's obvious where you can take clicks from: there may be a special type of interaction.
 * But what about the number of impressions?

@@ -1,12 +1,13 @@
 # This is a sample config file that you can use as a reference for building your own.
 
+# Check https://docs.metarank.ai/reference/overview for detailed configuration overview
+
 # The "features" section describes how to map your input events into ML features that Metarank understands.
-# See doc/feature-extractors.md for a general overview of possible things you can do, and doc/features
-# for detailed per-extractor configuration options.
+# See https://docs.metarank.ai/reference/overview/feature-extractors feature configuration.
 
 # These features can be shared between multiple models, so if you have a model A using features 1-2-3 and
 # a model B using features 1-2, then all three features will be computed only once. 
-# You need to explicitely include a feture in the model configuration for Metarank to use it.
+# You need to explicitely include a feature in the model configuration for Metarank to use it.
 features:
   - name: popularity
     type: number
@@ -33,14 +34,13 @@ features:
       - comedy
       - thriller
 
+# The "models" section describes machine learning models used for personalization.
+# Check https://docs.metarank.ai/reference/overview/supported-ranking-models for more information.
 models:
-  # see supported-ranking-models.md for more details on supported ML models
-
   default: # name of the model, used in the inference process as a part of path, like /rank/default
-    type: lambdamart # for now, only lambdamart is supported
-    path: /tmp/xgboost.model # schemas like s3:// are also supported
+    type: lambdamart # model type
     backend:
-      type: xgboost # supported values: xgboost, lightgbm
+      type: xgboost # supported values: xgboost, lightgbm for lambdamart model
       iterations: 100 # optional (default 100), number of interations while training the model
       seed: 0 # optional (default = random), a seed to make training deterministic
     weights: # types and weights of interactions used in the model training
@@ -48,71 +48,48 @@ models:
     features: # features from the previous section used in the model
       - popularity
       - genre
+  # You can specify several models at once. 
+  # This can be useful for A\B test scenarious or while testing different sets of features.
 
-# where to take events from, and where to write intermediate data.
-bootstrap:
-  workdir: file:///tmp/bootstrap
-  # how many CPUs use to process the data
-  # parallelism: 1 # default - take from the runtime env (like flink k8s job params)
+  #random:
+  #  type: shuffle # shuffle model type produces random results
+  #  maxPositionChange: 5 # controls the amount of randomness that shuffle can introduce in the original ranking
 
-  # inject synthetic "user examined these items in ranking" impression events
-  # see doc/click-models.md for details, enabled by default
-  # syntheticImpression:
-  #   enabled: true
-  #   eventName: impression # can be customized
+  # The noop model does nothing with the original ranking and returns results "as is"
+  #noop:
+  #  type: noop
 
-  source:
-    type: file
-    path: file:///ranklens/events/
-
-    # possible options: file, kafka, pulsar
-
-    # type: kafka
-    # brokers: [broker1, broker2]
-    # topic: events
-    # groupId: metarank
-    # offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
-
-    # type: pulsar
-    # serviceUrl: <pulsar service URL>
-    # adminUrl: <pulsar service HTTP admin URL>
-    # topic: events
-    # subscriptionName: metarank
-    # subscriptionType: exclusive # options are exclusive, shared, failover
-    # offset: earliest|id=<numerical offset id>|latest|ts=<unixtime>|last=<duration>
-
-    # offset options are:
-    # earliest - start from the first stored message in the topic
-    # id=<offset id> - start from a specific offset id
-    # latest - consume only events that came recently (after we connected)
-    # ts=<timestamp> - start from a specific absolute timestamp in the past
-    # last=<duration> - consume only events happened within the defined relative duration
-    #   duration supports the following patterns: 1s, 1m, 1h, 1d
-
-# options to use for the inference process
-inference:
-  port: 8080
-  host: "0.0.0.0"
-  source: # a source of events to be processed in real-time
-    # possible options are: kafka, pulsar, rest
-    # kafka and pulsar definitions are the same as for the bootstrap.source section
-    type: rest
-    bufferSize: 1000 # optional (default 10000), size of an internal buffer for feedback events
-    host: localhost # hostname of merarank API
-    port: 8080 # its port
-
-  state: # a place to store the feature values for the ML inference
+# The "state" section describes how computed features and models are stored.
+# Check https://docs.metarank.ai/reference/overview/persistence for more information.
+state: # a place to store the feature values for the ML inference and the trained model
     # Local memory
-    # A node-local in-memory storage without any persistence. Loads latest feature values from the bootstrap process
-    # automatically, so you don't need to run the Upload job with this type of storage.
-    # Suitable only for local testing, as in case of a restart it will loose all the data and start with the values from
-    # the bootstrap stage.
+    # A node-local in-memory storage without any persistence. 
+    # Features values and the trained model is stored in-memory.    
+    # Suitable only for local testing, as in case of a restart it will loose all the data.
     type: memory
-    format: json # Metarank supports json and protobuf: json is human-readable, protobuf is much more compact
 
     # Remote redis, with persistence. 
-    # Requires the Upload job to be run to upload all the historical feature values
-    # computed during the bootstrap inro Redis.
-    # type: redis
-    # host: localhost
-    # format: json
+    # Saves the computed features and trained model in a Redis instance.
+    # You can use remote or local Redis installation.
+    #type: redis
+    #host: localhost
+    #port: 6369
+    
+    # Metarank implements several optimization strategies when using Redis: caching and pipelining
+    # Check https://docs.metarank.ai/reference/overview/persistence#redis-persistence for more details
+    #cache:           # optional
+    #  maxSize: 1024  # size of in-memory client-side cache for hot keys, optional, default=1024
+    #  ttl: 1h        # how long should key-values should be cached, optional, default=1h
+
+    #pipeline:         # optional
+    #  maxSize: 128    # batch write buffer size, optional, default=128
+    #  flushPeriod: 1s # buffer flush interval, optional, default=1s
+
+# The "api" section describes the Metarank API configuration.
+# Check https://docs.metarank.ai/reference/overview#api-options for more information.
+# This section is optional and by default uses the following parameters
+api:
+  port: 8080
+  host: "0.0.0.0"
+
+  

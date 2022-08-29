@@ -32,7 +32,6 @@ To configure the model, use the following snippet:
 ```yaml
   <model name>:
     type: lambdamart 
-    path: /tmp/xgboost.model
     backend:
       type: xgboost # supported values: xgboost, lightgbm
       iterations: 100 # optional (default 100), number of interations while training the model
@@ -43,8 +42,7 @@ To configure the model, use the following snippet:
       - foo
       - bar
 ```
-* `path`: *required*, *string*, used to point metarank where to write model during training, and where to load it from 
-during inference. It can also read-write it to/from S3-like filesystem.
+
 * `backend`: *required*, *xgboost* or *lightgbm*, specifies the backend and it's configuration.
 * `weights`: *required*, *list of string:number pairs*, specifies what interaction events are used for training. You can specify multiple events with different weights.
 * `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature-extractors.md) documentation.

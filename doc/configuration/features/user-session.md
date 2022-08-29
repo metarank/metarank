@@ -35,16 +35,16 @@ To configure the extractor, use this YAML snippet:
 - name: platform_feature // just a name of this feature
   type: ua
   
-  // take the UA field from ranking event
+  # take the UA field from ranking event
   source: "ranking.ua"
   
-  // options: platform, os, browser, bot
+  # options: platform, os, browser, bot
   field: "platform"
   
-  // optional, how frequently we should update the value
+  # optional, how frequently we should update the value
   refresh: 0s
 
-  // optional, how long should we remember this field
+  # optional, how long should we remember this field
   ttl: 90d
 ```
 
@@ -58,11 +58,11 @@ Example:
 ```yaml
 - name: clicked_color
   type: interacted_with
-  // type of the interaction event (interaction.type field)
+  # type of the interaction event (interaction.type field)
   interaction: click
   field: item.color // must be a string or string[], and only works with item fields
 
-  // session/user
+  # session/user
   scope: user
 ```
 

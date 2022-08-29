@@ -64,7 +64,7 @@ So, given the following feature extractor configuration:
 Metarank will expect the `popularity` field to be a number and the `genres` to be a string or a list of strings and
 the metadata event will have the following structure
 
-```json
+```json5
 {
   "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",

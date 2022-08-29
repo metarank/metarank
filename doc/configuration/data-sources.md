@@ -34,7 +34,7 @@ All supported connectors have some shared options:
   following patterns: `1s`, `1m`, `1h`, `1d`)
 * format: event record encoding format, possible options:
   * `json`: Both Json-line (newline separated records) and Json-array (`[{event:1}, {event:2}]`) formats are supported.
-  * `snowplow:tsv|snowplow:json` - Snowplow-native format, see [Snowplow integration](/doc/integrations/snowplow.md) for details
+  * `snowplow:tsv|snowplow:json` - Snowplow-native format, see [Snowplow integration](../integrations/snowplow.md) for details
   on how to set it up
 
 ### File
@@ -153,8 +153,8 @@ It's possible to ingest real-time feedback events directly using the REST API of
 
 The `/feedback` endpoint is always enabled and there is no need to configure it explicitly.
 
-You can read more about Metarank REST API in the [API Documentation](/doc/api_schema.md). 
-You can bundle multiple events in a single batch using [batch payloads](/doc/api_schema.md#feedback), so REST API can be used
+You can read more about Metarank REST API in the [API Documentation](../api_schema.md). 
+You can bundle multiple events in a single batch using [batch payloads](../api_schema.md#feedback), so REST API can be used
 for batch dataset import instead of a separate `import` step:
 
 ```bash

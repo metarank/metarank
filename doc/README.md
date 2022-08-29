@@ -12,19 +12,17 @@ about [Personalizing recommendations with Metarank](https://medium.com/metarank/
 ## Run and deploy
 
 * [Supported platforms](supported-platforms.md): on which OS/JVM Metarank can run.
-* [AWS](deploy/aws-s3.md): (Work-in-progress) deploying Metarank to AWS.
 * [Docker](deploy/docker.md): running Metarank from Docker.
 * [API Overview](api_schema.md): sending REST API requests for reranking and feedback ingestion.
-* [Using different data sources](data-sources.md) like Kafka and Pulsar 
+* [Using different data sources](configuration/data-sources.md) like Kafka and Pulsar 
 
 ## Configure
 
-* [Configuration](configuration.md): config file structure and possible running modes.
-* [Feature extractors](feature-extractors.md): configuring the way events are mapped to ML features.
-* [Feature scopes](scopes.md): ML features can be bound to a specific scope (like count number of clicks per *item* - so item is the scope) 
+* [Configuration](configuration/overview.md): config file structure and possible running modes.
+* [Feature extractors](configuration/feature-extractors.md): configuring the way events are mapped to ML features.
 * [Event schema overview](event-schema.md): How input events about visitor activity look like.
-* [Event sources](data-sources.md): Which sources Metarank can pull events from.
-* [ML ranking models](supported-ranking-models.md): which ML models can be used for ranking.
+* [Event sources](configuration/data-sources.md): Which sources Metarank can pull events from.
+* [ML ranking models](configuration/supported-ranking-models.md): which ML models can be used for ranking.
 
 ## Integrations
 

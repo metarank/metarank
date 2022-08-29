@@ -1,7 +1,7 @@
 # ML Feature extractors
 
 Most common learn-to-rank tasks usually have typical shared set of ML features. As long as you follow the 
-[ingestion event schema](/doc/event-schema.md), Metarank tries to automate creation of these features for you.
+[ingestion event schema](../event-schema.md), Metarank tries to automate creation of these features for you.
 
 ## Mapping input events into ML features
 
@@ -72,7 +72,7 @@ The `scope: item` means that the extracted popularity field from item metadata s
 * [field_match](features/text.md#field_match): match ranking field over item fields.
 
 ### User session feature extractors
-* [ua/platform](/doc/features/user-session.md#user-agent-field-extractor): a one-hot encoded platform (mobile, desktop, tablet).
+* [ua/platform](features/user-session.md#user-agent-field-extractor): a one-hot encoded platform (mobile, desktop, tablet).
 * [ua/os](features/user-session.md#user-agent-field-extractor): a one-hot encoded OS (ios, android, windows, linux, macos, chrome os).
 * [ua/browser](features/user-session.md#user-agent-field-extractor)* a one-hot encoded browser (chrome, firefox, safari, edge).
 * [interacted_with](features/user-session.md#interacted-with): for the current item, did this visitor have an interaction with other item with the same field.

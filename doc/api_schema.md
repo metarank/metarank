@@ -41,7 +41,7 @@ define which model to invoke.
 
 ### Payload format
 
-```json
+```json5
 {
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
   "timestamp": "1599391467000",// required

@@ -41,7 +41,7 @@ Metadata event is used to provide Metarank with updates of your content items (n
 You don't need to pass all values that your items have; only the ones that you might use as your personalization model features.
 
 ### Event format
-```json
+```json5
 {
   "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
@@ -64,7 +64,7 @@ User metadata is useful when you have some extra knowledge about your visitor. F
 it could be gender or age.
 
 ### Event format
-```json
+```json5
 {
   "event": "user",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
@@ -88,7 +88,7 @@ This information is used by personalization algorithms to understand which items
 
 ### Event format
 
-```json
+```json5
 {
   "event": "ranking",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
@@ -124,7 +124,7 @@ The `type` field must match the `name` provided in the [Configuration](configura
 
 ### Event format
 
-```json
+```json5
 {
   "event": "interaction",
   "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",// required

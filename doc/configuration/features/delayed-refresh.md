@@ -26,7 +26,7 @@ having separate write and read paths for it.
 When click/impression happens, it only increments a single per-day counter in-place without 
 pulling a complete set of 90 buckets from storage, like shown on a diagram below:
 
-![CTR write path](../img/ctr-write-path.png)
+![CTR write path](../../img/ctr-write-path.png)
 
 When it's time to compute the actual CTR, after the `refresh` period passes, Metarank does the
 following:
@@ -37,7 +37,7 @@ time window of 30, 60 and 90 days
 
 The CTR read path is shown in the diagram below:
 
-![CTR read path](../img/ctr-read-path.png)
+![CTR read path](../../img/ctr-read-path.png)
 
 ### Refresh delay is best-effort
 

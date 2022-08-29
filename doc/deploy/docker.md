@@ -7,7 +7,7 @@ version.
 
 ## Running the docker image
 
-All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](/doc/cli.md), run the docker container:
+All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](cli.md), run the docker container:
 ```shell
 $ docker run metarank/metarank:latest help
 

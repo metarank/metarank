@@ -3,26 +3,66 @@
 Metarank official image is published in docker hub as [metarank/metarank](https://hub.docker.com/r/metarank/metarank/tags).
 
 We publish the `:latest` tag, although it's not always recommended to have any production deployments without pinning a specific
-version.
+version. 
 
 ## Running the docker image
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](cli.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:latest help
+$ docker run metarank/metarank:0.5.0 --help
 
-12:33:57.337 INFO  ai.metarank.Main$ - Usage: metarank <command> <config file> <options>
++ exec /opt/java/openjdk/bin/java -jar /app/metarank.jar --help
 
-12:33:57.342 INFO  ai.metarank.Main$ - Supported commands: bootstrap, inference, train, upload, help.
-12:33:57.346 INFO  ai.metarank.Main$ - Run 'metarank <command> for extra options. 
-12:33:57.347 INFO  ai.metarank.Main$ - - bootstrap: import historical data
-12:33:57.348 INFO  ai.metarank.Main$ - - train: train the ranking ML model
-12:33:57.350 INFO  ai.metarank.Main$ - - upload: push latest feature values to redis
-12:33:57.351 INFO  ai.metarank.Main$ - - api: run the inference API
-12:33:57.352 INFO  ai.metarank.Main$ - - update: run the Flink update job
-12:33:57.352 INFO  ai.metarank.Main$ - - standalone: run the Flink update job, embedded redis and API in the same JVM
-12:33:57.353 INFO  ai.metarank.Main$ - - validate: check config and data files for consistency
-12:33:57.354 INFO  ai.metarank.Main$ - - help: this help
+                __                              __    
+  _____   _____/  |______ ____________    ____ |  | __
+ /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
+|  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
+|__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
+      \/     \/          \/           \/     \/     \/
+Usage: metarank <subcommand> <options>
+Options:
+
+  -h, --help      Show help message
+  -v, --version   Show version of this program
+
+Subcommand: import - import historical clickthrough data
+  -c, --config  <arg>   path to config file
+  -d, --data  <arg>     path to a directory with input files
+  -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
+                        snowplow:json (optional, default=json)
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+                        (optional, default=earliest)
+  -h, --help            Show help message
+
+Subcommand: train - train the ML model
+  -c, --config  <arg>   path to config file
+  -m, --model  <arg>    model name to train
+  -h, --help            Show help message
+
+Subcommand: serve - run the inference API
+  -c, --config  <arg>   path to config file
+  -h, --help            Show help message
+
+Subcommand: standalone - import, train and serve at once
+  -c, --config  <arg>   path to config file
+  -d, --data  <arg>     path to a directory with input files
+  -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
+                        snowplow:json (optional, default=json)
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+                        (optional, default=earliest)
+  -h, --help            Show help message
+
+Subcommand: sort - sort the input file by timestamp
+  -c, --config  <arg>   path to config file
+  -d, --data  <arg>     path to a directory with input files
+  -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
+                        snowplow:json (optional, default=json)
+  -o, --offset  <arg>   offset: earliest, latest, ts=1661764518, last=1h
+                        (optional, default=earliest)
+      --out  <arg>      output file path
+  -h, --help            Show help message
+
+For all other tricks, consult the docs on https://docs.metarank.ai
 
 ```
 
@@ -38,9 +78,8 @@ docker -v /data:/home/user/input run metarank/metarank:latest train <opts>
 
 The image exposes the following ports:
 * 8080 for API access for the inference and ingestion APIs
-* 6123 to communicate with embedded flink cluster
 
 To map these ports to your host, use the `-p` flag:
 ```shell
-docker run -p 8080:8080 metarank/metarank:latest inference <opts>
+docker run -p 8080:8080 metarank/metarank:latest serve <opts>
 ```

@@ -302,4 +302,4 @@ bootstrap:
 
 With Metarank configured to pick live events from the enriched stream, and historical events
 from the offloaded files in S3, it should be straightforward to do the usual routine of
-[setting up](../configuration.md) and [running it](../deploy/README.md) Metarank.
+[setting up](/doc/configuration//overview.md) and [running it](../deploy/README.md) Metarank.

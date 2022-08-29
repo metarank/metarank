@@ -68,13 +68,13 @@ $ java -jar metarank.jar <command> <args>
 
 Originally Metarank used a very complicated set of command line switches to control its behavior. But more things it
 supported, more obscure the switches become. So for now metarank is configured using a separate config file. See
-a [sample config file](../sample-config.yml) for a source of inspiration and basic options description.
+a [sample config file](../configuration/sample-config.yml) for a source of inspiration and basic options description.
 
 
 ## Running modes
 
 Metarank CLI has a set of different running modes:
-* `import`: import and process historical data, writing state to the chosen [persistecnce backend](../persistence.md) like Redis.
+* `import`: import and process historical data, writing state to the chosen [persistecnce backend](../configuration/persistence.md) like Redis.
 * `train`: train the ML model with XGBoost/LightGBM.
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.

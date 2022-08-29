@@ -7,6 +7,7 @@
 
 ## Reference
 * [Installation](installation.md)
+* [API](api_schema.md)
 * [Event Format](event-schema.md)
   * [Timestamp formats](timestamp-formats.md)
 * [API](api_schema.md)
@@ -22,7 +23,7 @@
   * [Models](supported-ranking-models.md)
   * [Data Sources](data-sources.md)
   * [Persistence](persistence.md)
-  * [Command-line options](deploy/cli-options.md)
+  * [Command-line options](deploy/cli.md)
 * [Deployment](deploy/overview.md) 
   * [Standalone](deploy/standalone.md)
   * [Docker](deploy/docker.md)

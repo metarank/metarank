@@ -8,6 +8,7 @@ import cats.effect.IO
 import fs2.Stream
 
 trait EventSource extends Logging {
+  def conf: InputConfig
   def stream: Stream[IO, Event]
 }
 
@@ -16,7 +17,6 @@ object EventSource {
     case file: FileInputConfig       => FileEventSource(file)
     case kafka: KafkaInputConfig     => KafkaSource(kafka)
     case pulsar: PulsarInputConfig   => PulsarEventSource(pulsar)
-    case api: ApiInputConfig         => RestApiEventSource(null)
     case kinesis: KinesisInputConfig => KinesisSource(kinesis)
   }
 }

@@ -1,8 +1,10 @@
 package ai.metarank.config
 
+import ai.metarank.config.InputConfig.FileInputConfig.SortingType
+import ai.metarank.config.InputConfig.FileInputConfig.SortingType.{SortByName, SortByTime}
 import ai.metarank.source.format.JsonFormat
 import cats.data.NonEmptyList
-import io.circe.Decoder
+import io.circe.{Codec, Decoder, Encoder, Json}
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 
@@ -43,8 +45,23 @@ object InputConfig {
   case class FileInputConfig(
       path: String,
       offset: SourceOffset = SourceOffset.Earliest,
-      format: SourceFormat = JsonFormat
+      format: SourceFormat = JsonFormat,
+      sort: SortingType = SortByName
   ) extends InputConfig
+
+  object FileInputConfig {
+    sealed trait SortingType
+    object SortingType {
+      case object SortByName extends SortingType
+      case object SortByTime extends SortingType
+    }
+
+    implicit val sortDecoder: Decoder[SortingType] = Decoder.decodeString.emapTry {
+      case "name" => Success(SortByName)
+      case "time" => Success(SortByTime)
+      case other  => Failure(new IllegalAccessException(s"cannot decode sorting type $other"))
+    }
+  }
 
   case class PulsarInputConfig(
       serviceUrl: String,

@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.FeatureConfig
@@ -39,7 +40,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeature with Logging {
-  override def dim: Int = 1
+  override def dim = SingleDim
 
   // stores last interactions of customer
   val lastValues = BoundedListConfig(

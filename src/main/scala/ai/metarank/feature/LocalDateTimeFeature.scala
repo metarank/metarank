@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
@@ -21,7 +22,7 @@ import java.time.{Duration, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
 case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeature with Logging {
-  override def dim: Int                                                     = 1
+  override def dim                                                          = SingleDim
   override def states: List[FeatureConfig]                                  = Nil
   override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
 

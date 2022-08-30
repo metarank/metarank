@@ -45,14 +45,14 @@ type: file
 path: /home/user/ranklens/events/
 offset: earliest|latest|ts=<unixtime>|last=<duration>
 format: <json|snowplow:tsv|snowplow:json>
+sort: <name|time> # optional, default name
 ```
 
 The *path* parameter is a node-local file or directory with the input dataset. 
 
 The `file` data source supports:
 * compression, auto-detected based on file extension: ZStandard and GZip are supported
-* directories with multiple input files. Metarank sorts files by their modification date to read them in proper sequence.
-
+* directories with multiple input files. Metarank sorts files by the specified `sort` method to read them in a proper sequence.
 
 ### Apache Kafka
 

@@ -1,5 +1,6 @@
 package ai.metarank.config
 
+import ai.metarank.config.InputConfig.FileInputConfig.SortingType.SortByName
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.config.InputConfig.SourceOffset._
 import ai.metarank.config.InputConfigTest.Source
@@ -175,16 +176,18 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
     )
   }
 
-  it should "decode file config with retention" in {
+  it should "decode file config with retention and sort" in {
     val yaml = """type: file
                  |path: /ranklens/events/
                  |offset: earliest
+                 |sort: name
                  |""".stripMargin
     val decoded = parseYaml(yaml).flatMap(_.as[InputConfig])
     decoded shouldBe Right(
       FileInputConfig(
         path = "/ranklens/events/",
-        offset = SourceOffset.Earliest
+        offset = SourceOffset.Earliest,
+        sort = SortByName
       )
     )
   }

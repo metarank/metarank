@@ -33,3 +33,4 @@
 ## Development
 
 * [Changelog](changelog.md)
+* [Building from source](dev/build.md)

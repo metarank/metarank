@@ -54,7 +54,7 @@ object ClickthroughQuery {
             case None    => throw new IllegalStateException("offset missing")
           }
         case MValue.VectorValue(name, values, dim) =>
-          dataset.offsets.get(VectorFeature(name.value, dim)) match {
+          dataset.offsets.get(VectorFeature(name.value, dim.dim)) match {
             case Some(o) => System.arraycopy(values, 0, buffer, o, values.length)
             case None    => throw new IllegalStateException("offset missing")
           }

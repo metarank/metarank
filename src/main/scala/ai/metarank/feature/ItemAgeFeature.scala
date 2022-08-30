@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{ItemRelevancy, eventCodec}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -26,7 +27,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success, Try}
 
 case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Logging {
-  override def dim: Int = 1
+  override def dim = SingleDim
 
   private val conf = ScalarConfig(
     scope = schema.scope,

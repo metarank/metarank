@@ -4,6 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.{IndexCategoricalEncoder, OnehotCategoricalEncoder, StringFeatureSchema}
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.{SingleDim, VectorDim}
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -13,7 +14,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.Scalar.SStringList
 import ai.metarank.model.Write.Put
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
+import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -30,7 +31,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
       OnehotCategoricalEncoder(
         name = schema.name,
         possibleValues = schema.values.toList,
-        dim = schema.values.size
+        dim = VectorDim(schema.values.size)
       )
     case IndexEncoderName =>
       IndexCategoricalEncoder(
@@ -38,7 +39,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
         possibleValues = schema.values.toList
       )
   }
-  override def dim: Int = encoder.dim
+  override def dim = encoder.dim
 
   private val conf = ScalarConfig(
     scope = schema.scope,
@@ -84,17 +85,17 @@ object StringFeature {
   import ai.metarank.util.DurationJson._
 
   sealed trait CategoricalEncoder {
-    def dim: Int
+    def dim: Dimension
     def encode(values: Seq[String]): MValue
   }
 
-  case class OnehotCategoricalEncoder(name: FeatureName, possibleValues: List[String], dim: Int)
+  case class OnehotCategoricalEncoder(name: FeatureName, possibleValues: List[String], dim: VectorDim)
       extends CategoricalEncoder {
     override def encode(values: Seq[String]): VectorValue =
-      VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim), dim)
+      VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim.dim), dim)
   }
   case class IndexCategoricalEncoder(name: FeatureName, possibleValues: List[String]) extends CategoricalEncoder {
-    override val dim = 1
+    override val dim = SingleDim
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {
         case Some(first) =>

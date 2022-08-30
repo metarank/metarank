@@ -4,6 +4,7 @@ import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.{BotField, BrowserField, OSField, PlatformField}
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -25,8 +26,8 @@ import ua_parser.{Client, Parser}
 import scala.concurrent.duration._
 
 case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
-  lazy val parser       = new Parser()
-  override def dim: Int = schema.field.dim
+  lazy val parser  = new Parser()
+  override def dim = schema.field.dim
 
   val conf = ScalarConfig(
     scope = SessionScopeType,
@@ -56,9 +57,9 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   ): MValue = {
     request.session.flatMap(session => features.get(Key(SessionScope(session), conf.name))) match {
       case Some(ScalarValue(_, _, SString(stored))) =>
-        VectorValue(schema.name, OneHotEncoder.fromValues(List(stored), schema.field.possibleValues, dim), dim)
+        VectorValue(schema.name, OneHotEncoder.fromValues(List(stored), schema.field.possibleValues, dim.dim), dim)
       case _ =>
-        VectorValue(schema.name, OneHotEncoder.fromValues(parse(request), schema.field.possibleValues, dim), dim)
+        VectorValue(schema.name, OneHotEncoder.fromValues(parse(request), schema.field.possibleValues, dim.dim), dim)
     }
   }
 
@@ -82,7 +83,7 @@ object UserAgentFeature {
   }
 
   trait UAField {
-    lazy val dim: Int = possibleValues.size
+    lazy val dim = VectorDim(possibleValues.size)
     def possibleValues: List[String]
     def value(client: Client): Option[String]
   }

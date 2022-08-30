@@ -20,7 +20,7 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
+import ai.metarank.model.{Dimension, FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
 import ai.metarank.rank.{LambdaMARTModel, Model, NoopModel, ShuffleModel}
 import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyMap}
@@ -107,8 +107,11 @@ object FeatureMapping extends Logging {
   def makeDatasetDescriptor(features: List[BaseFeature]): DatasetDescriptor = {
     val datasetFeatures = features.map {
       case f: StringFeature if f.schema.encode == IndexEncoderName => CategoryFeature(f.schema.name.value)
-      case f: BaseFeature if f.dim == 1                            => SingularFeature(f.schema.name.value)
-      case f: BaseFeature                                          => VectorFeature(f.schema.name.value, f.dim)
+      case f: BaseFeature =>
+        f.dim match {
+          case Dimension.VectorDim(dim) => VectorFeature(f.schema.name.value, dim)
+          case Dimension.SingleDim      => SingularFeature(f.schema.name.value)
+        }
     }
     DatasetDescriptor(datasetFeatures)
   }

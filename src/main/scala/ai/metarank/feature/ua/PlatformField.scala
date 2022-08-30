@@ -1,6 +1,7 @@
 package ai.metarank.feature.ua
 
 import ai.metarank.feature.UserAgentFeature.UAField
+import ai.metarank.model.Dimension.VectorDim
 import ua_parser.Client
 
 case object PlatformField extends UAField {
@@ -38,7 +39,7 @@ case object PlatformField extends UAField {
   )
 
   override lazy val possibleValues = List("mobile", "desktop", "tablet")
-  override lazy val dim            = possibleValues.size
+  override lazy val dim            = VectorDim(possibleValues.size)
 
   override def value(client: Client): Option[String] = {
     if (client.os.family == "iOS") {

@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -21,7 +22,7 @@ import io.circe.generic.semiauto.deriveDecoder
 import scala.concurrent.duration._
 
 case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with Logging {
-  override def dim: Int = 1
+  override def dim = SingleDim
 
   private val conf = ScalarConfig(
     scope = schema.scope,

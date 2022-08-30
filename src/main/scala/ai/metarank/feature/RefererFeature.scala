@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent, UserEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -61,7 +62,7 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     PaidMedium.value     -> 5
   )
 
-  override val dim: Int = 1
+  override val dim = SingleDim
 
   override val states: List[FeatureConfig] = List(conf)
 

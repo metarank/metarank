@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Key.FeatureName
@@ -17,7 +18,7 @@ import io.circe.generic.semiauto.deriveDecoder
 import scala.concurrent.duration.FiniteDuration
 
 case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
-  override def dim: Int = 1
+  override def dim = SingleDim
 
   override def states: List[FeatureConfig] = Nil
 

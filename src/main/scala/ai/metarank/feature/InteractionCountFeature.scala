@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FeatureConfig
@@ -15,10 +16,11 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.Decoder
 import io.circe.generic.semiauto.deriveDecoder
+
 import scala.concurrent.duration._
 
 case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemFeature with Logging {
-  override def dim: Int = 1
+  override def dim = SingleDim
 
   private val conf = CounterConfig(
     scope = schema.scope,

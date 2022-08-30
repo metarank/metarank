@@ -85,6 +85,39 @@ state: # a place to store the feature values for the ML inference and the traine
     #  maxSize: 128    # batch write buffer size, optional, default=128
     #  flushPeriod: 1s # buffer flush interval, optional, default=1s
 
+# The "source" section describes the source of the data. This parameter is optional an by default has type: file. 
+# Check https://docs.metarank.ai/reference/overview/data-sources for more information
+source:
+  type: file # source type, available options: file, kafka, pulsar, kinesis
+  #path: /home/user/ranklens/events/ # path to events file, alternatively you can use CLI to provide file location
+  #offset: earliest|latest|ts=<unixtime>|last=<duration> #default: earliest
+  #format: <json|snowplow:tsv|snowplow:json> # file format, default: json
+
+  # Check https://docs.metarank.ai/reference/overview/data-sources#apache-kafka for more information
+  #type: kafka
+  #brokers: [broker1, broker2]
+  #topic: events
+  #groupId: metarank
+  #offset: earliest|latest|ts=<unixtime>|last=<duration>
+  #format: <json|snowplow:tsv|snowplow:json>
+
+  # Check https://docs.metarank.ai/reference/overview/data-sources#apache-pulsar for more information
+  #type: pulsar
+  #serviceUrl: <pulsar service URL>
+  #adminUrl: <pulsar service HTTP admin URL>
+  #topic: events
+  #subscriptionName: metarank
+  #subscriptionType: exclusive # options are exclusive, shared, failover
+  #offset: earliest|latest|ts=<unixtime>|last=<duration>
+  #format: <json|snowplow:tsv|snowplow:json>
+
+  # Check https://docs.metarank.ai/reference/overview/data-sources#aws-kinesis-streams for more information
+  #type: kinesis
+  #region: us-east-1
+  #topic: events
+  #offset: earliest|latest|ts=<unixtime>|last=<duration>
+  #format: <json|snowplow:tsv|snowplow:json>
+
 # The "api" section describes the Metarank API configuration.
 # Check https://docs.metarank.ai/reference/overview#api-options for more information.
 # This section is optional and by default uses the following parameters

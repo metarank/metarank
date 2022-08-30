@@ -7,6 +7,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
+import fs2.io.file.Path
 
 class FileEventSourceTest extends AnyFlatSpec with Matchers {
   lazy val events = RanklensEvents(100)
@@ -30,5 +31,17 @@ class FileEventSourceTest extends AnyFlatSpec with Matchers {
     val result  = FileEventSource(FileInputConfig(outFile.toString()))
     val decoded = result.stream.compile.toList.unsafeRunSync()
     decoded shouldBe events
+  }
+
+  it should "sort files by name" in {
+    val dir = File.newTemporaryDirectory("dir").deleteOnExit()
+    dir.createChild("1").deleteOnExit()
+    dir.createChild("4").deleteOnExit()
+    dir.createChild("5").deleteOnExit()
+    dir.createChild("3").deleteOnExit()
+    dir.createChild("2").deleteOnExit()
+    val source = FileEventSource(FileInputConfig(dir.toString()))
+    val list   = source.listRecursive(Path(dir.toString())).compile.toList.unsafeRunSync().flatMap(_.names.lastOption)
+    list.map(_.fileName.toString) shouldBe List("1", "2", "3", "4", "5")
   }
 }

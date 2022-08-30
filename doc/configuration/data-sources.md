@@ -51,7 +51,7 @@ The *path* parameter is a node-local file or directory with the input dataset.
 
 The `file` data source supports:
 * compression, auto-detected based on file extension: ZStandard and GZip are supported
-* directories with multiple input files. Metarank sorts files by their modification date to read them in proper sequence.
+* directories with multiple input files. Metarank sorts files lexicographically by their name to read them in a proper sequence.
 
 
 ### Apache Kafka

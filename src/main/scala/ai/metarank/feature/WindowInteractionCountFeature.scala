@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
@@ -19,7 +20,7 @@ import shapeless.syntax.typeable.typeableOps
 import scala.concurrent.duration._
 
 case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) extends ItemFeature {
-  override val dim: Int = schema.periods.size
+  override val dim = VectorDim(schema.periods.size)
 
   val conf = PeriodicCounterConfig(
     scope = schema.scope,
@@ -54,7 +55,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
     val result = for {
       key      <- readKey(request, conf, id.id)
       value    <- features.get(key)
-      valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim
+      valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim.dim
     } yield {
       VectorValue(schema.name, valueNum.values.map(_.value.toDouble).toArray, dim)
     }

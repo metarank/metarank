@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
@@ -21,7 +22,7 @@ import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
 case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
-  override val dim: Int = schema.periods.size
+  override val dim = VectorDim(schema.periods.size)
 
   val top = PeriodicCounterConfig(
     scope = schema.scope,
@@ -74,8 +75,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
     val result = for {
       topValue    <- features.get(Key(ItemScope(id.id), top.name))
       bottomValue <- features.get(Key(ItemScope(id.id), bottom.name))
-      topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim
-      bottomNum   <- bottomValue.cast[PeriodicCounterValue] if (bottomNum.values.size == dim)
+      topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim.dim
+      bottomNum   <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.size == dim.dim
     } yield {
       val values = topNum.values.zip(bottomNum.values).map(x => x._1.value / x._2.value.toDouble).toArray
       VectorValue(schema.name, values, dim)

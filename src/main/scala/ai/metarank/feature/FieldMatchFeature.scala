@@ -4,6 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher}
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -24,7 +25,7 @@ import io.circe.generic.semiauto.deriveDecoder
 import scala.concurrent.duration._
 
 case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with Logging {
-  override def dim: Int = 1
+  override def dim = SingleDim
 
   private val conf = ScalarConfig(
     scope = schema.scope,

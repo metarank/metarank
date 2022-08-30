@@ -33,14 +33,17 @@ case class FileEventSource(conf: FileInputConfig) extends EventSource with Loggi
 
   }
 
-  def listRecursive(path: Path): Stream[IO, Path] = Files[IO]
-    .list(path)
-    .flatMap(child =>
-      Stream.eval(Files[IO].isDirectory(child)).flatMap {
-        case true  => Stream.exec(IO(logger.info(s"$child is a directory"))) ++ listRecursive(child)
-        case false => Stream.exec(IO(logger.info(s"found file $child"))) ++ Stream[IO, Path](child)
-      }
-    )
+  def listRecursive(path: Path): Stream[IO, Path] = {
+    val unsorted = Files[IO]
+      .list(path)
+      .flatMap(child =>
+        Stream.eval(Files[IO].isDirectory(child)).flatMap {
+          case true  => Stream.exec(IO(logger.info(s"$child is a directory"))) ++ listRecursive(child)
+          case false => Stream.exec(IO(logger.info(s"found file $child"))) ++ Stream[IO, Path](child)
+        }
+      )
+    Stream.evalSeq(unsorted.compile.toList.map(_.sortBy(_.fileName.toString)))
+  }
 
   def selectFile(path: Path): Boolean = {
     val modificationTime = java.nio.file.Files.getLastModifiedTime(path.toNioPath).toMillis

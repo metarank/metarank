@@ -130,7 +130,6 @@ region: us-east-1
 topic: events
 offset: earliest|latest|ts=<unixtime>|last=<duration>
 format: <json|snowplow:tsv|snowplow:json>
-options: # optional custom options for Flink connector, map<string,string>
 ```
 
 Important things to note when using AWS Kinesis connector for bootstrap:

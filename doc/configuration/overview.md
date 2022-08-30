@@ -5,6 +5,7 @@ Metarank YAML config file contains the following sections:
 * [Model Configuration](supported-ranking-models.md)
 * [Feature extractors](feature-extractors.md): how features are computed on top of incoming events
 * [API options](#api-options)
+* [Data sources](data-sources.md)
 
 ```yaml
 state:
@@ -33,6 +34,9 @@ models:
     features:
       - popularity
       - genre
+
+source:
+  type: file
 
 api:
   port: 8080

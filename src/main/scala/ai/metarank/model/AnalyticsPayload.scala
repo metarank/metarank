@@ -40,7 +40,7 @@ case class AnalyticsPayload(
     usedFeatures: List[UsedFeature],
     system: SystemParams,
     mode: String,
-    version: String,
+    version: Option[String],
     ts: Long
 )
 

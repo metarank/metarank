@@ -18,6 +18,6 @@ object Version {
     } yield {
       version
     }
-    version.getOrElse("snapshot")
+    version
   }
 }

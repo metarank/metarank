@@ -13,7 +13,7 @@ object ErrorReporter extends Logging {
       override def execute(event: SentryEvent, hint: Hint): SentryEvent =
         if (enabled) event else null
     })
-    conf.setRelease(Version())
+    conf.setRelease(Version().getOrElse("snapshot"))
     conf.setDsn(if (enabled) Constants.SENTRY_DSN else "")
     Sentry.init(conf)
   }

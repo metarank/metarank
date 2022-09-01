@@ -24,6 +24,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     val conf = parse(yaml).flatMap(_.as[Config])
     conf shouldBe Right(
       Config(
+        core = CoreConfig(),
         features = NonEmptyList.of(
           NumberFeatureSchema(FeatureName("popularity"), FieldName(Item, "popularity"), ItemScopeType)
         ),

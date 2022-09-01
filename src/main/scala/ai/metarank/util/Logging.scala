@@ -10,4 +10,5 @@ trait Logging {
   def info(msg: String): IO[Unit]                 = IO(logger.info(msg))
   def warn(msg: String): IO[Unit]                 = IO(logger.warn(msg))
   def error(msg: String, ex: Throwable): IO[Unit] = IO(logger.error(msg, ex))
+  def error(msg: String): IO[Unit]                = IO(logger.error(msg))
 }

@@ -10,6 +10,7 @@ import io.circe.Decoder
 import io.circe.yaml.parser.{parse => parseYaml}
 
 case class Config(
+    core: CoreConfig,
     api: ApiConfig,
     state: StateStoreConfig,
     input: Option[InputConfig],
@@ -22,6 +23,7 @@ object Config extends Logging {
   implicit val configDecoder: Decoder[Config] = Decoder
     .instance(c =>
       for {
+        coreOption  <- c.downField("core").as[Option[CoreConfig]]
         apiOption   <- c.downField("api").as[Option[ApiConfig]]
         stateOption <- c.downField("state").as[Option[StateStoreConfig]]
         inputOption <- c.downField("input").as[Option[InputConfig]]
@@ -30,7 +32,8 @@ object Config extends Logging {
       } yield {
         val api   = get(apiOption, ApiConfig(Hostname("localhost"), Port(8080)), "api")
         val state = get(stateOption, MemoryStateConfig(), "state")
-        Config(api, state, inputOption, features, models)
+        val core  = coreOption.getOrElse(CoreConfig())
+        Config(core, api, state, inputOption, features, models)
       }
     )
     .ensure(Validations.checkFeatureModelReferences)

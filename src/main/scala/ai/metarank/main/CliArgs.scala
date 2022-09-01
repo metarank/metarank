@@ -5,7 +5,7 @@ import ai.metarank.config.InputConfig.SourceOffset.Earliest
 import ai.metarank.config.SourceFormat
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
-import ai.metarank.util.Logging
+import ai.metarank.util.{Logging, Version}
 import org.bouncycastle.crypto.params.Argon2Parameters
 import org.rogach.scallop.{ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter}
 
@@ -172,7 +172,7 @@ object CliArgs extends Logging {
     addSubcommand(serve)
     addSubcommand(standalone)
     addSubcommand(validate)
-    version(Logo.raw)
+    version(Logo.raw + " ver:" + Version())
     banner("""Usage: metarank <subcommand> <options>
              |Options:
              |""".stripMargin)

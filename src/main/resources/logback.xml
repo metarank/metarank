@@ -7,11 +7,8 @@
         </encoder>
     </appender>
 
-    <logger name="org.apache.flink" level="INFO"/>
-    <logger name="org.apache.flink.streaming.api.operators.collect.CollectResultFetcher" level="ERROR"/>
-    <logger name="akka" level="WARN"/>
-    <logger name="io.findify.featury" level="ERROR"/>
-    <!--logger name="ai.metarank.fstore.redis" level="DEBUG"/-->
+    <logger name="org.http4s.client" level="ERROR"/>
+    <logger name="org.http4s.blaze" level="ERROR"/>
 
     <root level="error">
         <appender-ref ref="STDOUT"/>

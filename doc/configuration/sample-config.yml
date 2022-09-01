@@ -64,7 +64,7 @@ models:
 state: # a place to store the feature values for the ML inference and the trained model
     # Local memory
     # A node-local in-memory storage without any persistence. 
-    # Features values and the trained model is stored in-memory.    
+    # Feature values and the trained model is stored in-memory.
     # Suitable only for local testing, as in case of a restart it will loose all the data.
     type: memory
 
@@ -85,7 +85,7 @@ state: # a place to store the feature values for the ML inference and the traine
     #  maxSize: 128    # batch write buffer size, optional, default=128
     #  flushPeriod: 1s # buffer flush interval, optional, default=1s
 
-# The "source" section describes the source of the data. This parameter is optional an by default has type: file. 
+# The "source" section describes the source of the data. This parameter is optional.
 # Check https://docs.metarank.ai/reference/overview/data-sources for more information
 source:
   type: file # source type, available options: file, kafka, pulsar, kinesis
@@ -122,7 +122,11 @@ source:
 # Check https://docs.metarank.ai/reference/overview#api-options for more information.
 # This section is optional and by default uses the following parameters
 api:
-  port: 8080
-  host: "0.0.0.0"
+  port: 8080 # optional, default 8080
+  host: "0.0.0.0" # optional, default 0.0.0.0
 
-  
+# Anonymous usage reporting. It is very helpful to us, so please leave this enabled.
+core:
+  tracking:
+    analytics: true
+    errors: true

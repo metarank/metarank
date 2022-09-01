@@ -1,7 +1,7 @@
 # Changelog
 
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
-Check our [blog](https://medium.com/metarank) for more detailed updates.
+Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
 ## 0.5.1
 

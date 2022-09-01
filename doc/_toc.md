@@ -1,5 +1,9 @@
 # Metarank docs
 
+* [Blog](https://blog.metarank.ai)
+* [Github](https://github.com/metarank/metarank)
+* [Demo](https://demo.metrarank.ai)
+
 ## Introduction
 
 * [What is Metarank?](intro.md)

@@ -35,12 +35,12 @@ object InteractionMetadataValidation extends EventValidation {
         logger.info(s"$name: PASS")
         Nil
       case State(missing, Nil) =>
-        logger.error(s"$name: FAIL (${missing.size} interaction happened on never seen items)")
-        logger.error(s"examples: ${missing.map(_.id.value).take(10)}")
+        logger.warn(s"$name: FAIL (${missing.size} interaction happened on never seen items)")
+        logger.warn(s"examples: ${missing.map(_.id.value).take(10)}")
         List(InteractionWithoutMetadataError(missing.map(_.item)))
       case State(_, ooo) =>
-        logger.error(s"$name: FAIL (${ooo.size} interaction happened before we seen item metadata event)")
-        logger.error(s"examples: ${ooo.map(_.id.value).take(10)}")
+        logger.warn(s"$name: FAIL (${ooo.size} interaction happened before we seen item metadata event)")
+        logger.warn(s"examples: ${ooo.map(_.id.value).take(10)}")
         List(InteractionWithoutMetadataError(ooo.map(_.item)))
 
     }

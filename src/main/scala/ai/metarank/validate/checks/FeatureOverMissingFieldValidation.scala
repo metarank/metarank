@@ -50,9 +50,9 @@ object FeatureOverMissingFieldValidation extends EventValidation {
       logger.info(s"$name = PASS (${config.features.size} features referencing existing ${fields.size} event fields)")
       Nil
     } else {
-      logger.error(s"$name = FAIL (${brokenRefs.size} features reference non-existent event fields)")
+      logger.warn(s"$name = FAIL (${brokenRefs.size} features reference non-existent event fields)")
       brokenRefs.foreach { case (conf, field) =>
-        logger.error(s"feature ${conf.name} references field $field, and no events with this field exists")
+        logger.warn(s"feature ${conf.name} references field $field, and no events with this field exists")
       }
       List(FeatureOverMissingFieldError(brokenRefs))
     }

@@ -17,8 +17,8 @@ object EventOrderValidation extends EventValidation with Logging {
       }
     )
     if (result.oooCount > 0) {
-      logger.error(s"$name = FAIL (${result.oooCount}/${events.size} events are out of order)")
-      logger.error(s"last known ts=${result.ts}, but got event ${result.firstOoo}")
+      logger.warn(s"$name = FAIL (${result.oooCount}/${events.size} events are out of order)")
+      logger.warn(s"last known ts=${result.ts}, but got event ${result.firstOoo}")
       List(EventOrderError(result))
     } else {
       logger.info(s"$name = PASS (${events.size} events sorted by timestamp)")

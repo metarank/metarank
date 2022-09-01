@@ -7,11 +7,20 @@
         </encoder>
     </appender>
 
+    <appender name="Sentry" class="io.sentry.logback.SentryAppender">
+        <options>
+            <dsn>https://f6229355233643c9983efef1873fa075@o1387472.ingest.sentry.io/6708608</dsn>
+        </options>
+    </appender>
+
     <logger name="org.http4s.client" level="ERROR"/>
-    <logger name="org.http4s.blaze" level="ERROR"/>
+    <logger name="org.http4s.blaze.client" level="ERROR"/>
+    <logger name="org.http4s.blaze.channel" level="ERROR"/>
+    <logger name="ch.qos.logback" level="WARN"/>
 
     <root level="error">
         <appender-ref ref="STDOUT"/>
+        <appender-ref ref="Sentry" />
     </root>
     <root level="warn">
         <appender-ref ref="STDOUT"/>

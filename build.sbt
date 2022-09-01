@@ -55,7 +55,8 @@ lazy val root = (project in file("."))
       "software.amazon.awssdk" % "kinesis"                  % "2.17.263",
       "io.lettuce"             % "lettuce-core"             % "6.2.0.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
-      "com.google.guava"       % "guava"                    % "31.1-jre"
+      "com.google.guava"       % "guava"                    % "31.1-jre",
+      "io.sentry"              % "sentry-logback"           % "6.4.1"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),

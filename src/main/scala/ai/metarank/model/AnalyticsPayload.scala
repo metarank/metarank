@@ -40,7 +40,7 @@ case class AnalyticsPayload(
     usedFeatures: List[UsedFeature],
     system: SystemParams,
     mode: String,
-    version: String,
+    version: Option[String],
     ts: Long
 )
 
@@ -103,10 +103,10 @@ object AnalyticsPayload {
       .networkInterfaces()
       .collect(Collectors.toList[NetworkInterface])
       .asScala
-      .filter(iface => iface.isUp && !iface.isLoopback)
+      .filter(iface => iface.isUp && !iface.isLoopback && !iface.isVirtual)
+      .flatMap(iface => Option(iface.getHardwareAddress))
 
     interfaces.headOption
-      .map(_.getHardwareAddress)
       .map(addr => Hashing.sha256().hashBytes(addr).toString)
   }
 }

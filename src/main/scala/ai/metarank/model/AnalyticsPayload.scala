@@ -31,6 +31,7 @@ import org.apache.commons.io.IOUtils
 import java.io.ByteArrayInputStream
 import scala.jdk.CollectionConverters._
 import java.net.NetworkInterface
+import java.util.stream.Collectors
 import scala.util.Try
 
 case class AnalyticsPayload(
@@ -100,7 +101,7 @@ object AnalyticsPayload {
   def getMacHash: Option[String] = {
     val interfaces = NetworkInterface
       .networkInterfaces()
-      .toList
+      .collect(Collectors.toList[NetworkInterface])
       .asScala
       .filter(iface => iface.isUp && !iface.isLoopback)
 

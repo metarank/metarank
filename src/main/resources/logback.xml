@@ -14,7 +14,9 @@
     </appender>
 
     <logger name="org.http4s.client" level="ERROR"/>
-    <logger name="org.http4s.blaze" level="ERROR"/>
+    <logger name="org.http4s.blaze.client" level="ERROR"/>
+    <logger name="org.http4s.blaze.channel" level="ERROR"/>
+    <logger name="ch.qos.logback" level="WARN"/>
 
     <root level="error">
         <appender-ref ref="STDOUT"/>

@@ -6,8 +6,10 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, StandaloneArgs, TrainArgs, ValidateArgs}
 import ai.metarank.main.command.{Import, Serve, Standalone, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
-import ai.metarank.util.{AnalyticsReporter, Logging}
+import ai.metarank.util.{AnalyticsReporter, ErrorReporter, Logging}
 import cats.effect.{ExitCode, IO, IOApp}
+import io.sentry.SentryOptions.BeforeSendCallback
+import io.sentry.{Hint, Sentry, SentryEvent, SentryOptions}
 import org.apache.commons.io.IOUtils
 
 import scala.jdk.CollectionConverters._
@@ -30,6 +32,7 @@ object Main extends IOApp with Logging {
           )
         confString <- IO.fromTry(Try(IOUtils.toString(new FileInputStream(args.conf.toFile), StandardCharsets.UTF_8)))
         conf       <- Config.load(confString)
+        _          <- ErrorReporter.init(conf.core.tracking.errors)
         mapping    <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
         store = Persistence.fromConfig(mapping.schema, conf.state)
         _ <- IO.whenA(conf.core.tracking.analytics)(AnalyticsReporter.ping(AnalyticsPayload(conf, args)))

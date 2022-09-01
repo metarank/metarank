@@ -8,12 +8,13 @@ import io.sentry.SentryOptions.BeforeSendCallback
 object ErrorReporter extends Logging {
   def init(enabled: Boolean) = IO {
     val conf = new SentryOptions()
-    if (!enabled) logger.info("error reporting is disabled")
+    logger.info(s"Sentry error reporting is ${if (enabled) "enabled" else "disabled"}")
     conf.setBeforeSend(new BeforeSendCallback {
       override def execute(event: SentryEvent, hint: Hint): SentryEvent =
         if (enabled) event else null
     })
     conf.setRelease(Version().getOrElse("snapshot"))
+    conf.setMaxBreadcrumbs(0)
     conf.setDsn(if (enabled) Constants.SENTRY_DSN else "")
     Sentry.init(conf)
   }

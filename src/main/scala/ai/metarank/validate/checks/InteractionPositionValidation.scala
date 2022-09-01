@@ -39,12 +39,12 @@ object InteractionPositionValidation extends EventValidation {
         logger.info(s"$name = PASS (int distribution: ${clicks.mkString("[", ",", "]")}")
         Nil
       case State(clicks, Nil) =>
-        logger.error(s"$name = FAIL (all interactions always happening on the same position)")
-        logger.error(s"Histogram: ${clicks}")
+        logger.warn(s"$name = FAIL (all interactions always happening on the same position)")
+        logger.warn(s"Histogram: ${clicks}")
         List(InteractionPositionError(clicks, Nil))
       case State(clicks, nonEmpty) =>
-        logger.error(s"$name = FAIL (${nonEmpty.size} interactions happened on items missing in ranking)")
-        logger.error(s"Examples: ${nonEmpty.take(10)}")
+        logger.warn(s"$name = FAIL (${nonEmpty.size} interactions happened on items missing in ranking)")
+        logger.warn(s"Examples: ${nonEmpty.take(10)}")
         List(InteractionPositionError(clicks, nonEmpty))
     }
   }

@@ -19,11 +19,11 @@ object EventTypesValidation extends EventValidation {
       logger.warn("this may be OK if you're not using any per-item metadata in ranking at all")
       List(MissingEventTypeError(itemEvents.size, rankingEvents.size, interactionEvents.size))
     } else if (rankingEvents.isEmpty) {
-      logger.error(s"$name = FAIL (0 ranking events found)")
+      logger.warn(s"$name = FAIL (0 ranking events found)")
       logger.warn("Metarank cannot train the ML model without ranking events")
       List(MissingEventTypeError(itemEvents.size, rankingEvents.size, interactionEvents.size))
     } else if (interactionEvents.isEmpty) {
-      logger.error(s"$name = FAIL (0 interaction events found)")
+      logger.warn(s"$name = FAIL (0 interaction events found)")
       logger.warn("Metarank cannot train the ML model without interactions")
       List(MissingEventTypeError(itemEvents.size, rankingEvents.size, interactionEvents.size))
     } else {

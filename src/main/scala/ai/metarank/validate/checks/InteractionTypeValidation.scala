@@ -28,7 +28,7 @@ object InteractionTypeValidation extends EventValidation {
       logger.info(s"$name = PASS (${interactions.size} interactions have known types: ${types})")
       Nil
     } else {
-      logger.error(s"$name = FAIL (${result.wrong} interactions have unknown types: ${result.types})")
+      logger.warn(s"$name = FAIL (${result.wrong} interactions have unknown types: ${result.types})")
       List(InteractionTypeError(result.wrong, result.types))
     }
   }

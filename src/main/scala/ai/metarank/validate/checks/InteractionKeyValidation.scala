@@ -28,8 +28,8 @@ object InteractionKeyValidation extends EventValidation {
         logger.info(s"$name = PASS (${rankings.size} rankings, all interactions reference existing ones)")
         Nil
       case State(stale) =>
-        logger.error(s"$name = FAIL (${stale.size} interaction are happened on non-existent rankings)")
-        logger.error(s"Examples: ${stale.map(_.id).take(10)}")
+        logger.warn(s"$name = FAIL (${stale.size} interaction are happened on non-existent rankings)")
+        logger.warn(s"Examples: ${stale.map(_.id).take(10)}")
         List(InteractionKeyError(stale.size))
     }
   }

@@ -122,7 +122,7 @@ drwxr-xr-x 81 user user  16384 Aug 23 14:24 ..
 
 ```bash
 docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank\ 
-    metarank/metarank:0.5.1 standalone\
+    metarank/metarank:0.5.2 standalone\
     --config /opt/metarank/config.yml\
     --data /opt/metarank/events.jsonl.gz
 ```

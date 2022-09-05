@@ -6,7 +6,8 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, StandaloneArgs, TrainArgs, ValidateArgs}
 import ai.metarank.main.command.{Import, Serve, Standalone, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
-import ai.metarank.util.{AnalyticsReporter, ErrorReporter, Logging}
+import ai.metarank.util.analytics.{AnalyticsReporter, ErrorReporter}
+import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO, IOApp}
 import io.sentry.SentryOptions.BeforeSendCallback
 import io.sentry.{Hint, Sentry, SentryEvent, SentryOptions}

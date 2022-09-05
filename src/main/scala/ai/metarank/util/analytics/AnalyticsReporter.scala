@@ -1,16 +1,16 @@
-package ai.metarank.util
+package ai.metarank.util.analytics
 
 import ai.metarank.main.Constants
 import ai.metarank.model.AnalyticsPayload
+import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk
 import io.circe.Printer
-import org.http4s.{Entity, Method, Request, Response, Uri}
 import org.http4s.blaze.client.BlazeClientBuilder
-import io.circe.syntax._
 import org.http4s.blaze.util.TickWheelExecutor
-
+import org.http4s.{Entity, Method, Request, Uri}
 import scala.concurrent.duration._
+import io.circe.syntax._
 
 object AnalyticsReporter extends Logging {
   val jsonFormat = Printer.noSpaces.copy(dropNullValues = true)

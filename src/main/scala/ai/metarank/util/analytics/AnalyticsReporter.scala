@@ -33,7 +33,7 @@ object AnalyticsReporter extends Logging {
           )
           _   <- http.expect[Unit](request)
           end <- IO(System.currentTimeMillis())
-          _ <- info(
+          _ <- debug(
             s"anonymous usage reporting is enabled (${end - start}ms), set core.tracking.analytics=false to skip"
           )
         } yield {}

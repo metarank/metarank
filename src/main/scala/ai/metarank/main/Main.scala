@@ -31,6 +31,7 @@ object Main extends IOApp with Logging {
               CliArgs.printHelp()
             }
           )
+        _          <- IO(logger.info(Logo.raw + "  ver:" + Version().getOrElse("unknown")))
         confString <- IO.fromTry(Try(IOUtils.toString(new FileInputStream(args.conf.toFile), StandardCharsets.UTF_8)))
         conf       <- Config.load(confString)
         _          <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args), env)

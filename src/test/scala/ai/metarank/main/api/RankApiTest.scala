@@ -13,6 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
 import io.circe.parser._
+import scodec.bits.ByteVector
 
 class RankApiTest extends AnyFlatSpec with Matchers {
   lazy val mapping = TestFeatureMapping()
@@ -55,7 +56,7 @@ class RankApiTest extends AnyFlatSpec with Matchers {
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(uri),
-      entity = Entity.strict(Chunk.array(payload.getBytes))
+      entity = Entity.strict(ByteVector(payload.getBytes))
     )
     val response = service.routes.apply(request).value.unsafeRunSync()
     val json     = response.map(r => new String(r.entity.body.compile.toList.unsafeRunSync().toArray))

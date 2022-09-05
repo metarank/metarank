@@ -9,8 +9,10 @@ import io.circe.Printer
 import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.{Entity, Method, Request, Uri}
+
 import scala.concurrent.duration._
 import io.circe.syntax._
+import scodec.bits.ByteVector
 
 object AnalyticsReporter extends Logging {
   val jsonFormat = Printer.noSpaces.copy(dropNullValues = true)
@@ -29,7 +31,7 @@ object AnalyticsReporter extends Logging {
           request = Request[IO](
             method = Method.POST,
             uri = uri,
-            entity = Entity.strict(Chunk.array(jsonFormat.print(payload.asJson).getBytes()))
+            entity = Entity.strict(ByteVector(jsonFormat.print(payload.asJson).getBytes()))
           )
           _   <- http.expect[Unit](request)
           end <- IO(System.currentTimeMillis())

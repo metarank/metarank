@@ -13,6 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.syntax._
 import org.http4s.{Entity, Method, Request, Response, Uri}
+import scodec.bits.ByteVector
 
 import java.util.zip.GZIPInputStream
 
@@ -60,7 +61,7 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
-      entity = Entity.strict(Chunk.array(payload.getBytes()))
+      entity = Entity.strict(ByteVector(payload.getBytes()))
     )
 
     service.routes(request).value.unsafeRunSync().get

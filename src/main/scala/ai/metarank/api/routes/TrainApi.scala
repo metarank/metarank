@@ -10,6 +10,7 @@ import cats.effect.IO
 import fs2.Chunk
 import org.http4s.dsl.io._
 import org.http4s.{Entity, HttpRoutes, Response, Status}
+import scodec.bits.ByteVector
 
 case class TrainApi(mapping: FeatureMapping, store: Persistence) extends Logging {
   def routes = HttpRoutes.of[IO] { case POST -> Root / "train" / modelName =>
@@ -26,5 +27,5 @@ case class TrainApi(mapping: FeatureMapping, store: Persistence) extends Logging
   }
 
   def error(status: Status, message: String) =
-    IO.pure(Response(status = status, entity = Entity.strict(Chunk.array(message.getBytes))))
+    IO.pure(Response(status = status, entity = Entity.strict(ByteVector(message.getBytes))))
 }

@@ -52,9 +52,10 @@ object Main extends IOApp with Logging {
   def sendUsageAnalytics(conf: TrackingConfig, payload: AnalyticsPayload, env: Map[String, String]): IO[Unit] = {
     val envVar = env.get("METARANK_TRACKING")
     val shouldSend = (envVar, Version.isRelease) match {
-      case (Some("true"), _) => true
-      case (_, true)         => true
-      case (_, false)        => false
+      case (Some("true"), _)  => true
+      case (Some("false"), _) => false
+      case (_, true)          => true
+      case (_, false)         => false
     }
     if (!shouldSend) {
       info(s"usage analytics disabled: METARANK_TRACKING=$envVar isRelease=${Version.isRelease}")

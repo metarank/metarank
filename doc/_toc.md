@@ -30,11 +30,8 @@
 * [Integrations](integrations/overview.md)
   * [Snowplow](integrations/snowplow.md) 
 
-## Guides
-
-* [Production deployment](howto/production-deployment.md)
-
 ## Development
 
+* [Running in production](dev/production-recommendations.md)
 * [Changelog](changelog.md)
 * [Building from source](dev/build.md)

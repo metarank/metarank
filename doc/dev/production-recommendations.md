@@ -1,8 +1,8 @@
-# Metarank Production Deployment
+# Running in production
 
 These are general recommendations on running Metarank in a production environment.
 
-![Production deployment](/doc/img/production-deployment.png)
+![Production environment overview](/doc/img/production-deployment.png)
 
 ## Persistence
 
@@ -23,6 +23,9 @@ Although `standalone` mode is great for development purposes, it can't be used f
 
 For production deployment, you should only use the `serve` mode. You can have as many `serve` instances as you need, depending on the load you have
 and you can perform graceful restarts of Metarank with 0 downtime.
+
+Resource consumption of the `serve` mode is relatively low as it performs minimal computations, so you can use cheaper nodes than
+when training the model.
 
 ## Re-training
 

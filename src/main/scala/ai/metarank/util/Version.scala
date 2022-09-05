@@ -20,4 +20,6 @@ object Version {
     }
     version
   }
+
+  def isRelease: Boolean = apply().isDefined
 }

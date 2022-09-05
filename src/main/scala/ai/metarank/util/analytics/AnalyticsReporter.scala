@@ -15,7 +15,7 @@ import io.circe.syntax._
 object AnalyticsReporter extends Logging {
   val jsonFormat = Printer.noSpaces.copy(dropNullValues = true)
 
-  def ping(payload: AnalyticsPayload): IO[Unit] = {
+  def ping(enabled: Boolean, payload: AnalyticsPayload): IO[Unit] = {
     val clientResource = BlazeClientBuilder[IO]
       .withRequestTimeout(10.second)
       .withConnectTimeout(10.second)

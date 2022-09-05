@@ -203,7 +203,6 @@ An example payload:
   "ts" : 1662030509517
 }
 ```
-
 ### Error logging
 
 We use [Sentry](https://www.sentry.io) for error collection. This behavior is enabled by default and can be disabled with

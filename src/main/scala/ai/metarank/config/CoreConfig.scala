@@ -13,7 +13,7 @@ case class CoreConfig(
 object CoreConfig {
   import ai.metarank.util.DurationJson._
   case class TrackingConfig(analytics: Boolean = true, errors: Boolean = true)
-  case class ClickthroughJoinConfig(maxLength: FiniteDuration = 30.minutes, bufferSize: Int = 4096)
+  case class ClickthroughJoinConfig(maxLength: FiniteDuration = 30.minutes, bufferSize: Int = 10000)
 
   implicit val clickthroughJoinConfigDecoder: Decoder[ClickthroughJoinConfig] = Decoder.instance(c =>
     for {

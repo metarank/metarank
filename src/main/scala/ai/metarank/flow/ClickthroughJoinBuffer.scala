@@ -49,9 +49,7 @@ case class ClickthroughJoinBuffer(
       mvalues
     )
     _ <- IO(rankings.put(ctv.ct.id.value, ctv))
-  } yield {
-    logger.info(s"added $ctv")
-  }
+  } yield {}
 
   def handleInteraction(event: InteractionEvent): IO[Unit] = for {
     rankingOption <- IO(event.ranking.flatMap(id => rankings.getIfPresent(id.value)))
@@ -63,9 +61,7 @@ case class ClickthroughJoinBuffer(
           rankings.put(updated.ct.id.value, updated)
         }
     }
-  } yield {
-    val br = 1
-  }
+  } yield {}
 
   def tick(now: Timestamp) = IO(ticker.advance(now)) *> IO(rankings.cleanUp())
 
@@ -92,7 +88,7 @@ case class ClickthroughJoinBuffer(
   }
 
   def dequeueAll() = IO {
-    val values = queue.iterator().asScala.toList
+    val values = rankings.asMap().values.toList.filter(_.ct.interactions.nonEmpty)
     queue.clear()
     values
   }

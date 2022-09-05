@@ -7,7 +7,7 @@ models:
   xgboost:
     type: lambdamart
     backend:
-      type: lightgbm
+      type: xgboost
       iterations: 50
       ndcgCutoff: 50
       seed: 0

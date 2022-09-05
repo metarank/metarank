@@ -62,6 +62,9 @@ object Main extends IOApp with Logging {
       info(s"usage analytics disabled: METARANK_TRACKING=$envVar isRelease=${Version.isRelease}")
     } else {
       for {
+        _ <- info(
+          s"usage analytics enabled: env=$envVar release=${Version.isRelease} analytics=${conf.analytics} errors=${conf.errors}"
+        )
         _ <- ErrorReporter.init(conf.errors)
         _ <- AnalyticsReporter.ping(conf.analytics, payload)
       } yield {}

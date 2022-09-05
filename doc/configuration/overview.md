@@ -203,7 +203,6 @@ An example payload:
   "ts" : 1662030509517
 }
 ```
-
 ### Error logging
 
 We use [Sentry](https://www.sentry.io) for error collection. This behavior is enabled by default and can be disabled with
@@ -212,3 +211,5 @@ We use [Sentry](https://www.sentry.io) for error collection. This behavior is en
 * PII tracking is disabled: no hostnames and IP addresses are included in the error message.
 
 An example error payload is available in [sample-error.json](sample-error.json).
+
+The whole usage logging and error reporting can be disabled also by setting an env variable to `METARANK_TRACKING=false`.

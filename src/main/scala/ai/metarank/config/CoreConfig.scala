@@ -13,7 +13,9 @@ object CoreConfig {
       analytics <- c.downField("analytics").as[Option[Boolean]]
       errors    <- c.downField("errors").as[Option[Boolean]]
     } yield {
-      TrackingConfig(analytics.getOrElse(true), errors.getOrElse(true))
+      TrackingConfig(
+        analytics = analytics.getOrElse(true),
+        errors = errors.getOrElse(true))
     }
   )
 

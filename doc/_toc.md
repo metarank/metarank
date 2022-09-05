@@ -10,7 +10,7 @@
 * [Event Format](event-schema.md)
   * [Timestamp formats](timestamp-formats.md)
 * [API](api.md)
-* [CLI](cli.md)
+* [Command-line options](cli.md)
 * [Configuration](configuration/overview.md)
   * [Feature extractors](configuration/feature-extractors.md) 
     * [Counters](configuration/features/counters.md)

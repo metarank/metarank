@@ -1,5 +1,6 @@
 package ai.metarank.main
 
+import ai.metarank.config.CoreConfig
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.rank.LambdaMARTModel
@@ -13,7 +14,7 @@ class TrainTest extends AnyFlatSpec with Matchers {
   lazy val store   = MemPersistence(dataset.mapping.schema)
 
   it should "generate test data" in {
-    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, CoreConfig()).unsafeRunSync()
   }
 
   it should "train xgboost model" in {

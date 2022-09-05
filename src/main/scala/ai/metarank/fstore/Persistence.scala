@@ -102,10 +102,7 @@ object Persistence extends Logging {
   }
 
   trait ClickthroughStore {
-    def putRanking(ranking: RankingEvent): IO[Unit]
-    def putValues(id: EventId, values: List[ItemValue]): IO[Unit]
-    def putInteraction(id: EventId, item: ItemId, tpe: String): IO[Unit]
-    def getClickthrough(id: EventId): IO[Option[Clickthrough]]
+    def put(cts: List[ClickthroughValues]): IO[Unit]
     def getall(): fs2.Stream[IO, ClickthroughValues]
   }
 

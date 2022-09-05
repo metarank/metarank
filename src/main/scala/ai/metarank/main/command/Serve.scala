@@ -27,27 +27,27 @@ object Serve extends Logging {
     storeResource.use(store => {
       conf.input match {
         case None =>
-          info("no stream input defined in config, using only REST API") *> api(store, mapping, conf.api)
+          info("no stream input defined in config, using only REST API") *> api(store, mapping, conf)
         case Some(sourceConfig) =>
           val source = EventSource.fromConfig(sourceConfig)
           MetarankFlow
-            .process(store, source.stream, mapping)
+            .process(store, source.stream, mapping, conf.core)
             .background
-            .use(_ => info(s"started ${source.conf} source") *> api(store, mapping, conf.api))
+            .use(_ => info(s"started ${source.conf} source") *> api(store, mapping, conf))
       }
 
     })
   }
 
-  def api(store: Persistence, mapping: FeatureMapping, conf: ApiConfig) = {
+  def api(store: Persistence, mapping: FeatureMapping, conf: Config) = {
     val health   = HealthApi(store).routes
     val rank     = RankApi(Ranker(mapping, store)).routes
-    val feedback = FeedbackApi(store, mapping).routes
+    val feedback = FeedbackApi(store, mapping, conf.core).routes
     val train    = TrainApi(mapping, store).routes
     val routes   = health <+> rank <+> feedback <+> train
     val httpApp  = Router("/" -> routes).orNotFound
     val api = BlazeServerBuilder[IO]
-      .bindHttp(conf.port.value, conf.host.value)
+      .bindHttp(conf.api.port.value, conf.api.host.value)
       .withHttpApp(httpApp)
 
     info("Starting API...") *> api.serve.compile.drain

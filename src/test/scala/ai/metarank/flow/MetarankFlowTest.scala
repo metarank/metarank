@@ -1,6 +1,7 @@
 package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.CoreConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
@@ -82,7 +83,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       TestItemEvent("p2", List(NumberField("pop", 5), StringListField("genre", List("comedy")))).copy(timestamp = ts),
       TestItemEvent("p3", List(NumberField("pop", 15), StringField("genre", "drama"))).copy(timestamp = ts)
     )
-    MetarankFlow.process(store, Stream.emits(items), mapping).unsafeRunSync()
+    MetarankFlow.process(store, Stream.emits(items), mapping, CoreConfig()).unsafeRunSync()
   }
 
   it should "have popularities values present in store" in {
@@ -123,27 +124,6 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     )
   }
 
-  it should "create empty clickthrough on ranking feedback" in {
-    MetarankFlow.process(store, Stream.emit(rankingEvent1), mapping).unsafeRunSync()
-    val ct = store.cts.getClickthrough(rankingEvent1.id).unsafeRunSync()
-    ct shouldBe Some(
-      Clickthrough(rankingEvent1.id, rankingEvent1.timestamp, List(ItemId("p1"), ItemId("p2"), ItemId("p3")), Nil)
-    )
-  }
-
-  it should "accept click" in {
-    MetarankFlow.process(store, Stream.emit(clickEvent1), mapping).unsafeRunSync()
-    val ct = store.cts.getClickthrough(rankingEvent1.id).unsafeRunSync()
-    ct shouldBe Some(
-      Clickthrough(
-        rankingEvent1.id,
-        rankingEvent1.timestamp,
-        List(ItemId("p1"), ItemId("p2"), ItemId("p3")),
-        List(TypedInteraction(ItemId("p2"), "click"))
-      )
-    )
-  }
-
   it should "generate updated query" in {
     val q = ranker.makeQuery(rankingEvent2, mapping.models("random").datasetDescriptor).unsafeRunSync()
     q.values shouldBe List(
@@ -159,13 +139,15 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   }
 
   it should "create updated clickthrough in store" in {
-    MetarankFlow.process(store, Stream.emit(rankingEvent2), mapping).unsafeRunSync()
+    MetarankFlow.process(store, Stream.emit(rankingEvent2), mapping, CoreConfig()).unsafeRunSync()
     val ctv = store.cts.getall().compile.toList.unsafeRunSync()
     ctv.find(_.ct.id == rankingEvent2.id) shouldBe Some(
       ClickthroughValues(
         ct = Clickthrough(
           rankingEvent2.id,
           rankingEvent2.timestamp,
+          rankingEvent1.user,
+          rankingEvent1.session,
           List(ItemId("p1"), ItemId("p2"), ItemId("p3"))
         ),
         values = List(

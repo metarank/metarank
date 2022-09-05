@@ -3,6 +3,7 @@ package ai.metarank.api.routes
 import ai.metarank.FeatureMapping
 import ai.metarank.api.JsonChunk
 import ai.metarank.api.routes.FeedbackApi.FeedbackResponse
+import ai.metarank.config.CoreConfig
 import ai.metarank.flow.MetarankFlow
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
@@ -17,12 +18,12 @@ import cats.implicits._
 import io.circe.Codec
 import io.circe.generic.semiauto._
 
-case class FeedbackApi(store: Persistence, mapping: FeatureMapping) extends Logging {
+case class FeedbackApi(store: Persistence, mapping: FeatureMapping, conf: CoreConfig) extends Logging {
   val routes = HttpRoutes.of[IO] {
     case post @ POST -> Root / "feedback" => {
       for {
         stream <- IO(post.entity.body.through(JsonFormat.parse).chunkN(1024).evalTap(logEvents))
-        result <- MetarankFlow.process(store, stream.unchunks, mapping)
+        result <- MetarankFlow.process(store, stream.unchunks, mapping, conf)
       } yield {
         Response(
           status = Status.Ok,

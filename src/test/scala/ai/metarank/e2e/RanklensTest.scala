@@ -2,7 +2,7 @@ package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
@@ -30,7 +30,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
 
   it should "import events" in {
-    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, CoreConfig()).unsafeRunSync()
   }
 
   it should "train the xgboost model" in {
@@ -85,7 +85,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val ranker = Ranker(mapping, store)
     val resp1  = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
 
-    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping, CoreConfig()).unsafeRunSync()
     val resp2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     resp1 shouldNot be(resp2)
     resp1.items.map(_.item.value) shouldNot be(resp2.items.map(_.item.value))

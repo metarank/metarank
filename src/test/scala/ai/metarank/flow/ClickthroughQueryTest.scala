@@ -10,7 +10,7 @@ import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.FieldName.EventType.Item
-import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.ScopeType._
@@ -57,6 +57,8 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
       ct = Clickthrough(
         id = EventId("i1"),
         ts = now,
+        user = UserId("u1"),
+        session = None,
         items = List(ItemId("p1"), ItemId("p2"), ItemId("p3")),
         interactions = List(TypedInteraction(ItemId("p2"), "click"))
       ),

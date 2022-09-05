@@ -1,7 +1,7 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.flow.MetarankFlow.ProcessResult
 import ai.metarank.flow.MetarankFlow
@@ -35,7 +35,7 @@ object Import extends Logging {
     for {
       errors       <- validated(conf, stream, args.validation)
       sortedStream <- sorted(stream, errors)
-      result       <- slurp(sortedStream, store, mapping)
+      result       <- slurp(sortedStream, store, mapping, conf.core)
     } yield {
       result
     }
@@ -52,8 +52,13 @@ object Import extends Logging {
     } else stream
   }
 
-  def slurp(source: fs2.Stream[IO, Event], store: Persistence, mapping: FeatureMapping): IO[ProcessResult] = {
-    MetarankFlow.process(store, source, mapping)
+  def slurp(
+      source: fs2.Stream[IO, Event],
+      store: Persistence,
+      mapping: FeatureMapping,
+      conf: CoreConfig
+  ): IO[ProcessResult] = {
+    MetarankFlow.process(store, source, mapping, conf)
   }
 
 }

@@ -31,6 +31,7 @@ object Main extends IOApp with Logging {
               CliArgs.printHelp()
             }
           )
+        _          <- IO(logger.info(Logo.raw + "  ver:" + Version().getOrElse("unknown")))
         confString <- IO.fromTry(Try(IOUtils.toString(new FileInputStream(args.conf.toFile), StandardCharsets.UTF_8)))
         conf       <- Config.load(confString)
         _          <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args), env)
@@ -61,6 +62,9 @@ object Main extends IOApp with Logging {
       info(s"usage analytics disabled: METARANK_TRACKING=$envVar isRelease=${Version.isRelease}")
     } else {
       for {
+        _ <- info(
+          s"usage analytics enabled: env=$envVar release=${Version.isRelease} analytics=${conf.analytics} errors=${conf.errors}"
+        )
         _ <- ErrorReporter.init(conf.errors)
         _ <- AnalyticsReporter.ping(conf.analytics, payload)
       } yield {}

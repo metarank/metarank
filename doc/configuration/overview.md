@@ -203,3 +203,12 @@ An example payload:
   "ts" : 1662030509517
 }
 ```
+
+### Error logging
+
+We use [Sentry](https://www.sentry.io) for error collection. This behavior is enabled by default and can be disabled with
+`core.tracking.errors: false`. Sentry is configured with the following options:
+* Breadcrumbs are disabled: so it won't share parts of your console log with us.
+* PII tracking is disabled: no hostnames and IP addresses are included in the error message.
+
+An example error payload is available in [sample-error.json](sample-error.json).

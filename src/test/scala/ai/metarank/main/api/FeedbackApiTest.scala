@@ -1,6 +1,9 @@
 package ai.metarank.main.api
 
 import ai.metarank.api.routes.FeedbackApi
+import ai.metarank.config.CoreConfig
+import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
+import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event
 import ai.metarank.util.{TestFeatureMapping, TestRankingEvent}
@@ -18,9 +21,10 @@ import scodec.bits.ByteVector
 import java.util.zip.GZIPInputStream
 
 class FeedbackApiTest extends AnyFlatSpec with Matchers {
-  val mapping = TestFeatureMapping()
-  val store   = MemPersistence(mapping.schema)
-  val service = FeedbackApi(store, mapping)
+  lazy val mapping = TestFeatureMapping()
+  lazy val store   = MemPersistence(mapping.schema)
+  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store, mapping)
+  lazy val service = FeedbackApi(store, mapping, buffer)
 
   it should "accept feedback events in json format" in {
     val event    = TestRankingEvent.event(List("p1")).asJson.noSpaces

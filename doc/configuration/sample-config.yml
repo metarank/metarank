@@ -125,8 +125,16 @@ api:
   port: 8080 # optional, default 8080
   host: "0.0.0.0" # optional, default 0.0.0.0
 
-# Anonymous usage reporting. It is very helpful to us, so please leave this enabled.
 core:
+
+  # How rankings and interactions are joined into click-throughs.
+  clickthrough:
+    maxParallelSessions: 10000 # how many active sessions may happen within a `maxSessionLength` period
+
+    maxSessionLength: 30m # after which period of inactivity session is considered finalized
+                          # default = 30m (to be consistent with Google Analytics)
+
+  # Anonymous usage reporting. It is very helpful to us, so please leave this enabled.
   tracking:
     analytics: true
     errors: true

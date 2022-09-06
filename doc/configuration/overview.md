@@ -160,13 +160,34 @@ source:
 
 ## Core
 
-This optional section contains parameters related to the metarank service itself. Default value:
+This optional section contains parameters related to the metarank service itself. Default setup:
 ```yaml
 core:
+  
+  # How rankings and interactions are joined into click-throughs. For details, see the section below in this doc.
+  clickthrough:
+    maxParallelSessions: 10000 # how many active sessions may happen within a `maxSessionLength` period
+
+    maxSessionLength: 30m # after which period of inactivity session is considered finalized
+    # default = 30m (to be consistent with Google Analytics)
+    
+  # Anonymous usage reporting. It is very helpful to us, so please leave this enabled.
   tracking:
     analytics: true
     errors: true
+
 ```
+
+
+### Click-through joining
+
+Metarank joins ranking and interaction events together into click-through chains, which later used in ML model training.
+As interactions are happening some time later than rankings, Metarank needs to keep a set of rankings in the buffer,
+awaiting all the interactions may happen later. This buffer policy is controlled by the following parameters:
+* `core.clickthrough.maxSessionLength`: after which time period the session should be considered finalized, so no more
+interactions are allowed to happen. Default values is 30m, as in Google Analytics.
+* `core.clickthrough.maxParallelSessions`: how many parallel sessions may hang in buffer awaiting interactions. Default 
+is 10k.
 
 ### Anonymous usage analytics
 
@@ -213,3 +234,4 @@ We use [Sentry](https://www.sentry.io) for error collection. This behavior is en
 An example error payload is available in [sample-error.json](sample-error.json).
 
 The whole usage logging and error reporting can be disabled also by setting an env variable to `METARANK_TRACKING=false`.
+

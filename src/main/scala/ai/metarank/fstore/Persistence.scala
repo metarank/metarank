@@ -51,6 +51,7 @@ trait Persistence {
   def models: KVStore[ModelName, Scorer]
   def cts: ClickthroughStore
   def healthcheck(): IO[Unit]
+  def sync: IO[Unit]
 }
 
 object Persistence extends Logging {
@@ -102,10 +103,7 @@ object Persistence extends Logging {
   }
 
   trait ClickthroughStore {
-    def putRanking(ranking: RankingEvent): IO[Unit]
-    def putValues(id: EventId, values: List[ItemValue]): IO[Unit]
-    def putInteraction(id: EventId, item: ItemId, tpe: String): IO[Unit]
-    def getClickthrough(id: EventId): IO[Option[Clickthrough]]
+    def put(cts: List[ClickthroughValues]): IO[Unit]
     def getall(): fs2.Stream[IO, ClickthroughValues]
   }
 
@@ -134,6 +132,8 @@ object Persistence extends Logging {
     override lazy val models: KVStore[ModelName, Scorer] = KVStore.empty
     override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
     override def healthcheck(): IO[Unit]                 = IO.unit
+
+    override def sync: IO[Unit] = IO.unit
   }
 
 }

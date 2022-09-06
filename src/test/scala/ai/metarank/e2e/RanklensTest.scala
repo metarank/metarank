@@ -1,8 +1,10 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, CoreConfig}
+import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
@@ -28,9 +30,11 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   lazy val store  = MemPersistence(mapping.schema)
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTModel]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
+  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store, mapping)
 
   it should "import events" in {
-    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer).unsafeRunSync()
+    buffer.flushQueue(Timestamp.max).unsafeRunSync()
   }
 
   it should "train the xgboost model" in {
@@ -85,7 +89,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val ranker = Ranker(mapping, store)
     val resp1  = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
 
-    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping, buffer).unsafeRunSync()
     val resp2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     resp1 shouldNot be(resp2)
     resp1.items.map(_.item.value) shouldNot be(resp2.items.map(_.item.value))

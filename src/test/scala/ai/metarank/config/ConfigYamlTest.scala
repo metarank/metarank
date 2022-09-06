@@ -48,6 +48,12 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     conf.isRight shouldBe true
   }
 
+  it should "parse reference config from docs" in {
+    val yaml = Resource.my.getAsString("/config/sample-config.yml")
+    val conf = parse(yaml).flatMap(_.as[Config])
+    conf.isRight shouldBe true
+  }
+
   it should "fail on model referencing non-existent feature" in {
     val yaml = Resource.my.getAsString("/config/wrong-ref.yml")
     val conf = parse(yaml).flatMap(_.as[Config])

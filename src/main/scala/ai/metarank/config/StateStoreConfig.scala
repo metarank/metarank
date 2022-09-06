@@ -21,7 +21,7 @@ object StateStoreConfig extends Logging {
 
   object RedisStateConfig {
     import ai.metarank.util.DurationJson._
-    case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, hist: Int = 3, models: Int = 4)
+    case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, models: Int = 3)
     implicit val dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
 
     case class PipelineConfig(maxSize: Int = 128, flushPeriod: FiniteDuration = 1.second)

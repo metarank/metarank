@@ -1,13 +1,13 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
+import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.flow.MetarankFlow.ProcessResult
-import ai.metarank.flow.MetarankFlow
+import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ImportArgs
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
 import ai.metarank.validate.EventValidation.ValidationError
@@ -24,18 +24,27 @@ object Import extends Logging {
   ): IO[Unit] = {
     storeResource.use(store =>
       for {
-        result <- slurp(store, mapping, args, conf)
+        buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping))
+        result <- slurp(store, mapping, args, conf, buffer)
+        _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
+        _      <- buffer.flushQueue(Timestamp(Long.MaxValue))
         _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")
       } yield {}
     )
   }
 
-  def slurp(store: Persistence, mapping: FeatureMapping, args: ImportArgs, conf: Config): IO[ProcessResult] = {
+  def slurp(
+      store: Persistence,
+      mapping: FeatureMapping,
+      args: ImportArgs,
+      conf: Config,
+      buffer: ClickthroughJoinBuffer
+  ): IO[ProcessResult] = {
     val stream = FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream
     for {
       errors       <- validated(conf, stream, args.validation)
       sortedStream <- sorted(stream, errors)
-      result       <- slurp(sortedStream, store, mapping)
+      result       <- slurp(sortedStream, store, mapping, buffer)
     } yield {
       result
     }
@@ -52,8 +61,19 @@ object Import extends Logging {
     } else stream
   }
 
-  def slurp(source: fs2.Stream[IO, Event], store: Persistence, mapping: FeatureMapping): IO[ProcessResult] = {
-    MetarankFlow.process(store, source, mapping)
+  def slurp(
+      source: fs2.Stream[IO, Event],
+      store: Persistence,
+      mapping: FeatureMapping,
+      buffer: ClickthroughJoinBuffer
+  ): IO[ProcessResult] = {
+    for {
+      result <- MetarankFlow.process(store, source, mapping, buffer)
+      _      <- store.sync
+    } yield {
+      result
+    }
+
   }
 
 }

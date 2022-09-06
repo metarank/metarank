@@ -48,6 +48,8 @@ import java.nio.ByteBuffer
 import java.util
 import scala.jdk.CollectionConverters._
 import shapeless.syntax.typeable._
+import scala.concurrent.duration._
+import java.util.concurrent.CompletableFuture
 
 case class RedisPersistence(
     schema: Schema,
@@ -55,7 +57,6 @@ case class RedisPersistence(
     modelClient: RedisClient,
     valuesClient: RedisClient,
     rankingsClient: RedisClient,
-    intsClient: RedisClient,
     cache: CacheConfig
 ) extends Persistence
     with Logging {
@@ -95,10 +96,10 @@ case class RedisPersistence(
             case None                           => logger.warn(s"cannot invalidate caches for key $key")
           }
         }
-      case Prefix.VALUES           => Key.fromString(keyString).foreach(valueCache.invalidate)
-      case Prefix.MODELS           => modelCache.invalidate(ModelName(keyString))
-      case Prefix.CT | Prefix.HIST => ctCache.invalidate(keyString)
-      case _                       => logger.warn(s"cannot handle invalidation of key=${keyString}")
+      case Prefix.VALUES => Key.fromString(keyString).foreach(valueCache.invalidate)
+      case Prefix.MODELS => modelCache.invalidate(ModelName(keyString))
+      case Prefix.CT     => // no caching
+      case _             => logger.warn(s"cannot handle invalidation of key=${keyString}")
     }
 
   })
@@ -111,7 +112,6 @@ case class RedisPersistence(
   lazy val freqCache            = defaultCacheBuilder.build[Key, List[String]]()
   lazy val statCache            = defaultCacheBuilder.build[Key, List[Double]]()
   lazy val mapCache             = defaultCacheBuilder.build[Key, Map[String, Scalar]]()
-  lazy val ctCache              = defaultCacheBuilder.build[String, ClickthroughValues]()
   lazy val valueCache           = defaultCacheBuilder.build[Key, FeatureValue]()
   lazy val modelCache           = defaultCacheBuilder.build[ModelName, Scorer]()
 
@@ -174,14 +174,20 @@ case class RedisPersistence(
     slow = RedisKVStore(valuesClient, Prefix.VALUES)
   )
 
-  override lazy val cts: Persistence.ClickthroughStore = CachedClickthroughStore(
-    fast = MemClickthroughStore(ctCache),
-    slow = RedisClickthroughStore(rankingsClient, intsClient, Prefix.CT, Prefix.HIST)
-  )
+  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT)
 
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void
 
+  override def sync: IO[Unit] = for {
+    _ <- info("flushing redis pipeline")
+    _ <- stateClient.doFlush(CompletableFuture.completedFuture(0))
+    _ <- valuesClient.doFlush(CompletableFuture.completedFuture(0))
+    _ <- rankingsClient.doFlush(CompletableFuture.completedFuture(0))
+    _ <- IO.sleep(1.second)
+  } yield {
+    logger.info("redis pipeline flushed")
+  }
 }
 
 object RedisPersistence {
@@ -190,8 +196,6 @@ object RedisPersistence {
     val VALUES = "v"
     val MODELS = "m"
     val CT     = "c"
-    val HIST   = "h"
-
   }
   def create(
       schema: Schema,
@@ -205,7 +209,6 @@ object RedisPersistence {
     models   <- RedisClient.create(host, port, db.models, pipeline)
     values   <- RedisClient.create(host, port, db.values, pipeline)
     rankings <- RedisClient.create(host, port, db.rankings, pipeline)
-    clicks   <- RedisClient.create(host, port, db.hist, pipeline)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(
@@ -215,14 +218,14 @@ object RedisPersistence {
                 .enabled()
                 .bcast()
                 .noloop()
-                .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT, Prefix.HIST)
+                .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
             )
             .toCompletableFuture
         )
       )
     )
   } yield {
-    RedisPersistence(schema, state, models, values, rankings, clicks, cache)
+    RedisPersistence(schema, state, models, values, rankings, cache)
   }
 
 }

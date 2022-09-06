@@ -2,13 +2,15 @@ package ai.metarank.model
 
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
-import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import io.circe.Codec
 import io.circe.generic.semiauto._
 
 case class Clickthrough(
     id: EventId,
     ts: Timestamp,
+    user: UserId,
+    session: Option[SessionId],
     items: List[ItemId],
     interactions: List[TypedInteraction] = Nil
 ) {

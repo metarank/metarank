@@ -26,10 +26,9 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
          |host: localhost
          |port: 1234
          |db:
-         |  state: 4
-         |  values: 3
-         |  rankings: 2
-         |  hist: 1
+         |  state: 3
+         |  values: 2
+         |  rankings: 1
          |  models: 0
          |cache:
          |  ttl: 24h
@@ -43,7 +42,7 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
       RedisStateConfig(
         Hostname("localhost"),
         Port(1234),
-        DBConfig(4, 3, 2, 1, 0),
+        DBConfig(3, 2, 1, 0),
         CacheConfig(1024, 24.hours),
         PipelineConfig(123, 1.hour)
       )

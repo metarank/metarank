@@ -20,5 +20,6 @@ case class MemPersistence(schema: Schema) extends Persistence {
 
   override lazy val cts: Persistence.ClickthroughStore = MemClickthroughStore()
   override def healthcheck(): IO[Unit]                 = IO.unit
+  override def sync: IO[Unit]                          = IO.unit
 
 }

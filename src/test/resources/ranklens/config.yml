@@ -1,8 +1,10 @@
-#state:
-#  type: redis
-#  host: localhost
-#  port: 6379
-
+state:
+  type: redis
+  host: localhost
+  port: 6379
+core:
+  clickthrough:
+    maxSessionLength: 60s
 models:
   xgboost:
     type: lambdamart

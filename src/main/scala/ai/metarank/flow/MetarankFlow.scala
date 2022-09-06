@@ -13,11 +13,10 @@ object MetarankFlow {
       store: Persistence,
       source: Stream[IO, Event],
       mapping: FeatureMapping,
-      conf: CoreConfig
+      clickthrough: ClickthroughJoinBuffer
   ): IO[ProcessResult] = {
-    val clickthrough = ClickthroughJoinBuffer(conf.clickthrough, store, mapping)
-    val event        = FeatureValueFlow(mapping, store)
-    val sink         = FeatureValueSink(store)
+    val event = FeatureValueFlow(mapping, store)
+    val sink  = FeatureValueSink(store)
 
     for {
       start         <- IO(System.currentTimeMillis())
@@ -28,12 +27,9 @@ object MetarankFlow {
         .through(ai.metarank.flow.PrintProgress.tap)
         .flatMap(event =>
           Stream.evalSeq[IO, List, Event](
-            clickthrough.process(event).map(cts => event +: cts.flatMap(ct => ImpressionInject.process(ct)))
-          )
-        )
-        .onComplete(
-          Stream.evalSeq[IO, List, Event](
-            clickthrough.flushAll().map(cts => cts.flatMap(ct => ImpressionInject.process(ct)))
+            clickthrough
+              .process(event)
+              .map(cts => event +: cts.flatMap(ct => ImpressionInject.process(ct)))
           )
         )
         .through(event.process)

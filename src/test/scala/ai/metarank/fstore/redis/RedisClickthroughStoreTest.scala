@@ -31,7 +31,12 @@ class RedisClickthroughStoreTest extends AnyFlatSpec with Matchers with RedisTes
       i <- 0 until 1000
     } {
       val id = EventId(i.toString)
-      val ct = List(ClickthroughValues(TestClickthrough(List("p1", "p2", "p3"), List("p2")).copy(id = id), Nil))
+      val ct = List(
+        ClickthroughValues(
+          TestClickthrough(List("p1", "p2", "p3"), List("p2")).copy(id = id),
+          List(ItemValue(ItemId("p1"), List(SingleValue(FeatureName("foo"), 1))))
+        )
+      )
       stream.put(ct).unsafeRunSync()
     }
     val read = stream.getall().compile.toList.unsafeRunSync()

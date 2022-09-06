@@ -2,9 +2,10 @@ package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
+import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.{ImportArgs, StandaloneArgs}
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -20,12 +21,17 @@ object Standalone extends Logging {
   ): IO[Unit] = {
     storeResource.use(store =>
       for {
+        buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping))
         result <- Import.slurp(
           store,
           mapping,
           ImportArgs(args.conf, args.data, args.offset, args.format, args.validation),
-          conf
+          conf,
+          buffer
         )
+        _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
+        _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
+
         _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
         _ <- mapping.models.toList.map {
           case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
@@ -33,7 +39,7 @@ object Standalone extends Logging {
           case (other, _) =>
             info(s"skipping model $other")
         }.sequence
-        _ <- Serve.api(store, mapping, conf)
+        _ <- Serve.api(store, mapping, conf.api, buffer)
       } yield {}
     )
   }

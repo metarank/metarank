@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.api.routes
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, RankApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config, InputConfig}
-import ai.metarank.flow.MetarankFlow
+import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
@@ -25,29 +25,30 @@ object Serve extends Logging {
       args: ServeArgs
   ): IO[Unit] = {
     storeResource.use(store => {
+      val buffer = ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping)
       conf.input match {
         case None =>
-          info("no stream input defined in config, using only REST API") *> api(store, mapping, conf)
+          info("no stream input defined in config, using only REST API") *> api(store, mapping, conf.api, buffer)
         case Some(sourceConfig) =>
           val source = EventSource.fromConfig(sourceConfig)
           MetarankFlow
-            .process(store, source.stream, mapping, conf.core)
+            .process(store, source.stream, mapping, buffer)
             .background
-            .use(_ => info(s"started ${source.conf} source") *> api(store, mapping, conf))
+            .use(_ => info(s"started ${source.conf} source") *> api(store, mapping, conf.api, buffer))
       }
 
     })
   }
 
-  def api(store: Persistence, mapping: FeatureMapping, conf: Config) = {
+  def api(store: Persistence, mapping: FeatureMapping, conf: ApiConfig, buffer: ClickthroughJoinBuffer) = {
     val health   = HealthApi(store).routes
     val rank     = RankApi(Ranker(mapping, store)).routes
-    val feedback = FeedbackApi(store, mapping, conf.core).routes
+    val feedback = FeedbackApi(store, mapping, buffer).routes
     val train    = TrainApi(mapping, store).routes
     val routes   = health <+> rank <+> feedback <+> train
     val httpApp  = Router("/" -> routes).orNotFound
     val api = BlazeServerBuilder[IO]
-      .bindHttp(conf.api.port.value, conf.api.host.value)
+      .bindHttp(conf.port.value, conf.host.value)
       .withHttpApp(httpApp)
 
     info("Starting API...") *> api.serve.compile.drain

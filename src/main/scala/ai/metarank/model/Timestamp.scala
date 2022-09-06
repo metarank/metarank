@@ -27,7 +27,7 @@ case class Timestamp(ts: Long) {
 
 object Timestamp {
   def now = new Timestamp(System.currentTimeMillis())
-
+  def max = new Timestamp(Long.MaxValue)
   def date(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int) =
     new Timestamp(LocalDateTime.of(year, month, day, hour, min, sec).toInstant(ZoneOffset.UTC).toEpochMilli)
   val format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")

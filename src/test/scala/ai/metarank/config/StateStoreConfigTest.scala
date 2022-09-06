@@ -26,10 +26,9 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
          |host: localhost
          |port: 1234
          |db:
-         |  state: 4
-         |  values: 3
-         |  rankings: 2
-         |  hist: 1
+         |  state: 3
+         |  values: 2
+         |  rankings: 1
          |  models: 0
          |cache:
          |  ttl: 24h

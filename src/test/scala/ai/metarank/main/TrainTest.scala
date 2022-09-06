@@ -1,8 +1,11 @@
 package ai.metarank.main
 
 import ai.metarank.config.CoreConfig
+import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
+import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
+import ai.metarank.model.Timestamp
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.util.RandomDataset
 import cats.effect.unsafe.implicits.global
@@ -12,9 +15,12 @@ import org.scalatest.matchers.should.Matchers
 class TrainTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)
   lazy val store   = MemPersistence(dataset.mapping.schema)
+  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store, dataset.mapping)
 
   it should "generate test data" in {
-    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, CoreConfig()).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer).unsafeRunSync()
+    buffer.flushQueue(Timestamp.max).unsafeRunSync()
+
   }
 
   it should "train xgboost model" in {

@@ -13,14 +13,14 @@ case class CoreConfig(
 object CoreConfig {
   import ai.metarank.util.DurationJson._
   case class TrackingConfig(analytics: Boolean = true, errors: Boolean = true)
-  case class ClickthroughJoinConfig(maxLength: FiniteDuration = 30.minutes, bufferSize: Int = 10000)
+  case class ClickthroughJoinConfig(maxSessionLength: FiniteDuration = 30.minutes, maxParallelSessions: Int = 10000)
 
   implicit val clickthroughJoinConfigDecoder: Decoder[ClickthroughJoinConfig] = Decoder.instance(c =>
     for {
-      maxLength  <- c.downField("maxLength").as[Option[FiniteDuration]]
-      bufferSize <- c.downField("bufferSize").as[Option[Int]]
+      maxSessionLength    <- c.downField("maxSessionLength").as[Option[FiniteDuration]]
+      maxParallelSessions <- c.downField("maxParallelSessions").as[Option[Int]]
     } yield {
-      ClickthroughJoinConfig(maxLength.getOrElse(30.minutes), bufferSize.getOrElse(4096))
+      ClickthroughJoinConfig(maxSessionLength.getOrElse(30.minutes), maxParallelSessions.getOrElse(4096))
     }
   )
 

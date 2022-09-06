@@ -45,9 +45,9 @@ case class RedisClient(
   def ping(): IO[String] =
     IO.fromCompletableFuture(IO(reader.ping().toCompletableFuture))
 
-  def scan(cursor: String, count: Int): IO[ScanCursor] =
+  def scan(cursor: String, count: Int, pattern: String): IO[ScanCursor] =
     IO.fromCompletableFuture(
-      IO(reader.scan(LettuceCursor.of(cursor), ScanArgs.Builder.limit(count)).toCompletableFuture)
+      IO(reader.scan(LettuceCursor.of(cursor), ScanArgs.Builder.limit(count).`match`(pattern)).toCompletableFuture)
     ).map(sc => ScanCursor(sc.getKeys.asScala.toList, sc.getCursor))
 
   // writes
@@ -93,7 +93,7 @@ case class RedisClient(
     case _ => IO.unit
   }
 
-  private def doFlush[T](last: CompletableFuture[T]): IO[Unit] = for {
+  def doFlush[T](last: CompletableFuture[T]): IO[Unit] = for {
     _ <- bufferSize.set(0)
     _ <- IO.fromCompletableFuture(IO {
       writerConn.flushCommands()

@@ -2,35 +2,32 @@ package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
-import ai.metarank.flow.ClickthroughJoinBuffer.StaticTicker
+import ai.metarank.flow.ClickthroughJoinBuffer.Node
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, ItemValue, Timestamp}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import com.github.benmanes.caffeine.cache.{RemovalCause, Scheduler, Ticker}
-import com.github.blemale.scaffeine.{Cache, Scaffeine}
-
-import scala.jdk.CollectionConverters._
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util
+import java.util.concurrent.ConcurrentHashMap
 import scala.collection.mutable.ArrayBuffer
 
 case class ClickthroughJoinBuffer(
-    rankings: Cache[String, ClickthroughValues],
+    queue: util.ArrayDeque[Node],
+    rankings: ConcurrentHashMap[String, Node],
     state: Persistence,
-    queue: ConcurrentLinkedQueue[ClickthroughValues],
     mapping: FeatureMapping,
-    ticker: StaticTicker
+    conf: ClickthroughJoinConfig
 ) extends Logging {
 
   def process(event: Event): IO[List[Clickthrough]] = {
     event match {
       case e: RankingEvent =>
-        IO(tick(event.timestamp)) *> handleRanking(e) *> flushQueue()
+        handleRanking(e) *> flushQueue(event.timestamp)
       case e: InteractionEvent =>
-        IO(tick(event.timestamp)) *> handleInteraction(e) *> flushQueue()
+        handleInteraction(e) *> flushQueue(event.timestamp)
       case _ =>
-        IO(tick(event.timestamp)) *> flushQueue()
+        flushQueue(event.timestamp)
     }
   }
 
@@ -48,80 +45,61 @@ case class ClickthroughJoinBuffer(
       ),
       mvalues
     )
-    _ <- IO(rankings.put(ctv.ct.id.value, ctv))
+    node = new Node(ctv)
+    _ <- IO(queue.addLast(node))
+    _ <- IO(rankings.put(ctv.ct.id.value, node))
   } yield {}
 
   def handleInteraction(event: InteractionEvent): IO[Unit] = for {
-    rankingOption <- IO(event.ranking.flatMap(id => rankings.getIfPresent(id.value)))
-    _ <- rankingOption match {
+    nodeOption <- IO(event.ranking.flatMap(id => Option(rankings.get(id.value))))
+    _ <- nodeOption match {
       case None => IO.unit
-      case Some(ranking) =>
+      case Some(node) =>
         IO {
-          val updated = ranking.copy(ct = ranking.ct.withInteraction(event.item, event.`type`))
-          rankings.put(updated.ct.id.value, updated)
+          val updated = node.payload.copy(node.payload.ct.withInteraction(event.item, event.`type`))
+          node.payload = updated
         }
     }
   } yield {}
 
-  def tick(now: Timestamp) = IO(ticker.advance(now)) *> IO(rankings.cleanUp())
-
-  def flushQueue(): IO[List[Clickthrough]] = for {
-    expired <- dequeue()
-    _       <- state.cts.put(expired)
+  def flushQueue(now: Timestamp): IO[List[Clickthrough]] = for {
+    expired <- IO(pollExpired(now))
+    _       <- if (expired.nonEmpty) state.cts.put(expired) else IO.unit
   } yield {
     expired.map(_.ct)
   }
 
-  def flushAll(): IO[List[Clickthrough]] = for {
-    expired <- dequeueAll()
-    _       <- state.cts.put(expired)
-  } yield {
-    expired.map(_.ct)
-  }
-
-  def dequeue() = IO {
-    val buffer = new ArrayBuffer[ClickthroughValues]()
-    while (!queue.isEmpty) {
-      buffer.addOne(queue.poll())
+  def pollExpired(now: Timestamp) = {
+    val buffer    = new ArrayBuffer[ClickthroughValues]()
+    val threshold = now.minus(conf.maxSessionLength)
+    while (
+      (queue.size() > conf.maxParallelSessions) || (!queue.isEmpty && queue
+        .peekFirst()
+        .payload
+        .ct
+        .ts
+        .isBeforeOrEquals(threshold))
+    ) {
+      val expired = queue.pollFirst()
+      rankings.remove(expired.payload.ct.id.value)
+      if (expired.payload.ct.interactions.nonEmpty) buffer.addOne(expired.payload)
     }
     buffer.toList
-  }
-
-  def dequeueAll() = IO {
-    val values = rankings.asMap().values.toList.filter(_.ct.interactions.nonEmpty)
-    queue.clear()
-    values
   }
 }
 
 object ClickthroughJoinBuffer extends Logging {
-  class StaticTicker extends Ticker with Logging {
-    var now = 0L
-    def advance(ts: Timestamp) = {
-      val next = ts.ts * 1000000L
-      if (next <= now) logger.warn(s"time is going backwards: now=$now next=$next")
-      now = next
-    }
-    override def read(): Long = now
-  }
+  class Node(var payload: ClickthroughValues)
   def apply(conf: ClickthroughJoinConfig, store: Persistence, mapping: FeatureMapping) = {
-    val fqueue = new ConcurrentLinkedQueue[ClickthroughValues]()
-    val ticker = new StaticTicker()
+    val deque    = new util.ArrayDeque[Node](conf.maxParallelSessions)
+    val rankings = new ConcurrentHashMap[String, Node](conf.maxParallelSessions)
+
     new ClickthroughJoinBuffer(
-      rankings = Scaffeine()
-        .maximumSize(conf.bufferSize)
-        .expireAfterWrite(conf.maxLength)
-        .removalListener[String, ClickthroughValues]((_, value, reason) => {
-          if (value.ct.interactions.nonEmpty && ((reason == RemovalCause.EXPIRED) || (reason == RemovalCause.SIZE))) {
-            fqueue.add(value)
-          }
-        })
-        .ticker(ticker)
-        .build[String, ClickthroughValues](),
       state = store,
-      queue = fqueue,
+      queue = deque,
       mapping = mapping,
-      ticker = ticker
+      rankings = rankings,
+      conf = conf
     )
   }
 }

@@ -48,6 +48,8 @@ import java.nio.ByteBuffer
 import java.util
 import scala.jdk.CollectionConverters._
 import shapeless.syntax.typeable._
+import scala.concurrent.duration._
+import java.util.concurrent.CompletableFuture
 
 case class RedisPersistence(
     schema: Schema,
@@ -96,6 +98,7 @@ case class RedisPersistence(
         }
       case Prefix.VALUES => Key.fromString(keyString).foreach(valueCache.invalidate)
       case Prefix.MODELS => modelCache.invalidate(ModelName(keyString))
+      case Prefix.CT     => // no caching
       case _             => logger.warn(s"cannot handle invalidation of key=${keyString}")
     }
 
@@ -176,6 +179,15 @@ case class RedisPersistence(
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void
 
+  override def sync: IO[Unit] = for {
+    _ <- info("flushing redis pipeline")
+    _ <- stateClient.doFlush(CompletableFuture.completedFuture(0))
+    _ <- valuesClient.doFlush(CompletableFuture.completedFuture(0))
+    _ <- rankingsClient.doFlush(CompletableFuture.completedFuture(0))
+    _ <- IO.sleep(1.second)
+  } yield {
+    logger.info("redis pipeline flushed")
+  }
 }
 
 object RedisPersistence {

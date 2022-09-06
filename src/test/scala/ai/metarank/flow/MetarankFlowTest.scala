@@ -2,6 +2,7 @@ package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig
+import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
@@ -67,15 +68,16 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       weights = Map("click" -> 1)
     )
   )
-  val mapping = FeatureMapping.fromFeatureSchema(features, models)
-  val store   = MemPersistence(mapping.schema)
-  val ts      = Timestamp.now
-  val ranker  = Ranker(mapping, store)
+  val mapping     = FeatureMapping.fromFeatureSchema(features, models)
+  val store       = MemPersistence(mapping.schema)
+  val ts          = Timestamp.now
+  val ranker      = Ranker(mapping, store)
+  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store, mapping)
 
   val rankingEvent1 = TestRankingEvent(List("p1", "p2", "p3"))
   val rankingEvent2 = rankingEvent1.copy(id = EventId(UUID.randomUUID().toString))
   val clickEvent1   = TestInteractionEvent("p2", rankingEvent1.id.value)
-  val clickEvent2   = TestInteractionEvent("p1", rankingEvent1.id.value)
+  val clickEvent2   = TestInteractionEvent("p1", rankingEvent2.id.value)
 
   it should "accept item events" in {
     val items = List(
@@ -83,7 +85,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       TestItemEvent("p2", List(NumberField("pop", 5), StringListField("genre", List("comedy")))).copy(timestamp = ts),
       TestItemEvent("p3", List(NumberField("pop", 15), StringField("genre", "drama"))).copy(timestamp = ts)
     )
-    MetarankFlow.process(store, Stream.emits(items), mapping, CoreConfig()).unsafeRunSync()
+    MetarankFlow.process(store, Stream.emits(items), mapping, buffer).unsafeRunSync()
   }
 
   it should "have popularities values present in store" in {
@@ -124,6 +126,10 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "send click" in {
+    MetarankFlow.process(store, Stream.emit(clickEvent1), mapping, buffer).unsafeRunSync()
+  }
+
   it should "generate updated query" in {
     val q = ranker.makeQuery(rankingEvent2, mapping.models("random").datasetDescriptor).unsafeRunSync()
     q.values shouldBe List(
@@ -139,7 +145,8 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   }
 
   it should "create updated clickthrough in store" in {
-    MetarankFlow.process(store, Stream.emit(rankingEvent2), mapping, CoreConfig()).unsafeRunSync()
+    MetarankFlow.process(store, Stream.emits(List(rankingEvent2, clickEvent2)), mapping, buffer).unsafeRunSync()
+    buffer.flushQueue(Timestamp.max).unsafeRunSync()
     val ctv = store.cts.getall().compile.toList.unsafeRunSync()
     ctv.find(_.ct.id == rankingEvent2.id) shouldBe Some(
       ClickthroughValues(
@@ -148,7 +155,8 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
           rankingEvent2.timestamp,
           rankingEvent1.user,
           rankingEvent1.session,
-          List(ItemId("p1"), ItemId("p2"), ItemId("p3"))
+          List(ItemId("p1"), ItemId("p2"), ItemId("p3")),
+          interactions = List(TypedInteraction(ItemId("p1"), "click"))
         ),
         values = List(
           ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", 0))),

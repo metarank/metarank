@@ -8,12 +8,13 @@ import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, ItemValue, Timestamp}
 import ai.metarank.util.Logging
 import cats.effect.IO
+
 import java.util
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedDeque}
 import scala.collection.mutable.ArrayBuffer
 
 case class ClickthroughJoinBuffer(
-    queue: util.ArrayDeque[Node],
+    queue: util.Deque[Node],
     rankings: ConcurrentHashMap[String, Node],
     state: Persistence,
     mapping: FeatureMapping,
@@ -73,7 +74,7 @@ case class ClickthroughJoinBuffer(
     val buffer    = new ArrayBuffer[ClickthroughValues]()
     val threshold = now.minus(conf.maxSessionLength)
     while (
-      (queue.size() > conf.maxParallelSessions) || (!queue.isEmpty && queue
+      (rankings.size() > conf.maxParallelSessions) || (!queue.isEmpty && queue
         .peekFirst()
         .payload
         .ct
@@ -91,7 +92,7 @@ case class ClickthroughJoinBuffer(
 object ClickthroughJoinBuffer extends Logging {
   class Node(var payload: ClickthroughValues)
   def apply(conf: ClickthroughJoinConfig, store: Persistence, mapping: FeatureMapping) = {
-    val deque    = new util.ArrayDeque[Node](conf.maxParallelSessions)
+    val deque    = new ConcurrentLinkedDeque[Node]()
     val rankings = new ConcurrentHashMap[String, Node](conf.maxParallelSessions)
 
     new ClickthroughJoinBuffer(

@@ -27,6 +27,9 @@ and you can perform graceful restarts of Metarank with 0 downtime.
 Resource consumption of the `serve` mode is relatively low as it performs minimal computations, so you can use cheaper nodes than
 when training the model.
 
+At the moment, Metarank does not provide clustering capabilities out of the box, so you will need to use an external load balancer
+when deploying multiple API instances.
+
 ## Re-training
 
 Metarank exposes a `train` mode that re-trains your model based on the calculated features. 

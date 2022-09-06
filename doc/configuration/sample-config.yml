@@ -126,10 +126,6 @@ api:
   host: "0.0.0.0" # optional, default 0.0.0.0
 
 core:
-  # Anonymous usage reporting. It is very helpful to us, so please leave this enabled.
-  tracking:
-    analytics: true
-    errors: true
 
   # How rankings and interactions are joined into click-throughs.
   clickthrough:
@@ -137,3 +133,8 @@ core:
 
     maxSessionLength: 30m # after which period of inactivity session is considered finalized
                           # default = 30m (to be consistent with Google Analytics)
+
+  # Anonymous usage reporting. It is very helpful to us, so please leave this enabled.
+  tracking:
+    analytics: true
+    errors: true

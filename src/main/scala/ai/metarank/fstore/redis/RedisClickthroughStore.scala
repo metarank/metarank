@@ -17,15 +17,13 @@ case class RedisClickthroughStore(rankings: RedisClient, prefix: String) extends
   import RedisClickthroughStore._
   val BATCH_SIZE = 128
 
-  override def put(cts: List[ClickthroughValues]): IO[Unit] = {
-    cts
-      .grouped(BATCH_SIZE)
-      .toList
+  override def put(cts: List[ClickthroughValues]): IO[Unit] = for {
+    batches <- IO(cts.grouped(BATCH_SIZE).toList)
+    _       <- IO.whenA(batches.size > 4)(warn(s"writing large batch: ${cts.size} click-throughs at once"))
+    _ <- batches
       .map(batch => rankings.mset(batch.map(ct => (prefix + "/" + ct.ct.id.value) -> ctc.encode(ct)).toMap))
       .sequence
-      .void
-
-  }
+  } yield {}
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] = Stream
     .unfoldLoopEval[IO, String, List[ClickthroughValues]]("0")(cursor =>

@@ -36,7 +36,7 @@ lazy val root = (project in file("."))
       "io.circe"              %% "circe-parser"             % circeVersion,
       "com.github.pathikrit"  %% "better-files"             % "3.9.1",
       "org.rogach"            %% "scallop"                  % "4.1.0",
-      "com.github.blemale"    %% "scaffeine"                % "5.2.0",
+      "com.github.blemale"    %% "scaffeine"                % "5.2.1",
       "org.apache.kafka"       % "kafka-clients"            % "3.2.1",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",

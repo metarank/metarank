@@ -32,5 +32,6 @@
 
 ## Development
 
+* [Running in production](dev/production-recommendations.md)
 * [Changelog](changelog.md)
 * [Building from source](dev/build.md)

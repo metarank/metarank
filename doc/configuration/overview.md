@@ -33,7 +33,7 @@ state: # a place to store the feature values for the ML inference and the traine
     # Metarank implements several optimization strategies when using Redis: caching and pipelining
     # Check https://docs.metarank.ai/reference/overview/persistence#redis-persistence for more details
     #cache:           # optional
-    #  maxSize: 1024  # size of in-memory client-side cache for hot keys, optional, default=1024
+    #  maxSize: 4096  # size of in-memory client-side cache for hot keys, optional, default=4096
     #  ttl: 1h        # how long should key-values should be cached, optional, default=1h
 
     #pipeline:         # optional

@@ -39,6 +39,7 @@ object Standalone extends Logging {
           case (other, _) =>
             info(s"skipping model $other")
         }.sequence
+        _ <- IO(System.gc())
         _ <- Serve.api(store, mapping, conf.api, buffer)
       } yield {}
     )

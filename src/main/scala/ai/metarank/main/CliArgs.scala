@@ -189,12 +189,19 @@ object CliArgs extends Logging {
       SourceOffset.RelativeDuration(FiniteDuration(num.toLong, suffix))
     case other => throw new IllegalArgumentException(s"cannot parse offset $other")
   })
+
   implicit val formatConverter: ValueConverter[SourceFormat] = singleArgConverter(conv = {
     case "json"          => JsonFormat
     case "snowplow"      => SnowplowTSVFormat
     case "snowplow:tsv"  => SnowplowTSVFormat
     case "snowplow:json" => SnowplowJSONFormat
     case other           => throw new IllegalArgumentException(s"format $other is not supported")
+  })
+
+  implicit val booleanConverter: ValueConverter[Boolean] = singleArgConverter({
+    case "yes" | "true" | "on"  => true
+    case "no" | "false" | "off" => false
+    case other                  => throw new IllegalArgumentException(s"cannot parse $other as boolean valus")
   })
 
 }

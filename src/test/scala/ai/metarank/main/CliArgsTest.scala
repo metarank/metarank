@@ -34,6 +34,15 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "parse import with no validation" in {
+    CliArgs.parse(
+      List("import", "-c", conf.toString, "-d", data.toString, "--validation=false"),
+      Map.empty
+    ) shouldBe Right(
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false)
+    )
+  }
+
   it should "parse train args, short" in {
     CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost"), Map.empty) shouldBe Right(
       TrainArgs(conf, "xgboost")

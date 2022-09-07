@@ -15,28 +15,15 @@ import ai.metarank.model.Feature.{
   ScalarFeature,
   StatsEstimatorFeature
 }
-import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{
-  Clickthrough,
-  ClickthroughValues,
-  EventId,
-  Feature,
-  FeatureKey,
-  FeatureValue,
-  ItemValue,
-  Key,
-  MValue,
-  Schema,
-  Scope,
-  Write
-}
+import ai.metarank.model.{ClickthroughValues, FeatureKey, FeatureValue, Key, Schema, Scope}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec
 
 trait Persistence {
+  lazy val ticker = new EventTicker
 
   def schema: Schema
   def counters: Map[FeatureKey, CounterFeature]

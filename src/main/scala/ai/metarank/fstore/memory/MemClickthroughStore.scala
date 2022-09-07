@@ -1,14 +1,13 @@
 package ai.metarank.fstore.memory
 
 import ai.metarank.fstore.Persistence.ClickthroughStore
-import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, EventId, Identifier, ItemValue}
+import ai.metarank.model.ClickthroughValues
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-
-import scala.collection.mutable
+import shapeless.syntax.typeable._
 
 case class MemClickthroughStore(
-    cache: Cache[String, ClickthroughValues] = Scaffeine().build[String, ClickthroughValues]()
+    cache: Cache[String, AnyRef] = Scaffeine().build[String, AnyRef]()
 ) extends ClickthroughStore {
 
   override def put(cts: List[ClickthroughValues]): IO[Unit] = IO {
@@ -16,5 +15,5 @@ case class MemClickthroughStore(
   }
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] =
-    fs2.Stream.emits(cache.asMap().values.toList)
+    fs2.Stream.emits(cache.asMap().values.toList.flatMap(_.cast[ClickthroughValues]))
 }

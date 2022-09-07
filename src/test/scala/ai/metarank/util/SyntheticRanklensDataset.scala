@@ -4,16 +4,23 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, Rank
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId, Timestamp}
+import better.files.File
 import cats.data.NonEmptyList
-
+import io.circe.syntax._
 import java.util.UUID
 import scala.concurrent.duration._
 import scala.util.Random
 
 object SyntheticRanklensDataset {
   def main(args: Array[String]): Unit = {
-    val events = apply(users = 10000)
-    val br     = 1
+    for {
+      users <- List(1, 2, 4, 8, 16, 32, 64)
+    } {
+      println(users)
+      val events = apply(users = users * 1000)
+      val file   = File(s"/tmp/events${users}k.jsonl")
+      file.writeText(events.map(_.asJson.noSpaces).mkString("\n"))
+    }
   }
   def apply(
       start: Timestamp = Timestamp.date(2022, 9, 1, 0, 0, 0),
@@ -22,7 +29,7 @@ object SyntheticRanklensDataset {
       users: Int = 1000,
       rankingsPerUser: Int = 10,
       clicksPerRanking: Int = 2
-  ) = {
+  ): List[Event] = {
     val events   = RanklensEvents().collect { case i: ItemEvent => i }
     val genres   = events.flatMap(_.fields.collect { case g @ StringListField("genres", _) => g }).toArray
     val director = events.flatMap(_.fields.collect { case g @ StringField("director", _) => g }).toArray

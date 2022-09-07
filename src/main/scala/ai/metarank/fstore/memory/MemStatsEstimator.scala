@@ -7,14 +7,13 @@ import ai.metarank.model.Write.PutStatSample
 import ai.metarank.model.{Feature, Key, Timestamp}
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
+import shapeless.syntax.typeable._
 
-import scala.util.Random
-
-case class MemStatsEstimator(config: StatsEstimatorConfig, cache: Cache[Key, List[Double]] = Scaffeine().build())
+case class MemStatsEstimator(config: StatsEstimatorConfig, cache: Cache[Key, AnyRef] = Scaffeine().build())
     extends StatsEstimatorFeature {
   override def put(action: PutStatSample): IO[Unit] = IO {
     if (Feature.shouldSample(config.sampleRate)) {
-      cache.getIfPresent(action.key) match {
+      cache.getIfPresent(action.key).flatMap(_.cast[List[Double]]) match {
         case None =>
           cache.put(action.key, List(action.value))
         case Some(pool) if pool.size < config.poolSize =>
@@ -27,7 +26,7 @@ case class MemStatsEstimator(config: StatsEstimatorConfig, cache: Cache[Key, Lis
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[NumStatsValue]] = IO {
     for {
-      pool <- cache.getIfPresent(key) if pool.nonEmpty
+      pool <- cache.getIfPresent(key).flatMap(_.cast[List[Double]]) if pool.nonEmpty
     } yield {
       fromPool(key, ts, pool)
     }

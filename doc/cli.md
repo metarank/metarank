@@ -13,7 +13,7 @@ java -jar metarank-x.x.x.jar
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/
+      \/     \/          \/           \/     \/     \/ ver:0.5.2
 Usage: metarank <subcommand> <options>
 Options:
 
@@ -21,13 +21,15 @@ Options:
   -v, --version   Show version of this program
 
 Subcommand: import - import historical clickthrough data
-  -c, --config  <arg>   path to config file
-  -d, --data  <arg>     path to a directory with input files
-  -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
-                        snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661516516, last=1h
-                        (optional, default=earliest)
-  -h, --help            Show help message
+  -c, --config  <arg>       path to config file
+  -d, --data  <arg>         path to an input file
+  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
+                            snowplow:json (optional, default=json)
+  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
+                            (optional, default=earliest)
+  -v, --validation  <arg>   should input validation be enabled (optional,
+                            default=false)
+  -h, --help                Show help message
 
 Subcommand: train - train the ML model
   -c, --config  <arg>   path to config file
@@ -39,27 +41,34 @@ Subcommand: serve - run the inference API
   -h, --help            Show help message
 
 Subcommand: standalone - import, train and serve at once
-  -c, --config  <arg>   path to config file
-  -d, --data  <arg>     path to a directory with input files
-  -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
-                        snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661516516, last=1h
-                        (optional, default=earliest)
-  -h, --help            Show help message
+  -c, --config  <arg>       path to config file
+  -d, --data  <arg>         path to an input file
+  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
+                            snowplow:json (optional, default=json)
+  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
+                            (optional, default=earliest)
+  -v, --validation  <arg>   should input validation be enabled (optional,
+                            default=false)
+  -h, --help                Show help message
 
 Subcommand: validate - run the input data validation suite
+  -c, --config  <arg>       path to config file
+  -d, --data  <arg>         path to an input file
+  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
+                            snowplow:json (optional, default=json)
+  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
+                            (optional, default=earliest)
+  -v, --validation  <arg>   should input validation be enabled (optional,
+                            default=false)
+  -h, --help                Show help message
+
+Subcommand: sort - sort the dataset by timestamp
   -c, --config  <arg>   path to config file
   -d, --data  <arg>     path to a directory with input files
-  -f, --format  <arg>   input file format: json, snowplow, snowplow:tsv,
-                        snowplow:json (optional, default=json)
-  -o, --offset  <arg>   offset: earliest, latest, ts=1661778589, last=1h
-                        (optional, default=earliest)
-  -v, --validation      should input validation be enabled (optional,
-                        default=yes)
+  -o, --out  <arg>      path to an output file
   -h, --help            Show help message
 
 For all other tricks, consult the docs on https://docs.metarank.ai
-
 ```
 
 The command-line argument structure is:
@@ -76,6 +85,7 @@ Metarank CLI has a set of different running modes:
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.
 * `validate`: validates data nd configuration files.
+* `sort`: pre-sort the dataset by timestamp
 
 ### Validation
 

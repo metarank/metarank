@@ -30,10 +30,12 @@ object JsonFormat extends SourceFormat with Logging {
           case Right(value) => (parser, Chunk.seq(value))
         }
       })
-      .flatMap(_.as[Event] match {
-        case Left(error)  => Stream.raiseError[IO](error)
-        case Right(event) => Stream.emit(event)
-      })
+      .evalMapChunk(json =>
+        IO(json.as[Event]).flatMap {
+          case Left(err)    => error(s"cannot decode json $json", err) *> IO.raiseError(err)
+          case Right(event) => IO.pure(event)
+        }
+      )
       .chunkN(1024)
       .flatMap(x => Stream.emits(x.toList))
 }

@@ -24,13 +24,13 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse import, short" in {
     CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString), Map.empty) shouldBe Right(
-      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, true)
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false)
     )
   }
 
   it should "parse import, long" in {
     CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString), Map.empty) shouldBe Right(
-      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, true)
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false)
     )
   }
 

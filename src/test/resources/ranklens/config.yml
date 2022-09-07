@@ -6,6 +6,7 @@
 core:
   clickthrough:
     maxSessionLength: 60s
+
 models:
   xgboost:
     type: lambdamart

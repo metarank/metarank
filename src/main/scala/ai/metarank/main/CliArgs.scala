@@ -24,6 +24,7 @@ object CliArgs extends Logging {
       extends CliArgs
   case class TrainArgs(conf: Path, model: String)                                             extends CliArgs
   case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliArgs
+  case class SortArgs(conf: Path, in: Path, out: Path)                                        extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -76,6 +77,14 @@ object CliArgs extends Logging {
             } yield {
               ValidateArgs(conf, data, offset, format)
             }
+          case Some(parser.sort) =>
+            for {
+              conf <- parse(parser.sort.config)
+              data <- parse(parser.sort.data)
+              out  <- parse(parser.sort.out)
+            } yield {
+              SortArgs(conf, data, out)
+            }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
     }
@@ -108,7 +117,7 @@ object CliArgs extends Logging {
         "data",
         required = true,
         short = 'd',
-        descr = "path to a directory with input files",
+        descr = "path to an input file",
         validate = pathExists
       )
       val offset = opt[SourceOffset](
@@ -129,8 +138,8 @@ object CliArgs extends Logging {
       val validation = opt[Boolean](
         name = "validation",
         required = false,
-        descr = "should input validation be enabled (optional, default=yes)",
-        default = Some(true)
+        descr = "should input validation be enabled (optional, default=false)",
+        default = Some(false)
       )
 
     }
@@ -153,7 +162,26 @@ object CliArgs extends Logging {
       )
     }
 
+    object sort extends Subcommand("sort") with ConfigOption {
+      descr("sort the dataset by timestamp")
+      val data = opt[Path](
+        "data",
+        required = true,
+        short = 'd',
+        descr = "path to a directory with input files",
+        validate = pathExists
+      )
+
+      val out = opt[Path](
+        "out",
+        required = true,
+        descr = "path to an output file"
+      )
+
+    }
+
     object `import` extends Subcommand("import") with ConfigOption with ImportLikeOption {
+
       descr("import historical clickthrough data")
     }
 
@@ -172,6 +200,7 @@ object CliArgs extends Logging {
     addSubcommand(serve)
     addSubcommand(standalone)
     addSubcommand(validate)
+    addSubcommand(sort)
     version(Logo.raw + " ver:" + Version())
     banner("""Usage: metarank <subcommand> <options>
              |Options:

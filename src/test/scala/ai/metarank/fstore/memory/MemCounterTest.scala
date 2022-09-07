@@ -7,5 +7,5 @@ import ai.metarank.model.Write.Increment
 import com.github.blemale.scaffeine.Scaffeine
 
 class MemCounterTest extends CounterSuite with MemTest[Increment, CounterFeature] {
-  override val feature = MemCounter(config, Scaffeine().build[Key, Long]())
+  override val feature = MemCounter(config)
 }

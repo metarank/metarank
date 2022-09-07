@@ -37,7 +37,6 @@ object Feature {
     }
   }
 
-
   trait ScalarFeature extends Feature[Put, ScalarValue] {
     def config: ScalarConfig
   }

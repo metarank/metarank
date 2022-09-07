@@ -4,7 +4,7 @@ import ai.metarank.fstore.Persistence.KVStore
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
-case class MemKVStore[K, V](cache: Cache[K, V] = Scaffeine().build[K, V]()) extends KVStore[K, V] {
+case class MemKVStore[K, V <: AnyRef](cache: Cache[K, V] = Scaffeine().build[K, V]()) extends KVStore[K, V] {
   override def get(keys: List[K]): IO[Map[K, V]] =
     IO(keys.flatMap(key => cache.getIfPresent(key).map(v => key -> v)).toMap)
 

@@ -23,6 +23,7 @@ object MetarankFlow {
       eventCounter  <- Ref.of[IO, Long](0)
       updateCounter <- Ref.of[IO, Long](0)
       _ <- source
+        .evalTapChunk(e => IO(store.ticker.tick(e)))
         .evalTapChunk(_ => eventCounter.update(_ + 1))
         .through(ai.metarank.flow.PrintProgress.tap)
         .flatMap(event =>

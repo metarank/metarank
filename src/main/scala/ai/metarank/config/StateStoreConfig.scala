@@ -37,7 +37,8 @@ object StateStoreConfig extends Logging {
       }
     )
 
-    case class CacheConfig(maxSize: Int = 1024, ttl: FiniteDuration = 1.hour)
+    case class CacheConfig(maxSize: Int = 4096, ttl: FiniteDuration = 1.hour)
+
     implicit val cacheConfigDecoder: Decoder[CacheConfig] = Decoder.instance(c =>
       for {
         maxSize <- c.downField("maxSize").as[Option[Int]]

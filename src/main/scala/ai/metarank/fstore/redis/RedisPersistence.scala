@@ -67,7 +67,7 @@ case class RedisPersistence(
       val content = message.getContent()
       if (content.size() >= 2) {
         val payloads = content.get(1).asInstanceOf[util.ArrayList[ByteBuffer]]
-        if (!payloads.isEmpty) {
+        if ((payloads != null) && !payloads.isEmpty) {
           payloads.asScala.foreach(bytes => {
             val keyRaw    = new String(bytes.array())
             val keyString = keyRaw.substring(2)
@@ -83,20 +83,8 @@ case class RedisPersistence(
     }
 
     def invalidate(keyType: String, keyString: String) = keyType match {
-      case Prefix.STATE =>
-        Key.fromString(keyString).foreach { key =>
-          schema.configs.get(FeatureKey(key)) match {
-            case Some(_: ScalarConfig)          => scalarCache.invalidate(key)
-            case Some(_: CounterConfig)         => counterCache.invalidate(key)
-            case Some(_: BoundedListConfig)     => boundedListCache.invalidate(key)
-            case Some(_: PeriodicCounterConfig) => periodicCounterCache.invalidate(key)
-            case Some(_: FreqEstimatorConfig)   => freqCache.invalidate(key)
-            case Some(_: StatsEstimatorConfig)  => statCache.invalidate(key)
-            case Some(_: MapConfig)             => mapCache.invalidate(key)
-            case None                           => logger.warn(s"cannot invalidate caches for key $key")
-          }
-        }
-      case Prefix.VALUES => Key.fromString(keyString).foreach(valueCache.invalidate)
+      case Prefix.STATE  => Key.fromString(keyString).foreach(stateCache.invalidate)
+      case Prefix.VALUES => // no caching
       case Prefix.MODELS => modelCache.invalidate(ModelName(keyString))
       case Prefix.CT     => // no caching
       case _             => logger.warn(s"cannot handle invalidation of key=${keyString}")
@@ -104,61 +92,62 @@ case class RedisPersistence(
 
   })
 
-  val defaultCacheBuilder       = Scaffeine().maximumSize(cache.maxSize).expireAfterAccess(cache.ttl)
-  lazy val scalarCache          = defaultCacheBuilder.build[Key, Scalar]()
-  lazy val counterCache         = defaultCacheBuilder.build[Key, Long]()
-  lazy val boundedListCache     = defaultCacheBuilder.build[Key, List[TimeValue]]()
-  lazy val periodicCounterCache = defaultCacheBuilder.build[Key, Map[Timestamp, Long]]()
-  lazy val freqCache            = defaultCacheBuilder.build[Key, List[String]]()
-  lazy val statCache            = defaultCacheBuilder.build[Key, List[Double]]()
-  lazy val mapCache             = defaultCacheBuilder.build[Key, Map[String, Scalar]]()
-  lazy val valueCache           = defaultCacheBuilder.build[Key, FeatureValue]()
-  lazy val modelCache           = defaultCacheBuilder.build[ModelName, Scorer]()
+  lazy val stateCache = Scaffeine()
+    .ticker(ticker)
+    .maximumSize(cache.maxSize)
+    .expireAfterAccess(cache.ttl)
+    .build[Key, AnyRef]()
+
+  lazy val modelCache = Scaffeine()
+    .ticker(ticker)
+    .maximumSize(32)
+    .expireAfterAccess(1.hour)
+    .build[ModelName, Scorer]()
 
   override lazy val lists = schema.lists.map { case (name, conf) =>
     name -> CachedBoundedListFeature(
-      fast = MemBoundedList(conf, boundedListCache),
+      fast = MemBoundedList(conf, stateCache),
       slow = RedisBoundedListFeature(conf, stateClient, Prefix.STATE)
     )
   }
 
   override lazy val counters = schema.counters.map { case (name, conf) =>
     name -> CachedCounterFeature(
-      fast = MemCounter(conf, counterCache),
+      fast = MemCounter(conf, stateCache),
       slow = RedisCounterFeature(conf, stateClient, Prefix.STATE)
     )
   }
   override lazy val periodicCounters =
     schema.periodicCounters.map { case (name, conf) =>
       name -> CachedPeriodicCounterFeature(
-        fast = MemPeriodicCounter(conf, periodicCounterCache),
+        fast = MemPeriodicCounter(conf, stateCache),
         slow = RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE)
       )
     }
 
   override lazy val freqs = schema.freqs.map { case (name, conf) =>
     name -> CachedFreqEstimatorFeature(
-      fast = MemFreqEstimator(conf, freqCache),
+      fast = MemFreqEstimator(conf, stateCache),
       slow = RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE)
     )
   }
 
   override lazy val scalars = schema.scalars.map { case (name, conf) =>
     name -> CachedScalarFeature(
-      fast = MemScalarFeature(conf, scalarCache),
+      fast = MemScalarFeature(conf, stateCache),
       slow = RedisScalarFeature(conf, stateClient, Prefix.STATE)
     )
   }
   override lazy val stats = schema.stats.map { case (name, conf) =>
     name -> CachedStatsEstimatorFeature(
-      fast = MemStatsEstimator(conf, statCache),
+      fast = MemStatsEstimator(conf, stateCache),
       slow = RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE)
     )
   }
 
   override lazy val maps = schema.maps.map { case (name, conf) =>
     name -> CachedMapFeature(
-      fast = MemMapFeature(conf, mapCache),
+      fast = MemMapFeature(conf, stateCache),
       slow = RedisMapFeature(conf, stateClient, Prefix.STATE)
     )
   }
@@ -169,10 +158,7 @@ case class RedisPersistence(
     slow = RedisKVStore(modelClient, Prefix.MODELS)(KVCodec.modelKeyCodec, KVCodec.jsonCodec)
   )
 
-  override lazy val values: Persistence.KVStore[Key, FeatureValue] = CachedKVStore(
-    fast = MemKVStore(valueCache),
-    slow = RedisKVStore(valuesClient, Prefix.VALUES)
-  )
+  override lazy val values: Persistence.KVStore[Key, FeatureValue] = RedisKVStore(valuesClient, Prefix.VALUES)
 
   override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT)
 

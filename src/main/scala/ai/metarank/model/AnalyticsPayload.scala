@@ -19,7 +19,7 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.main.CliArgs
-import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, SortArgs, StandaloneArgs, TrainArgs, ValidateArgs}
+import ai.metarank.main.CliArgs.{AutoConfArgs, ImportArgs, ServeArgs, SortArgs, StandaloneArgs, TrainArgs, ValidateArgs}
 import ai.metarank.model.AnalyticsPayload.{SystemParams, UsedFeature}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.Version
@@ -62,6 +62,7 @@ object AnalyticsPayload {
         case _: TrainArgs      => "train"
         case _: ValidateArgs   => "validate"
         case _: SortArgs       => "sort"
+        case _: AutoConfArgs   => "autoconf"
       },
       version = Version(),
       state = config.state match {

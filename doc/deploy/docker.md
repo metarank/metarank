@@ -9,7 +9,7 @@ version.
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](/doc/cli.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.5.2 --help
+$ docker run metarank/metarank:0.5.3 --help
 
 + exec /opt/java/openjdk/bin/java -jar /app/metarank.jar --help
 
@@ -18,7 +18,7 @@ $ docker run metarank/metarank:0.5.2 --help
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/ ver:0.5.2
+      \/     \/          \/           \/     \/     \/ ver:0.5.3
 Usage: metarank <subcommand> <options>
 Options:
 

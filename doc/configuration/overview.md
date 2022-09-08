@@ -181,9 +181,12 @@ core:
 
 ### Click-through joining
 
-Metarank joins ranking and interaction events together into click-through chains, which later used in ML model training.
+Metarank joins ranking and interaction events together into click-through chains, which are later used for machine learning model training.
+
 As interactions are happening some time later than rankings, Metarank needs to keep a set of rankings in the buffer,
-awaiting all the interactions may happen later. This buffer policy is controlled by the following parameters:
+awaiting all the interactions that may happen later. 
+
+This buffer policy is controlled by the following parameters:
 * `core.clickthrough.maxSessionLength`: after which time period the session should be considered finalized, so no more
 interactions are allowed to happen. Default values is 30m, as in Google Analytics.
 * `core.clickthrough.maxParallelSessions`: how many parallel sessions may hang in buffer awaiting interactions. Default 

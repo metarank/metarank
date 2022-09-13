@@ -27,7 +27,7 @@ object CliArgs extends Logging {
   case class TrainArgs(conf: Path, model: String)                                             extends CliConfArgs
   case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliConfArgs
   case class SortArgs(in: Path, out: Path)                                                    extends CliArgs
-  case class AutoConfArgs(data: Path, out: Path)                                              extends CliArgs
+  case class AutoConfArgs(data: Path, out: Path, offset: SourceOffset, format: SourceFormat)  extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -86,6 +86,15 @@ object CliArgs extends Logging {
               out  <- parse(parser.sort.out)
             } yield {
               SortArgs(data, out)
+            }
+          case Some(parser.autoconf) =>
+            for {
+              data   <- parse(parser.autoconf.data)
+              out    <- parse(parser.autoconf.out)
+              offset <- parse(parser.autoconf.offset)
+              format <- parse(parser.autoconf.format)
+            } yield {
+              AutoConfArgs(data, out, offset, format)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -195,6 +204,21 @@ object CliArgs extends Logging {
         "out",
         required = true,
         descr = "path to an output config file"
+      )
+      val offset = opt[SourceOffset](
+        name = "offset",
+        required = false,
+        short = 'o',
+        descr =
+          s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h (optional, default=earliest)",
+        default = Some(Earliest)
+      )
+      val format = opt[SourceFormat](
+        name = "format",
+        required = false,
+        short = 'f',
+        descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json (optional, default=json)",
+        default = Some(JsonFormat)
       )
 
     }

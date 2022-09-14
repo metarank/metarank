@@ -227,7 +227,7 @@ object CliArgs extends Logging {
       val ruleset = opt[RuleSet](
         name = "ruleset",
         required = false,
-        descr = "set of rules to generate config: stable, all (optional, default=stable)",
+        descr = "set of rules to generate config: stable, all (optional, default=stable, values: [stable, all])",
         default = Some(RuleSet.stable())
       )
 

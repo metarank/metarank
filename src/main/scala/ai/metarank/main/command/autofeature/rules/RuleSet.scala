@@ -7,7 +7,7 @@ object RuleSet {
     List(
       InteractionFeatureRule,
       NumericalFeatureRule,
-      StringFeatureRule(percentile = 0.80),
+      StringFeatureRule(percentile = 0.90),
       RelevancyRule
     )
   )

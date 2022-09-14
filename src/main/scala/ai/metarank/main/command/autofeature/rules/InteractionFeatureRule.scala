@@ -13,8 +13,8 @@ object InteractionFeatureRule extends FeatureRule with Logging {
   override def make(model: EventModel): List[FeatureSchema] = for {
     interaction <- model.interactions.types.keys.toList
     field <- model.itemFields.strings.flatMap {
-      case (name, stat) if (StringFeatureRule().fieldValues(stat).size > 1) => Some(name)
-      case _                                                                => None
+      case (name, stat) if stat.values.size > 1 => Some(name)
+      case _                                    => None
     }
   } yield {
     make(interaction, field)

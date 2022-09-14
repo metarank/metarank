@@ -29,7 +29,10 @@ object ConfigMirror {
       features = featuresNel,
       models = Map(
         "default" -> LambdaMARTConfig(
-          backend = XGBoostBackend(),
+          backend = XGBoostBackend(
+            iterations = 50,
+            ndcgCutoff = 10
+          ),
           features = featuresNel.map(_.name),
           weights = model.interactions.types.map { case (interaction, _) => interaction -> 1.0 }
         )

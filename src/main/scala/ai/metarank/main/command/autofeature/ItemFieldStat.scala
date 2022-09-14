@@ -2,6 +2,7 @@ package ai.metarank.main.command.autofeature
 
 import ai.metarank.main.command.autofeature.FieldStat._
 import ai.metarank.model.Event.ItemEvent
+import ai.metarank.model.Field
 import ai.metarank.model.Field._
 
 case class ItemFieldStat(
@@ -10,24 +11,33 @@ case class ItemFieldStat(
     bools: Map[String, BoolFieldStat] = Map.empty
 ) {
   def refresh(event: ItemEvent): ItemFieldStat = {
-    event.fields.foldLeft(this)((next, field) =>
-      field match {
-        case StringField(name, value) =>
-          next.copy(strings =
-            next.strings.updatedWith(name)(stat => Some(stat.getOrElse(StringFieldStat()).refresh(value)))
-          )
-        case NumberField(name, value) =>
-          next.copy(nums = next.nums.updatedWith(name)(stat => Some(stat.getOrElse(NumericFieldStat()).refresh(value))))
-        case BooleanField(name, value) =>
-          next.copy(bools = next.bools.updatedWith(name)(stat => Some(stat.getOrElse(BoolFieldStat()).refresh(value))))
-        case StringListField(name, values) =>
-          next.copy(strings =
-            values.foldLeft(strings)((acc, next) =>
-              acc.updatedWith(name)(stat => Some(stat.getOrElse(StringFieldStat()).refresh(next)))
-            )
-          )
-        case _ => next
-      }
-    )
+    event.fields.foldLeft(this)((next, field) => next.refresh(field))
+  }
+
+  def refresh(field: Field): ItemFieldStat = {
+    field match {
+      case s: StringField  => refresh(s)
+      case b: BooleanField => refresh(b)
+      case n: NumberField  => refresh(n)
+      case StringListField(name, values) =>
+        values.foldLeft(this)((acc, value) => acc.refresh(StringField(name, value)))
+      case NumberListField(name, values) =>
+        values.foldLeft(this)((acc, value) => acc.refresh(NumberField(name, value)))
+    }
+  }
+
+  def refresh(field: StringField): ItemFieldStat = {
+    val updated = strings.getOrElse(field.name, StringFieldStat()).refresh(field.value)
+    copy(strings = strings + (field.name -> updated))
+  }
+
+  def refresh(field: BooleanField): ItemFieldStat = {
+    val updated = bools.getOrElse(field.name, BoolFieldStat()).refresh(field.value)
+    copy(bools = bools + (field.name -> updated))
+  }
+
+  def refresh(field: NumberField): ItemFieldStat = {
+    val updated = nums.getOrElse(field.name, NumericFieldStat()).refresh(field.value)
+    copy(nums = nums + (field.name -> updated))
   }
 }

@@ -9,8 +9,8 @@ import org.scalatest.matchers.should.Matchers
 
 class ItemFieldStatTest extends AnyFlatSpec with Matchers {
   it should "accept events with string field" in {
-    val stat = ItemFieldStat().refresh(TestItemEvent("p1", List(StringListField("color", List("red", "green")))))
-    stat.strings.get("color") shouldBe Some(StringFieldStat(Map("red" -> 1, "green" -> 1)))
+    val stat1 = ItemFieldStat().refresh(TestItemEvent("p1", List(StringListField("color", List("red", "green")))))
+    stat1.strings.get("color") shouldBe Some(StringFieldStat(Map("red" -> 1, "green" -> 1)))
   }
 
   it should "accept events with numeric field" in {

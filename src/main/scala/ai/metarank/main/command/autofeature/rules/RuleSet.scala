@@ -16,7 +16,7 @@ object RuleSet {
     List(
       InteractionFeatureRule,
       NumericalFeatureRule,
-      StringFeatureRule(min = 20, percentile = 0.95),
+      StringFeatureRule(minValues = 20, percentile = 0.95),
       RelevancyRule,
       InteractionRateFeatureRule,
       InteractionCountFeatureRule

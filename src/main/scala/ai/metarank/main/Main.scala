@@ -4,7 +4,15 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.TrackingConfig
 import ai.metarank.fstore.Persistence
-import ai.metarank.main.CliArgs.{AutoFeatureArgs, ImportArgs, ServeArgs, SortArgs, StandaloneArgs, TrainArgs, ValidateArgs}
+import ai.metarank.main.CliArgs.{
+  AutoFeatureArgs,
+  ImportArgs,
+  ServeArgs,
+  SortArgs,
+  StandaloneArgs,
+  TrainArgs,
+  ValidateArgs
+}
 import ai.metarank.main.command.{AutoFeature, Import, Serve, Standalone, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
 import ai.metarank.util.analytics.{AnalyticsReporter, ErrorReporter}
@@ -34,7 +42,7 @@ object Main extends IOApp with Logging {
         _ <- IO(logger.info(Logo.raw + "  ver:" + Version().getOrElse("unknown")))
         _ <- args match {
           case a: AutoFeatureArgs => AutoFeature.run(a)
-          case a: SortArgs     => Sort.run(a)
+          case a: SortArgs        => Sort.run(a)
           case confArgs: CliArgs.CliConfArgs =>
             for {
               confString <- IO.fromTry(

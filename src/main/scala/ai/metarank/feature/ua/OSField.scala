@@ -4,6 +4,7 @@ import ai.metarank.feature.UserAgentFeature.UAField
 import ua_parser.Client
 
 object OSField extends UAField {
+  val name = "os"
   val OSNames = Map(
     "iOS"       -> "ios",
     "Android"   -> "android",

@@ -97,7 +97,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
         source = FieldName(Interaction("click"), "country"),
         scope = SessionScopeType,
         values = NonEmptyList.of("us", "eu"),
-        encode = OnehotEncoderName
+        encode = Some(OnehotEncoderName)
       )
     )
     val event =

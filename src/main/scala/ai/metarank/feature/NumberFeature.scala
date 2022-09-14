@@ -16,8 +16,8 @@ import ai.metarank.model.Scalar.SDouble
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration._
 
@@ -81,4 +81,6 @@ object NumberFeature {
 
   implicit val nfDecoder: Decoder[NumberFeatureSchema] =
     deriveDecoder[NumberFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'number'")
+
+  implicit val nfEncoder: Encoder[NumberFeatureSchema] = deriveEncoder
 }

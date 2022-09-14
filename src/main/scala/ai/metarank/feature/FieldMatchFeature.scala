@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
-import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher}
+import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher, TermMatcher}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
@@ -19,8 +19,8 @@ import ai.metarank.model.Write.Put
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.{Decoder, DecodingFailure}
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration._
 
@@ -116,10 +116,24 @@ object FieldMatchFeature {
     }
   )
 
+  implicit val matchEncoder: Encoder[FieldMatcher] = Encoder.instance {
+    case m: NgramMatcher =>
+      NgramMatcher
+        .ngramEncoder(m)
+        .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
+    case t: TermMatcher =>
+      TermMatcher
+        .ngramEncoder(t)
+        .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
+    case _ => ???
+  }
+
   implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema]
     .ensure(
       pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
       message = "ranking field can only be read from ranking event, and item field - only from metadata"
     )
     .withErrorMessage("cannot parse a feature definition of type 'field_match'")
+
+  implicit val fieldMatchEncoder: Encoder[FieldMatchSchema] = deriveEncoder[FieldMatchSchema]
 }

@@ -13,8 +13,8 @@ import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import shapeless.syntax.typeable.typeableOps
 
 import scala.concurrent.duration._
@@ -80,4 +80,6 @@ object WindowInteractionCountFeature {
     deriveDecoder[WindowInteractionCountSchema].withErrorMessage(
       "cannot parse a feature definition of type 'window_count'"
     )
+
+  implicit val windowCountEncoder: Encoder[WindowInteractionCountSchema] = deriveEncoder
 }

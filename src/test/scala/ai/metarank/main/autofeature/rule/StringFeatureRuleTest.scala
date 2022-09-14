@@ -26,7 +26,7 @@ class StringFeatureRuleTest extends AnyFlatSpec with Matchers {
         name = FeatureName("available"),
         source = FieldName(Item, "available"),
         scope = ItemScopeType,
-        encode = IndexEncoderName,
+        encode = Some(IndexEncoderName),
         values = NonEmptyList.of("yes", "no")
       )
     )
@@ -39,7 +39,7 @@ class StringFeatureRuleTest extends AnyFlatSpec with Matchers {
         name = FeatureName("color"),
         source = FieldName(Item, "color"),
         scope = ItemScopeType,
-        encode = OnehotEncoderName,
+        encode = Some(OnehotEncoderName),
         values = NonEmptyList.of("red", "green", "blue")
       )
     )
@@ -53,7 +53,7 @@ class StringFeatureRuleTest extends AnyFlatSpec with Matchers {
         name = FeatureName("color"),
         source = FieldName(Item, "color"),
         scope = ItemScopeType,
-        encode = OnehotEncoderName,
+        encode = Some(OnehotEncoderName),
         values = NonEmptyList.of("c19", "c18", "c17", "c16", "c15", "c14", "c13", "c12", "c11", "c10", "c9", "c8", "c7")
       )
     )

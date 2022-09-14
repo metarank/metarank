@@ -49,7 +49,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       FeatureName("genre"),
       FieldName(Item, "genre"),
       ItemScopeType,
-      IndexEncoderName,
+      Some(IndexEncoderName),
       NonEmptyList.of("action", "drama", "comedy")
     ),
     InteractedWithSchema(

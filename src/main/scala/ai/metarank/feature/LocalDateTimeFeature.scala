@@ -14,8 +14,8 @@ import ai.metarank.model.Write.Put
 import ai.metarank.model._
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, ZonedDateTime}
@@ -49,9 +49,11 @@ case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeat
 
 object LocalDateTimeFeature {
   sealed trait DateTimeMapper {
+    def name: String
     def map(ts: ZonedDateTime): Double
   }
   case object TimeOfDay extends DateTimeMapper {
+    val name                 = "time_of_day"
     lazy val SECONDS_IN_HOUR = Duration.ofHours(1).getSeconds.toDouble
     override def map(ts: ZonedDateTime): Double = {
       val second = ts.toLocalTime.toSecondOfDay
@@ -59,21 +61,25 @@ object LocalDateTimeFeature {
     }
   }
   case object DayOfWeek extends DateTimeMapper {
+    val name = "day_of_week"
     override def map(ts: ZonedDateTime): Double = {
       ts.getDayOfWeek.getValue.toDouble
     }
   }
   case object MonthOfYear extends DateTimeMapper {
+    val name = "month_of_year"
     override def map(ts: ZonedDateTime): Double = {
       ts.getMonth.getValue.toDouble
     }
   }
   case object Year extends DateTimeMapper {
+    val name = "year"
     override def map(ts: ZonedDateTime): Double = {
       ts.getYear.toDouble
     }
   }
   case object Second extends DateTimeMapper {
+    val name = "second"
     override def map(ts: ZonedDateTime): Double = {
       ts.toEpochSecond.toDouble
     }
@@ -89,13 +95,15 @@ object LocalDateTimeFeature {
   }
 
   implicit val tdMapperDecoder: Decoder[DateTimeMapper] = Decoder.decodeString.emapTry {
-    case "time_of_day"   => Success(TimeOfDay)
-    case "day_of_week"   => Success(DayOfWeek)
-    case "month_of_year" => Success(MonthOfYear)
-    case "year"          => Success(Year)
-    case "second"        => Success(Second)
-    case other           => Failure(new IllegalArgumentException(s"parsing method $other is not supported"))
+    case TimeOfDay.name   => Success(TimeOfDay)
+    case DayOfWeek.name   => Success(DayOfWeek)
+    case MonthOfYear.name => Success(MonthOfYear)
+    case Year.name        => Success(Year)
+    case Second.name      => Success(Second)
+    case other            => Failure(new IllegalArgumentException(s"parsing method $other is not supported"))
   }
+
+  implicit val tdMapperEncoder: Encoder[DateTimeMapper] = Encoder.encodeString.contramap(_.name)
 
   implicit val timeDayDecoder: Decoder[LocalDateTimeSchema] =
     deriveDecoder[LocalDateTimeSchema]
@@ -105,4 +113,5 @@ object LocalDateTimeFeature {
       )
       .withErrorMessage("cannot parse a feature definition of type 'local_time'")
 
+  implicit val timeDayEncoder: Encoder[LocalDateTimeSchema] = deriveEncoder
 }

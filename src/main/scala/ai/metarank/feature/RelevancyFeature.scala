@@ -12,8 +12,8 @@ import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -43,4 +43,6 @@ object RelevancyFeature {
 
   implicit val relDecoder: Decoder[RelevancySchema] =
     deriveDecoder[RelevancySchema].withErrorMessage("cannot parse a feature definition of type 'relevancy'")
+
+  implicit val relEncoder: Encoder[RelevancySchema] = deriveEncoder
 }

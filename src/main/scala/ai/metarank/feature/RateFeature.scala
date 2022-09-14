@@ -14,8 +14,8 @@ import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
@@ -98,6 +98,8 @@ object RateFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val rateSchema: Decoder[RateFeatureSchema] =
+  implicit val rateSchemaDecoder: Decoder[RateFeatureSchema] =
     deriveDecoder[RateFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'rate'")
+
+  implicit val rateSchemaEncoder: Encoder[RateFeatureSchema] = deriveEncoder
 }

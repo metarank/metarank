@@ -1,6 +1,7 @@
 package ai.metarank.util
 
-import io.circe.Decoder
+import cats.data.NonEmptyList
+import io.circe.{Decoder, Encoder}
 import org.apache.lucene.analysis.Analyzer.TokenStreamComponents
 import org.apache.lucene.analysis.ar.ArabicAnalyzer
 import org.apache.lucene.analysis.cn.smart.SmartChineseAnalyzer
@@ -30,7 +31,8 @@ import org.apache.lucene.analysis.{Analyzer, Tokenizer}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
 
-case class TextAnalyzer(analyzer: Analyzer) {
+case class TextAnalyzer(makeAnalyzer: () => Analyzer, names: NonEmptyList[String]) {
+  lazy val analyzer = makeAnalyzer()
   def split(line: String): Array[String] = {
     val stream = analyzer.tokenStream("ye", line)
     stream.reset()
@@ -46,55 +48,46 @@ case class TextAnalyzer(analyzer: Analyzer) {
 }
 
 object TextAnalyzer {
+  def apply(make: => Analyzer, name: String)                = new TextAnalyzer(() => make, NonEmptyList.of(name))
+  def apply(make: => Analyzer, alias: String, name: String) = new TextAnalyzer(() => make, NonEmptyList.of(alias, name))
+
   def analyzer1(tok: Tokenizer) = new Analyzer() {
     override def createComponents(fieldName: String): Analyzer.TokenStreamComponents =
       new TokenStreamComponents(tok)
   }
-  lazy val icu        = TextAnalyzer(analyzer1(new ICUTokenizer()))
-  lazy val whitespace = TextAnalyzer(analyzer1(new WhitespaceTokenizer()))
+  lazy val icu        = TextAnalyzer(analyzer1(new ICUTokenizer()), "icu")
+  lazy val whitespace = TextAnalyzer(analyzer1(new WhitespaceTokenizer()), "whitespace")
+  lazy val english    = TextAnalyzer(new EnglishAnalyzer(), "en", "english")
 
-  lazy val generic    = TextAnalyzer(new StandardAnalyzer())
-  lazy val english    = TextAnalyzer(new EnglishAnalyzer())
-  lazy val czech      = TextAnalyzer(new CzechAnalyzer())
-  lazy val danish     = TextAnalyzer(new DanishAnalyzer())
-  lazy val dutch      = TextAnalyzer(new DutchAnalyzer())
-  lazy val estonian   = TextAnalyzer(new EstonianAnalyzer())
-  lazy val finnish    = TextAnalyzer(new FinnishAnalyzer())
-  lazy val french     = TextAnalyzer(new FrenchAnalyzer())
-  lazy val german     = TextAnalyzer(new GermanAnalyzer())
-  lazy val greek      = TextAnalyzer(new GreekAnalyzer())
-  lazy val italian    = TextAnalyzer(new ItalianAnalyzer())
-  lazy val norwegian  = TextAnalyzer(new NorwegianAnalyzer())
-  lazy val polish     = TextAnalyzer(new PolishAnalyzer())
-  lazy val portuguese = TextAnalyzer(new PortugueseAnalyzer())
-  lazy val spanish    = TextAnalyzer(new SpanishAnalyzer())
-  lazy val swedish    = TextAnalyzer(new SwedishAnalyzer())
-  lazy val turkish    = TextAnalyzer(new TurkishAnalyzer())
-  lazy val arabic     = TextAnalyzer(new ArabicAnalyzer())
-  lazy val chinese    = TextAnalyzer(new SmartChineseAnalyzer())
-  lazy val japanese   = TextAnalyzer(new JapaneseAnalyzer())
+  lazy val analyzers = List(
+    TextAnalyzer(new StandardAnalyzer(), "generic"),
+    english,
+    TextAnalyzer(new CzechAnalyzer(), "cz", "czech"),
+    TextAnalyzer(new DanishAnalyzer(), "da", "danish"),
+    TextAnalyzer(new DutchAnalyzer(), "nl", "dutch"),
+    TextAnalyzer(new EstonianAnalyzer(), "et", "estonian"),
+    TextAnalyzer(new FinnishAnalyzer(), "fi", "finnish"),
+    TextAnalyzer(new FrenchAnalyzer(), "fr", "french"),
+    TextAnalyzer(new GermanAnalyzer(), "de", "german"),
+    TextAnalyzer(new GreekAnalyzer(), "gr", "greek"),
+    TextAnalyzer(new ItalianAnalyzer(), "it", "italian"),
+    TextAnalyzer(new NorwegianAnalyzer(), "no", "norwegian"),
+    TextAnalyzer(new PolishAnalyzer(), "pl", "polish"),
+    TextAnalyzer(new PortugueseAnalyzer(), "pt", "portuguese"),
+    TextAnalyzer(new SpanishAnalyzer(), "es", "spanish"),
+    TextAnalyzer(new SwedishAnalyzer(), "sv", "swedish"),
+    TextAnalyzer(new TurkishAnalyzer(), "tr", "turkish"),
+    TextAnalyzer(new ArabicAnalyzer(), "ar", "arabic"),
+    TextAnalyzer(new SmartChineseAnalyzer(), "zh", "chinese"),
+    TextAnalyzer(new JapaneseAnalyzer(), "ja", "japanese")
+  )
 
-  implicit val analyzerDecoder: Decoder[TextAnalyzer] = Decoder.decodeString.emapTry {
-    case "generic"           => Success(generic)
-    case "en" | "english"    => Success(english)
-    case "cz" | "czech"      => Success(czech)
-    case "da" | "danish"     => Success(danish)
-    case "nl" | "dutch"      => Success(dutch)
-    case "et" | "estonian"   => Success(estonian)
-    case "fi" | "finnish"    => Success(finnish)
-    case "fr" | "french"     => Success(french)
-    case "de" | "german"     => Success(german)
-    case "gr" | "greek"      => Success(greek)
-    case "it" | "italian"    => Success(italian)
-    case "no" | "norwegian"  => Success(norwegian)
-    case "pl" | "polish"     => Success(polish)
-    case "pt" | "portuguese" => Success(portuguese)
-    case "es" | "spanish"    => Success(spanish)
-    case "sv" | "swedish"    => Success(swedish)
-    case "tr" | "turkish"    => Success(turkish)
-    case "ar" | "arabic"     => Success(arabic)
-    case "zh" | "chinese"    => Success(chinese)
-    case "ja" | "japanese"   => Success(japanese)
-    case other               => Failure(new IllegalArgumentException(s"language $other is not supported"))
-  }
+  implicit val analyzerDecoder: Decoder[TextAnalyzer] = Decoder.decodeString.emapTry(string =>
+    analyzers.find(_.names.toList.contains(string)) match {
+      case Some(found) => Success(found)
+      case None        => Failure(new IllegalArgumentException(s"language $string is not supported"))
+    }
+  )
+
+  implicit val analyzerEncoder: Encoder[TextAnalyzer] = Encoder.encodeString.contramap(_.names.head)
 }

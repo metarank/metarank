@@ -10,7 +10,9 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 
-case class StringFeatureRule(n: Int = 10, percentile: Double = 0.90) extends FeatureRule with Logging {
+case class StringFeatureRule(min: Int = 10, max: Int = 100, percentile: Double = 0.90)
+    extends FeatureRule
+    with Logging {
 
   override def make(model: EventModel): List[FeatureSchema] = {
     model.itemFields.strings.flatMap { case (name, stat) => make(name, stat) }.toList
@@ -26,9 +28,10 @@ case class StringFeatureRule(n: Int = 10, percentile: Double = 0.90) extends Fea
       .takeWhile { case (_, c) =>
         sum += c
         count += 1
-        (sum <= threshold) || (count <= n)
+        (sum <= threshold) || (count <= min)
       }
       .map(_._1)
+      .take(max)
   }
 
   def make(field: String, stat: StringFieldStat): Option[StringFeatureSchema] = {
@@ -42,18 +45,18 @@ case class StringFeatureRule(n: Int = 10, percentile: Double = 0.90) extends Fea
         None
       case a :: b :: Nil =>
         logger.info(
-          s"item field $field has two distinct values ($a, $b), generated 'string' feature using label encoding"
+          s"item field $field has two distinct values ($a, $b), generated 'string' feature using index encoding"
         )
         Some(
           StringFeatureSchema(
             name = FeatureName(field),
             source = FieldName(Item, field),
             scope = ItemScopeType,
-            encode = IndexEncoderName,
+            encode = Some(IndexEncoderName),
             values = NonEmptyList.of(a, b)
           )
         )
-      case head :: tail =>
+      case head :: tail if stat.values.size < 10 =>
         logger.info(
           s"item field $field has ${stat.values.size} distinct values, generated 'string' feature with onehot encoding for top ${values.size} items"
         )
@@ -62,7 +65,20 @@ case class StringFeatureRule(n: Int = 10, percentile: Double = 0.90) extends Fea
             name = FeatureName(field),
             source = FieldName(Item, field),
             scope = ItemScopeType,
-            encode = OnehotEncoderName,
+            encode = Some(OnehotEncoderName),
+            values = NonEmptyList(head, tail)
+          )
+        )
+      case head :: tail =>
+        logger.info(
+          s"item field $field has ${stat.values.size} distinct values, generated 'string' feature with index encoding for top ${values.size} items"
+        )
+        Some(
+          StringFeatureSchema(
+            name = FeatureName(field),
+            source = FieldName(Item, field),
+            scope = ItemScopeType,
+            encode = Some(IndexEncoderName),
             values = NonEmptyList(head, tail)
           )
         )

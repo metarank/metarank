@@ -18,8 +18,8 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -95,4 +95,5 @@ object ItemAgeFeature {
       .ensure(_.source.event == Item, "can only work with fields from metadata events")
       .withErrorMessage("cannot parse a feature definition of type 'item_age'")
 
+  implicit val itemAgeEncoder: Encoder[ItemAgeSchema] = deriveEncoder
 }

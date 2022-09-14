@@ -5,6 +5,7 @@ import ai.metarank.model.Dimension.VectorDim
 import ua_parser.Client
 
 case object PlatformField extends UAField {
+  val name = "platform"
   val mobile = Set(
     "Amazon Silk",
     "Android",

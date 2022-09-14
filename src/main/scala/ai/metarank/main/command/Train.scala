@@ -49,6 +49,10 @@ object Train extends Logging {
         .map(ct => ClickthroughQuery(ct.values, ct.ct.interactions, ct, model.weights, model.datasetDescriptor))
     )
     dataset <- IO(Dataset(model.datasetDescriptor, queries))
+    _ <- dataset.groups match {
+      case Nil => IO.raiseError(new Exception("Cannot train model: empty dataset"))
+      case _   => info(s"generated training dataset: ${dataset.groups.size} groups, ${dataset.desc.dim} dims")
+    }
     (train, test) = split(dataset, 80)
     _            <- info(s"training model for train=${train.groups.size} test=${test.groups.size}")
     trainedModel <- IO(model.train(train, test))

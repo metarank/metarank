@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.flow.MetarankFlow.ProcessResult
-import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
+import ai.metarank.flow.{CheckOrderingPipe, ClickthroughJoinBuffer, MetarankFlow}
 import ai.metarank.fstore.Persistence
 import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.model.{Event, Timestamp}
@@ -58,7 +58,9 @@ object Import extends Logging {
     if (shouldSort) {
       logger.warn("Dataset seems not to be sorted by timestamp, doing in-memory sort")
       fs2.Stream.evalSeq(stream.compile.toList.map(_.sortBy(_.timestamp.ts))).chunkN(1024).unchunks
-    } else stream
+    } else {
+      stream.through(CheckOrderingPipe.process)
+    }
   }
 
   def slurp(

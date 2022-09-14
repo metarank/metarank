@@ -15,14 +15,18 @@ import cats.implicits._
 
 case class RedisClickthroughStore(rankings: RedisClient, prefix: String) extends ClickthroughStore with Logging {
   import RedisClickthroughStore._
-  val BATCH_SIZE = 128
+  val BATCH_SIZE        = 128
+  val LARGE_BATCH_COUNT = 2
 
   override def put(cts: List[ClickthroughValues]): IO[Unit] = for {
     batches <- IO(cts.grouped(BATCH_SIZE).toList)
-    _       <- IO.whenA(batches.size > 4)(warn(s"writing large batch: ${cts.size} click-throughs at once"))
+    _ <- IO.whenA(batches.size > LARGE_BATCH_COUNT)(warn(s"writing large batch: ${cts.size} click-throughs at once"))
     _ <- batches
       .map(batch => rankings.mset(batch.map(ct => (prefix + "/" + ct.ct.id.value) -> ctc.encode(ct)).toMap))
       .sequence
+    _ <- IO.whenA(batches.size > LARGE_BATCH_COUNT)(
+      rankings.doFlush(rankings.writer.ping().toCompletableFuture) *> info("forced flush")
+    )
   } yield {}
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] = Stream

@@ -6,3 +6,7 @@ import ai.metarank.model.FeatureSchema
 trait FeatureRule {
   def make(model: EventModel): List[FeatureSchema]
 }
+
+object FeatureRule {
+
+}

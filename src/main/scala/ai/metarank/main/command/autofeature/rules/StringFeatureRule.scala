@@ -10,25 +10,29 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 
-case class CategorialFeatureRule(n: Int = 10, percentile: Double = 0.90) extends FeatureRule with Logging {
+case class StringFeatureRule(n: Int = 10, percentile: Double = 0.90) extends FeatureRule with Logging {
 
   override def make(model: EventModel): List[FeatureSchema] = {
     model.itemFields.strings.flatMap { case (name, stat) => make(name, stat) }.toList
   }
 
-  def make(field: String, stat: StringFieldStat): Option[StringFeatureSchema] = {
+  def fieldValues(stat: StringFieldStat): List[String] = {
     val sorted    = stat.values.toList.sortBy(-_._2)
     val total     = sorted.map(_._2.toLong).sum
     val threshold = percentile * total
     var sum       = 0L
     var count     = 0L
-    val values = sorted
+    sorted
       .takeWhile { case (_, c) =>
         sum += c
         count += 1
         (sum <= threshold) || (count <= n)
       }
       .map(_._1)
+  }
+
+  def make(field: String, stat: StringFieldStat): Option[StringFeatureSchema] = {
+    val values = fieldValues(stat)
     values match {
       case Nil =>
         logger.info(s"item field $field has no known field values, skipping")

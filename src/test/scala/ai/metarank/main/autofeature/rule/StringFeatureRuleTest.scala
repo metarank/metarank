@@ -4,7 +4,7 @@ import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEn
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.command.autofeature.FieldStat.StringFieldStat
 import ai.metarank.main.command.autofeature.{EventModel, ItemFieldStat}
-import ai.metarank.main.command.autofeature.rules.CategorialFeatureRule
+import ai.metarank.main.command.autofeature.rules.StringFeatureRule
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
@@ -13,14 +13,14 @@ import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class CategorialFeatureRuleTest extends AnyFlatSpec with Matchers {
+class StringFeatureRuleTest extends AnyFlatSpec with Matchers {
   it should "skip constant fields" in {
-    val result = CategorialFeatureRule().make("color", StringFieldStat(Map("red" -> 100)))
+    val result = StringFeatureRule().make("color", StringFieldStat(Map("red" -> 100)))
     result shouldBe None
   }
 
   it should "prefer label encoding for binary fields" in {
-    val result = CategorialFeatureRule().make("available", StringFieldStat(Map("yes" -> 100, "no" -> 100)))
+    val result = StringFeatureRule().make("available", StringFieldStat(Map("yes" -> 100, "no" -> 100)))
     result shouldBe Some(
       StringFeatureSchema(
         name = FeatureName("available"),
@@ -33,7 +33,7 @@ class CategorialFeatureRuleTest extends AnyFlatSpec with Matchers {
   }
 
   it should "not drop infreq values for low-cardinality fields" in {
-    val result = CategorialFeatureRule().make("color", StringFieldStat(Map("red" -> 10, "green" -> 1, "blue" -> 1)))
+    val result = StringFeatureRule().make("color", StringFieldStat(Map("red" -> 10, "green" -> 1, "blue" -> 1)))
     result shouldBe Some(
       StringFeatureSchema(
         name = FeatureName("color"),
@@ -47,7 +47,7 @@ class CategorialFeatureRuleTest extends AnyFlatSpec with Matchers {
 
   it should "drop infreq values for high-cardinality fields" in {
     val result =
-      CategorialFeatureRule().make("color", StringFieldStat((0 until 20).map(i => s"c$i" -> i).toMap))
+      StringFeatureRule().make("color", StringFieldStat((0 until 20).map(i => s"c$i" -> i).toMap))
     result shouldBe Some(
       StringFeatureSchema(
         name = FeatureName("color"),

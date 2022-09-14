@@ -3,6 +3,7 @@ package ai.metarank.main
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.config.InputConfig.SourceOffset.Earliest
 import ai.metarank.config.SourceFormat
+import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
@@ -27,7 +28,8 @@ object CliArgs extends Logging {
   case class TrainArgs(conf: Path, model: String)                                             extends CliConfArgs
   case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliConfArgs
   case class SortArgs(in: Path, out: Path)                                                    extends CliArgs
-  case class AutoConfArgs(data: Path, out: Path, offset: SourceOffset, format: SourceFormat)  extends CliArgs
+  case class AutoFeatureArgs(data: Path, out: Path, offset: SourceOffset, format: SourceFormat, rules: RuleSet)
+      extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -87,14 +89,15 @@ object CliArgs extends Logging {
             } yield {
               SortArgs(data, out)
             }
-          case Some(parser.autoconf) =>
+          case Some(parser.`autofeature`) =>
             for {
-              data   <- parse(parser.autoconf.data)
-              out    <- parse(parser.autoconf.out)
-              offset <- parse(parser.autoconf.offset)
-              format <- parse(parser.autoconf.format)
+              data    <- parse(parser.autofeature.data)
+              out     <- parse(parser.autofeature.out)
+              offset  <- parse(parser.autofeature.offset)
+              format  <- parse(parser.autofeature.format)
+              ruleset <- parse(parser.autofeature.ruleset)
             } yield {
-              AutoConfArgs(data, out, offset, format)
+              AutoFeatureArgs(data, out, offset, format, ruleset)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -190,7 +193,7 @@ object CliArgs extends Logging {
       )
     }
 
-    object autoconf extends Subcommand("autoconf") {
+    object autofeature extends Subcommand("autofeature") {
       descr("generate reference config based on existing data")
       val data = opt[Path](
         "data",
@@ -221,6 +224,13 @@ object CliArgs extends Logging {
         default = Some(JsonFormat)
       )
 
+      val ruleset = opt[RuleSet](
+        name = "ruleset",
+        required = false,
+        descr = "set of rules to generate config: stable, all (optional, default=stable)",
+        default = Some(RuleSet.stable())
+      )
+
     }
 
     object `import` extends Subcommand("import") with ConfigOption with ImportLikeOption {
@@ -244,7 +254,7 @@ object CliArgs extends Logging {
     addSubcommand(standalone)
     addSubcommand(validate)
     addSubcommand(sort)
-    addSubcommand(autoconf)
+    addSubcommand(autofeature)
     version(Logo.raw + " ver:" + Version())
     banner("""Usage: metarank <subcommand> <options>
              |Options:
@@ -274,7 +284,13 @@ object CliArgs extends Logging {
   implicit val booleanConverter: ValueConverter[Boolean] = singleArgConverter({
     case "yes" | "true" | "on"  => true
     case "no" | "false" | "off" => false
-    case other                  => throw new IllegalArgumentException(s"cannot parse $other as boolean valus")
+    case other                  => throw new IllegalArgumentException(s"cannot parse $other as boolean value")
+  })
+
+  implicit val ruleSetConverter: ValueConverter[RuleSet] = singleArgConverter({
+    case "all"    => RuleSet.all()
+    case "stable" => RuleSet.stable()
+    case other    => throw new IllegalArgumentException(s"cannot parse $other as a ruleset")
   })
 
 }

@@ -52,4 +52,6 @@ object FeatureSchema {
       decoded
     }
   )
+
+  implicit val featureSchemaEncoder: Encoder[FeatureSchema]
 }

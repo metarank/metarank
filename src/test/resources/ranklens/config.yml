@@ -8,7 +8,12 @@ core:
     maxSessionLength: 60s
 
 models:
+  similar:
+    type: mf_ieals
+  trending:
+    type: popularity
   xgboost:
+
     type: lambdamart
     backend:
       type: xgboost

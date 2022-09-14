@@ -1,7 +1,8 @@
 package ai.metarank.config
 
 import ai.metarank.config.CoreConfig.{ClickthroughJoinConfig, TrackingConfig}
-import io.circe.Decoder
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.{Decoder, Encoder}
 
 import scala.concurrent.duration._
 

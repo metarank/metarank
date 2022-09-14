@@ -43,7 +43,7 @@ object Main extends IOApp with Logging {
           case a: TrainArgs      => Train.run(conf, store, mapping, a)
           case a: ValidateArgs   => Validate.run(conf, a)
           case a: StandaloneArgs => Standalone.run(conf, store, mapping, a)
-          case a: SortArgs       => Sort.run(conf, a)
+          case a: SortArgs       => Sort.run(a)
         }
         _ <- info("My job is done, exiting.")
       } yield {

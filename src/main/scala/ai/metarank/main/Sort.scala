@@ -56,7 +56,7 @@ object Sort extends Logging {
   object EventComparator extends Comparator[Event] {
     override def compare(t: Event, t1: Event): Int = t.timestamp.ts.compare(t1.timestamp.ts)
   }
-  def run(conf: Config, args: SortArgs): IO[Unit] = IO {
+  def run(args: SortArgs): IO[Unit] = IO {
     logger.info(s"Sorting ${args.in}")
     val sorter = new Sorter[Event](new SortConfig(), Reader, Writer, EventComparator)
     val source = new BufferedInputStream(new FileInputStream(args.in.toFile), 1024 * 1024)

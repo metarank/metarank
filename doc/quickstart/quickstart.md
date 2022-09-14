@@ -96,7 +96,9 @@ The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) websit
 
 For this quickstart, you need two files from the dataset:
 1. [config.yml](https://raw.githubusercontent.com/metarank/metarank/master/src/test/resources/ranklens/config.yml) - metarank
-configuration file, describing how to map visitor events to ML features
+configuration file used in the [demo.metarank.ai](https://demo.metarank.ai), describing how to map visitor events to ML features. 
+For your own dataset, you don't always need to write this file from scratch, Metarank can automatically try to deduce 
+most typical feature mappings based on your dataset. See [Autofeature](../howto/autofeature.md) for details.
 2. [events.jsonl.gz](https://github.com/metarank/metarank/blob/master/src/test/resources/ranklens/events/events.jsonl.gz) - 
 a dump of historical visitor interactions used for ML training.
 

@@ -13,7 +13,7 @@ java -jar metarank-x.x.x.jar
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/ ver:0.5.3
+      \/     \/          \/           \/     \/     \/ ver:None
 Usage: metarank <subcommand> <options>
 Options:
 
@@ -25,7 +25,7 @@ Subcommand: import - import historical clickthrough data
   -d, --data  <arg>         path to an input file
   -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
                             snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
+  -o, --offset  <arg>       offset: earliest, latest, ts=1663161962, last=1h
                             (optional, default=earliest)
   -v, --validation  <arg>   should input validation be enabled (optional,
                             default=false)
@@ -45,7 +45,7 @@ Subcommand: standalone - import, train and serve at once
   -d, --data  <arg>         path to an input file
   -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
                             snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
+  -o, --offset  <arg>       offset: earliest, latest, ts=1663161962, last=1h
                             (optional, default=earliest)
   -v, --validation  <arg>   should input validation be enabled (optional,
                             default=false)
@@ -56,20 +56,29 @@ Subcommand: validate - run the input data validation suite
   -d, --data  <arg>         path to an input file
   -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
                             snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
+  -o, --offset  <arg>       offset: earliest, latest, ts=1663161962, last=1h
                             (optional, default=earliest)
   -v, --validation  <arg>   should input validation be enabled (optional,
                             default=false)
   -h, --help                Show help message
 
 Subcommand: sort - sort the dataset by timestamp
-  -c, --config  <arg>   path to config file
-  -d, --data  <arg>     path to a directory with input files
-  -o, --out  <arg>      path to an output file
-  -h, --help            Show help message
+  -d, --data  <arg>   path to a directory with input files
+  -o, --out  <arg>    path to an output file
+  -h, --help          Show help message
 
-For all other tricks, consult the docs on https://docs.metarank.ai
-```
+Subcommand: autofeature - generate reference config based on existing data
+  -d, --data  <arg>      path to a directory with input files
+  -f, --format  <arg>    input file format: json, snowplow, snowplow:tsv,
+                         snowplow:json (optional, default=json)
+  -o, --offset  <arg>    offset: earliest, latest, ts=1663161962, last=1h
+                         (optional, default=earliest)
+      --out  <arg>       path to an output config file
+  -r, --ruleset  <arg>   set of rules to generate config: stable, all (optional,
+                         default=stable, values: [stable, all])
+  -h, --help             Show help message
+
+For all other tricks, consult the docs on https://docs.metarank.ai```
 
 The command-line argument structure is:
 ```shell

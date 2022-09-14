@@ -30,6 +30,9 @@
 * [Integrations](integrations/overview.md)
   * [Snowplow](integrations/snowplow.md) 
 
+## How-to
+* [Automatic feature engineering](howto/autofeature.md)
+
 ## Development
 
 * [Running in production](dev/production-recommendations.md)

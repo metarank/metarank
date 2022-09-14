@@ -9,7 +9,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.UserScopeType
 import ai.metarank.util.Logging
 
-object InteractionFeatureRule extends FeatureRule with Logging {
+object InteractedWithFeatureRule extends FeatureRule with Logging {
   override def make(model: EventModel): List[FeatureSchema] = for {
     interaction <- model.interactions.types.keys.toList
     field <- model.itemFields.strings.flatMap {

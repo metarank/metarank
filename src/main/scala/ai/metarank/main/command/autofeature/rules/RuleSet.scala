@@ -5,7 +5,7 @@ case class RuleSet(rules: List[FeatureRule])
 object RuleSet {
   def stable(): RuleSet = new RuleSet(
     List(
-      InteractionFeatureRule,
+      InteractedWithFeatureRule,
       NumericalFeatureRule,
       StringFeatureRule(percentile = 0.90),
       RelevancyRule
@@ -14,7 +14,7 @@ object RuleSet {
 
   def all(): RuleSet = new RuleSet(
     List(
-      InteractionFeatureRule,
+      InteractedWithFeatureRule,
       NumericalFeatureRule,
       StringFeatureRule(minValues = 20, percentile = 0.95),
       RelevancyRule,

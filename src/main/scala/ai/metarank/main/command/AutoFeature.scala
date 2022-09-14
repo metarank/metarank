@@ -9,7 +9,6 @@ import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Stream
-import io.circe.yaml.syntax._
 import io.circe.syntax._
 import io.circe.yaml.Printer
 
@@ -28,6 +27,7 @@ object AutoFeature extends Logging {
     val stream = new FileOutputStream(file)
     stream.write(yaml.getBytes())
     stream.close()
+    logger.info(s"Wrote a reference config file to ${args.out.toString}")
   }
 
   def run(source: Stream[IO, Event], rules: RuleSet): IO[ConfigMirror] = for {

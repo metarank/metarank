@@ -15,7 +15,7 @@ object InteractionRateFeatureRule extends FeatureRule with Logging {
   } yield {
     logger.info(s"generated rate feature over $interaction/impressions")
     RateFeatureSchema(
-      name = FeatureName(s"rate_$interaction"),
+      name = FeatureName(s"${interaction}_rate"),
       top = interaction,
       bottom = "impression",
       bucket = 1.day,

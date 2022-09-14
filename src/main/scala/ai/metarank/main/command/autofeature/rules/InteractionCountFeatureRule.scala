@@ -15,7 +15,7 @@ object InteractionCountFeatureRule extends FeatureRule with Logging {
   } yield {
     logger.info(s"generated window_count feature over interaction '$interaction'")
     WindowInteractionCountSchema(
-      name = FeatureName(s"count_$interaction"),
+      name = FeatureName(s"${interaction}_count"),
       interaction = interaction,
       bucket = 1.day,
       periods = List(3, 7, 14, 30),

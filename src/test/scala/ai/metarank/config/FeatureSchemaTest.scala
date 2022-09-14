@@ -35,7 +35,7 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
         FeatureName("price"),
         FieldName(Item, "price"),
         ItemScopeType,
-        Some(IndexEncoderName),
+        None,
         NonEmptyList.one("foo")
       )
     )

@@ -59,7 +59,7 @@ object Import extends Logging {
       logger.warn("Dataset seems not to be sorted by timestamp, doing in-memory sort")
       fs2.Stream.evalSeq(stream.compile.toList.map(_.sortBy(_.timestamp.ts))).chunkN(1024).unchunks
     } else {
-      stream.through(CheckOrderingPipe.process)
+      stream.through(CheckOrderingPipe.process).chunkN(1024).unchunks
     }
   }
 

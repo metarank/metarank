@@ -19,11 +19,12 @@ import ai.metarank.model.ScopeType.{SessionScopeType, UserScopeType}
 import ai.metarank.model.Write.Put
 import ai.metarank.util.OneHotEncoder
 import cats.effect.IO
-import io.circe.{Decoder, DecodingFailure}
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import ua_parser.{Client, Parser}
 
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   lazy val parser  = new Parser()
@@ -83,22 +84,24 @@ object UserAgentFeature {
   }
 
   trait UAField {
+    val name: String
     lazy val dim = VectorDim(possibleValues.size)
     def possibleValues: List[String]
     def value(client: Client): Option[String]
   }
-  implicit val uafieldDecoder: Decoder[UAField] = Decoder.instance(c =>
-    c.as[String] match {
-      case Left(value)       => Left(value)
-      case Right("platform") => Right(PlatformField)
-      case Right("os")       => Right(OSField)
-      case Right("browser")  => Right(BrowserField)
-      case Right("bot")      => Right(BotField)
-      case Right(other)      => Left(DecodingFailure(s"UA field type $other is not yet supported", c.history))
-    }
-  )
+  implicit val uaFieldDecoder: Decoder[UAField] = Decoder.decodeString.emapTry {
+    case PlatformField.name => Success(PlatformField)
+    case OSField.name       => Success(OSField)
+    case BrowserField.name  => Success(BrowserField)
+    case BotField.name      => Success(BotField)
+    case other              => Failure(DecodingFailure(s"UA field type $other is not yet supported", Nil))
+  }
+
+  implicit val uaFieldEncoder: Encoder[UAField] = Encoder.encodeString.contramap(_.name)
 
   implicit val uaDecoder: Decoder[UserAgentSchema] =
     deriveDecoder[UserAgentSchema].withErrorMessage("cannot parse a feature definition of type 'ua'")
+
+  implicit val uaEncoder: Encoder[UserAgentSchema] = deriveEncoder[UserAgentSchema]
 
 }

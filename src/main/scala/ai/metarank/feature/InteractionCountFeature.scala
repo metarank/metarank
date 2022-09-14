@@ -14,8 +14,8 @@ import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Write.Increment
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration._
 
@@ -73,4 +73,6 @@ object InteractionCountFeature {
     deriveDecoder[InteractionCountSchema].withErrorMessage(
       "cannot parse a feature definition of type 'interaction_count'"
     )
+
+  implicit val interCountEncoder: Encoder[InteractionCountSchema] = deriveEncoder
 }

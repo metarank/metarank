@@ -12,4 +12,6 @@ object Port {
     case other                            => Failure(ConfigParsingError(s"port $other should be in 0..65536 range"))
   }
 
+  implicit val portEncoder: Encoder[Port] = Encoder.encodeInt.contramap(_.value)
+
 }

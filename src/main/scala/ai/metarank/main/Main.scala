@@ -4,8 +4,16 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.TrackingConfig
 import ai.metarank.fstore.Persistence
-import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, SortArgs, StandaloneArgs, TrainArgs, ValidateArgs}
-import ai.metarank.main.command.{Import, Serve, Standalone, Train, Validate}
+import ai.metarank.main.CliArgs.{
+  AutoFeatureArgs,
+  ImportArgs,
+  ServeArgs,
+  SortArgs,
+  StandaloneArgs,
+  TrainArgs,
+  ValidateArgs
+}
+import ai.metarank.main.command.{AutoFeature, Import, Serve, Standalone, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
 import ai.metarank.util.analytics.{AnalyticsReporter, ErrorReporter}
 import ai.metarank.util.{Logging, Version}
@@ -31,19 +39,27 @@ object Main extends IOApp with Logging {
               CliArgs.printHelp()
             }
           )
-        _          <- IO(logger.info(Logo.raw + "  ver:" + Version().getOrElse("unknown")))
-        confString <- IO.fromTry(Try(IOUtils.toString(new FileInputStream(args.conf.toFile), StandardCharsets.UTF_8)))
-        conf       <- Config.load(confString)
-        _          <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args), env)
-        mapping    <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
-        store = Persistence.fromConfig(mapping.schema, conf.state)
+        _ <- IO(logger.info(Logo.raw + "  ver:" + Version().getOrElse("unknown")))
         _ <- args match {
-          case a: ServeArgs      => Serve.run(conf, store, mapping, a)
-          case a: ImportArgs     => Import.run(conf, store, mapping, a)
-          case a: TrainArgs      => Train.run(conf, store, mapping, a)
-          case a: ValidateArgs   => Validate.run(conf, a)
-          case a: StandaloneArgs => Standalone.run(conf, store, mapping, a)
-          case a: SortArgs       => Sort.run(a)
+          case a: AutoFeatureArgs => AutoFeature.run(a)
+          case a: SortArgs        => Sort.run(a)
+          case confArgs: CliArgs.CliConfArgs =>
+            for {
+              confString <- IO.fromTry(
+                Try(IOUtils.toString(new FileInputStream(confArgs.conf.toFile), StandardCharsets.UTF_8))
+              )
+              conf    <- Config.load(confString)
+              _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args), env)
+              mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
+              store = Persistence.fromConfig(mapping.schema, conf.state)
+              _ <- confArgs match {
+                case a: ServeArgs      => Serve.run(conf, store, mapping, a)
+                case a: ImportArgs     => Import.run(conf, store, mapping, a)
+                case a: TrainArgs      => Train.run(conf, store, mapping, a)
+                case a: ValidateArgs   => Validate.run(conf, a)
+                case a: StandaloneArgs => Standalone.run(conf, store, mapping, a)
+              }
+            } yield {}
         }
         _ <- info("My job is done, exiting.")
       } yield {

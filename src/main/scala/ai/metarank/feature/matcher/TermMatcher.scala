@@ -1,8 +1,8 @@
 package ai.metarank.feature.matcher
 
 import ai.metarank.util.TextAnalyzer
-import io.circe.generic.semiauto.deriveDecoder
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, DecodingFailure, Encoder}
 
 case class TermMatcher(language: TextAnalyzer) extends FieldMatcher {
   override def tokenize(string: String): Array[String] = {
@@ -13,4 +13,5 @@ case class TermMatcher(language: TextAnalyzer) extends FieldMatcher {
 
 object TermMatcher {
   implicit val ngramDecoder: Decoder[TermMatcher] = deriveDecoder
+  implicit val ngramEncoder: Encoder[TermMatcher] = deriveEncoder
 }

@@ -35,7 +35,7 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
         FeatureName("price"),
         FieldName(Item, "price"),
         ItemScopeType,
-        IndexEncoderName,
+        None,
         NonEmptyList.one("foo")
       )
     )
@@ -49,7 +49,7 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
         FeatureName("price"),
         FieldName(Item, "price"),
         ItemScopeType,
-        OnehotEncoderName,
+        Some(OnehotEncoderName),
         NonEmptyList.one("foo")
       )
     )

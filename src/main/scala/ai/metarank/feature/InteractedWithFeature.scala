@@ -31,8 +31,8 @@ import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType, UserScopeTy
 import ai.metarank.model.Write.{Append, Put}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
@@ -163,6 +163,8 @@ object InteractedWithFeature {
       .ensure(onlyItem, "can only be applied to item fields")
       .ensure(onlyUserSession, "can only be scoped to user/session")
       .withErrorMessage("cannot parse a feature definition of type 'interacted_with'")
+
+  implicit val interWithEncoder: Encoder[InteractedWithSchema] = deriveEncoder
 
   def onlyItem(schema: InteractedWithSchema) = schema.field.event match {
     case EventType.Item => true

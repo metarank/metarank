@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.util.Logging
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
 import scala.concurrent.duration._
 
@@ -81,5 +81,4 @@ object StateStoreConfig extends Logging {
       case other    => Left(DecodingFailure(s"state store type '$other' is not supported", c.history))
     }
   )
-
 }

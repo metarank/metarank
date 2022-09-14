@@ -18,22 +18,21 @@ import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldNa
 import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto._
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto._
 
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with Logging {
   val encoder = schema.encode match {
-    case OnehotEncoderName =>
+    case Some(OnehotEncoderName) | None =>
       OnehotCategoricalEncoder(
         name = schema.name,
         possibleValues = schema.values.toList,
         dim = VectorDim(schema.values.size)
       )
-    case IndexEncoderName =>
+    case Some(IndexEncoderName) =>
       IndexCategoricalEncoder(
         name = schema.name,
         possibleValues = schema.values.toList
@@ -107,33 +106,35 @@ object StringFeature {
     }
   }
 
-  sealed trait EncoderName
+  sealed trait EncoderName {
+    def name: String
+  }
   object EncoderName {
-    case object OnehotEncoderName extends EncoderName
-    case object IndexEncoderName  extends EncoderName
-    implicit val methodNameDecoder: Decoder[EncoderName] = Decoder.decodeString.emapTry {
-      case "index"  => Success(IndexEncoderName)
-      case "onehot" => Success(OnehotEncoderName)
-      case other    => Failure(new Exception(s"string encoding method $other is not supported"))
+    case object OnehotEncoderName extends EncoderName {
+      val name = "onehot"
     }
+    case object IndexEncoderName extends EncoderName {
+      val name = "index"
+    }
+    implicit val methodNameDecoder: Decoder[EncoderName] = Decoder.decodeString.emapTry {
+      case IndexEncoderName.name  => Success(IndexEncoderName)
+      case OnehotEncoderName.name => Success(OnehotEncoderName)
+      case other                  => Failure(new Exception(s"string encoding method $other is not supported"))
+    }
+    implicit val methodNameEncoder: Encoder[EncoderName] = Encoder.encodeString.contramap(_.name)
   }
 
   case class StringFeatureSchema(
       name: FeatureName,
       source: FieldName,
       scope: ScopeType,
-      encode: EncoderName = IndexEncoderName,
+      encode: Option[EncoderName] = None,
       values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  object StringFeatureSchema {
-    implicit val conf: Configuration = Configuration.default.withDefaults
-    implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] =
-      deriveConfiguredDecoder[StringFeatureSchema].withErrorMessage(
-        "cannot parse a feature definition of type 'string'"
-      )
-  }
-
+  implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] =
+    deriveDecoder[StringFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'string'")
+  implicit val stringSchemaEncoder: Encoder[StringFeatureSchema] = deriveEncoder[StringFeatureSchema]
 }

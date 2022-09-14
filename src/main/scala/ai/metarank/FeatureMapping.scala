@@ -106,7 +106,7 @@ object FeatureMapping extends Logging {
 
   def makeDatasetDescriptor(features: List[BaseFeature]): DatasetDescriptor = {
     val datasetFeatures = features.map {
-      case f: StringFeature if f.schema.encode == IndexEncoderName => CategoryFeature(f.schema.name.value)
+      case f: StringFeature if f.schema.encode.contains(IndexEncoderName) => CategoryFeature(f.schema.name.value)
       case f: BaseFeature =>
         f.dim match {
           case Dimension.VectorDim(dim) => VectorFeature(f.schema.name.value, dim)

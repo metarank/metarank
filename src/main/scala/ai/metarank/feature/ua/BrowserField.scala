@@ -4,6 +4,7 @@ import ai.metarank.feature.UserAgentFeature.UAField
 import ua_parser.Client
 
 object BrowserField extends UAField {
+  val name = "browser"
   val browsers = Map(
     "Mobile Safari"     -> "safari",
     "Chrome"            -> "chrome",

@@ -1,9 +1,10 @@
 package ai.metarank.config
 
 import ai.metarank.util.Logging
-import io.circe.Decoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto._
 
-case class ApiConfig(host: Hostname, port: Port)
+case class ApiConfig(host: Hostname = Hostname("0.0.0.0"), port: Port = Port(8080))
 
 object ApiConfig extends Logging {
   implicit val apiConfigDecoder: Decoder[ApiConfig] = Decoder.instance(c =>

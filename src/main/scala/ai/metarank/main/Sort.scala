@@ -123,6 +123,7 @@ object Sort extends Logging {
       if (count % 12345 == 0) logger.info(s"wrote $count sorted events, ${FileUtils.byteCountToDisplaySize(byteCount)}")
       dest.write(bytes)
     })
+
     source.close()
     dest.close()
     logger.info(s"written sorted file: ${out.toString}, ${FileUtils.byteCountToDisplaySize(byteCount)}, $count events")

@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.model.Key.FeatureName
 import cats.data.{NonEmptyList, NonEmptyMap}
-import io.circe.Decoder
+import io.circe.{Codec, Decoder}
 import io.circe.generic.extras.Configuration
 
 import scala.concurrent.duration._
@@ -55,7 +55,7 @@ object ModelConfig {
           case "XGBoostBackend"  => "xgboost"
         })
 
-    implicit val modelBackendDecoder: Decoder[ModelBackend] = deriveConfiguredDecoder
+    implicit val modelBackendCodec: Codec[ModelBackend] = deriveConfiguredCodec
   }
   implicit val conf =
     Configuration.default
@@ -65,5 +65,5 @@ object ModelConfig {
         case "ShuffleConfig"    => "shuffle"
         case "NoopConfig"       => "noop"
       })
-  implicit val modelConfigDecoder: Decoder[ModelConfig] = io.circe.generic.extras.semiauto.deriveConfiguredDecoder
+  implicit val modelConfigCodec: Codec[ModelConfig] = deriveConfiguredCodec
 }

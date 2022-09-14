@@ -6,6 +6,7 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
+import ai.metarank.feature.NumberFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
@@ -15,7 +16,7 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Key.FeatureName
-import io.circe.{Codec, Decoder, DecodingFailure}
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -52,4 +53,25 @@ object FeatureSchema {
       decoded
     }
   )
+
+  implicit val featureSchemaEncoder: Encoder[FeatureSchema] = Encoder.instance {
+    case c: NumberFeatureSchema          => encode(c, "number")
+    case c: BooleanFeatureSchema         => encode(c, "boolean")
+    case c: StringFeatureSchema          => encode(c, "string")
+    case c: WordCountSchema              => encode(c, "word_count")
+    case c: RateFeatureSchema            => encode(c, "rate")
+    case c: InteractedWithSchema         => encode(c, "interacted_with")
+    case c: InteractionCountSchema       => encode(c, "interaction_count")
+    case c: WindowInteractionCountSchema => encode(c, "window_count")
+    case c: UserAgentSchema              => encode(c, "ua")
+    case c: RelevancySchema              => encode(c, "relevancy")
+    case c: LocalDateTimeSchema          => encode(c, "local_time")
+    case c: ItemAgeSchema                => encode(c, "item_age")
+    case c: FieldMatchSchema             => encode(c, "field_match")
+    case c: RefererSchema                => encode(c, "referer")
+  }
+
+  def encode[T <: FeatureSchema](c: T, name: String)(implicit enc: Encoder[T]): Json = {
+    enc(c).deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(name)))))
+  }
 }

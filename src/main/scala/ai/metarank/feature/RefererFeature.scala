@@ -31,8 +31,8 @@ import com.snowplowanalytics.refererparser.{
   SocialMedium,
   UnknownMedium
 }
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
@@ -134,6 +134,8 @@ object RefererFeature {
     .ensure(validType, "source type can be only interaction or ranking")
     .ensure(validScope, "scope can be only user or session")
     .withErrorMessage("cannot parse a feature definition of type 'referer'")
+
+  implicit val refererEncoder: Encoder[RefererSchema] = deriveEncoder
 
   private def validType(schema: RefererSchema) = schema.source.event match {
     case EventType.Interaction(_) => true

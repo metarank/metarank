@@ -20,60 +20,6 @@ $ docker run metarank/metarank:0.5.3 --help
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
       \/     \/          \/           \/     \/     \/ ver:0.5.3
 Usage: metarank <subcommand> <options>
-Options:
-
-  -h, --help      Show help message
-  -v, --version   Show version of this program
-
-Subcommand: import - import historical clickthrough data
-  -c, --config  <arg>       path to config file
-  -d, --data  <arg>         path to an input file
-  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
-                            snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
-                            (optional, default=earliest)
-  -v, --validation  <arg>   should input validation be enabled (optional,
-                            default=false)
-  -h, --help                Show help message
-
-Subcommand: train - train the ML model
-  -c, --config  <arg>   path to config file
-  -m, --model  <arg>    model name to train
-  -h, --help            Show help message
-
-Subcommand: serve - run the inference API
-  -c, --config  <arg>   path to config file
-  -h, --help            Show help message
-
-Subcommand: standalone - import, train and serve at once
-  -c, --config  <arg>       path to config file
-  -d, --data  <arg>         path to an input file
-  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
-                            snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
-                            (optional, default=earliest)
-  -v, --validation  <arg>   should input validation be enabled (optional,
-                            default=false)
-  -h, --help                Show help message
-
-Subcommand: validate - run the input data validation suite
-  -c, --config  <arg>       path to config file
-  -d, --data  <arg>         path to an input file
-  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
-                            snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1662560168, last=1h
-                            (optional, default=earliest)
-  -v, --validation  <arg>   should input validation be enabled (optional,
-                            default=false)
-  -h, --help                Show help message
-
-Subcommand: sort - sort the dataset by timestamp
-  -c, --config  <arg>   path to config file
-  -d, --data  <arg>     path to a directory with input files
-  -o, --out  <arg>      path to an output file
-  -h, --help            Show help message
-
-For all other tricks, consult the docs on https://docs.metarank.ai
 ```
 
 ### Resources

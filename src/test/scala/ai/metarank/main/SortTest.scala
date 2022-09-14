@@ -24,7 +24,7 @@ class SortTest extends AnyFlatSpec with Matchers {
     out.toFile.deleteOnExit()
     writeBatch(events, file)
 
-    Sort.run(SortArgs(null, file, out)).unsafeRunSync()
+    Sort.run(SortArgs(file, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
     sorted shouldBe events.sortBy(_.timestamp.ts)
   }
@@ -40,7 +40,7 @@ class SortTest extends AnyFlatSpec with Matchers {
       file.toFile.deleteOnExit()
       writeBatch(batch, file)
     }
-    Sort.run(SortArgs(null, dir, out)).unsafeRunSync()
+    Sort.run(SortArgs(dir, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
     sorted shouldBe events.sortBy(_.timestamp.ts)
   }
@@ -52,5 +52,6 @@ class SortTest extends AnyFlatSpec with Matchers {
       stream.write('\n'.toInt)
     })
     stream.close()
+
   }
 }

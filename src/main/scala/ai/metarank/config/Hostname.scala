@@ -11,4 +11,6 @@ object Hostname {
     case ""    => Failure(ConfigParsingError("hostname cannot be empty"))
     case other => Success(Hostname(other))
   }
+
+  implicit val hostnameEncoder: Encoder[Hostname] = Encoder.encodeString.contramap(_.value)
 }

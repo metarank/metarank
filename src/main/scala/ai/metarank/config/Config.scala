@@ -36,7 +36,7 @@ object Config extends Logging {
         Config(core, api, state, inputOption, features, models)
       }
     )
-    .ensure(Validations.checkFeatureModelReferences)
+    .ensure(ConfigValidations.checkFeatureModelReferences)
 
   def get[T](opt: Option[T], default: T, name: String) = opt match {
     case Some(value) => value
@@ -65,16 +65,4 @@ object Config extends Logging {
     logger.info(s"Loaded config file, state=$stateType, features=$features, models=$models")
   }
 
-  object Validations {
-    def checkFeatureModelReferences(config: Config): List[String] = {
-      config.models.toList.flatMap {
-        case (name, LambdaMARTConfig(_, features, _)) =>
-          features.toList.flatMap(feature =>
-            if (config.features.exists(_.name == feature)) None
-            else Some(s"feature ${feature.value} referenced in model '$name', but missing in features section")
-          )
-        case _ => Nil
-      }
-    }
-  }
 }

@@ -1,8 +1,8 @@
 package ai.metarank.feature.matcher
 
 import ai.metarank.util.TextAnalyzer
-import io.circe.generic.semiauto.deriveDecoder
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, DecodingFailure, Encoder}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -31,4 +31,5 @@ case class NgramMatcher(n: Int, language: TextAnalyzer) extends FieldMatcher {
 
 object NgramMatcher {
   implicit val ngramDecoder: Decoder[NgramMatcher] = deriveDecoder
+  implicit val ngramEncoder: Encoder[NgramMatcher] = deriveEncoder
 }

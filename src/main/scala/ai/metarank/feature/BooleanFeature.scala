@@ -12,8 +12,8 @@ import ai.metarank.model.Field.{BooleanField, NumberField}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.Logging
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SBoolean
 import ai.metarank.model.Write.Put
@@ -79,4 +79,6 @@ object BooleanFeature {
 
   implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] =
     deriveDecoder[BooleanFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'boolean'")
+
+  implicit val boolSchemaEncoder: Encoder[BooleanFeatureSchema] = deriveEncoder[BooleanFeatureSchema]
 }

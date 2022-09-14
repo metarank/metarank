@@ -13,7 +13,7 @@ models:
     backend:
       type: xgboost
       iterations: 50
-      ndcgCutoff: 50
+      ndcgCutoff: 10
       seed: 0
     weights:
       click: 1

@@ -16,8 +16,8 @@ import ai.metarank.model.Scalar.SDouble
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.Decoder
-import io.circe.generic.semiauto.deriveDecoder
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration._
 
@@ -75,6 +75,8 @@ object WordCountFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val wcSchema: Decoder[WordCountSchema] =
+  implicit val wcSchemaDecoder: Decoder[WordCountSchema] =
     deriveDecoder[WordCountSchema].withErrorMessage("cannot parse a feature definition of type 'word_count'")
+
+  implicit val wcSchemaEncoder: Encoder[WordCountSchema] = deriveEncoder
 }

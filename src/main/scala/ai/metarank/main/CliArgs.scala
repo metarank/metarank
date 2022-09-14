@@ -1,5 +1,6 @@
 package ai.metarank.main
 
+import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.config.InputConfig.SourceOffset.Earliest
 import ai.metarank.config.SourceFormat
@@ -21,15 +22,34 @@ object CliArgs extends Logging {
   }
 
   case class ServeArgs(conf: Path) extends CliConfArgs
-  case class ImportArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, validation: Boolean)
+  case class ImportArgs(
+      conf: Path,
+      data: Path,
+      offset: SourceOffset,
+      format: SourceFormat,
+      validation: Boolean,
+      sort: SortingType
+  ) extends CliConfArgs
+  case class StandaloneArgs(
+      conf: Path,
+      data: Path,
+      offset: SourceOffset,
+      format: SourceFormat,
+      validation: Boolean,
+      sort: SortingType
+  ) extends CliConfArgs
+  case class TrainArgs(conf: Path, model: String) extends CliConfArgs
+  case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, sort: SortingType)
       extends CliConfArgs
-  case class StandaloneArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, validation: Boolean)
-      extends CliConfArgs
-  case class TrainArgs(conf: Path, model: String)                                             extends CliConfArgs
-  case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat) extends CliConfArgs
-  case class SortArgs(in: Path, out: Path)                                                    extends CliArgs
-  case class AutoFeatureArgs(data: Path, out: Path, offset: SourceOffset, format: SourceFormat, rules: RuleSet)
-      extends CliArgs
+  case class SortArgs(in: Path, out: Path) extends CliArgs
+  case class AutoFeatureArgs(
+      data: Path,
+      out: Path,
+      offset: SourceOffset,
+      format: SourceFormat,
+      rules: RuleSet,
+      sort: SortingType
+  ) extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -53,8 +73,9 @@ object CliArgs extends Logging {
               offset   <- parse(parser.`import`.offset)
               format   <- parse(parser.`import`.format)
               validate <- parse(parser.`import`.validation)
+              sort     <- parse(parser.`import`.sort)
             } yield {
-              ImportArgs(conf, data, offset, format, validate)
+              ImportArgs(conf, data, offset, format, validate, sort)
             }
           case Some(parser.standalone) =>
             for {
@@ -63,8 +84,9 @@ object CliArgs extends Logging {
               offset   <- parse(parser.standalone.offset)
               format   <- parse(parser.standalone.format)
               validate <- parse(parser.standalone.validation)
+              sort     <- parse(parser.standalone.sort)
             } yield {
-              StandaloneArgs(conf, data, offset, format, validate)
+              StandaloneArgs(conf, data, offset, format, validate, sort)
             }
           case Some(parser.train) =>
             for {
@@ -79,8 +101,9 @@ object CliArgs extends Logging {
               data   <- parse(parser.validate.data)
               offset <- parse(parser.validate.offset)
               format <- parse(parser.validate.format)
+              sort   <- parse(parser.validate.sort)
             } yield {
-              ValidateArgs(conf, data, offset, format)
+              ValidateArgs(conf, data, offset, format, sort)
             }
           case Some(parser.sort) =>
             for {
@@ -96,8 +119,9 @@ object CliArgs extends Logging {
               offset  <- parse(parser.autofeature.offset)
               format  <- parse(parser.autofeature.format)
               ruleset <- parse(parser.autofeature.ruleset)
+              sort    <- parse(parser.autofeature.sort)
             } yield {
-              AutoFeatureArgs(data, out, offset, format, ruleset)
+              AutoFeatureArgs(data, out, offset, format, ruleset, sort)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -155,6 +179,12 @@ object CliArgs extends Logging {
         descr = "should input validation be enabled (optional, default=false)",
         default = Some(false)
       )
+      val sort = opt[SortingType](
+        name = "sort-files-by",
+        required = false,
+        descr = "how should multiple input files be sorted (optional, default: name, values: [name,last-modified]",
+        default = Some(SortingType.SortByName)
+      )
 
     }
 
@@ -193,35 +223,13 @@ object CliArgs extends Logging {
       )
     }
 
-    object autofeature extends Subcommand("autofeature") {
+    object autofeature extends Subcommand("autofeature") with ImportLikeOption {
       descr("generate reference config based on existing data")
-      val data = opt[Path](
-        "data",
-        required = true,
-        short = 'd',
-        descr = "path to a directory with input files",
-        validate = pathExists
-      )
 
       val out = opt[Path](
         "out",
         required = true,
         descr = "path to an output config file"
-      )
-      val offset = opt[SourceOffset](
-        name = "offset",
-        required = false,
-        short = 'o',
-        descr =
-          s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h (optional, default=earliest)",
-        default = Some(Earliest)
-      )
-      val format = opt[SourceFormat](
-        name = "format",
-        required = false,
-        short = 'f',
-        descr = "input file format: json, snowplow, snowplow:tsv, snowplow:json (optional, default=json)",
-        default = Some(JsonFormat)
       )
 
       val ruleset = opt[RuleSet](
@@ -291,6 +299,12 @@ object CliArgs extends Logging {
     case "all"    => RuleSet.all()
     case "stable" => RuleSet.stable()
     case other    => throw new IllegalArgumentException(s"cannot parse $other as a ruleset")
+  })
+
+  implicit val sortConverter: ValueConverter[SortingType] = singleArgConverter({
+    case "name"          => SortingType.SortByName
+    case "last-modified" => SortingType.SortByTime
+    case other           => throw new IllegalArgumentException(s"cannot parse $other as a sorting method")
   })
 
 }

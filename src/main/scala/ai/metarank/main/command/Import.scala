@@ -40,7 +40,7 @@ object Import extends Logging {
       conf: Config,
       buffer: ClickthroughJoinBuffer
   ): IO[ProcessResult] = {
-    val stream = FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream
+    val stream = FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format, args.sort)).stream
     for {
       errors       <- validated(conf, stream, args.validation)
       sortedStream <- sorted(stream, errors)

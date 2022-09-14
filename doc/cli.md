@@ -8,6 +8,7 @@ To run the main app, download the [latest jar file](https://github.com/metarank/
 java -jar metarank-x.x.x.jar
 ```
 ```shell
+
                 __                              __    
   _____   _____/  |______ ____________    ____ |  | __
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
@@ -21,15 +22,18 @@ Options:
   -v, --version   Show version of this program
 
 Subcommand: import - import historical clickthrough data
-  -c, --config  <arg>       path to config file
-  -d, --data  <arg>         path to an input file
-  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
-                            snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1663161962, last=1h
-                            (optional, default=earliest)
-  -v, --validation  <arg>   should input validation be enabled (optional,
-                            default=false)
-  -h, --help                Show help message
+  -c, --config  <arg>          path to config file
+  -d, --data  <arg>            path to an input file
+  -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
+                               snowplow:json (optional, default=json)
+  -o, --offset  <arg>          offset: earliest, latest, ts=1663171036, last=1h
+                               (optional, default=earliest)
+  -s, --sort-files-by  <arg>   how should multiple input files be sorted
+                               (optional, default: name, values:
+                               [name,last-modified]
+  -v, --validation  <arg>      should input validation be enabled (optional,
+                               default=false)
+  -h, --help                   Show help message
 
 Subcommand: train - train the ML model
   -c, --config  <arg>   path to config file
@@ -41,26 +45,32 @@ Subcommand: serve - run the inference API
   -h, --help            Show help message
 
 Subcommand: standalone - import, train and serve at once
-  -c, --config  <arg>       path to config file
-  -d, --data  <arg>         path to an input file
-  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
-                            snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1663161962, last=1h
-                            (optional, default=earliest)
-  -v, --validation  <arg>   should input validation be enabled (optional,
-                            default=false)
-  -h, --help                Show help message
+  -c, --config  <arg>          path to config file
+  -d, --data  <arg>            path to an input file
+  -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
+                               snowplow:json (optional, default=json)
+  -o, --offset  <arg>          offset: earliest, latest, ts=1663171036, last=1h
+                               (optional, default=earliest)
+  -s, --sort-files-by  <arg>   how should multiple input files be sorted
+                               (optional, default: name, values:
+                               [name,last-modified]
+  -v, --validation  <arg>      should input validation be enabled (optional,
+                               default=false)
+  -h, --help                   Show help message
 
 Subcommand: validate - run the input data validation suite
-  -c, --config  <arg>       path to config file
-  -d, --data  <arg>         path to an input file
-  -f, --format  <arg>       input file format: json, snowplow, snowplow:tsv,
-                            snowplow:json (optional, default=json)
-  -o, --offset  <arg>       offset: earliest, latest, ts=1663161962, last=1h
-                            (optional, default=earliest)
-  -v, --validation  <arg>   should input validation be enabled (optional,
-                            default=false)
-  -h, --help                Show help message
+  -c, --config  <arg>          path to config file
+  -d, --data  <arg>            path to an input file
+  -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
+                               snowplow:json (optional, default=json)
+  -o, --offset  <arg>          offset: earliest, latest, ts=1663171036, last=1h
+                               (optional, default=earliest)
+  -s, --sort-files-by  <arg>   how should multiple input files be sorted
+                               (optional, default: name, values:
+                               [name,last-modified]
+  -v, --validation  <arg>      should input validation be enabled (optional,
+                               default=false)
+  -h, --help                   Show help message
 
 Subcommand: sort - sort the dataset by timestamp
   -d, --data  <arg>   path to a directory with input files
@@ -68,17 +78,24 @@ Subcommand: sort - sort the dataset by timestamp
   -h, --help          Show help message
 
 Subcommand: autofeature - generate reference config based on existing data
-  -d, --data  <arg>      path to a directory with input files
-  -f, --format  <arg>    input file format: json, snowplow, snowplow:tsv,
-                         snowplow:json (optional, default=json)
-  -o, --offset  <arg>    offset: earliest, latest, ts=1663161962, last=1h
-                         (optional, default=earliest)
-      --out  <arg>       path to an output config file
-  -r, --ruleset  <arg>   set of rules to generate config: stable, all (optional,
-                         default=stable, values: [stable, all])
-  -h, --help             Show help message
+  -d, --data  <arg>            path to an input file
+  -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
+                               snowplow:json (optional, default=json)
+  -o, --offset  <arg>          offset: earliest, latest, ts=1663171036, last=1h
+                               (optional, default=earliest)
+      --out  <arg>             path to an output config file
+  -r, --ruleset  <arg>         set of rules to generate config: stable, all
+                               (optional, default=stable, values: [stable, all])
+  -s, --sort-files-by  <arg>   how should multiple input files be sorted
+                               (optional, default: name, values:
+                               [name,last-modified]
+  -v, --validation  <arg>      should input validation be enabled (optional,
+                               default=false)
+  -h, --help                   Show help message
 
-For all other tricks, consult the docs on https://docs.metarank.ai```
+For all other tricks, consult the docs on https://docs.metarank.ai
+
+```
 
 The command-line argument structure is:
 ```shell

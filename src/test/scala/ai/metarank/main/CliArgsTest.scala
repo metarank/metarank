@@ -1,5 +1,6 @@
 package ai.metarank.main
 
+import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TrainArgs}
 import ai.metarank.source.format.JsonFormat
@@ -24,13 +25,13 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse import, short" in {
     CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString), Map.empty) shouldBe Right(
-      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false)
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false, SortingType.SortByName)
     )
   }
 
   it should "parse import, long" in {
     CliArgs.parse(List("import", "-c", conf.toString, "-d", data.toString), Map.empty) shouldBe Right(
-      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false)
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false, SortingType.SortByName)
     )
   }
 
@@ -39,7 +40,7 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
       List("import", "-c", conf.toString, "-d", data.toString, "--validation=false"),
       Map.empty
     ) shouldBe Right(
-      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false)
+      ImportArgs(conf, data, SourceOffset.Earliest, JsonFormat, false, SortingType.SortByName)
     )
   }
 

@@ -110,8 +110,9 @@ Metarank CLI has a set of different running modes:
 * `train`: train the ML model with XGBoost/LightGBM.
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.
-* `validate`: validates data nd configuration files.
-* `sort`: pre-sort the dataset by timestamp
+* [`validate`](#validation): validates data nd configuration files.
+* [`sort`](#historical-data-sorting): pre-sorts the dataset by timestamp.
+* [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on yourr data.
 
 ### Validation
 
@@ -146,6 +147,35 @@ The above command will output validation checks performed on the files provided 
 17:46:55.859 INFO  ai.metarank.main.Main$ - My job is done, exiting.
 ```
 
+### Historical data sorting
+
+Metarank expects your historical data to be ordered by the timestamp in the ascending order. 
+If for any reason, you cannot generate a sorted file, the `sort` sub-command can do the job for you. 
+
+You can sort both signle files and folders with multiple files. In case of folders, `sort` command will merge all data into one sorted file. 
+
+Sorting one file is a simple as 
+```bash
+java -jar metarank.jar sort --data unosrted_file.jsonl.gz --out sorted_file.jsonl.gz
+```
+
+You can do sorting with a folder as well
+```bash
+java -jar metarank.jar sort --data /my_folder --out sorted_file.jsonl.gz
+```
+
+### Auto feature generation
+
+If you don't know what [features](/doc/configuration/feature-extractors.md) to include in the configuration file, the `autofeature` sub-command can generate the configuration for you
+based on the historical data you have. 
+
+Simply run
+
+```shell
+java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/config.yaml
+```
+
+Check out more about `autofeature` sub-command in our [Automatic feature engineering guide](/doc/howto/autofeature.md).
 
 ## Environment variables
 

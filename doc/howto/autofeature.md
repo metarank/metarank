@@ -1,14 +1,14 @@
 # Automatic feature engineering
 
 A typical problem: to write a Metarank [config file](../configuration/overview.md) with event to feature mapping, 
-you need to read docs on [feature extraction](../configuration/feature-extractors.md) and well-understand your click-through
+you need to read the docs on [feature extraction](../configuration/feature-extractors.md) and well-understand your click-through
 input dataset:
-* Which fields to items have? Which values each field has?
-* Are these values look like categories?
-* How many unique values are per field?
+* Which fields do items have? Which values does each field have?
+* Do these values look like categories?
+* How many unique values are there per field?
 
 Nobody likes reading docs and writing YAML, so Metarank has an [AutoML level-4 style](https://medium.com/@tunguz/six-levels-of-auto-ml-a277aa1f0f38)
-generator of typical feature extractors based on the [click-through dataset](../event-schema.md) you already have.
+generator of typical feature extractors based on the [historical click-through dataset](../event-schema.md) you already have.
 
 ## Running the autofeature generator
 
@@ -38,7 +38,7 @@ For all other tricks, consult the docs on https://docs.metarank.ai
 
 An example minimal command to generate the config file for your dataset:
 ```bash
-$ java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/config.yaml
+java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/config.yaml
 ```
 
 For a [RankLens](https://github.com/metarank/ranklens) dataset, for example, it will emit the following:
@@ -109,7 +109,7 @@ So movie genres field is a good candidate for this type of heuristic due to its 
   - horror
 ```
 * **InteractedWith**: all interaction over low-cardinality fields are translated to [interacted_with](../configuration/features/user-session.md#interacted-with) feature.
-So if user clicked on an item with a horror genre, other horror movies may get extra points:
+So if a user clicked on an item with horror genre, other horror movies may get extra points:
 ```yaml
 - name: click_genres
   type: interacted_with

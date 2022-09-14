@@ -25,7 +25,7 @@ object Standalone extends Logging {
         result <- Import.slurp(
           store,
           mapping,
-          ImportArgs(args.conf, args.data, args.offset, args.format, args.validation),
+          ImportArgs(args.conf, args.data, args.offset, args.format, args.validation, args.sort),
           conf,
           buffer
         )

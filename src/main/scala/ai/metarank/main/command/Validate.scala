@@ -22,7 +22,7 @@ import java.io.FileOutputStream
 
 object Validate extends Logging {
   def run(conf: Config, args: ValidateArgs): IO[Unit] = for {
-    _ <- validate(conf, FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream)
+    _ <- validate(conf, FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format, args.sort)).stream)
   } yield {}
 
   def validate(conf: Config, eventStream: fs2.Stream[IO, Event]) = {

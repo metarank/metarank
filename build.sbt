@@ -2,7 +2,7 @@ import Deps._
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.8"
-ThisBuild / version      := "0.5.3"
+ThisBuild / version      := "0.5.4"
 
 lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("linux/amd64")
 

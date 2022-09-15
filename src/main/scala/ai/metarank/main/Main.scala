@@ -39,7 +39,7 @@ object Main extends IOApp with Logging {
               CliArgs.printHelp()
             }
           )
-        _ <- IO(logger.info(Logo.raw + "  ver:" + Version().getOrElse("unknown")))
+        _ <- info("Metarank v" + Version().getOrElse("unknown") + " is starting.")
         _ <- args match {
           case a: AutoFeatureArgs => AutoFeature.run(a)
           case a: SortArgs        => Sort.run(a)

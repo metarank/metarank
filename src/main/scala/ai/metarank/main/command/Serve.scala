@@ -50,6 +50,7 @@ object Serve extends Logging {
     val api = BlazeServerBuilder[IO]
       .bindHttp(conf.port.value, conf.host.value)
       .withHttpApp(httpApp)
+      .withBanner(Logo.lines)
 
     info("Starting API...") *> api.serve.compile.drain
   }

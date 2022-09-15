@@ -3,6 +3,15 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.3
+Highlights of this release are:
+* added [historical data sorting](/doc/cli#historical-data-sorting) sub-command
+* added [core.clickthrough.maxSessionLength and core.clickthrough.maxParallelSessions](/doc/configuration/overview.md#click-through-joining) parameters to improve memory consumption
+
+## 0.5.2.
+Highlights of this release are:
+* added [analytics](/doc/configuration/overview.md#anonymous-usage-analytics) and [error tracking](/doc/configuration/overview.md#error-logging)
+
 ## 0.5.1
 
 Highlights of this release are:

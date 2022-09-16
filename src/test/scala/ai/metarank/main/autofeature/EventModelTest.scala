@@ -28,6 +28,7 @@ class EventModelTest extends AnyFlatSpec with Matchers {
     val model = events.foldLeft(EventModel())((model, event) => model.refresh(event))
 
     model shouldBe EventModel(
+      eventCount = 6,
       items = Set(ItemId("p1"), ItemId("p2")),
       itemFields = ItemFieldStat(strings = Map("color" -> StringFieldStat(Map("red" -> 1, "green" -> 1)))),
       interactions = InteractionStat(Map("click" -> 1, "cart" -> 1)),

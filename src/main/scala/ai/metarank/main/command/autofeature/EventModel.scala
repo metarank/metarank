@@ -5,13 +5,14 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent}
 import ai.metarank.model.Identifier.ItemId
 
 case class EventModel(
+    eventCount: Int = 0,
     items: Set[ItemId] = Set.empty,
     itemFields: ItemFieldStat = ItemFieldStat(),
     interactions: InteractionStat = InteractionStat(),
     relevancy: RelevancyStat = RelevancyStat()
 ) {
   def refresh(event: Event): EventModel = {
-    event match {
+    (event match {
       case e: ItemEvent =>
         copy(items = items + e.item, itemFields = itemFields.refresh(e))
       case e: InteractionEvent =>
@@ -20,6 +21,6 @@ case class EventModel(
       case e: RankingEvent =>
         copy(relevancy = relevancy.refresh(e))
       case _ => this
-    }
+    }).copy(eventCount = eventCount + 1)
   }
 }

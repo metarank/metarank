@@ -19,8 +19,7 @@ object InteractionRateFeatureRule extends FeatureRule with Logging {
       top = interaction,
       bottom = "impression",
       bucket = 1.day,
-      periods = List(3, 7, 14, 30),
-      scope = ItemScopeType
+      periods = List(3, 7, 14, 30)
     )
   }
 

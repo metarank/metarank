@@ -19,11 +19,11 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val conf    = RateFeatureSchema(FeatureName("ctr"), "click", "impression", 24.hours, List(7, 14), ItemScopeType)
+  val conf    = RateFeatureSchema(FeatureName("ctr"), "click", "impression", 24.hours, List(7, 14))
   val feature = RateFeature(conf)
 
   it should "decode schema" in {
-    val in = "name: ctr\ntype: rate\nscope: item\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]"
+    val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]"
     parse(in).flatMap(_.as[FeatureSchema]) shouldBe Right(conf)
   }
 

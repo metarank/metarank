@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  METARANK_TRACKING: false
+
 jobs:
   build:
     timeout-minutes: 20

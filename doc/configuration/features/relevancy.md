@@ -41,11 +41,25 @@ To use this information, you should configure the corresponding extractor:
 
 There are no options to configure, as relevancy is taken only from ranking events and never stored separately.
 
-## Items count
+## Position
 
-Counts the number of items from the ranking event:
+A bias elimination technique based on a paper [PAL: a position-bias aware learning framework for CTR prediction in live recommender systems](https://www.researchgate.net/publication/335771749_PAL_a_position-bias_aware_learning_framework_for_CTR_prediction_in_live_recommender_systems).
+* on offline training, the feature value equals to the item position in the ranking
+* on online inference, it is equals to a constant position value for all items.
 
+The main idea of such approach is that the underlying ML model will learn the impact of position on ranking, but then,
+setting all items position factors to the same constant value, you make it look like from the model point-of-view that
+all items are located on the same position. So position has constant impact on the ranking for all the items.
+
+To configure this feature extractor, use the following YAML snippet:
 ```yaml
-- name: displayed_items
-  type: items_count
+- type: position
+  name: position
+  position: 5
 ```
+
+To choose the best `position` value:
+* Start with a value around middle of your average ranking length. So if you present 20 items, set it to 10. Usually it's
+  already a good number for most of the cases.
+* Do a grid search of the best value around it with `metarank standalone`. Select the best `position` based on offline NDCG value.
+

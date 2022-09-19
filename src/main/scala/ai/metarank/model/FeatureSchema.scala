@@ -8,6 +8,7 @@ import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumberFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.PositionFeature.PositionFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
@@ -47,6 +48,7 @@ object FeatureSchema {
         case "item_age"          => implicitly[Decoder[ItemAgeSchema]].apply(c)
         case "field_match"       => implicitly[Decoder[FieldMatchSchema]].apply(c)
         case "referer"           => implicitly[Decoder[RefererSchema]].apply(c)
+        case "position"          => implicitly[Decoder[PositionFeatureSchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {

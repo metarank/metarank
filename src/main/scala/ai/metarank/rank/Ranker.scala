@@ -7,6 +7,7 @@ import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.api.routes.RankApi.{ModelError, RankResponse}
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.api.routes.RankApi.RankResponse.{ItemScore, StateValues}
+import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.model.{FeatureValue, ItemValue, Key}
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.Ranker.QueryValues
@@ -59,7 +60,7 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) {
   def makeQuery(request: RankingEvent, ds: DatasetDescriptor) = for {
     keys              <- IO { mapping.stateReadKeys(request) }
     state             <- store.values.get(keys)
-    itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping) }
+    itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping, ValueMode.OnlineInference) }
     query             <- IO { ClickthroughQuery(itemFeatureValues, request.id.value, ds) }
     _                 <- IO { logger.info(s"generated query ${query.group} size=${query.columns}x${query.rows}") }
   } yield {

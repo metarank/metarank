@@ -31,10 +31,14 @@ models:
       - liked_actors
       - liked_tags
       - liked_director
+      - position
 #      - visitor_click_count
 #      - global_item_click_count
 #      - day_item_click_count
 features:
+  - name: position
+    type: position
+    position: 5
   - name: popularity
     type: number
     scope: item

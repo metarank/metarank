@@ -3,6 +3,7 @@ package ai.metarank.feature
 import ai.metarank.FeatureMapping
 import ai.metarank.config.ModelConfig.ModelBackend.LightGBMBackend
 import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ShuffleConfig}
+import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.flow.FeatureValueFlow
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankingEvent
@@ -33,7 +34,7 @@ trait FeatureTest {
         .toMap
 
     mapping.features.map {
-      case feature: BaseFeature.ItemFeature    => feature.values(request, featureValues)
+      case feature: BaseFeature.ItemFeature    => feature.values(request, featureValues, ValueMode.OfflineTraining)
       case feature: BaseFeature.RankingFeature => List(feature.value(request, featureValues))
     }
   }

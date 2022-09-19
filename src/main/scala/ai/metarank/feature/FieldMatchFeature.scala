@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.ItemFeature
+import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher, TermMatcher}
 import ai.metarank.fstore.Persistence
@@ -55,7 +55,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue =
     ???
 
-  override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue]): List[MValue] = {
+  override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] = {
     val requestTokensOption = request.fieldsMap.get(schema.rankingField.field) match {
       case Some(StringField(_, value)) => Some(schema.method.tokenize(value))
       case None                        => None

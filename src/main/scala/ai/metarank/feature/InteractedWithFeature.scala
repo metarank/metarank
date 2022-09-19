@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.BaseFeature.ItemFeature
+import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
@@ -113,7 +113,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
 
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: ItemRelevancy): MValue = ???
 
-  override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue]): List[MValue] = {
+  override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] = {
     val visitorMap = (for {
       visitorKey      <- makeVisitorKey(request)
       interactedValue <- features.get(visitorKey)

@@ -38,7 +38,7 @@ object ModelConfig {
         maxDepth: Int = 8,
         seed: Int = Random.nextInt(Int.MaxValue),
         numLeaves: Int = 16,
-        sampling: Double = 1.0
+        sampling: Double = 0.8
     ) extends ModelBackend
     case class XGBoostBackend(
         iterations: Int = 100,
@@ -46,7 +46,7 @@ object ModelConfig {
         ndcgCutoff: Int = 10,
         maxDepth: Int = 8,
         seed: Int = Random.nextInt(Int.MaxValue),
-        sampling: Double = 1.0
+        sampling: Double = 0.8
     ) extends ModelBackend
 
     implicit val conf =

@@ -26,8 +26,7 @@ models:
       - runtime
       - title_length
       - genre
-#      - ctr
-#      - nctr
+      - ctr
       - liked_genre
       - liked_actors
       - liked_tags
@@ -94,13 +93,6 @@ features:
       - music
 
   - name: ctr
-    type: rate
-    top: click
-    bottom: impression
-    bucket: 24h
-    periods: [7,30]
-
-  - name: nctr
     type: rate
     top: click
     bottom: impression

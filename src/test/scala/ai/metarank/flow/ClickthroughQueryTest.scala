@@ -31,7 +31,7 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
       Some(IndexEncoderName),
       NonEmptyList.of("socks", "shirts")
     ),
-    RateFeatureSchema(FeatureName("ctr"), "impression", "click", 24.hours, List(7, 30), ItemScopeType),
+    RateFeatureSchema(FeatureName("ctr"), "impression", "click", 24.hours, List(7, 30)),
     InteractedWithSchema(
       FeatureName("clicked_category"),
       "click",

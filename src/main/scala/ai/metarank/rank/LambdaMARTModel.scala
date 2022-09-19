@@ -9,8 +9,12 @@ import ai.metarank.rank.Model.{Scorer, TrainedModel}
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature, Query}
+import io.github.metarank.ltrlib.output.CSVOutputFormat
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 import org.apache.commons.codec.binary.Hex
+
+import java.io.{File, FileOutputStream}
+import scala.util.Random
 
 case class LambdaMARTModel(
     conf: LambdaMARTConfig,

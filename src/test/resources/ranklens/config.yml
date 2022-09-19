@@ -26,7 +26,7 @@ models:
       - runtime
       - title_length
       - genre
-#      - ctr
+      - ctr
       - liked_genre
       - liked_actors
       - liked_tags
@@ -96,9 +96,10 @@ features:
     type: rate
     top: click
     bottom: impression
-    scope: item
     bucket: 24h
     periods: [7,30]
+    normalize:
+      weight: 10
 
   - name: liked_genre
     type: interacted_with

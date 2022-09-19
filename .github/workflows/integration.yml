@@ -8,6 +8,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: foo
   AWS_SECRET_ACCESS_KEY: bar
+  METARANK_TRACKING: false
 
 jobs:
   build:

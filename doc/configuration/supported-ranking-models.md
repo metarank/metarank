@@ -67,6 +67,7 @@ You can define interaction by `name` and set `weight` for how much this interact
 * *ndcgCutoff*: *optional*, *number*, default: *10*, only N first items may affect the NDCG.
 * *maxDepth*: *optional*, *number*, default: *8*, the depth of the tree.
 * *seed*: *optional*, *string* or *number*, default: *random* to make model training deterministic.
+* *sampling*: *optional*, default: 1.0, fraction of features used to build a tree, useful to prevent over-fitting.
 
 LightGBM also supports these specific options:
 * *numLeaves*: *optional*, *number*, default: *16*, how many leaves the tree may have.

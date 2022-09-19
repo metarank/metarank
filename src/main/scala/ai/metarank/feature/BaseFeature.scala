@@ -38,6 +38,12 @@ sealed trait BaseFeature {
 
 object BaseFeature {
 
+  sealed trait ValueMode
+  object ValueMode {
+    case object OnlineInference extends ValueMode
+    case object OfflineTraining extends ValueMode
+  }
+
   trait ItemFeature extends BaseFeature {
     def value(
         request: Event.RankingEvent,
@@ -45,7 +51,7 @@ object BaseFeature {
         id: ItemRelevancy
     ): MValue
 
-    def values(request: Event.RankingEvent, features: Map[Key, FeatureValue]): List[MValue] =
+    def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] =
       request.items.toList.map(item => value(request, features, item))
   }
 

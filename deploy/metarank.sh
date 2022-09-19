@@ -1,5 +1,5 @@
 #!/bin/bash
 
 set -euxo pipefail
-exec /opt/java/openjdk/bin/java -jar /app/metarank.jar "$@"
+exec /usr/bin/java -jar /app/metarank.jar "$@"
 

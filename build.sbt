@@ -4,7 +4,7 @@ ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.9"
 ThisBuild / version      := "0.5.5"
 
-lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("linux/amd64")
+lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("amd64")
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -66,8 +66,10 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"adoptopenjdk:11.0.11_9-jdk-hotspot-focal")
-        runRaw("apt-get update && apt-get -y install htop procps curl inetutils-ping libgomp1")
+        from(s"ubuntu:focal-20220826")
+        runRaw(
+          "apt-get update && apt-get -y install openjdk-17-jdk-headless openjdk-17-dbg htop procps curl inetutils-ping libgomp1"
+        )
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
         entryPoint("/metarank.sh")

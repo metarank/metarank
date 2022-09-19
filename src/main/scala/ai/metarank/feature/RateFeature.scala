@@ -125,8 +125,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
             .zip(topGlobalNum.values)
             .zip(bottomGlobalNum.values)
             .map { case (((topItem, bottomItem), topGlobal), bottomGlobal) =>
-              val w          = (bottomGlobal.value * norm.weight - topGlobal.value * norm.weight) / topGlobal.value
-              val reweighted = (norm.weight + topItem.value) / (norm.weight + w + bottomItem.value)
+              val reweighted =
+                (norm.weight + topItem.value) / (norm.weight * (bottomGlobal.value / topGlobal.value.toDouble) + bottomItem.value)
               reweighted
             }
             .toArray

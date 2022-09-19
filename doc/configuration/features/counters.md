@@ -93,10 +93,10 @@ Both of these CTRs have the same value, but have completely different confidence
 [An approach to modelling implicit user feedback](https://haystackconf.com/us2022/talk-2/) from [HaystackUS22](https://haystackconf.com)
 conference, Metarank can normalize per-item rate based on a global prior rate:
 ```
-rate = (a + item_clicks) / (a + b + item_impressions)
+rate = (a + item_clicks) / (b + item_impressions)
 ```
-Where `a` and `b` can be defined as a normalization constants, where `a / (a + b)` is proportional to the global
-prior rate.
+Where `a` and `b` can be defined as a normalization constants, where `a / b` is proportional to the global
+prior CTR rate.
 
 As an example, imagine that we have the following click statistics:
 * over all items: 100 impressions, 10 clicks.
@@ -110,7 +110,7 @@ item_ctr = (10 total clicks + 1 click on item A) / (100 total impressions + 2 im
 
 To maintain a constant scaling factor `w`, we can define normalized per-item CTR in the following way:
 ```
-item_ctr = (w + item_clicks) / (w + item_impressions + (w * (global_impressions - global_clicks) / global_clicks))
+item_ctr = (w + item_clicks) / (w * (global_impressions / global_clicks) + item_impressions)
 ```
 Then, our example above will look in a more reasonable way:
 

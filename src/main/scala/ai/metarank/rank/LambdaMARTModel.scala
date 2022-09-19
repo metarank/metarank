@@ -25,18 +25,26 @@ case class LambdaMARTModel(
 
   override def train(train: Dataset, test: Dataset): TrainedModel = {
     val booster = conf.backend match {
-      case LightGBMBackend(it, lr, ndcg, depth, seed, leaves) =>
+      case LightGBMBackend(it, lr, ndcg, depth, seed, leaves, sampling) =>
         val opts = LightGBMOptions(
           trees = it,
           numLeaves = leaves,
           randomSeed = seed,
           learningRate = lr,
           ndcgCutoff = ndcg,
-          maxDepth = depth
+          maxDepth = depth,
+          featureFraction = sampling
         )
         LambdaMART(train, opts, LightGBMBooster, Some(test))
-      case XGBoostBackend(it, lr, ndcg, depth, seed) =>
-        val opts = XGBoostOptions(trees = it, randomSeed = seed, learningRate = lr, ndcgCutoff = ndcg, maxDepth = depth)
+      case XGBoostBackend(it, lr, ndcg, depth, seed, sampling) =>
+        val opts = XGBoostOptions(
+          trees = it,
+          randomSeed = seed,
+          learningRate = lr,
+          ndcgCutoff = ndcg,
+          maxDepth = depth,
+          subsample = sampling
+        )
         LambdaMART(train, opts, XGBoostBooster, Some(test))
     }
     val result = booster.fit()

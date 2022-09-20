@@ -7,10 +7,12 @@ import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.CounterValue
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Key, MValue, ScopeType}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
 import ai.metarank.model.Write.Increment
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -28,11 +30,29 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  override def states: List[FeatureConfig] = List(conf)
+
+  private val fields = schema.scope match {
+    case ScopeType.ItemFieldScopeType(field) => Some(ScalarConfig(
+      scope = ItemScopeType,
+      name = FeatureName(s"${schema.name.value}_$field"),
+      refresh = schema.refresh.getOrElse(0.seconds),
+      ttl = schema.ttl.getOrElse(90.days)
+    ))
+    case ScopeType.UserFieldScopeType(field) => Some(ScalarConfig(
+      scope = UserScopeType,
+      name = FeatureName(s"${schema.name.value}_$field"),
+      refresh = schema.refresh.getOrElse(0.seconds),
+      ttl = schema.ttl.getOrElse(90.days)
+    ))
+  }
+  override def states: List[FeatureConfig] = List(conf) ++ fields.toList
 
   override def writes(event: Event, store: Persistence): IO[Iterable[Increment]] = IO {
     event match {
       case interaction: Event.InteractionEvent if interaction.`type` == schema.interaction =>
+        conf.scope match {
+          case
+        }
         writeKey(event, conf).map(key => Increment(key, event.timestamp, 1))
       case _ =>
         None

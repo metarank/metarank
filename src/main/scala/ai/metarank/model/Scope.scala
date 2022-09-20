@@ -2,7 +2,15 @@ package ai.metarank.model
 
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
-import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
+import ai.metarank.model.ScopeType.{
+  GlobalScopeType,
+  ItemFieldScopeType,
+  ItemScopeType,
+  SessionScopeType,
+  UserFieldScopeType,
+  UserScopeType
+}
+import ai.metarank.util.DelimitedPair.{DotDelimitedPair, EqualsDelimitedPair}
 import io.circe.{Codec, Decoder, Encoder}
 
 sealed trait Scope extends {
@@ -16,9 +24,19 @@ object Scope {
     override def getType: ScopeType = UserScopeType
   }
 
+  case class UserFieldScope(user: UserId, field: String) extends Scope {
+    override def asString: String   = s"user.field=${user.value}.$field"
+    override def getType: ScopeType = UserFieldScopeType(field)
+  }
+
   case class ItemScope(item: ItemId) extends Scope {
     override def asString: String   = s"item=${item.value}"
     override def getType: ScopeType = ItemScopeType
+  }
+
+  case class ItemFieldScope(item: ItemId, field: String) extends Scope {
+    override def asString: String   = s"item.field=${item.value}.$field"
+    override def getType: ScopeType = ItemFieldScopeType(field)
   }
 
   case object GlobalScope extends Scope {
@@ -32,25 +50,16 @@ object Scope {
   }
 
   def fromString(str: String): Either[Throwable, Scope] = {
-    def split(s: String): Option[(String, String)] = {
-      val firstEq = s.indexOf('='.toInt)
-      if (firstEq > 0) {
-        val left  = s.substring(0, firstEq)
-        val right = s.substring(firstEq + 1)
-        Some(left -> right)
-      } else {
-        None
-      }
-    }
     str match {
-      case "global" => Right(GlobalScope)
-      case other =>
-        split(other) match {
-          case Some(("item", item))    => Right(ItemScope(ItemId(item)))
-          case Some(("session", sess)) => Right(SessionScope(SessionId(sess)))
-          case Some(("user", user))    => Right(UserScope(UserId(user)))
-          case _                       => Left(new IllegalArgumentException(s"cannot parse scope $other"))
-        }
+      case "global"                                => Right(GlobalScope)
+      case EqualsDelimitedPair("item", item)       => Right(ItemScope(ItemId(item)))
+      case EqualsDelimitedPair("user", user)       => Right(UserScope(UserId(user)))
+      case EqualsDelimitedPair("session", session) => Right(SessionScope(SessionId(session)))
+      case EqualsDelimitedPair("user.field", DotDelimitedPair(user, field)) =>
+        Right(UserFieldScope(UserId(user), field))
+      case EqualsDelimitedPair("item.field", DotDelimitedPair(item, field)) =>
+        Right(ItemFieldScope(ItemId(item), field))
+      case other => Left(new IllegalArgumentException(s"cannot parse scope $other"))
     }
   }
 

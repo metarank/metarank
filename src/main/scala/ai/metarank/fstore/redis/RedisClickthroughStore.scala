@@ -24,9 +24,6 @@ case class RedisClickthroughStore(rankings: RedisClient, prefix: String) extends
     _ <- batches
       .map(batch => rankings.mset(batch.map(ct => (prefix + "/" + ct.ct.id.value) -> ctc.encode(ct)).toMap))
       .sequence
-    _ <- IO.whenA(batches.size > LARGE_BATCH_COUNT)(
-      rankings.doFlush(rankings.writer.ping().toCompletableFuture) *> info("forced flush")
-    )
   } yield {}
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] = Stream

@@ -58,6 +58,7 @@ object Train extends Logging {
     trainedModel <- IO(model.train(train, test))
     scorer       <- IO(LambdaMARTScorer(backend, trainedModel.bytes))
     _            <- store.models.put(Map(ModelName(name) -> scorer))
+    _            <- store.sync
     _            <- info(s"model uploaded to store, ${trainedModel.bytes.length} bytes")
   } yield {
     val stats = FieldStats(clickthroughs)

@@ -263,7 +263,7 @@ object CliArgs extends Logging {
     addSubcommand(validate)
     addSubcommand(sort)
     addSubcommand(autofeature)
-    version("Metarank v:" + Version().getOrElse("unknown"))
+    version(Logo.raw + " Metarank v:" + Version().getOrElse("unknown"))
     banner("""Usage: metarank <subcommand> <options>
              |Options:
              |""".stripMargin)

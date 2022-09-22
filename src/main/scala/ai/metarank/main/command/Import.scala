@@ -28,6 +28,7 @@ object Import extends Logging {
         result <- slurp(store, mapping, args, conf, buffer)
         _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
         _      <- buffer.flushQueue(Timestamp(Long.MaxValue))
+        _      <- store.sync
         _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")
       } yield {}
     )

@@ -38,7 +38,7 @@ object CliArgs extends Logging {
       validation: Boolean,
       sort: SortingType
   ) extends CliConfArgs
-  case class TrainArgs(conf: Path, model: String) extends CliConfArgs
+  case class TrainArgs(conf: Path, model: Option[String]) extends CliConfArgs
   case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, sort: SortingType)
       extends CliConfArgs
   case class SortArgs(in: Path, out: Path) extends CliArgs
@@ -91,7 +91,7 @@ object CliArgs extends Logging {
           case Some(parser.train) =>
             for {
               conf  <- parse(parser.train.config)
-              model <- parse(parser.train.model)
+              model <- parseOption(parser.train.model)
             } yield {
               TrainArgs(conf, model)
             }
@@ -133,6 +133,13 @@ object CliArgs extends Logging {
       case Success(Some(value)) => Right(value)
       case Success(None)        => Left(new Exception(s"missing required option ${option.name}"))
       case Failure(ex)          => Left(ex)
+    }
+  }
+
+  def parseOption[T](option: ScallopOption[T]): Either[Throwable, Option[T]] = {
+    Try(option.toOption) match {
+      case Success(value) => Right(value)
+      case Failure(ex)    => Left(ex)
     }
   }
 
@@ -200,7 +207,8 @@ object CliArgs extends Logging {
       descr("train the ML model")
       val model = opt[String](
         "model",
-        required = true,
+        required = false,
+        default = None,
         short = 'm',
         descr = "model name to train"
       )

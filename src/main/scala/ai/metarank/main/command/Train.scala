@@ -18,6 +18,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
 import scala.util.Random
+import cats.implicits._
 
 object Train extends Logging {
   def run(
@@ -27,10 +28,17 @@ object Train extends Logging {
       args: TrainArgs
   ): IO[Unit] = {
     storeResource.use(store => {
-      mapping.models.get(args.model) match {
-        case Some(model: LambdaMARTModel) => train(store, model, args.model, model.conf.backend).void
-        case _ => IO.raiseError(new Exception(s"model ${args.model} is not defined in config"))
+      val models = args.model match {
+        case Some(m) => mapping.models.filter(_._1 == m)
+        case None    => mapping.models
       }
+      models.toList
+        .map {
+          case (name, model: LambdaMARTModel) => train(store, model, name, model.conf.backend).void
+          case _ => IO.raiseError(new Exception(s"model ${args.model} is not defined in config"))
+        }
+        .sequence
+        .void
     })
   }
 

@@ -23,7 +23,7 @@
   * [Models](configuration/supported-ranking-models.md)
   * [Data Sources](configuration/data-sources.md)
   * [Persistence](configuration/persistence.md)
-* [Deployment](deploy/overview.md) 
+* [Deployment](deploy/deployment-overview.md) 
   * [Standalone](deploy/standalone.md)
   * [Docker](deploy/docker.md)
   * [Kubernetes](deploy/kubernetes.md)

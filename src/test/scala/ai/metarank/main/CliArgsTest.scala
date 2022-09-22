@@ -46,7 +46,13 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse train args, short" in {
     CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost"), Map.empty) shouldBe Right(
-      TrainArgs(conf, "xgboost")
+      TrainArgs(conf, Some("xgboost"))
+    )
+  }
+
+  it should "parse train args, no model" in {
+    CliArgs.parse(List("train", "-c", conf.toString), Map.empty) shouldBe Right(
+      TrainArgs(conf, None)
     )
   }
 

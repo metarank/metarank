@@ -3,6 +3,12 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.5
+Notable features:
+* [Rate normalization](configuration/features/counters.md#rate-normalization) support, so having 1 click over 2 
+impressions is not resulting in a 50% CTR anymore.
+* [Position de-biasing](configuration/features/relevancy.md#position) based on a dynamic position feature.
+
 ## 0.5.4
 Most notable improvements:
 * [AutoML style feature engineering](howto/autofeature.md) based on an existing dataset

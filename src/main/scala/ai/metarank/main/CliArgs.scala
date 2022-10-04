@@ -8,7 +8,6 @@ import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
-import org.bouncycastle.crypto.params.Argon2Parameters
 import org.rogach.scallop.{ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter}
 
 import java.nio.file.Path

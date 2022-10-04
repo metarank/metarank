@@ -1,0 +1,6 @@
+apiVersion: v2
+name: metarank
+description: A Helm chart for Metarank
+type: application
+version: "0.0.1"
+appVersion: "0.5.5"

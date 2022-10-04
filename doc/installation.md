@@ -34,7 +34,7 @@ To run JVM applications, you need the JVM itself. If you have no JRE/JDK install
 check out the [Eclipse Temurin JDK](https://adoptium.net/installation/) tutorials for different
 operating systems.
 
-Metarank is tested on JDK 11 and 17, but will probably work on 18+.
+Metarank is tested on JDK 11 and 17, but will probably work on 18+. JDK 8, 9, 10 are not supported.
 
 ### Installing on MacOS
 

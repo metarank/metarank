@@ -31,6 +31,7 @@
   * [Snowplow](integrations/snowplow.md) 
 
 ## How-to
+* [Automated ML model retraining](howto/model-retraining.md)
 * [Automatic feature engineering](howto/autofeature.md)
 * [Running in production](dev/production-recommendations.md)
 

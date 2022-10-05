@@ -6,6 +6,8 @@ import ai.metarank.config.ModelConfig.ModelBackend
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.ModelName
+import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.main.CliArgs.{ServeArgs, TrainArgs}
 import ai.metarank.main.command.util.FieldStats
 import ai.metarank.main.command.util.FieldStats.FieldStat
@@ -17,6 +19,7 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
+
 import scala.util.Random
 import cats.implicits._
 
@@ -34,7 +37,23 @@ object Train extends Logging {
       }
       models.toList
         .map {
-          case (name, model: LambdaMARTModel) => train(store, model, name, model.conf.backend).void
+          case (name, model: LambdaMARTModel) =>
+            store match {
+              case MemPersistence(_) =>
+                IO.raiseError(
+                  new Exception("""=======
+                                  |You're using an in-mem persistence and invoked a train sub-command.
+                                  |In-mem persistence is not actually persisting anything between metarank invocations,
+                                  |so it has zero saved click-through records for model training.
+                                  |
+                                  |You probably need to enable redis persistence in the config file, or use
+                                  |a standalone mode (which imports data and trains ML model within a single
+                                  |JVM process)
+                                  |=======""".stripMargin)
+                )
+              case _ => train(store, model, name, model.conf.backend).void
+            }
+
           case _ => IO.raiseError(new Exception(s"model ${args.model} is not defined in config"))
         }
         .sequence

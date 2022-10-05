@@ -1,0 +1,31 @@
+{{- if .Values.train.enabled -}}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ include "metarank.fullname" . }}-train"
+  labels:
+    {{- include "metarank.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.train.schedule }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          volumes:
+            - name: config
+              configMap:
+                name: metarank
+          containers:
+            - name: {{ .Chart.Name }}
+              securityContext:
+                {{- toYaml .Values.securityContext | nindent 16 }}
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              args: [train, --config, /etc/metarank/metarank.conf]
+              volumeMounts:
+                - name: config
+                  mountPath: /etc/metarank/
+              resources:
+                {{- toYaml .Values.train.resources | nindent 16 }}
+          restartPolicy: OnFailure
+{{- end }}

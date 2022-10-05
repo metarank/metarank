@@ -68,6 +68,13 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+train:
+  enabled: true
+  # retrain all models once a day, at 6AM
+  schedule: '"*/2 * * * *"'
+  # a separate set of resource definitions for model retraining job
+  resources: {}
+
 autoscaling:
   enabled: false
   minReplicas: 1

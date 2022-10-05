@@ -71,7 +71,7 @@ resources: {}
 train:
   enabled: true
   # retrain all models once a day, at 6AM
-  schedule: '"*/2 * * * *"'
+  schedule: '"0 6 * * *"'
   # a separate set of resource definitions for model retraining job
   resources: {}
 

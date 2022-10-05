@@ -3,9 +3,13 @@
 A problem: how to periodically re-train an ML model on a new data?
 
 ## Click-through collection
+
 While receiving and processing incoming events, Metarank collects click-through records:
+
 * On each [ranking event](../event-schema.md#ranking-event), it logs all ML feature values used to produce it. As dynamic features constantly change in time, it allows to easily know, what was the value of any feature back in time.
+
 ![join](../img/ctjoin.png)
+
 * Within a default 30-minute window (see a [`core.clickthrough.maxSessionLength`](../configuration/overview.md#core) option for details) all interactions within this ranking event are collected. So you can know which items a visitor has seen, and later interacted with.
 * After a click-trough join window is finalized, then ranking, interactions, and feature values are persisted in the store.
 
@@ -18,6 +22,7 @@ Metarank collects click-through records automatically, you don't need to tune an
 ## Manual retraining
 
 Given that you have a production Metarank instance running somewhere in the cloud, you can re-train a ML model based on a history of already collected click-through records locally:
+
 ```shell
 $> java -jar metarank.jar train --config /path/to/config.yml
 
@@ -54,11 +59,14 @@ $> java -jar metarank.jar train --config /path/to/config.yml
 ```
 
 While training, Metarank will do the following steps:
-1. Pull all stored click-through records from the store. Your local Metarank config file should be the same as the one use by the serving instance: store config and feature definitions should match.
-2. Convert them to a XGBoost/LightGBM compatible judgement lists:
+
+* Pull all stored click-through records from the store. Your local Metarank config file should be the same as the one use by the serving instance: store config and feature definitions should match.
+* Convert them to a XGBoost/LightGBM compatible judgement lists:
+
 ![ltr judgement list](../img/ltr-table.png)
-3. Do the ML model training.
-4. Upload the model into the store and notify all API serving instances to reload the model.
+
+* Do the ML model training.
+* Upload the model into the store and notify all API serving instances to reload the model.
 
 ## Automated retraining
 

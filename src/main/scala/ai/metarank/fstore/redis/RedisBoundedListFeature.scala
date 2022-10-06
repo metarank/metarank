@@ -1,6 +1,8 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.redis.encode.{EncodeFormat, KCodec, VCodec}
 import ai.metarank.model.Feature.BoundedListFeature
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
@@ -17,10 +19,10 @@ import cats.implicits._
 case class RedisBoundedListFeature(
     config: BoundedListConfig,
     client: RedisClient,
-    prefix: String
+    prefix: String,
+    format: EncodeFormat
 ) extends BoundedListFeature
-    with Logging
-    with RedisFeature {
+    with Logging {
   override def put(action: Append): IO[Unit] = {
     val records = action.value match {
       case Scalar.SStringList(value) => value.map(v => TimeValue(action.ts, SString(v)))
@@ -28,9 +30,9 @@ case class RedisBoundedListFeature(
       case other                     => List(TimeValue(action.ts, other))
     }
     if (records.nonEmpty) {
-      val key = str(action.key)
+      val key = format.key.encode(prefix, action.key)
       client
-        .lpush(key, records.map(_.asJson.noSpaces))
+        .lpush(key, records.map(format.timeValue.encode))
         .flatMap(_ => client.ltrim(key, 0, config.count).void)
     } else {
       IO.unit
@@ -39,8 +41,8 @@ case class RedisBoundedListFeature(
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[BoundedListValue]] = {
     for {
-      values     <- client.lrange(str(key), 0, config.count)
-      timeValues <- values.map(json => IO.fromEither(decode[TimeValue](json))).sequence
+      values     <- client.lrange(keyEnc.encode(prefix, key), 0, config.count)
+      timeValues <- values.map(bytes => IO.fromEither(timeValueCodec.decode(bytes))).sequence
     } yield {
       timeValues.headOption match {
         case None => None

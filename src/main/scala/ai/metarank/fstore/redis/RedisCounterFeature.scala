@@ -1,6 +1,7 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.redis.encode.{EncodeFormat, KCodec}
 import ai.metarank.model.Feature.CounterFeature
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
@@ -11,19 +12,17 @@ import cats.effect.IO
 
 import scala.util.Try
 
-case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefix: String)
+case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefix: String, format: EncodeFormat)
     extends CounterFeature
-    with Logging
-    with RedisFeature {
+    with Logging {
   override def put(action: Increment): IO[Unit] = {
-    client.incrBy(str(action.key), action.inc).void
+    client.incrBy(keyEnc.encode(prefix, action.key), action.inc).void
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[CounterValue]] = {
-    client.get(str(key)).flatMap {
+    client.get(keyEnc.encode(prefix, key)).flatMap {
       case Some(str) =>
-        debug(s"loading $key from redis") *> IO
-          .fromTry(Try(str.toLong))
+        IO.fromOption(new String(str).toLongOption)(new Exception("cannot parse long $str"))
           .map(x => Some(CounterValue(key, ts, x)))
       case None => IO.pure(None)
     }

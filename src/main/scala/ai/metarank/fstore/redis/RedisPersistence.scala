@@ -25,6 +25,7 @@ import ai.metarank.fstore.memory.{
   MemStatsEstimator
 }
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.redis.encode.EncodeFormat
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
@@ -48,6 +49,7 @@ import java.nio.ByteBuffer
 import java.util
 import scala.jdk.CollectionConverters._
 import shapeless.syntax.typeable._
+
 import scala.concurrent.duration._
 import java.util.concurrent.CompletableFuture
 
@@ -57,7 +59,8 @@ case class RedisPersistence(
     modelClient: RedisClient,
     valuesClient: RedisClient,
     rankingsClient: RedisClient,
-    cache: CacheConfig
+    cache: CacheConfig,
+    format: EncodeFormat
 ) extends Persistence
     with Logging {
   import RedisPersistence._

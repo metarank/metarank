@@ -2,7 +2,7 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.encode.KCodec
+import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec}
 import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -14,20 +14,20 @@ import cats.effect.IO
 case class RedisScalarFeature(
     config: ScalarConfig,
     client: RedisClient,
-    prefix: String
-)(implicit ke: KCodec[Key], sc: KVCodec[Scalar])
-    extends ScalarFeature
+    prefix: String,
+    format: StoreFormat
+) extends ScalarFeature
     with Logging {
   override def put(action: Put): IO[Unit] = {
     debug(s"writing scalar key=${action.key}")
-    client.set(ke.encode(prefix, action.key), sc.encode(action.value)).void
+    client.set(format.key.encode(prefix, action.key), format.scalar.encode(action.value)).void
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[ScalarValue]] = {
-    client.get(ke.encode(prefix, key)).flatMap {
+    client.get(format.key.encode(prefix, key)).flatMap {
       case Some(value) =>
         debug(s"loading scalar $key") *> IO
-          .fromEither(sc.decode(value))
+          .fromEither(format.scalar.decode(value))
           .map(s => Some(ScalarValue(key, ts, s)))
       case None => IO.pure(None)
     }

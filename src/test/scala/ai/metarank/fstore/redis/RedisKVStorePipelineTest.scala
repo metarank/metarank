@@ -15,15 +15,15 @@ class RedisKVStorePipelineTest extends AnyFlatSpec with Matchers with RedisTest 
 
   it should "do size-triggered flush" in {
     val keys   = (0 until 100).map(i => s"key$i").toList
-    val ok     = keys.map(i => client.set(i, "foo")).sequence.unsafeRunSync()
-    val result = client.mget(keys).unsafeRunSync()
+    val ok     = keys.map(i => client.set(i, "foo".getBytes())).sequence.unsafeRunSync()
+    val result = client.mget(keys).unsafeRunSync().map(kv => kv._1 -> new String(kv._2))
     result shouldBe keys.map(k => k -> "foo").toMap
   }
 
   it should "do time-triggered flush" in {
-    val keys   = (0 until 5).map(i => s"key$i").toList
-    val ok     = keys.map(i => client.set(i, "foo")).sequence.flatMap(_ => IO.sleep(600.millis)).unsafeRunSync()
-    val result = client.mget(keys).unsafeRunSync()
+    val keys = (0 until 5).map(i => s"key$i").toList
+    val ok = keys.map(i => client.set(i, "foo".getBytes())).sequence.flatMap(_ => IO.sleep(600.millis)).unsafeRunSync()
+    val result = client.mget(keys).unsafeRunSync().map(kv => kv._1 -> new String(kv._2))
     result shouldBe keys.map(k => k -> "foo").toMap
   }
 

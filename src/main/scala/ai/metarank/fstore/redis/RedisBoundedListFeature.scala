@@ -2,7 +2,7 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.encode.{EncodeFormat, KCodec, VCodec}
+import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec, VCodec}
 import ai.metarank.model.Feature.BoundedListFeature
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
@@ -20,7 +20,7 @@ case class RedisBoundedListFeature(
     config: BoundedListConfig,
     client: RedisClient,
     prefix: String,
-    format: EncodeFormat
+    format: StoreFormat
 ) extends BoundedListFeature
     with Logging {
   override def put(action: Append): IO[Unit] = {
@@ -41,8 +41,8 @@ case class RedisBoundedListFeature(
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[BoundedListValue]] = {
     for {
-      values     <- client.lrange(keyEnc.encode(prefix, key), 0, config.count)
-      timeValues <- values.map(bytes => IO.fromEither(timeValueCodec.decode(bytes))).sequence
+      values     <- client.lrange(format.key.encode(prefix, key), 0, config.count)
+      timeValues <- values.map(bytes => IO.fromEither(format.timeValue.decode(bytes))).sequence
     } yield {
       timeValues.headOption match {
         case None => None

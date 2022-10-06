@@ -1,6 +1,9 @@
 package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
+import ai.metarank.fstore.redis.codec.StoreFormat
+import ai.metarank.fstore.redis.codec.StoreFormat.JsonStoreFormat
+import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
@@ -16,7 +19,8 @@ object StateStoreConfig extends Logging {
       port: Port,
       db: DBConfig = DBConfig(),
       cache: CacheConfig = CacheConfig(),
-      pipeline: PipelineConfig = PipelineConfig()
+      pipeline: PipelineConfig = PipelineConfig(),
+      format: StoreFormat = JsonStoreFormat
   ) extends StateStoreConfig
 
   object RedisStateConfig {
@@ -56,18 +60,20 @@ object StateStoreConfig extends Logging {
 
   implicit val redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
     for {
-      host  <- c.downField("host").as[Hostname]
-      port  <- c.downField("port").as[Port]
-      db    <- c.downField("db").as[Option[DBConfig]]
-      cache <- c.downField("cache").as[Option[CacheConfig]]
-      pipe  <- c.downField("pipeline").as[Option[PipelineConfig]]
+      host   <- c.downField("host").as[Hostname]
+      port   <- c.downField("port").as[Port]
+      db     <- c.downField("db").as[Option[DBConfig]]
+      cache  <- c.downField("cache").as[Option[CacheConfig]]
+      pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
+      format <- c.downField("format").as[Option[StoreFormat]]
     } yield {
       RedisStateConfig(
         host = host,
         port = port,
         db = db.getOrElse(DBConfig()),
         cache = cache.getOrElse(CacheConfig()),
-        pipeline = pipe.getOrElse(PipelineConfig())
+        pipeline = pipe.getOrElse(PipelineConfig()),
+        format = format.getOrElse(JsonStoreFormat)
       )
     }
   )

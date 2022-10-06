@@ -25,7 +25,7 @@ import ai.metarank.fstore.memory.{
   MemStatsEstimator
 }
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.encode.EncodeFormat
+import ai.metarank.fstore.redis.codec.StoreFormat
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
@@ -60,7 +60,7 @@ case class RedisPersistence(
     valuesClient: RedisClient,
     rankingsClient: RedisClient,
     cache: CacheConfig,
-    format: EncodeFormat
+    format: StoreFormat
 ) extends Persistence
     with Logging {
   import RedisPersistence._
@@ -110,60 +110,61 @@ case class RedisPersistence(
   override lazy val lists = schema.lists.map { case (name, conf) =>
     name -> CachedBoundedListFeature(
       fast = MemBoundedList(conf, stateCache),
-      slow = RedisBoundedListFeature(conf, stateClient, Prefix.STATE)
+      slow = RedisBoundedListFeature(conf, stateClient, Prefix.STATE, format)
     )
   }
 
   override lazy val counters = schema.counters.map { case (name, conf) =>
     name -> CachedCounterFeature(
       fast = MemCounter(conf, stateCache),
-      slow = RedisCounterFeature(conf, stateClient, Prefix.STATE)
+      slow = RedisCounterFeature(conf, stateClient, Prefix.STATE, format)
     )
   }
   override lazy val periodicCounters =
     schema.periodicCounters.map { case (name, conf) =>
       name -> CachedPeriodicCounterFeature(
         fast = MemPeriodicCounter(conf, stateCache),
-        slow = RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE)
+        slow = RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE, format)
       )
     }
 
   override lazy val freqs = schema.freqs.map { case (name, conf) =>
     name -> CachedFreqEstimatorFeature(
       fast = MemFreqEstimator(conf, stateCache),
-      slow = RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE)
+      slow = RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE, format)
     )
   }
 
   override lazy val scalars = schema.scalars.map { case (name, conf) =>
     name -> CachedScalarFeature(
       fast = MemScalarFeature(conf, stateCache),
-      slow = RedisScalarFeature(conf, stateClient, Prefix.STATE)
+      slow = RedisScalarFeature(conf, stateClient, Prefix.STATE, format)
     )
   }
   override lazy val stats = schema.stats.map { case (name, conf) =>
     name -> CachedStatsEstimatorFeature(
       fast = MemStatsEstimator(conf, stateCache),
-      slow = RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE)
+      slow = RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE, format)
     )
   }
 
   override lazy val maps = schema.maps.map { case (name, conf) =>
     name -> CachedMapFeature(
       fast = MemMapFeature(conf, stateCache),
-      slow = RedisMapFeature(conf, stateClient, Prefix.STATE)
+      slow = RedisMapFeature(conf, stateClient, Prefix.STATE, format)
     )
   }
 
   import ai.metarank.rank.Model._
   override lazy val models: Persistence.KVStore[ModelName, Scorer] = CachedKVStore(
     fast = MemKVStore(modelCache),
-    slow = RedisKVStore(modelClient, Prefix.MODELS)(KVCodec.modelKeyCodec, KVCodec.jsonCodec)
+    slow = RedisKVStore(modelClient, Prefix.MODELS)(format.model, format.scorer)
   )
 
-  override lazy val values: Persistence.KVStore[Key, FeatureValue] = RedisKVStore(valuesClient, Prefix.VALUES)
+  override lazy val values: Persistence.KVStore[Key, FeatureValue] =
+    RedisKVStore(valuesClient, Prefix.VALUES)(format.key, format.featureValue)
 
-  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT)
+  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
 
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void
@@ -193,7 +194,8 @@ object RedisPersistence {
       port: Int,
       db: DBConfig,
       cache: CacheConfig,
-      pipeline: PipelineConfig
+      pipeline: PipelineConfig,
+      format: StoreFormat
   ): Resource[IO, RedisPersistence] = for {
     state    <- RedisClient.create(host, port, db.state, pipeline)
     models   <- RedisClient.create(host, port, db.models, pipeline)
@@ -215,7 +217,7 @@ object RedisPersistence {
       )
     )
   } yield {
-    RedisPersistence(schema, state, models, values, rankings, cache)
+    RedisPersistence(schema, state, models, values, rankings, cache, format)
   }
 
 }

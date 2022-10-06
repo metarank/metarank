@@ -1,7 +1,7 @@
 import Deps._
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "2.13.8"
+ThisBuild / scalaVersion := "2.13.9"
 ThisBuild / version      := "0.5.5"
 
 lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("linux/amd64")
@@ -21,23 +21,23 @@ lazy val root = (project in file("."))
       "-feature",
       "-deprecation",
       "-Xfatal-warnings",
-      "-target:jvm-1.8"
+      "-release:11"
     ),
     libraryDependencies ++= Seq(
       "org.typelevel"         %% "cats-effect"              % "3.3.14",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
-      "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.13.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.1",
+      "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.3",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
-      "io.circe"              %% "circe-generic-extras"     % circeVersion,
+      "io.circe"              %% "circe-generic-extras"     % circeGenericExtrasVersion,
       "io.circe"              %% "circe-parser"             % circeVersion,
       "com.github.pathikrit"  %% "better-files"             % "3.9.1",
       "org.rogach"            %% "scallop"                  % "4.1.0",
       "com.github.blemale"    %% "scaffeine"                % "5.2.1",
-      "org.apache.kafka"       % "kafka-clients"            % "3.2.3",
+      "org.apache.kafka"       % "kafka-clients"            % "3.3.1",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
@@ -52,7 +52,7 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % "2.17.276",
+      "software.amazon.awssdk" % "kinesis"                  % "2.17.286",
       "io.lettuce"             % "lettuce-core"             % "6.2.0.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",

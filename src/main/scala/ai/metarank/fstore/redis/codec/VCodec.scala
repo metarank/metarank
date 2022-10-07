@@ -1,9 +1,18 @@
 package ai.metarank.fstore.redis.codec
 
 import ai.metarank.fstore.redis.codec.impl.BinaryCodec
+import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import com.google.common.io.ByteStreams
 import io.circe.{Codec => CirceCodec}
 
+import java.io.{
+  BufferedInputStream,
+  BufferedOutputStream,
+  ByteArrayInputStream,
+  ByteArrayOutputStream,
+  DataInputStream,
+  DataOutputStream
+}
 import scala.util.{Failure, Success, Try}
 
 trait VCodec[T] {
@@ -33,6 +42,26 @@ object VCodec {
       val out = ByteStreams.newDataOutput()
       codec.write(value, out)
       out.toByteArray
+    }
+  }
+
+  def bincomp[T](codec: BinaryCodec[T]) = new VCodec[T] {
+    override def decode(bytes: Array[Byte]): Either[Throwable, T] = {
+      val stream = new ByteArrayInputStream(bytes)
+      val in     = new DataInputStream(new BufferedInputStream(new ZstdInputStream(stream), 1024))
+      Try(codec.read(in)) match {
+        case Failure(exception) => Left(exception)
+        case Success(value)     => Right(value)
+      }
+    }
+
+    override def encode(value: T): Array[Byte] = {
+      val bytes    = new ByteArrayOutputStream()
+      val buffered = new BufferedOutputStream(new ZstdOutputStream(bytes, 3), 1024)
+      val out      = new DataOutputStream(buffered)
+      codec.write(value, out)
+      buffered.flush()
+      bytes.toByteArray
     }
   }
 

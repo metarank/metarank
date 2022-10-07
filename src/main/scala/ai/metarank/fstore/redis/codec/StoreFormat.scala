@@ -45,7 +45,7 @@ object StoreFormat {
     lazy val key          = keyEncoder
     lazy val timeValue    = VCodec.binary(TimeValueCodec)
     lazy val eventId      = idEncoder
-    lazy val ctv          = VCodec.binary(ClickthroughValuesCodec)
+    lazy val ctv          = VCodec.bincomp(ClickthroughValuesCodec)
     lazy val scalar       = VCodec.binary(ScalarCodec)
     lazy val model        = KCodec.wrap[ModelName](ModelName.apply, _.name)
     lazy val scorer       = VCodec.binary(ScorerCodec)

@@ -74,6 +74,7 @@ state: # a place to store the feature values for the ML inference and the traine
     #type: redis
     #host: localhost
     #port: 6369
+    #format: binary # optional, default=json, possible values: json, binary
     
     # Metarank implements several optimization strategies when using Redis: caching and pipelining
     # Check https://docs.metarank.ai/reference/overview/persistence#redis-persistence for more details

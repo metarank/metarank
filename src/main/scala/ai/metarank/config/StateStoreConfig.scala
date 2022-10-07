@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.redis.codec.StoreFormat
-import ai.metarank.fstore.redis.codec.StoreFormat.JsonStoreFormat
+import ai.metarank.fstore.redis.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
@@ -20,7 +20,7 @@ object StateStoreConfig extends Logging {
       db: DBConfig = DBConfig(),
       cache: CacheConfig = CacheConfig(),
       pipeline: PipelineConfig = PipelineConfig(),
-      format: StoreFormat = JsonStoreFormat
+      format: StoreFormat = BinaryStoreFormat
   ) extends StateStoreConfig
 
   object RedisStateConfig {
@@ -73,7 +73,7 @@ object StateStoreConfig extends Logging {
         db = db.getOrElse(DBConfig()),
         cache = cache.getOrElse(CacheConfig()),
         pipeline = pipe.getOrElse(PipelineConfig()),
-        format = format.getOrElse(JsonStoreFormat)
+        format = format.getOrElse(BinaryStoreFormat)
       )
     }
   )

@@ -31,7 +31,7 @@ state:
   type: redis
   host: localhost
   port: 6379
-  format: binary # optional, default=json, possible values: json, binary
+  format: binary # optional, default=binary, possible values: json, binary
 
   cache:           # optional
     maxSize: 1024  # size of in-memory client-side cache for hot keys, optional, default=1024

@@ -1,6 +1,13 @@
 package ai.metarank.fstore.redis.codec
 
 import ai.metarank.fstore.Persistence.ModelName
+import ai.metarank.fstore.redis.codec.impl.{
+  ClickthroughValuesCodec,
+  FeatureValueCodec,
+  ScalarCodec,
+  ScorerCodec,
+  TimeValueCodec
+}
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{ClickthroughValues, EventId, FeatureValue, Key, Scalar, Scope}
@@ -26,11 +33,23 @@ object StoreFormat {
     lazy val key          = keyEncoder
     lazy val timeValue    = VCodec.json[TimeValue](FeatureValue.timeValueCodec)
     lazy val eventId      = idEncoder
-    lazy val ctv          = VCodec.json[ClickthroughValues](ClickthroughValues.ctvCodec)
-    lazy val scalar       = VCodec.json[Scalar](Scalar.scalarCodec)
+    lazy val ctv          = VCodec.json[ClickthroughValues](ClickthroughValues.ctvJsonCodec)
+    lazy val scalar       = VCodec.json[Scalar](Scalar.scalarJsonCodec)
     lazy val model        = KCodec.wrap[ModelName](ModelName.apply, _.name)
     lazy val scorer       = VCodec.json[Scorer]
     lazy val featureValue = VCodec.json[FeatureValue]
+  }
+
+  case object BinaryStoreFormat extends StoreFormat {
+
+    lazy val key          = keyEncoder
+    lazy val timeValue    = VCodec.binary(TimeValueCodec)
+    lazy val eventId      = idEncoder
+    lazy val ctv          = VCodec.binary(ClickthroughValuesCodec)
+    lazy val scalar       = VCodec.binary(ScalarCodec)
+    lazy val model        = KCodec.wrap[ModelName](ModelName.apply, _.name)
+    lazy val scorer       = VCodec.binary(ScorerCodec)
+    lazy val featureValue = VCodec.binary(FeatureValueCodec)
   }
 
   val keyEncoder: KCodec[Key] = new KCodec[Key] {
@@ -54,11 +73,13 @@ object StoreFormat {
 
   implicit val formatCodec: Codec[StoreFormat] = Codec.from[StoreFormat](
     decodeA = Decoder.decodeString.emapTry {
-      case "json" => Success(JsonStoreFormat)
-      case other  => Failure(new Exception(s"cannot decode format $other"))
+      case "json"   => Success(JsonStoreFormat)
+      case "binary" => Success(BinaryStoreFormat)
+      case other    => Failure(new Exception(s"cannot decode format $other"))
     },
-    encodeA = Encoder.instance { case JsonStoreFormat =>
-      Json.fromString("json")
+    encodeA = Encoder.instance {
+      case JsonStoreFormat   => Json.fromString("json")
+      case BinaryStoreFormat => Json.fromString("binary")
     }
   )
 }

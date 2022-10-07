@@ -1,7 +1,8 @@
-#state:
-#  type: redis
-#  host: localhost
-#  port: 6379
+state:
+  type: redis
+  host: localhost
+  port: 6379
+  format: binary
 
 core:
   clickthrough:

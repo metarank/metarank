@@ -43,36 +43,41 @@ trait Persistence {
 
 object Persistence extends Logging {
   case class ModelName(name: String) extends AnyVal
+
   trait KVCodec[T] {
-    def encode(value: T): String
-    def decode(str: String): Either[Throwable, T]
+    def encode(value: T): Array[Byte]
+    def decode(bytes: Array[Byte]): Either[Throwable, T]
   }
 
   object KVCodec {
     import io.circe.syntax._
     import io.circe.parser.{decode => cdecode}
     implicit def jsonCodec[T](implicit codec: Codec[T]) = new KVCodec[T] {
-      override def encode(value: T): String                  = value.asJson.noSpaces
-      override def decode(str: String): Either[Throwable, T] = cdecode[T](str)
+      override def encode(value: T)                                 = value.asJson.noSpaces.getBytes()
+      override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))
     }
+
     implicit val stringCodec: KVCodec[String] = new KVCodec[String] {
-      override def decode(str: String): Either[Throwable, String] = Right(str)
-      override def encode(value: String): String                  = value
+      override def decode(bytes: Array[Byte]): Either[Throwable, String] = Right(new String(bytes))
+      override def encode(value: String): Array[Byte]                    = value.getBytes()
     }
+
     implicit val keyCodec: KVCodec[Key] = new KVCodec[Key] {
-      override def decode(str: String): Either[Throwable, Key] = {
+      override def decode(bytes: Array[Byte]): Either[Throwable, Key] = {
+        val str = new String(bytes)
         str.split("/").toList match {
           case scope :: name :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(name)))
           case _                    => Left(new Exception(s"cannot decode key $str"))
         }
       }
 
-      override def encode(value: Key): String = s"${value.scope.asString}/${value.feature.value}"
+      override def encode(value: Key): Array[Byte] = s"${value.scope.asString}/${value.feature.value}".getBytes()
     }
-    implicit val modelKeyCodec: KVCodec[ModelName] = new KVCodec[ModelName] {
-      override def encode(value: ModelName): String = value.name
 
-      override def decode(str: String): Either[Throwable, ModelName] = Right(ModelName(str))
+    implicit val modelKeyCodec: KVCodec[ModelName] = new KVCodec[ModelName] {
+      override def encode(value: ModelName) = value.name.getBytes()
+
+      override def decode(bytes: Array[Byte]): Either[Throwable, ModelName] = Right(ModelName(new String(bytes)))
     }
   }
 
@@ -95,8 +100,8 @@ object Persistence extends Logging {
   }
 
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline) =>
-      RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline)
+    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt) =>
+      RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt)
     case StateStoreConfig.MemoryStateConfig() =>
       Resource.make(
         info("using in-memory persistence")

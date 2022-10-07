@@ -61,6 +61,6 @@ object Scalar {
     )
   )
 
-  implicit val scalarCodec: Codec[Scalar] = Codec.from(scalarDecoder, scalarEncoder)
+  implicit val scalarJsonCodec: Codec[Scalar] = Codec.from(scalarDecoder, scalarEncoder)
 
 }

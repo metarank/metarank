@@ -31,6 +31,7 @@ state:
   type: redis
   host: localhost
   port: 6379
+  format: binary # optional, default=binary, possible values: json, binary
 
   cache:           # optional
     maxSize: 1024  # size of in-memory client-side cache for hot keys, optional, default=1024
@@ -58,6 +59,17 @@ Redis server sends a notification to Metarank when key value was changed by some
 in the same datacenter/AZ)
 * `pipeline.flushPeriod` controls the level of "eventualness" in the overall eventual consistency. With values 
 larger than `10` seconds, a second Metarank instance may not see write buffered in a first instance.
+
+### State encoding formats
+
+Metarank Redis persistence supports `json` and `binary` encoding formats for data stored in Redis:
+
+* `json`: focused on readability and debugging simplicity. 
+* `binary`: low-overhead binary encoding format, with better performance and smaller memory footprint.
+
+`binary` format on typical datasets (like [RankLens](https://github.com/metarank/ranklens)) is ~2x faster 
+and takes ~4x less RAM. We recommend it for larger datasets, when memory usage and associated costs are an
+important factor.
 
 ### Redis support limitations
 

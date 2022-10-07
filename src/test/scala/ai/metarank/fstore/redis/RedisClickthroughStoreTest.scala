@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.fstore.redis.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
@@ -12,13 +13,13 @@ import org.scalatest.matchers.should.Matchers
 class RedisClickthroughStoreTest extends AnyFlatSpec with Matchers with RedisTest {
 
   it should "read empty" in {
-    lazy val stream = RedisClickthroughStore(client, "a")
+    lazy val stream = RedisClickthroughStore(client, "a", JsonStoreFormat)
     val result      = stream.getall().compile.toList.unsafeRunSync()
     result shouldBe Nil
   }
 
   it should "write and read clickthrougts" in {
-    lazy val stream = RedisClickthroughStore(client, "b")
+    lazy val stream = RedisClickthroughStore(client, "b", JsonStoreFormat)
     val ct          = List(ClickthroughValues(TestClickthrough(List("p1", "p2", "p3"), List("p2")), Nil))
     stream.put(ct).unsafeRunSync()
     val results = stream.getall().compile.toList.unsafeRunSync()
@@ -26,7 +27,7 @@ class RedisClickthroughStoreTest extends AnyFlatSpec with Matchers with RedisTes
   }
 
   it should "read stream of events" in {
-    lazy val stream = RedisClickthroughStore(client, "c")
+    lazy val stream = RedisClickthroughStore(client, "c", JsonStoreFormat)
     for {
       i <- 0 until 1000
     } {

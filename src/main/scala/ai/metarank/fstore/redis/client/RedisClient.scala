@@ -8,7 +8,7 @@ import cats.effect.kernel.Resource
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.{ScanArgs, RedisClient => LettuceClient, ScanCursor => LettuceCursor}
 import io.lettuce.core.api.async.RedisAsyncCommands
-import io.lettuce.core.codec.{RedisCodec, StringCodec}
+import io.lettuce.core.codec.{ByteArrayCodec, RedisCodec, StringCodec}
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
@@ -17,29 +17,29 @@ import scala.concurrent.duration._
 
 case class RedisClient(
     lettuce: LettuceClient,
-    reader: RedisAsyncCommands[String, String],
-    readerConn: StatefulRedisConnection[String, String],
-    writer: RedisAsyncCommands[String, String],
-    writerConn: StatefulRedisConnection[String, String],
+    reader: RedisAsyncCommands[String, Array[Byte]],
+    readerConn: StatefulRedisConnection[String, Array[Byte]],
+    writer: RedisAsyncCommands[String, Array[Byte]],
+    writerConn: StatefulRedisConnection[String, Array[Byte]],
     bufferSize: Ref[IO, Int],
     conf: PipelineConfig
 ) extends Logging {
   // reads
-  def lrange(key: String, start: Int, end: Int): IO[List[String]] =
+  def lrange(key: String, start: Int, end: Int): IO[List[Array[Byte]]] =
     IO.fromCompletableFuture(IO(reader.lrange(key, start, end).toCompletableFuture))
       .map(_.asScala.toList)
 
-  def get(key: String): IO[Option[String]] =
+  def get(key: String): IO[Option[Array[Byte]]] =
     IO.fromCompletableFuture(IO(reader.get(key).toCompletableFuture)).map(Option.apply)
 
-  def mget(keys: List[String]): IO[Map[String, String]] = keys match {
+  def mget(keys: List[String]): IO[Map[String, Array[Byte]]] = keys match {
     case Nil => IO.pure(Map.empty)
     case _ =>
       IO.fromCompletableFuture(IO(reader.mget(keys: _*).toCompletableFuture))
         .map(_.asScala.toList.flatMap(kv => kv.optional().toScala.map(v => kv.getKey -> v)).toMap)
   }
 
-  def hgetAll(key: String): IO[Map[String, String]] =
+  def hgetAll(key: String): IO[Map[String, Array[Byte]]] =
     IO.fromCompletableFuture(IO(reader.hgetall(key).toCompletableFuture)).map(_.asScala.toMap)
 
   def ping(): IO[String] =
@@ -52,7 +52,7 @@ case class RedisClient(
 
   // writes
 
-  def mset(values: Map[String, String]): IO[Unit] = {
+  def mset(values: Map[String, Array[Byte]]): IO[Unit] = {
     if (values.nonEmpty) {
       IO(writer.mset(values.asJava).toCompletableFuture).flatMap(maybeFlush)
     } else {
@@ -60,10 +60,10 @@ case class RedisClient(
     }
   }
 
-  def set(key: String, value: String): IO[Unit] =
+  def set(key: String, value: Array[Byte]): IO[Unit] =
     IO(writer.set(key, value).toCompletableFuture).flatMap(maybeFlush)
 
-  def hset(key: String, values: Map[String, String]): IO[Unit] =
+  def hset(key: String, values: Map[String, Array[Byte]]): IO[Unit] =
     IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(maybeFlush)
 
   def hdel(key: String, keys: List[String]): IO[Unit] =
@@ -75,16 +75,16 @@ case class RedisClient(
   def incrBy(key: String, by: Int): IO[Unit] =
     IO(writer.incrby(key, by).toCompletableFuture).flatMap(maybeFlush)
 
-  def lpush(key: String, value: String): IO[Unit] =
+  def lpush(key: String, value: Array[Byte]): IO[Unit] =
     IO(writer.lpush(key, value).toCompletableFuture).flatMap(maybeFlush)
 
-  def lpush(key: String, values: List[String]): IO[Unit] =
+  def lpush(key: String, values: List[Array[Byte]]): IO[Unit] =
     IO(writer.lpush(key, values: _*).toCompletableFuture).flatMap(maybeFlush)
 
   def ltrim(key: String, start: Int, end: Int): IO[Unit] =
     IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(maybeFlush)
 
-  def append(key: String, value: String): IO[Unit] =
+  def append(key: String, value: Array[Byte]): IO[Unit] =
     IO(writer.append(key, value).toCompletableFuture).flatMap(maybeFlush)
 
   def maybeFlush[T](lastWrite: CompletableFuture[T]): IO[Unit] = bufferSize.updateAndGet(_ + 1).flatMap {
@@ -142,10 +142,12 @@ object RedisClient extends Logging {
       conf: PipelineConfig,
       buffer: Ref[IO, Int]
   ) = {
-    val client         = io.lettuce.core.RedisClient.create(s"redis://$host:$port")
-    val readConnection = client.connect[String, String](RedisCodec.of(new StringCodec(), new StringCodec()))
+    val client = io.lettuce.core.RedisClient.create(s"redis://$host:$port")
+    val readConnection =
+      client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
     readConnection.sync().select(db)
-    val writeConnection = client.connect[String, String](RedisCodec.of(new StringCodec(), new StringCodec()))
+    val writeConnection =
+      client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
     writeConnection.sync().select(db)
     writeConnection.setAutoFlushCommands(false)
     logger.info(

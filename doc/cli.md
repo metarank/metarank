@@ -7,6 +7,7 @@ To run the main app, download the [latest jar file](https://github.com/metarank/
 ```shell
 java -jar metarank-x.x.x.jar
 ```
+
 ```shell
 
                 __                              __    
@@ -14,7 +15,7 @@ java -jar metarank-x.x.x.jar
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/ ver:None
+      \/     \/          \/           \/     \/     \/ Metarank v:unknown
 Usage: metarank <subcommand> <options>
 Options:
 
@@ -37,6 +38,7 @@ Subcommand: import - import historical clickthrough data
 
 Subcommand: train - train the ML model
   -c, --config  <arg>   path to config file
+  -e, --export  <arg>   a directory to export model training files
   -m, --model  <arg>    model name to train
   -h, --help            Show help message
 
@@ -94,10 +96,10 @@ Subcommand: autofeature - generate reference config based on existing data
   -h, --help                   Show help message
 
 For all other tricks, consult the docs on https://docs.metarank.ai
-
 ```
 
 The command-line argument structure is:
+
 ```shell
 java -jar metarank.jar <command> <args>
 ```

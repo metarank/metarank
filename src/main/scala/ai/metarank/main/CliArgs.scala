@@ -169,8 +169,7 @@ object CliArgs extends Logging {
         name = "offset",
         required = false,
         short = 'o',
-        descr =
-          s"offset: earliest, latest, ts=${System.currentTimeMillis() / 1000}, last=1h (optional, default=earliest)",
+        descr = s"offset: earliest, latest, ts=1663171036, last=1h (optional, default=earliest)",
         default = Some(Earliest)
       )
       val format = opt[SourceFormat](

@@ -51,8 +51,12 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
   }
 
   it should "parse train args with export" in {
-    CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost", "--export", "/tmp"), Map.empty) shouldBe Right(
-      TrainArgs(conf, Some("xgboost"), Some(Paths.get("/tmp")))
+    val dir = Files.createTempDirectory("exportdir")
+    CliArgs.parse(
+      List("train", "-c", conf.toString, "-m", "xgboost", "--export", dir.toString),
+      Map.empty
+    ) shouldBe Right(
+      TrainArgs(conf, Some("xgboost"), Some(dir))
     )
   }
 

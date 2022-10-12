@@ -35,7 +35,7 @@ object Standalone extends Logging {
         _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
         _ <- mapping.models.toList.map {
           case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
-            Train.train(store, m, name, conf.backend) *> info("model training finished")
+            Train.train(store, m, name, conf.backend, None) *> info("model training finished")
           case (other, _) =>
             info(s"skipping model $other")
         }.sequence

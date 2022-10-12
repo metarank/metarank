@@ -42,7 +42,7 @@ class TrainTest extends AnyFlatSpec with Matchers {
     val model = dataset.mapping.models("xgboost").asInstanceOf[LambdaMARTModel]
     Train.train(store, model, "xgboost", model.conf.backend, Some(path)).unsafeRunSync()
     val children = Files.list(path).toScala(List)
-    children.map(_.getFileName.toString) shouldBe List("train.csv", "test.csv")
+    children.map(_.getFileName.toString).sorted shouldBe List("test.csv", "train.csv")
   }
 
   def train(name: String) = {

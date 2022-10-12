@@ -9,7 +9,7 @@ import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.main.CliArgs.{ServeArgs, TrainArgs}
-import ai.metarank.main.command.util.FieldStats
+import ai.metarank.main.command.util.{FieldStats, StreamResource}
 import ai.metarank.main.command.util.FieldStats.FieldStat
 import ai.metarank.model.{ClickthroughValues, MValue, TrainResult}
 import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
@@ -101,14 +101,8 @@ object Train extends Logging {
       case None => info("not exporting dataset files, set --export flag to enable.")
       case Some(path) =>
         for {
-          trainFile   <- IO(Files.createFile(Paths.get(path.toString + "/train.csv")))
-          trainStream <- IO(new FileOutputStream(trainFile.toFile))
-          _           <- IO(CSVOutputFormat.write(trainStream, train))
-          _           <- IO(trainStream.close())
-          testFile    <- IO(Files.createFile(Paths.get(path.toString + "/test.csv")))
-          testStream  <- IO(new FileOutputStream(testFile.toFile))
-          _           <- IO(CSVOutputFormat.write(testStream, test))
-          _           <- IO(testStream.close())
+          _ <- StreamResource.of(Paths.get(path.toString + "/train.csv")).use(s => IO(CSVOutputFormat.write(s, train)))
+          _ <- StreamResource.of(Paths.get(path.toString + "/test.csv")).use(s => IO(CSVOutputFormat.write(s, test)))
         } yield {
           logger.info("export done")
         }

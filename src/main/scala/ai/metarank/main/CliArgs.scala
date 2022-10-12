@@ -37,7 +37,7 @@ object CliArgs extends Logging {
       validation: Boolean,
       sort: SortingType
   ) extends CliConfArgs
-  case class TrainArgs(conf: Path, model: Option[String]) extends CliConfArgs
+  case class TrainArgs(conf: Path, model: Option[String], `export`: Option[Path]) extends CliConfArgs
   case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, sort: SortingType)
       extends CliConfArgs
   case class SortArgs(in: Path, out: Path) extends CliArgs
@@ -89,10 +89,11 @@ object CliArgs extends Logging {
             }
           case Some(parser.train) =>
             for {
-              conf  <- parse(parser.train.config)
-              model <- parseOption(parser.train.model)
+              conf   <- parse(parser.train.config)
+              model  <- parseOption(parser.train.model)
+              export <- parseOption(parser.train.export)
             } yield {
-              TrainArgs(conf, model)
+              TrainArgs(conf, model, export)
             }
           case Some(parser.validate) =>
             for {
@@ -210,6 +211,13 @@ object CliArgs extends Logging {
         default = None,
         short = 'm',
         descr = "model name to train"
+      )
+      val `export` = opt[Path](
+        name = "export",
+        required = false,
+        default = None,
+        descr = "a directory to export model training files",
+        validate = pathExists
       )
     }
 

@@ -11,6 +11,8 @@ import ai.metarank.util.RandomDataset
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.jdk.StreamConverters._
+import java.nio.file.Files
 
 class TrainTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)
@@ -35,8 +37,16 @@ class TrainTest extends AnyFlatSpec with Matchers {
     result.features.size shouldBe 2
   }
 
+  it should "export training data" in {
+    val path  = Files.createTempDirectory("export")
+    val model = dataset.mapping.models("xgboost").asInstanceOf[LambdaMARTModel]
+    Train.train(store, model, "xgboost", model.conf.backend, Some(path)).unsafeRunSync()
+    val children = Files.list(path).toScala(List)
+    children.map(_.getFileName.toString) shouldBe List("train.csv", "test.csv")
+  }
+
   def train(name: String) = {
     val model = dataset.mapping.models(name).asInstanceOf[LambdaMARTModel]
-    Train.train(store, model, "xgboost", model.conf.backend).unsafeRunSync()
+    Train.train(store, model, "xgboost", model.conf.backend, None).unsafeRunSync()
   }
 }

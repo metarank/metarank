@@ -7,7 +7,7 @@ import ai.metarank.source.format.JsonFormat
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 
 class CliArgsTest extends AnyFlatSpec with Matchers {
   lazy val conf = Files.createTempFile("metarank-test-conf", ".yaml")
@@ -46,13 +46,19 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse train args, short" in {
     CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost"), Map.empty) shouldBe Right(
-      TrainArgs(conf, Some("xgboost"))
+      TrainArgs(conf, Some("xgboost"), None)
+    )
+  }
+
+  it should "parse train args with export" in {
+    CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost", "--export", "/tmp"), Map.empty) shouldBe Right(
+      TrainArgs(conf, Some("xgboost"), Some(Paths.get("/tmp")))
     )
   }
 
   it should "parse train args, no model" in {
     CliArgs.parse(List("train", "-c", conf.toString), Map.empty) shouldBe Right(
-      TrainArgs(conf, None)
+      TrainArgs(conf, None, None)
     )
   }
 

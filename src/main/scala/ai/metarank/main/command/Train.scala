@@ -22,6 +22,10 @@ import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
 
 import scala.util.Random
 import cats.implicits._
+import io.github.metarank.ltrlib.output.CSVOutputFormat
+
+import java.io.FileOutputStream
+import java.nio.file.{Files, Path, Paths}
 
 object Train extends Logging {
   def run(
@@ -51,7 +55,7 @@ object Train extends Logging {
                                   |JVM process)
                                   |=======""".stripMargin)
                 )
-              case _ => train(store, model, name, model.conf.backend).void
+              case _ => train(store, model, name, model.conf.backend, args.`export`).void
             }
 
           case _ => IO.raiseError(new Exception(s"model ${args.model} is not defined in config"))
@@ -66,7 +70,13 @@ object Train extends Logging {
     (Dataset(dataset.desc, train), Dataset(dataset.desc, test))
   }
 
-  def train(store: Persistence, model: LambdaMARTModel, name: String, backend: ModelBackend): IO[TrainResult] = for {
+  def train(
+      store: Persistence,
+      model: LambdaMARTModel,
+      name: String,
+      backend: ModelBackend,
+      `export`: Option[Path]
+  ): IO[TrainResult] = for {
     clickthroughtsRaw <- store.cts.getall().compile.toList.map(_.sortBy(_.ct.ts.ts))
     clickthroughs     <- IO(clickthroughtsRaw.filter(_.ct.interactions.nonEmpty))
     _                 <- info(s"loaded ${clickthroughtsRaw.size} clickthroughs, ${clickthroughs.size} with clicks")
@@ -87,6 +97,23 @@ object Train extends Logging {
     _            <- store.models.put(Map(ModelName(name) -> scorer))
     _            <- store.sync
     _            <- info(s"model uploaded to store, ${trainedModel.bytes.length} bytes")
+    _ <- `export` match {
+      case None => info("not exporting dataset files, set --export flag to enable.")
+      case Some(path) =>
+        for {
+          trainFile   <- IO(Files.createFile(Paths.get(path.toString + "/train.csv")))
+          trainStream <- IO(new FileOutputStream(trainFile.toFile))
+          _           <- IO(CSVOutputFormat.write(trainStream, train))
+          _           <- IO(trainStream.close())
+          testFile    <- IO(Files.createFile(Paths.get(path.toString + "/test.csv")))
+          testStream  <- IO(new FileOutputStream(testFile.toFile))
+          _           <- IO(CSVOutputFormat.write(testStream, test))
+          _           <- IO(testStream.close())
+        } yield {
+          logger.info("export done")
+        }
+
+    }
   } yield {
     val stats = FieldStats(clickthroughs)
     val result = TrainResult(

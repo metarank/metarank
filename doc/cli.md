@@ -109,7 +109,7 @@ java -jar metarank.jar <command> <args>
 
 Metarank CLI has a set of different running modes:
 * `import`: import and process historical data, writing state to the chosen [persistecnce backend](../configuration/persistence.md) like Redis.
-* `train`: train the ML model with XGBoost/LightGBM.
+* [`train`](#training-the-model): train the ML model with XGBoost/LightGBM.
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.
 * [`validate`](#validation): validates data nd configuration files.
@@ -178,6 +178,17 @@ java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/co
 ```
 
 Check out more about `autofeature` sub-command in our [Automatic feature engineering guide](/doc/howto/autofeature.md).
+
+### Training the model
+
+You can train the underlying ML ranking model:
+```shell
+java -jar metarank.jar train --config /path/to/config.yaml
+```
+
+* if the `--model <name>` option is not given, then Metarank will train all the defined models sequentally. 
+* the `--export <dir>` option dumps train+test datasets in the CSV format. It can be useful for separate hyper-parameter optimization.
+
 
 ## Environment variables
 

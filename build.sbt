@@ -1,11 +1,10 @@
 import Deps._
+import ReleaseTransformations._
 
-lazy val VERSION  = System.getenv("VERSION")
 lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.9"
-ThisBuild / version      := VERSION
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -95,5 +94,16 @@ lazy val root = (project in file("."))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
-    assembly / assemblyJarName := "metarank.jar"
+    assembly / assemblyJarName := "metarank.jar",
+    releaseProcess := Seq[ReleaseStep](
+      checkSnapshotDependencies, // : ReleaseStep
+      inquireVersions,           // : ReleaseStep
+      runClean,                  // : ReleaseStep
+      setReleaseVersion,         // : ReleaseStep
+      commitReleaseVersion,      // : ReleaseStep, performs the initial git checks
+      tagRelease,                // : ReleaseStep
+      setNextVersion,            // : ReleaseStep
+      commitNextVersion          // : ReleaseStep
+      // pushChanges                // : ReleaseStep, also checks that an upstream branch is properly configured
+    )
   )

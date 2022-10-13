@@ -2,14 +2,17 @@
 
 Metarank official image is published in docker hub as [metarank/metarank](https://hub.docker.com/r/metarank/metarank/tags).
 
-We publish the `:latest` tag, although it's not always recommended to have any production deployments without pinning a specific
-version. 
+We publish the `:latest` tag, although it's not always recommended to have any production deployments without pinning a specific version. 
+
+Official docker images are multi-arch, and cross-built for the following platforms:
+* linux/amd64: a regular docker image
+* linux/arm64/v8: docker image which will work natively (so without emulation) on platforms like Mac M1/M2.
 
 ## Running the docker image
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](/doc/cli.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.5.5 --help
+$ docker run metarank/metarank:0.5.6 --help
 
 + exec /opt/java/openjdk/bin/java -jar /app/metarank.jar --help
 
@@ -18,7 +21,7 @@ $ docker run metarank/metarank:0.5.5 --help
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/ ver:0.5.5
+      \/     \/          \/           \/     \/     \/ ver:0.5.6
 Usage: metarank <subcommand> <options>
 ```
 

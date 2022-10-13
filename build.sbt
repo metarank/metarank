@@ -100,10 +100,12 @@ lazy val root = (project in file("."))
       inquireVersions,           // : ReleaseStep
       runClean,                  // : ReleaseStep
       setReleaseVersion,         // : ReleaseStep
-      commitReleaseVersion,      // : ReleaseStep, performs the initial git checks
-      tagRelease,                // : ReleaseStep
-      setNextVersion,            // : ReleaseStep
-      commitNextVersion          // : ReleaseStep
+      buildAssembly(thisProjectRef.value),
+      tagRelease,       // : ReleaseStep
+      setNextVersion,   // : ReleaseStep
+      commitNextVersion // : ReleaseStep
       // pushChanges                // : ReleaseStep, also checks that an upstream branch is properly configured
     )
   )
+
+val buildAssembly = (ref: ProjectRef) => ReleaseStep(action = releaseStepTaskAggregated(ref / assembly))

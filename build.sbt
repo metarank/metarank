@@ -1,10 +1,10 @@
 import Deps._
 
+lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
+
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.9"
 ThisBuild / version      := "0.5.5"
-
-lazy val DOCKER_PLATFORM = Option(System.getenv("DOCKER_PLATFORM")).getOrElse("amd64")
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -66,7 +66,7 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"ubuntu:focal-20220826")
+        from(s"--platform=$PLATFORM ubuntu:jammy-20221003")
         runRaw(
           "apt-get update && apt-get -y install openjdk-17-jdk-headless openjdk-17-dbg htop procps curl inetutils-ping libgomp1"
         )
@@ -77,11 +77,9 @@ lazy val root = (project in file("."))
       }
     },
     docker / imageNames := Seq(
-      ImageName("metarank/metarank:latest"),
-      ImageName(s"metarank/metarank:${version.value}")
+      ImageName(s"metarank/metarank:${version.value}-$PLATFORM")
     ),
     docker / buildOptions := BuildOptions(
-      additionalArguments = Seq("--platform", DOCKER_PLATFORM),
       removeIntermediateContainers = BuildOptions.Remove.Always,
       pullBaseImage = BuildOptions.Pull.Always
     ),

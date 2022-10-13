@@ -5,13 +5,13 @@ Metarank is available as a Docker and JAR packages for MacOS, Windows and Linux.
 ## Docker image
 
 Metarank docker images are published on DockerHub as [metarank/metarank](https://hub.docker.com/r/metarank/metarank):
-* only x86_64 images are published officially.
+* official Metarank images are multi-arch and support both amd64 and arm64/v8 (so will natively work on Mac M1/M2 without emulation).
 * `latest` tag may point to pre-release versions, use an exact pinned version for stability.
 * on Mac M1 you can use x86_64 docker images, or try running the JAR file directly.
 
 To start using metarank with docker, just run:
 ```bash
-docker run metarank/metarank:0.5.5 --help
+docker run metarank/metarank:0.5.6 --help
 ```
 
 ## JAR File

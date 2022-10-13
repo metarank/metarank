@@ -7,6 +7,7 @@ To run the main app, download the [latest jar file](https://github.com/metarank/
 ```shell
 java -jar metarank-x.x.x.jar
 ```
+
 ```shell
 
                 __                              __    
@@ -14,7 +15,7 @@ java -jar metarank-x.x.x.jar
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/ ver:None
+      \/     \/          \/           \/     \/     \/ Metarank v:unknown
 Usage: metarank <subcommand> <options>
 Options:
 
@@ -37,6 +38,7 @@ Subcommand: import - import historical clickthrough data
 
 Subcommand: train - train the ML model
   -c, --config  <arg>   path to config file
+  -e, --export  <arg>   a directory to export model training files
   -m, --model  <arg>    model name to train
   -h, --help            Show help message
 
@@ -94,10 +96,10 @@ Subcommand: autofeature - generate reference config based on existing data
   -h, --help                   Show help message
 
 For all other tricks, consult the docs on https://docs.metarank.ai
-
 ```
 
 The command-line argument structure is:
+
 ```shell
 java -jar metarank.jar <command> <args>
 ```
@@ -107,7 +109,7 @@ java -jar metarank.jar <command> <args>
 
 Metarank CLI has a set of different running modes:
 * `import`: import and process historical data, writing state to the chosen [persistecnce backend](../configuration/persistence.md) like Redis.
-* `train`: train the ML model with XGBoost/LightGBM.
+* [`train`](#training-the-model): train the ML model with XGBoost/LightGBM.
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.
 * [`validate`](#validation): validates data nd configuration files.
@@ -176,6 +178,17 @@ java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/co
 ```
 
 Check out more about `autofeature` sub-command in our [Automatic feature engineering guide](/doc/howto/autofeature.md).
+
+### Training the model
+
+You can train the underlying ML ranking model:
+```shell
+java -jar metarank.jar train --config /path/to/config.yaml
+```
+
+* if the `--model <name>` option is not given, then Metarank will train all the defined models sequentally. 
+* the `--export <dir>` option dumps train+test datasets in the CSV format. It can be useful for separate hyper-parameter optimization.
+
 
 ## Environment variables
 

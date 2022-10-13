@@ -3,6 +3,13 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.6
+
+* [Binary state serialization format](configuration/persistence.md#state-encoding-formats), which is 2x faster and 4x more compact than JSON
+* [Multi-arch docker images](deploy/docker.md), so metarank can now be run natively on Mac M1/M2.
+* [Kubernetes Helm chart](deploy/kubernetes.md) and an official guide on how to do production deployment on k8s.
+* [Training dataset export](cli.md#training-the-model) for further hyper-parameter tuning.
+
 ## 0.5.5
 Notable features:
 * [Rate normalization](configuration/features/counters.md#rate-normalization) support, so having 1 click over 2 

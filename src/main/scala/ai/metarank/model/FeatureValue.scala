@@ -4,6 +4,7 @@ import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import io.circe._
 import io.circe.generic.semiauto._
+import shapeless.Lazy
 
 sealed trait FeatureValue {
   def key: Key

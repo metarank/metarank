@@ -3,7 +3,6 @@ package ai.metarank.model
 import ai.metarank.model.Dimension.{SingleDim, VectorDim}
 import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto.deriveCodec
 import cats.implicits._
 
 import java.util

@@ -51,17 +51,17 @@ object ClickthroughQuery {
         case MValue.SingleValue(name, value) =>
           dataset.offsets.get(SingularFeature(name.value)) match {
             case Some(o) => buffer(o) = value
-            case None    => throw new IllegalStateException("offset missing")
+            case None    => //
           }
         case MValue.VectorValue(name, values, dim) =>
           dataset.offsets.get(VectorFeature(name.value, dim.dim)) match {
             case Some(o) => System.arraycopy(values, 0, buffer, o, values.length)
-            case None    => throw new IllegalStateException("offset missing")
+            case None    => //
           }
         case MValue.CategoryValue(name, _, index) =>
           dataset.offsets.get(CategoryFeature(name.value)) match {
             case Some(o) => buffer(o) = index
-            case None    => throw new IllegalStateException("offset missing")
+            case None    => //
           }
       }
     }

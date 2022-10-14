@@ -21,27 +21,33 @@ object Standalone extends Logging {
   ): IO[Unit] = {
     storeResource.use(store =>
       for {
-        buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping))
-        result <- Import.slurp(
-          store,
-          mapping,
-          ImportArgs(args.conf, args.data, args.offset, args.format, args.validation, args.sort),
-          conf,
-          buffer
-        )
-        _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
-        _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
-        _ <- store.sync
-        _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
-        _ <- mapping.models.toList.map {
-          case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
-            Train.train(store, m, name, conf.backend, None) *> info("model training finished")
-          case (other, _) =>
-            info(s"skipping model $other")
-        }.sequence
-        _ <- IO(System.gc())
-        _ <- Serve.api(store, mapping, conf.api, buffer)
+        buffer <- prepare(conf, store, mapping, args)
+        _      <- IO(System.gc())
+        _      <- Serve.api(store, mapping, conf.api, buffer)
       } yield {}
     )
+  }
+
+  def prepare(conf: Config, store: Persistence, mapping: FeatureMapping, args: StandaloneArgs) = for {
+    buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping))
+    result <- Import.slurp(
+      store,
+      mapping,
+      ImportArgs(args.conf, args.data, args.offset, args.format, args.validation, args.sort),
+      conf,
+      buffer
+    )
+    _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
+    _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
+    _ <- store.sync
+    _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
+    _ <- mapping.models.toList.map {
+      case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
+        Train.train(store, m, name, conf.backend, None) *> info(s"model '$name' training finished")
+      case (other, _) =>
+        info(s"skipping model $other")
+    }.sequence
+  } yield {
+    buffer
   }
 }

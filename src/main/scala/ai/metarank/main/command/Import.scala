@@ -29,6 +29,7 @@ object Import extends Logging {
         _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
         _      <- buffer.flushQueue(Timestamp(Long.MaxValue))
         _      <- store.sync
+        _      <- IO(System.gc())
         _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")
       } yield {}
     )

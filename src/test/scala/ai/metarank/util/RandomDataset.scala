@@ -30,6 +30,11 @@ object RandomDataset {
         features = features.map(_.name),
         weights = Map("click" -> 1)
       ),
+      "xgboost1" -> LambdaMARTConfig(
+        backend = XGBoostBackend(iterations = 10),
+        features = NonEmptyList.one(features.map(_.name).head),
+        weights = Map("click" -> 1)
+      ),
       "lightgbm" -> LambdaMARTConfig(
         backend = LightGBMBackend(iterations = 10),
         features = features.map(_.name),

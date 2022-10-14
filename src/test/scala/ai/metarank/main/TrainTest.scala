@@ -31,6 +31,12 @@ class TrainTest extends AnyFlatSpec with Matchers {
     result.features.size shouldBe 2
   }
 
+  it should "train xgboost model with a feature subset" in {
+    val result = train("xgboost1")
+    result.iterations.size shouldBe 10
+    result.features.size shouldBe 1
+  }
+
   it should "train lightgbm model" in {
     val result = train("lightgbm")
     result.iterations.size shouldBe 10

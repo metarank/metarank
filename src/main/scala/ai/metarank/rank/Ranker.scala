@@ -12,12 +12,11 @@ import ai.metarank.model.{FeatureValue, ItemValue, Key}
 import ai.metarank.rank.NoopModel.NoopScorer
 import ai.metarank.rank.Ranker.QueryValues
 import ai.metarank.rank.ShuffleModel.ShuffleScorer
-import ai.metarank.util.KendallCorrelation
+import ai.metarank.util.{KendallCorrelation, Logging}
 import cats.effect.IO
-import io.github.metarank.ltrlib.input.CSVInputFormat.logger
 import io.github.metarank.ltrlib.model.{DatasetDescriptor, Query}
 
-case class Ranker(mapping: FeatureMapping, store: Persistence) {
+case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
   def rerank(request: RankingEvent, modelName: String, explain: Boolean): IO[RankResponse] =
     for {
       start <- IO { System.currentTimeMillis() }

@@ -4,6 +4,7 @@
 
 * [What is Metarank?](intro.md)
 * [Quickstart](quickstart/quickstart.md)
+* [Performance](performance.md)
 
 ## Reference
 * [Installation](installation.md)

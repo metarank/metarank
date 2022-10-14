@@ -2,14 +2,16 @@ state:
   type: redis
   host: localhost
   port: 6379
-  format: binary
+  format: json
+  cache:
+    maxSize: 0
 
 core:
   clickthrough:
     maxSessionLength: 60s
 
 models:
-  static:
+  all:
     type: lambdamart
     backend:
       type: xgboost
@@ -33,10 +35,10 @@ models:
       - liked_tags
       - liked_director
       - position
-  #      - visitor_click_count
-  #      - global_item_click_count
-  #      - day_item_click_count
-  xgboost:
+      - visitor_click_count
+      - global_item_click_count
+      - day_item_click_count
+  static:
     type: lambdamart
     backend:
       type: xgboost
@@ -46,23 +48,14 @@ models:
     weights:
       click: 1
     features:
-#      - popularity
+      - popularity
       - vote_avg
-#      - vote_cnt
+      - vote_cnt
       - budget
       - release_date
       - runtime
-      - title_length
       - genre
-      - ctr
-      - liked_genre
-      - liked_actors
-      - liked_tags
-      - liked_director
-      - position
-#      - visitor_click_count
-#      - global_item_click_count
-#      - day_item_click_count
+
 features:
   - name: position
     type: position

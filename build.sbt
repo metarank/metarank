@@ -3,7 +3,7 @@ import Deps._
 lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "2.13.9"
+ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / version      := "0.5.6"
 
 lazy val root = (project in file("."))
@@ -28,7 +28,7 @@ lazy val root = (project in file("."))
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.3",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.4",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
@@ -52,11 +52,11 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % "2.17.286",
-      "io.lettuce"             % "lettuce-core"             % "6.2.0.RELEASE",
+      "software.amazon.awssdk" % "kinesis"                  % "2.17.293",
+      "io.lettuce"             % "lettuce-core"             % "6.2.1.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.4.2",
+      "io.sentry"              % "sentry-logback"           % "6.5.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.0.2"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),

@@ -2,8 +2,6 @@ package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.{FeatureSchema, FieldName, Key}
 import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}

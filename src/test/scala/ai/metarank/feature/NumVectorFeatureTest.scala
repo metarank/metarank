@@ -46,13 +46,13 @@ class NumVectorFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val yaml =
       """name: vec
         |source: item.vec
-        |reduce: [min, max, avg]
+        |reduce: [min, max, avg, vector3]
         |scope: item""".stripMargin
     parse(yaml).flatMap(_.as[VectorFeatureSchema]) shouldBe Right(
       VectorFeatureSchema(
         name = FeatureName("vec"),
         source = FieldName(EventType.Item, "vec"),
-        reduce = Some(List(Min, Max, Avg)),
+        reduce = Some(List(Min, Max, Avg, VectorReducer(3))),
         scope = ItemScopeType
       )
     )

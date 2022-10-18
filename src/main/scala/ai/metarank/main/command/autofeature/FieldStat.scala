@@ -1,7 +1,5 @@
 package ai.metarank.main.command.autofeature
 
-import ai.metarank.model.Field.NumberField
-
 sealed trait FieldStat
 
 object FieldStat {

@@ -103,6 +103,10 @@ You can map the `age` field into a feature this way:
   ttl: 90d // optional, how long should we store this field
 ```
 
+## Vector extractor
+
+Numerical vectors require special handling: their dimension
+
 ## String extractors
 
 With string values there is no easy way to map them into a finite set of ML features. But in a case when

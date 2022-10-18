@@ -123,6 +123,17 @@ So if a user clicked on an item with horror genre, other horror movies may get e
   type: relevancy
 ```
 
+* **Vector**: all numerical vectors are transformed into statically-sized features. Vectors of static size are passed through as-is, and variable-length vectors are reduced into a quadruplets of `[min, max, size, avg]` values:
+
+```yaml
+- name: embedding
+  type: vector
+  field: item.embedding // must be a singular number or a list of numbers
+  scope: item
+  # which reducers to use. optional. Default: [min, max, size, avg]
+  reduce: [vector16]
+```
+
 The `all` ruleset contains all `stable` heuristics with an addition of a couple of extra ones:
 * **Rate**: For all interaction types a [rate](../configuration/features/counters.md#rate) feature is generated over multiple
 typical time windows:

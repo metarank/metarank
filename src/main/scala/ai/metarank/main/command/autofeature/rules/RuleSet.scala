@@ -8,7 +8,8 @@ object RuleSet {
       InteractedWithFeatureRule,
       NumericalFeatureRule,
       StringFeatureRule(percentile = 0.90),
-      RelevancyRule
+      RelevancyRule,
+      VectorFeatureRule
     )
   )
 
@@ -18,6 +19,7 @@ object RuleSet {
       NumericalFeatureRule,
       StringFeatureRule(minValues = 20, percentile = 0.95),
       RelevancyRule,
+      VectorFeatureRule,
       InteractionRateFeatureRule,
       InteractionCountFeatureRule
     )

@@ -40,7 +40,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
       numberField <- field match {
         case n: NumberField => Some(n)
         case other =>
-          logger.warn(s"field extractor ${schema.name} expects a boolean, but got $other in event $event")
+          logger.warn(s"field extractor ${schema.name} expects a number field, but got $other in event $event")
           None
       }
     } yield {

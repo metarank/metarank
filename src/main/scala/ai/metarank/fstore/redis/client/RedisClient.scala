@@ -150,14 +150,17 @@ object RedisClient extends Logging {
       buffer: Ref[IO, Int],
       auth: Option[RedisCredentials]
   ) = {
-    val client = io.lettuce.core.RedisClient.create(s"redis://$host:$port")
+    val uri = auth match {
+      case None                                     => s"redis://$host:$port"
+      case Some(RedisCredentials(None, pass))       => s"redis://$pass@$host:$port"
+      case Some(RedisCredentials(Some(user), pass)) => s"redis://$user:$pass@$host:$port"
+    }
+    val client = io.lettuce.core.RedisClient.create(uri)
     val readConnection =
       client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
-    authenticateUnsafe(readConnection, auth)
     readConnection.sync().select(db)
     val writeConnection =
       client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
-    authenticateUnsafe(writeConnection, auth)
     writeConnection.sync().select(db)
     writeConnection.setAutoFlushCommands(false)
     logger.info(
@@ -173,13 +176,4 @@ object RedisClient extends Logging {
       conf
     )
   }
-
-  def authenticateUnsafe(conn: StatefulRedisConnection[String, Array[Byte]], auth: Option[RedisCredentials]) = {
-    auth match {
-      case None                                     => //
-      case Some(RedisCredentials(None, pass))       => conn.sync().auth(pass)
-      case Some(RedisCredentials(Some(user), pass)) => conn.sync().auth(user, pass)
-    }
-  }
-
 }

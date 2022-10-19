@@ -3,7 +3,6 @@ package ai.metarank.config
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.redis.codec.StoreFormat
 import ai.metarank.fstore.redis.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
-import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
@@ -20,7 +19,8 @@ object StateStoreConfig extends Logging {
       db: DBConfig = DBConfig(),
       cache: CacheConfig = CacheConfig(),
       pipeline: PipelineConfig = PipelineConfig(),
-      format: StoreFormat = BinaryStoreFormat
+      format: StoreFormat = BinaryStoreFormat,
+      auth: Option[RedisCredentials] = None
   ) extends StateStoreConfig
 
   object RedisStateConfig {
@@ -56,6 +56,9 @@ object StateStoreConfig extends Logging {
     )
   }
 
+  case class RedisCredentials(user: Option[String] = None, password: String)
+  implicit val redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
+
   case class MemoryStateConfig() extends StateStoreConfig
 
   implicit val redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
@@ -66,6 +69,7 @@ object StateStoreConfig extends Logging {
       cache  <- c.downField("cache").as[Option[CacheConfig]]
       pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
       format <- c.downField("format").as[Option[StoreFormat]]
+      auth   <- c.downField("auth").as[Option[RedisCredentials]]
     } yield {
       RedisStateConfig(
         host = host,
@@ -73,7 +77,8 @@ object StateStoreConfig extends Logging {
         db = db.getOrElse(DBConfig()),
         cache = cache.getOrElse(CacheConfig()),
         pipeline = pipe.getOrElse(PipelineConfig()),
-        format = format.getOrElse(BinaryStoreFormat)
+        format = format.getOrElse(BinaryStoreFormat),
+        auth = auth
       )
     }
   )

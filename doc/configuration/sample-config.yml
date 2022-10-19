@@ -86,6 +86,10 @@ state: # a place to store the feature values for the ML inference and the traine
     #  maxSize: 128    # batch write buffer size, optional, default=128
     #  flushPeriod: 1s # buffer flush interval, optional, default=1s
 
+    #auth:                  # optional
+    #  user: <username>     # optional when Redis ACL is disabled
+    #  password: <password> # required if Redis server is run with requirepass argument
+
 # The "source" section describes the source of the data. This parameter is optional.
 # Check https://docs.metarank.ai/reference/overview/data-sources for more information
 source:

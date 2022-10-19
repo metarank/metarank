@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis.client
 
+import ai.metarank.config.StateStoreConfig.RedisCredentials
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, PipelineConfig}
 import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
 import ai.metarank.util.Logging
@@ -118,11 +119,17 @@ case class RedisClient(
 
 object RedisClient extends Logging {
   case class ScanCursor(keys: List[String], cursor: String)
-  def create(host: String, port: Int, db: Int, cache: PipelineConfig): Resource[IO, RedisClient] = {
+  def create(
+      host: String,
+      port: Int,
+      db: Int,
+      cache: PipelineConfig,
+      auth: Option[RedisCredentials]
+  ): Resource[IO, RedisClient] = {
     Resource
       .make(for {
         buffer <- Ref.of[IO, Int](0)
-        client <- IO { createUnsafe(host, port, db, cache, buffer) }
+        client <- IO { createUnsafe(host, port, db, cache, buffer, auth) }
         tickCancel <-
           if (cache.flushPeriod != 0.millis) {
             info(s"started flush timer every ${cache.flushPeriod}") *> client.tick().background.allocated.map(_._2)
@@ -140,14 +147,17 @@ object RedisClient extends Logging {
       port: Int,
       db: Int,
       conf: PipelineConfig,
-      buffer: Ref[IO, Int]
+      buffer: Ref[IO, Int],
+      auth: Option[RedisCredentials]
   ) = {
     val client = io.lettuce.core.RedisClient.create(s"redis://$host:$port")
     val readConnection =
       client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
+    authenticateUnsafe(readConnection, auth)
     readConnection.sync().select(db)
     val writeConnection =
       client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
+    authenticateUnsafe(writeConnection, auth)
     writeConnection.sync().select(db)
     writeConnection.setAutoFlushCommands(false)
     logger.info(
@@ -162,6 +172,14 @@ object RedisClient extends Logging {
       buffer,
       conf
     )
+  }
+
+  def authenticateUnsafe(conn: StatefulRedisConnection[String, Array[Byte]], auth: Option[RedisCredentials]) = {
+    auth match {
+      case None                                     => //
+      case Some(RedisCredentials(None, pass))       => conn.sync().auth(pass)
+      case Some(RedisCredentials(Some(user), pass)) => conn.sync().auth(user, pass)
+    }
   }
 
 }

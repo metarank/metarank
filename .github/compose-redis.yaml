@@ -2,7 +2,6 @@ version: '2'
 
 services:
   redis:
-    image: 'redis:7.0.0'
-    #command: ['--requirepass', 'test']
+    image: 'redis:7.0.5'
     ports:
       - '6379:6379'

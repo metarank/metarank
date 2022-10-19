@@ -1,6 +1,12 @@
 version: '2'
 
 services:
+  redis:
+    image: 'redis:7.0.5'
+    command: ['--requirepass', 'test', '--port', '16379']
+    ports:
+      - '16379:16379'
+
   kinesis:
     image: ghcr.io/etspaceman/kinesis-mock:0.2.3
     environment:

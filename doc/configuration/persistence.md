@@ -40,6 +40,11 @@ state:
   pipeline:         # optional
     maxSize: 128    # batch write buffer size, optional, default=128
     flushPeriod: 1s # buffer flush interval, optional, default=1s
+
+  auth:                  # optional
+    user: <username>     # optional when Redis ACL is disabled
+    password: <password> # required if Redis server is run with requirepass argument
+
 ```
 
 Redis persistence is sensitive to network latencies (as it needs to perform a couple of round-trips on each event), 

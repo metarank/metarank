@@ -3,6 +3,12 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.7
+
+* [Request latency benchmark](performance.md), with ballpark estimations useful for resource planning.
+* [Vector feature extractor](configuration/features/scalar.md#vector-extractor) with reducer and autofeature support.
+* [Redis AUTH support](configuration/persistence.md#redis-persistence) which is common on managed Redis setups. 
+
 ## 0.5.6
 
 * [Binary state serialization format](configuration/persistence.md#state-encoding-formats), which is 2x faster and 4x more compact than JSON

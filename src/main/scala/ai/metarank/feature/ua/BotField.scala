@@ -6,7 +6,7 @@ import ua_parser.Client
 import scala.io.Source
 
 object BotField extends UAField {
-  val name = "bot"
+  val name          = "bot"
   val validBrowsers = Set("chrome", "mobile safari", "chrome mobile", "firefox", "samsung internet", "edge", "ie")
   val knownBots     = Set("apache-httpclient", "googlebot", "adsbot-google", "ahrefsbot", "bingpreview")
 

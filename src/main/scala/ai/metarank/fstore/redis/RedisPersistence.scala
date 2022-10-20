@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.config.StateStoreConfig.RedisCredentials
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.cache.CachedFeature.{
   CachedBoundedListFeature,
@@ -15,7 +16,6 @@ import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
 import ai.metarank.fstore.memory.{
   MemBoundedList,
-  MemClickthroughStore,
   MemCounter,
   MemFreqEstimator,
   MemKVStore,
@@ -26,17 +26,7 @@ import ai.metarank.fstore.memory.{
 }
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.redis.codec.StoreFormat
-import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
-import ai.metarank.model.Feature.CounterFeature.CounterConfig
-import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
-import ai.metarank.model.Feature.MapFeature.MapConfig
-import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
-import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
-import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
-import ai.metarank.model.FeatureValue.FrequencyValue
-import ai.metarank.model.Write.PutFreqSample
-import ai.metarank.model.{ClickthroughValues, FeatureKey, FeatureValue, Key, Scalar, Schema, Scope, Timestamp}
+import ai.metarank.model.{FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -51,7 +41,6 @@ import scala.jdk.CollectionConverters._
 import shapeless.syntax.typeable._
 
 import scala.concurrent.duration._
-import java.util.concurrent.CompletableFuture
 
 case class RedisPersistence(
     schema: Schema,
@@ -195,12 +184,13 @@ object RedisPersistence {
       db: DBConfig,
       cache: CacheConfig,
       pipeline: PipelineConfig,
-      format: StoreFormat
+      format: StoreFormat,
+      auth: Option[RedisCredentials]
   ): Resource[IO, RedisPersistence] = for {
-    state    <- RedisClient.create(host, port, db.state, pipeline)
-    models   <- RedisClient.create(host, port, db.models, pipeline)
-    values   <- RedisClient.create(host, port, db.values, pipeline)
-    rankings <- RedisClient.create(host, port, db.rankings, pipeline)
+    state    <- RedisClient.create(host, port, db.state, pipeline, auth)
+    models   <- RedisClient.create(host, port, db.models, pipeline, auth)
+    values   <- RedisClient.create(host, port, db.values, pipeline, auth)
+    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(

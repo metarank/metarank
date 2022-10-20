@@ -8,7 +8,8 @@ import ai.metarank.model.Field._
 case class ItemFieldStat(
     strings: Map[String, StringFieldStat] = Map.empty,
     nums: Map[String, NumericFieldStat] = Map.empty,
-    bools: Map[String, BoolFieldStat] = Map.empty
+    bools: Map[String, BoolFieldStat] = Map.empty,
+    numlists: Map[String, NumericListFieldStat] = Map.empty
 ) {
   def refresh(event: ItemEvent): ItemFieldStat = {
     event.fields.foldLeft(this)((next, field) => next.refresh(field))
@@ -21,8 +22,7 @@ case class ItemFieldStat(
       case n: NumberField  => refresh(n)
       case StringListField(name, values) =>
         values.foldLeft(this)((acc, value) => acc.refresh(StringField(name, value)))
-      case NumberListField(name, values) =>
-        values.foldLeft(this)((acc, value) => acc.refresh(NumberField(name, value)))
+      case n: NumberListField => refresh(n)
     }
   }
 
@@ -39,5 +39,10 @@ case class ItemFieldStat(
   def refresh(field: NumberField): ItemFieldStat = {
     val updated = nums.getOrElse(field.name, NumericFieldStat()).refresh(field.value)
     copy(nums = nums + (field.name -> updated))
+  }
+
+  def refresh(field: NumberListField): ItemFieldStat = {
+    val updated = numlists.getOrElse(field.name, NumericListFieldStat()).refresh(field.value)
+    copy(numlists = numlists + (field.name -> updated))
   }
 }

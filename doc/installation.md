@@ -11,7 +11,7 @@ Metarank docker images are published on DockerHub as [metarank/metarank](https:/
 
 To start using metarank with docker, just run:
 ```bash
-docker run metarank/metarank:0.5.6 --help
+docker run metarank/metarank:0.5.7 --help
 ```
 
 ## JAR File

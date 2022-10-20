@@ -105,7 +105,7 @@ You can map the `age` field into a feature this way:
 
 ## Vector extractor
 
-Numerical vectors require special handling: their dimension is not statically known (or they can be even empty), so we need to perform a set of transformations to reduce these into the static size used inside the ML model. 
+Numerical vectors require special handling: their dimension is not statically known (or they can be empty), so we need to perform a set of transformations to reduce these to a static size used inside the ML model. 
 
 For example, given an item with field `sizes: [10, 12, 13]`, we can use a `vector` extractor with the following configuration:
 
@@ -124,10 +124,11 @@ Supported reducers are:
 
 * `first`/`last`/`min`/`max`/`random` - take first/last/min/max/random element of the list, or zero if empty.
 * `avg`/`sum` - compute mean value or sum of values.
-* `euclidean_distance` - compute a Euclidean distance of numerical vector, which is squared root of sum of squares.
+* `euclidean_distance` - compute a Euclidean distance of numerical vector, which is a squared root of sum of squares.
 * `vectorN` - take first N items from the sequence, and pad remaining with zeroes. So `vector10` means a vector of 10 dimensions.
 
-The `vectorN` reducer can also be useful if your users/items have embeddings fields with constant predefined size, so you can wrap them as ranking features directly. For example, when your item has a field `als_embedding: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`, you can define a `vector` feature with `reduce: vector10` and the raw embedding will be short-cirquited as a set of 10 separate numerical features for the ranking model.
+The `vectorN` reducer can also be useful if you compute embeddings (fields with constant predefined size) for your user/items as you can wrap them as ranking features directly. 
+For example, when your item has a field `als_embedding: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`, you can define a `vector` feature with `reduce: vector10` and the raw embedding will be short-cirquited as a set of 10 separate numerical features for the ranking model.
 
 ## String extractors
 

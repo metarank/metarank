@@ -7,6 +7,4 @@ trait FeatureRule {
   def make(model: EventModel): List[FeatureSchema]
 }
 
-object FeatureRule {
-
-}
+object FeatureRule {}

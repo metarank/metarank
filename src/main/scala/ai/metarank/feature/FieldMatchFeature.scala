@@ -108,7 +108,7 @@ object FieldMatchFeature {
       tpe <- c.downField("type").as[String]
       method <- tpe match {
         case "ngram" => NgramMatcher.ngramDecoder.apply(c)
-        case "term"  => NgramMatcher.ngramDecoder.apply(c)
+        case "term"  => TermMatcher.termDecoder.apply(c)
         case other   => Left(DecodingFailure(s"match method $other is not supported", c.history))
       }
     } yield {
@@ -123,7 +123,7 @@ object FieldMatchFeature {
         .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
     case t: TermMatcher =>
       TermMatcher
-        .ngramEncoder(t)
+        .termEncoder(t)
         .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
     case _ => ???
   }

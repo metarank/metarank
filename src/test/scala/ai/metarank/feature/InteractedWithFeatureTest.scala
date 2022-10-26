@@ -30,7 +30,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   val conf = InteractedWithSchema(
     name = FeatureName("seen_color"),
     interaction = "impression",
-    field = FieldName(Item, "color"),
+    fields = List(FieldName(Item, "color")),
     scope = SessionScopeType,
     count = Some(10),
     duration = Some(24.hours)
@@ -44,7 +44,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   val interactionEvent2 =
     TestInteractionEvent("p2", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
 
-  it should "decode config" in {
+  it should "decode config with single field" in {
     val yaml =
       """name: seen_color
         |interaction: impression
@@ -53,6 +53,19 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
         |count: 10
         |duration: 24h""".stripMargin
     parse(yaml).flatMap(_.as[InteractedWithSchema]) shouldBe Right(conf)
+  }
+
+  it should "decode config with multiple fields" in {
+    val yaml =
+      """name: seen_color
+        |interaction: impression
+        |field: [item.color, item.brand]
+        |scope: session
+        |count: 10
+        |duration: 24h""".stripMargin
+    parse(yaml).flatMap(_.as[InteractedWithSchema]) shouldBe Right(
+      conf.copy(fields = List(FieldName(Item, "color"), FieldName(Item, "brand")))
+    )
   }
 
   it should "emit writes on meta field" in {

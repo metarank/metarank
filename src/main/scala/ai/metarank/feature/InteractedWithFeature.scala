@@ -31,7 +31,7 @@ import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType, UserScopeTy
 import ai.metarank.model.Write.{Append, Put}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import shapeless.syntax.typeable._
 
@@ -62,23 +62,23 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
 
   override def writes(event: Event, features: Persistence): IO[Iterable[Write]] =
     event match {
-      case item: ItemEvent =>
-        IO {
-          for {
-            field <- item.fieldsMap.get(schema.field.field).toSeq
-            string = field match {
-              case Field.StringField(_, value)     => List(value)
-              case Field.StringListField(_, value) => value
-              case _                               => Nil
-            }
-          } yield {
-            Put(
-              key = Key(ItemScope(item.item), itemValues.name),
-              ts = event.timestamp,
-              value = SStringList(string)
-            )
-          }
-        }
+//      case item: ItemEvent =>
+//        IO {
+//          for {
+//            field <- item.fieldsMap.get(schema.field.field).toSeq
+//            string = field match {
+//              case Field.StringField(_, value)     => List(value)
+//              case Field.StringListField(_, value) => value
+//              case _                               => Nil
+//            }
+//          } yield {
+//            Put(
+//              key = Key(ItemScope(item.item), itemValues.name),
+//              ts = event.timestamp,
+//              value = SStringList(string)
+//            )
+//          }
+//        }
       case int: InteractionEvent if int.`type` == schema.interaction =>
         for {
           feature <- IO.fromOption(features.scalars.get(FeatureKey(itemValues.scope, itemValues.name)))(
@@ -150,7 +150,7 @@ object InteractedWithFeature {
   case class InteractedWithSchema(
       name: FeatureName,
       interaction: String,
-      field: FieldName,
+      fields: List[FieldName],
       scope: ScopeType,
       count: Option[Int],
       duration: Option[FiniteDuration],
@@ -158,18 +158,36 @@ object InteractedWithFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val interWithDecoder: Decoder[InteractedWithSchema] =
-    deriveDecoder[InteractedWithSchema]
-      .ensure(onlyItem, "can only be applied to item fields")
-      .ensure(onlyUserSession, "can only be scoped to user/session")
-      .withErrorMessage("cannot parse a feature definition of type 'interacted_with'")
+  implicit val interWithDecoder: Decoder[InteractedWithSchema] = Decoder.instance(c =>
+    for {
+      name        <- c.downField("name").as[FeatureName]
+      interaction <- c.downField("interaction").as[String]
+      fields <- c.downField("field").as[FieldName] match {
+        case Left(_)      => c.downField("field").as[List[FieldName]]
+        case Right(value) => Right(List(value))
+      }
+      scope    <- c.downField("scope").as[ScopeType]
+      count    <- c.downField("count").as[Option[Int]]
+      duration <- c.downField("duration").as[Option[FiniteDuration]]
+      refresh  <- c.downField("refresh").as[Option[FiniteDuration]]
+      ttl      <- c.downField("ttl").as[Option[FiniteDuration]]
+    } yield {
+      InteractedWithSchema(name, interaction, fields, scope, count, duration, refresh, ttl)
+    }
+  )
+  deriveDecoder[InteractedWithSchema]
+    .ensure(onlyItem, "can only be applied to item fields")
+    .ensure(onlyUserSession, "can only be scoped to user/session")
+    .withErrorMessage("cannot parse a feature definition of type 'interacted_with'")
 
   implicit val interWithEncoder: Encoder[InteractedWithSchema] = deriveEncoder
 
-  def onlyItem(schema: InteractedWithSchema) = schema.field.event match {
-    case EventType.Item => true
-    case _              => false
-  }
+  def onlyItem(schema: InteractedWithSchema) = schema.fields.forall(f =>
+    f.event match {
+      case EventType.Item => true
+      case _              => false
+    }
+  )
 
   def onlyUserSession(schema: InteractedWithSchema) = schema.scope match {
     case ScopeType.GlobalScopeType  => false

@@ -55,7 +55,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     InteractedWithSchema(
       FeatureName("liked_genre"),
       "click",
-      FieldName(Item, "genre"),
+      List(FieldName(Item, "genre")),
       SessionScopeType,
       count = Some(10),
       duration = Some(24.hours)

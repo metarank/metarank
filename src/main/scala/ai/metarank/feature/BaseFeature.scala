@@ -34,6 +34,9 @@ sealed trait BaseFeature {
 
   def valueKeys(event: RankingEvent): Iterable[Key]
 
+  def valueKeysSecondPass(event: RankingEvent, keys: Iterable[Key], features: Map[Key, FeatureValue]): Iterable[Key] =
+    keys
+
 }
 
 object BaseFeature {

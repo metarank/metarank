@@ -16,7 +16,7 @@ class InteractedWithFeatureRuleTest extends AnyFlatSpec with Matchers {
     result shouldBe InteractedWithSchema(
       name = FeatureName("click_good"),
       interaction = "click",
-      field = FieldName(Item, "good"),
+      fields = List(FieldName(Item, "good")),
       scope = UserScopeType,
       count = None,
       duration = None

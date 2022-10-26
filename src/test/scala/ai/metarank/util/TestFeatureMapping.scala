@@ -33,7 +33,7 @@ object TestFeatureMapping {
       InteractedWithSchema(
         FeatureName("clicked_category"),
         "click",
-        FieldName(Item, "category"),
+        List(FieldName(Item, "category")),
         SessionScopeType,
         Some(10),
         Some(24.hours)

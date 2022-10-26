@@ -3,6 +3,7 @@ package ai.metarank.util
 import org.apache.commons.io.IOUtils
 
 import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.util.jar.Attributes.Name
 import scala.util.Try
 import scala.jdk.CollectionConverters._

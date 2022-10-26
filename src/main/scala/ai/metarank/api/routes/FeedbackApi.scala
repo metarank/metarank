@@ -24,6 +24,7 @@ case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: Clic
       for {
         stream <- IO(post.entity.body.through(JsonFormat.parse).chunkN(1024).evalTap(logEvents))
         result <- MetarankFlow.process(store, stream.unchunks, mapping, buffer)
+        _      <- store.sync
       } yield {
         Response(
           status = Status.Ok,

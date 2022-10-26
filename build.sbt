@@ -66,9 +66,13 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"--platform=$PLATFORM ubuntu:jammy-20221003")
+        from(s"--platform=$PLATFORM ubuntu:jammy-20221020")
         runRaw(
-          "apt-get update && apt-get -y install openjdk-17-jdk-headless openjdk-17-dbg htop procps curl inetutils-ping libgomp1"
+          List(
+            "apt-get update",
+            "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1",
+            "rm -rf /var/lib/apt/lists/*"
+          ).mkString(" && ")
         )
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
@@ -86,6 +90,7 @@ lazy val root = (project in file("."))
     ThisBuild / assemblyMergeStrategy := {
       case PathList("module-info.class")           => MergeStrategy.discard
       case "META-INF/io.netty.versions.properties" => MergeStrategy.first
+      case "META-INF/MANIFEST.MF"                  => MergeStrategy.discard
       case "findbugsExclude.xml"                   => MergeStrategy.discard
       case "log4j2-test.properties"                => MergeStrategy.discard
       case x if x.endsWith("/module-info.class")   => MergeStrategy.discard

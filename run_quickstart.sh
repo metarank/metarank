@@ -12,10 +12,7 @@ PID=$(cat /tmp/inference.pid)
 
 echo "Waiting for http server with pid=$PID to come online..."
 
-while ! nc -z localhost 8080; do
-  sleep 5
-  echo "Trying to connect to :8080"
-done
+timeout 30 sh -c 'until curl -v http://localhost:8080/health; do sleep 1; done'
 
 curl -X POST http://localhost:8080/rank/xgboost -d '{
     "event": "ranking",

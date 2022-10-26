@@ -30,7 +30,7 @@ Usage: metarank <subcommand> <options>
 Metarank image exposes a `/data` volume to handle all the local IO. 
 For example, you can pass the input training dataset from your local host using the docker's `-v` switch:
 ```shell
-docker -v /data:/home/user/input run metarank/metarank:latest train <opts>
+docker run -v /home/user/input:/data metarank/metarank:latest train <opts>
 ```
 
 ### Ports

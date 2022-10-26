@@ -36,7 +36,6 @@ object Main extends IOApp with Logging {
           .onError(ex =>
             IO {
               logger.error(s"Cannot parse args: ${ex.getMessage}\n\n")
-              CliArgs.printHelp()
             }
           )
         _ <- info("Metarank v" + Version().getOrElse("unknown") + " is starting.")

@@ -266,7 +266,19 @@ object CliArgs extends Logging {
 
     def pathExists(path: Path) = {
       val result = path.toFile.exists()
-      if (!result) logger.error(s"Path $path does not exist")
+      if (!result) {
+        logger.error(s"Path $path does not exist")
+        for {
+          parent <- Option(path.getParent) if parent.toFile.isDirectory
+        } {
+          val dir = parent.toFile
+          if (!dir.exists()) {
+            logger.error(s"parent dir $dir also does not exist. Maybe you're using a wrong path?")
+          } else {
+            logger.info(s"parent dir $dir has these files: ${dir.listFiles().toList.map(_.getName)}")
+          }
+        }
+      }
       result
     }
 

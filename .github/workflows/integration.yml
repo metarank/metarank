@@ -45,8 +45,8 @@ jobs:
       - name: Make docker image
         run: sbt assembly docker
 
-      - name: Run docker image
-        run: docker run metarank/metarank:latest
+      - name: Run docker image tests
+        run: .github/test_docker.sh
 
       - name: Run quickstart test
         run: ./run_quickstart.sh target/scala-2.13/metarank.jar

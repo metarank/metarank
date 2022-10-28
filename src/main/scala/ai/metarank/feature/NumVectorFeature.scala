@@ -36,7 +36,7 @@ case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature wit
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {
+  override def writes(event: Event): IO[Iterable[Put]] = IO {
     val br = 1
     for {
       key   <- writeKey(event, conf)

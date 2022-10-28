@@ -33,9 +33,6 @@ case class FeatureMapping(
     schema: Schema,
     models: Map[String, Model]
 ) extends Logging {
-  def stateReadKeys(request: RankingEvent): List[Key] = {
-    features.flatMap(_.valueKeys(request).toList)
-  }
 
   def optimize(): FeatureMapping = {
     val referencedNames = models.values.flatMap {

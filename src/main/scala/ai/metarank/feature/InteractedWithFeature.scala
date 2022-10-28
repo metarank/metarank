@@ -3,14 +3,15 @@ package ai.metarank.feature
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Dimension.SingleDim
+import ai.metarank.model.Dimension.{SingleDim, VectorDim}
 import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{BoundedListValue, ScalarValue}
+import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.EventType
-import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.{
   Event,
   FeatureKey,
@@ -40,107 +41,126 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeature with Logging {
-  override def dim = SingleDim
+  override val dim = VectorDim(schema.fields.size)
 
   // stores last interactions of customer
-  val lastValues = BoundedListConfig(
+  val interactions = BoundedListConfig(
     scope = schema.scope,
-    name = FeatureName(schema.name.value + s"_last"),
+    name = FeatureName(schema.name.value + s"_interactions"),
     count = schema.count.getOrElse(100),
     duration = schema.duration.getOrElse(24.hours),
     refresh = schema.refresh.getOrElse(0.seconds),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  val itemValues = ScalarConfig(
-    scope = ItemScopeType,
-    name = FeatureName(schema.name.value + s"_field"),
-    refresh = schema.refresh.getOrElse(0.seconds),
-    ttl = schema.ttl.getOrElse(90.days)
-  )
-  override def states: List[FeatureConfig] = List(lastValues, itemValues)
+  val fields = schema.fields
+    .map(field =>
+      field.field -> ScalarConfig(
+        scope = ItemScopeType,
+        name = FeatureName(schema.name.value + s"_${field.field}"),
+        refresh = schema.refresh.getOrElse(0.seconds),
+        ttl = schema.ttl.getOrElse(90.days)
+      )
+    )
+    .toMap
+  override val states: List[FeatureConfig] = List(interactions) ++ fields.values.toList
 
-  override def writes(event: Event, features: Persistence): IO[Iterable[Write]] =
+  override def writes(event: Event): IO[Iterable[Write]] =
     event match {
-//      case item: ItemEvent =>
-//        IO {
-//          for {
-//            field <- item.fieldsMap.get(schema.field.field).toSeq
-//            string = field match {
-//              case Field.StringField(_, value)     => List(value)
-//              case Field.StringListField(_, value) => value
-//              case _                               => Nil
-//            }
-//          } yield {
-//            Put(
-//              key = Key(ItemScope(item.item), itemValues.name),
-//              ts = event.timestamp,
-//              value = SStringList(string)
-//            )
-//          }
-//        }
-      case int: InteractionEvent if int.`type` == schema.interaction =>
-        for {
-          feature <- IO.fromOption(features.scalars.get(FeatureKey(itemValues.scope, itemValues.name)))(
-            new Exception(s"feature not mapped")
-          )
-          scalar <- feature.computeValue(Key(ItemScope(int.item), itemValues.name), int.timestamp)
-        } yield {
+      case item: ItemEvent =>
+        IO {
           for {
-            key <- writeKey(int, lastValues)
-          } yield {
-            val strings = scalar match {
-              case Some(ScalarValue(_, _, SString(value)))      => List(value)
-              case Some(ScalarValue(_, _, SStringList(values))) => values
-              case _                                            => Nil
+            field         <- item.fields
+            scalarFeature <- fields.get(field.name)
+            stringValues = field match {
+              case Field.StringField(_, value)     => List(value)
+              case Field.StringListField(_, value) => value
+              case _                               => Nil
             }
-            Append(key, SStringList(strings), int.timestamp)
+          } yield {
+            Put(
+              key = Key(ItemScope(item.item), scalarFeature.name),
+              ts = event.timestamp,
+              value = SStringList(stringValues)
+            )
+          }
+        }
+      case int: InteractionEvent if int.`type` == schema.interaction =>
+        IO {
+          for {
+            key <- makeVisitorKey(int.user, int.session)
+          } yield {
+            Append(key, SString(int.item.value), int.timestamp)
           }
         }
       case _ => IO.pure(Nil)
     }
 
-  override def valueKeys(event: Event.RankingEvent): Iterable[Key] =
-    makeVisitorKey(event).toList ++ event.items.map(ir => makeItemKey(event, ir.id)).toList
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = {
+    // list of items user interacted with
+    val visitorItems = makeVisitorKey(event.user, event.session).toList
 
-  private def makeVisitorKey(request: Event.RankingEvent) = schema.scope match {
-    case SessionScopeType => request.session.map(s => Key(SessionScope(s), lastValues.name))
-    case UserScopeType    => Some(Key(UserScope(request.user), lastValues.name))
-    case _                => None
+    // fields of items in the ranking event
+    val itemFields = for {
+      (_, fieldFeature) <- fields
+      item              <- event.items.toList
+    } yield {
+      Key(ItemScope(item.id), fieldFeature.name)
+    }
+    visitorItems ++ itemFields.toList
   }
 
-  private def makeItemKey(request: Event.RankingEvent, id: ItemId) = Key(ItemScope(id), itemValues.name)
+  override def valueKeys2(event: Event.RankingEvent, features: Map[Key, FeatureValue]): Iterable[Key] = for {
+    visitorKey      <- makeVisitorKey(event.user, event.session).toSeq
+    interactedItems <- features.get(visitorKey).toSeq
+    item <- interactedItems match {
+      case BoundedListValue(_, _, values) => values.map(_.value).collect { case SString(id) => id }
+      case _                              => Nil
+    }
+    (_, itemFieldFeature) <- fields
+  } yield {
+    Key(ItemScope(ItemId(item)), itemFieldFeature.name)
+  }
+
+  private def makeVisitorKey(user: UserId, session: Option[SessionId]) = schema.scope match {
+    case SessionScopeType => session.map(s => Key(SessionScope(s), interactions.name))
+    case UserScopeType    => Some(Key(UserScope(user), interactions.name))
+    case _                => None
+  }
 
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: ItemRelevancy): MValue = ???
 
   override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] = {
-    val visitorMap = (for {
-      visitorKey      <- makeVisitorKey(request)
-      interactedValue <- features.get(visitorKey)
-      interactedList  <- interactedValue.cast[BoundedListValue]
+    val visitorFields = (for {
+      visitorProfileKey         <- makeVisitorKey(request.user, request.session).toList
+      interactedItemsValue      <- features.get(visitorProfileKey).toList
+      interactedList            <- interactedItemsValue.cast[BoundedListValue].toList
+      (fieldName, fieldFeature) <- fields
     } yield {
-      val interactedValues = interactedList.values.map(_.value).collect { case SString(value) => value }
-      val sum              = interactedValues.size.toDouble
-      interactedValues.groupBy(identity).map { case (k, v) => k -> v.size / sum }
-    }).getOrElse(Map.empty[String, Double])
-    for {
-      item <- request.items.toList
-    } yield {
-      val itemKey = makeItemKey(request, item.id)
-      val result = for {
-        itemFieldValue <- features.get(itemKey).flatMap(_.cast[ScalarValue])
-      } yield {
-        val itemValues = itemFieldValue.value match {
-          case SString(value)      => List(value)
-          case SStringList(values) => values
-          case _                   => Nil
-        }
-        val value = itemValues.foldLeft(0.0)((acc, next) => acc + visitorMap.getOrElse(next, 0.0))
-        SingleValue(schema.name, value)
-      }
-      result.getOrElse(SingleValue(schema.name, 0))
-    }
+      val visitorFieldInteractedValues = interactedList.values
+        .map(_.value)
+        .collect { case SString(value) => ItemId(value) }
+        .flatMap(item => features.get(Key(ItemScope(item), fieldFeature.name)))
+        .collect { case ScalarValue(_, _, SStringList(values)) => values }
+        .flatten
+      fieldName -> visitorFieldInteractedValues.groupMapReduce(identity)(_ => 1)(_ + _)
+    }).toMap
 
+    for {
+      item <- request.items.toList.map(_.id)
+    } yield {
+      val intersection = for {
+        (fieldName, fieldScalarFeature) <- fields
+      } yield {
+        val visitorFieldValue = visitorFields.getOrElse(fieldName, Map.empty)
+        val itemFeature = features
+          .get(Key(ItemScope(item), fieldScalarFeature.name))
+          .collect { case ScalarValue(_, _, SStringList(values)) => values }
+          .getOrElse(List.empty[String])
+        itemFeature.foldLeft(0.0)((cnt, fieldValue) => cnt + visitorFieldValue.getOrElse(fieldValue, 0))
+      }
+      VectorValue(schema.name, intersection.toArray, dim)
+    }
   }
 
 }

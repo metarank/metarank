@@ -39,7 +39,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract field from metadata" in {
     val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val result = feature.writes(event).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
@@ -55,7 +55,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val result = feature.writes(event).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
@@ -71,7 +71,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
 
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
-    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val result = feature.writes(event).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(UserScope(UserId("u1")), FeatureName("user_age")), event.timestamp, SDouble(33))
     )

@@ -13,7 +13,7 @@ sealed trait BaseFeature {
   def dim: Dimension
   def schema: FeatureSchema
   def states: List[FeatureConfig]
-  def writes(event: Event, features: Persistence): IO[Iterable[Write]]
+  def writes(event: Event): IO[Iterable[Write]]
 
   def writeKey(event: Event, feature: FeatureConfig): Option[Key] = (feature.scope, event) match {
     case (GlobalScopeType, _)                    => Some(Key(GlobalScope, feature.name))
@@ -34,8 +34,7 @@ sealed trait BaseFeature {
 
   def valueKeys(event: RankingEvent): Iterable[Key]
 
-  def valueKeysSecondPass(event: RankingEvent, keys: Iterable[Key], features: Map[Key, FeatureValue]): Iterable[Key] =
-    keys
+  def valueKeys2(event: RankingEvent, features: Map[Key, FeatureValue]): Iterable[Key] = Nil
 
 }
 

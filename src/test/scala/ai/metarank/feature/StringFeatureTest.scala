@@ -32,7 +32,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract item field" in {
     val event  = TestItemEvent("p1", List(StringField("color", "green")))
-    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val result = feature.writes(event).unsafeRunSync().toList
     result shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("color")),
@@ -52,7 +52,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val event  = TestUserEvent("u1", List(StringField("gender", "male")))
-    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val result = feature.writes(event).unsafeRunSync().toList
     result shouldBe List(
       Put(
         Key(UserScope(UserId("u1")), FeatureName("user_gender")),

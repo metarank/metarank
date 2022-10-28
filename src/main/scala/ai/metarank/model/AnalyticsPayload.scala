@@ -56,23 +56,44 @@ case class AnalyticsPayload(
 object AnalyticsPayload {
   case class SystemParams(os: String, arch: String, jvm: String, macHash: Option[String])
 
+  object SystemParams {
+    def apply() = new SystemParams(
+      os = System.getProperty("os.name"),
+      arch = System.getProperty("os.arch"),
+      jvm = System.getProperty("java.version"),
+      macHash = getMacHash
+    )
+  }
+
   case class UsedFeature(name: FeatureName, `type`: String)
 
   implicit val systemCodec: Codec[SystemParams]               = deriveCodec
   implicit val usedFeatureCodec: Codec[UsedFeature]           = deriveCodec
   implicit val analyticsPayloadCodec: Codec[AnalyticsPayload] = deriveCodec
 
+  def apply(args: CliArgs): AnalyticsPayload = new AnalyticsPayload(
+    state = "empty",
+    modelTypes = Nil,
+    usedFeatures = Nil,
+    system = SystemParams(),
+    mode = argsMode(args),
+    version = Version(),
+    ts = System.currentTimeMillis()
+  )
+
+  def argsMode(args: CliArgs): String = args match {
+    case _: ServeArgs       => "serve"
+    case _: ImportArgs      => "import"
+    case _: StandaloneArgs  => "standalone"
+    case _: TrainArgs       => "train"
+    case _: ValidateArgs    => "validate"
+    case _: SortArgs        => "sort"
+    case _: AutoFeatureArgs => "autoconf"
+  }
+
   def apply(config: Config, args: CliArgs): AnalyticsPayload =
     new AnalyticsPayload(
-      mode = args match {
-        case _: ServeArgs       => "serve"
-        case _: ImportArgs      => "import"
-        case _: StandaloneArgs  => "standalone"
-        case _: TrainArgs       => "train"
-        case _: ValidateArgs    => "validate"
-        case _: SortArgs        => "sort"
-        case _: AutoFeatureArgs => "autoconf"
-      },
+      mode = argsMode(args),
       version = Version(),
       state = config.state match {
         case _: RedisStateConfig  => "redis"
@@ -101,12 +122,7 @@ object AnalyticsPayload {
         case f: WordCountSchema              => UsedFeature(f.name, "word_count")
         case f: PositionFeatureSchema        => UsedFeature(f.name, "position")
       },
-      system = SystemParams(
-        os = System.getProperty("os.name"),
-        arch = System.getProperty("os.arch"),
-        jvm = System.getProperty("java.version"),
-        macHash = getMacHash
-      ),
+      system = SystemParams(),
       ts = System.currentTimeMillis()
     )
 

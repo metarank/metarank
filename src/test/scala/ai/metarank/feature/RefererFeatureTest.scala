@@ -29,7 +29,7 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     TestRankingEvent(List("p1")).copy(user = UserId("u1"), fields = List(StringField("ref", "http://www.google.com")))
 
   it should "extract referer field" in {
-    val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val write = feature.writes(event).unsafeRunSync().toList
     write shouldBe List(
       Put(Key(UserScope(UserId("u1")), FeatureName("ref_medium")), event.timestamp, SString("search"))
     )

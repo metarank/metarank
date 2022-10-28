@@ -40,8 +40,12 @@ object Main extends IOApp with Logging {
           )
         _ <- info("Metarank v" + Version().getOrElse("unknown") + " is starting.")
         _ <- args match {
-          case a: AutoFeatureArgs => AutoFeature.run(a)
-          case a: SortArgs        => Sort.run(a)
+          case a: AutoFeatureArgs =>
+            for {
+              _ <- sendUsageAnalytics(TrackingConfig(), AnalyticsPayload(args), env)
+              _ <- AutoFeature.run(a)
+            } yield {}
+          case a: SortArgs => Sort.run(a)
           case confArgs: CliArgs.CliConfArgs =>
             for {
               confString <- IO.fromTry(

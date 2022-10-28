@@ -29,11 +29,11 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract writes" in {
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
-    feature.writes(click, Persistence.blackhole()).unsafeRunSync().toList shouldBe List(
+    feature.writes(click).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("ctr_click")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
-    feature.writes(impression, Persistence.blackhole()).unsafeRunSync().toList shouldBe List(
+    feature.writes(impression).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(
         Key(ItemScope(ItemId("p1")), FeatureName("ctr_impression")),
         impression.timestamp,
@@ -41,7 +41,7 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val dummy = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "dummy")
-    feature.writes(dummy, Persistence.blackhole()).unsafeRunSync().toList shouldBe empty
+    feature.writes(dummy).unsafeRunSync().toList shouldBe empty
   }
 
   it should "compute value" in {

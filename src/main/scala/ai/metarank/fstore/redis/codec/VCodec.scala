@@ -48,7 +48,7 @@ object VCodec {
   def bincomp[T](codec: BinaryCodec[T]) = new VCodec[T] {
     override def decode(bytes: Array[Byte]): Either[Throwable, T] = {
       val stream = new ByteArrayInputStream(bytes)
-      val in     = new DataInputStream(new BufferedInputStream(new ZstdInputStream(stream), 1024))
+      val in     = new DataInputStream(new BufferedInputStream(new ZstdInputStream(stream), 1024 * 32))
       Try(codec.read(in)) match {
         case Failure(exception) => Left(exception)
         case Success(value)     => Right(value)
@@ -57,7 +57,7 @@ object VCodec {
 
     override def encode(value: T): Array[Byte] = {
       val bytes    = new ByteArrayOutputStream()
-      val buffered = new BufferedOutputStream(new ZstdOutputStream(bytes, 3), 1024)
+      val buffered = new BufferedOutputStream(new ZstdOutputStream(bytes, 3), 1024 * 16)
       val out      = new DataOutputStream(buffered)
       codec.write(value, out)
       buffered.flush()

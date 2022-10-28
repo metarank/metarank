@@ -2,7 +2,7 @@ package ai.metarank.rank
 
 import ai.metarank.FeatureMapping
 import ai.metarank.flow.ClickthroughQuery
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.{FeatureValueLoader, Persistence}
 import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.api.routes.RankApi.{ModelError, RankResponse}
 import ai.metarank.model.Event.RankingEvent
@@ -57,8 +57,7 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
   }
 
   def makeQuery(request: RankingEvent, ds: DatasetDescriptor) = for {
-    keys              <- IO { mapping.stateReadKeys(request) }
-    state             <- store.values.get(keys)
+    state             <- FeatureValueLoader.fromStateBackend(mapping, request, store)
     itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping, ValueMode.OnlineInference) }
     query             <- IO { ClickthroughQuery(itemFeatureValues, request.id.value, ds) }
     _                 <- IO { logger.info(s"generated query ${query.group} size=${query.columns}x${query.rows}") }

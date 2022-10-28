@@ -9,6 +9,7 @@ import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Clickthrough.TypedInteraction
+import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key.FeatureName
@@ -35,7 +36,7 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
     InteractedWithSchema(
       FeatureName("clicked_category"),
       "click",
-      FieldName(Item, "category"),
+      List(FieldName(Item, "category")),
       SessionScopeType,
       Some(10),
       Some(24.hours)
@@ -69,7 +70,7 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
             CategoryValue(FeatureName("category"), "socks", 1),
             VectorValue(FeatureName("ctr"), Array(0.2, 0.1), 2),
             SingleValue(FeatureName("price"), 10.0),
-            SingleValue(FeatureName("clicked_category"), 1)
+            VectorValue(FeatureName("clicked_category"), Array(1.0), VectorDim(1))
           )
         ),
         ItemValue(
@@ -78,14 +79,14 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
             SingleValue(FeatureName("price"), 5.0),
             VectorValue(FeatureName("ctr"), Array(0.1, 0.05), 2),
             CategoryValue(FeatureName("category"), "shirts", 2),
-            SingleValue(FeatureName("clicked_category"), 0)
+            VectorValue(FeatureName("clicked_category"), Array(0.0), VectorDim(1))
           )
         ),
         ItemValue(
           ItemId("p3"),
           List(
             VectorValue(FeatureName("ctr"), Array(0.2, 0.2), 2),
-            SingleValue(FeatureName("clicked_category"), 1),
+            VectorValue(FeatureName("clicked_category"), Array(1.0), VectorDim(1)),
             SingleValue(FeatureName("price"), 3.0),
             CategoryValue(FeatureName("category"), "socks", 1)
           )

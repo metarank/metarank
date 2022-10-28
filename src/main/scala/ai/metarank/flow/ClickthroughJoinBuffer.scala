@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.flow.ClickthroughJoinBuffer.Node
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.{FeatureValueLoader, Persistence}
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, ItemValue, Timestamp}
 import ai.metarank.util.Logging
@@ -34,8 +34,7 @@ case class ClickthroughJoinBuffer(
   }
 
   def handleRanking(event: RankingEvent): IO[Unit] = for {
-    keys    <- IO(mapping.features.flatMap(_.valueKeys(event)))
-    values  <- state.values.get(keys)
+    values  <- FeatureValueLoader.fromStateBackend(mapping, event, state)
     mvalues <- IO(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
     ctv = ClickthroughValues(
       Clickthrough(

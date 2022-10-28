@@ -12,11 +12,11 @@ import org.scalatest.matchers.should.Matchers
 
 class InteractedWithFeatureRuleTest extends AnyFlatSpec with Matchers {
   it should "generate interacted_with for cats and ints" in {
-    val result = InteractedWithFeatureRule.make("click", "good")
+    val result = InteractedWithFeatureRule.make("click", List("good"))
     result shouldBe InteractedWithSchema(
-      name = FeatureName("click_good"),
+      name = FeatureName("click"),
       interaction = "click",
-      field = FieldName(Item, "good"),
+      fields = List(FieldName(Item, "good")),
       scope = UserScopeType,
       count = None,
       duration = None

@@ -32,7 +32,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(StringField("updated_at", updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val puts = feature.writes(event).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
@@ -48,7 +48,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(NumberField("updated_at", updatedAt.toEpochSecond.toDouble))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val puts = feature.writes(event).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
@@ -64,7 +64,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(StringField("updated_at", updatedAt.toEpochSecond.toString))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val puts = feature.writes(event).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),

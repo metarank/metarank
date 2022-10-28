@@ -52,22 +52,32 @@ The UA field is taken from each ranking request, so it should be always present.
 
 ## Interacted with
 
-For the current item, did this visitor have an interaction with other item with the same field.
+For the current item, did this visitor have an interaction with other item with the same field?
 
 Example:
 ```yaml
-- name: clicked_color
+- name: clicked
   type: interacted_with
   # type of the interaction event (interaction.type field)
   interaction: click
-  field: item.color // must be a string or string[], and only works with item fields
+  field: [ item.color ] # the field must be a string or string[], 
+                        # and only works with item fields.
 
   # session/user
   scope: user
 ```
 
-For this example, Metarank will track all color field values for all items visitor clicked and intersect this set 
-with per-item field values in the ranking.
+For this example, Metarank will track all color field values for all items visitor clicked and intersect this set with per-item field values in the ranking.
+
+`interacted_with` extractor can also track multiple fields at once within a single visitor profile:
+
+```yaml
+- name: clicked
+  type: interacted_with
+  interaction: click
+  field: [ item.color, item.tags, item.brand ] # multiple fields at once
+  scope: user
+```
 
 ## Referer
 

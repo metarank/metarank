@@ -6,7 +6,9 @@ import io.circe.{Codec, Decoder, Encoder}
 
 import scala.util.{Failure, Success}
 
-case class FieldName(event: EventType, field: String)
+case class FieldName(event: EventType, field: String) {
+  override def toString: String = s"${event.asString}.$field"
+}
 
 object FieldName {
 

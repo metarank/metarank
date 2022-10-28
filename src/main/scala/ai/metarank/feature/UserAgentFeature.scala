@@ -37,7 +37,7 @@ case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, fields: Persistence): IO[Iterable[Put]] = IO {
+  override def writes(event: Event): IO[Iterable[Put]] = IO {
     event match {
       case feedback: Event.FeedbackEvent =>
         for {

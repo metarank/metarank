@@ -62,7 +62,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
 
   override def states: List[FeatureConfig] = List(topItem, bottomItem, topGlobal, bottomGlobal)
 
-  override def writes(event: Event, fields: Persistence): IO[Iterable[Write]] = IO {
+  override def writes(event: Event): IO[Iterable[Write]] = IO {
     event match {
       case e: InteractionEvent if e.`type` == schema.top =>
         schema.normalize match {

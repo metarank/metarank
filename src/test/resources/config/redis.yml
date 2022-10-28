@@ -3,6 +3,11 @@ state:
   host: localhost
   port: 6379
 
+train:
+  type: s3
+  bucket: metarank
+  prefix: /some/prefix
+
 models:
   xgboost:
     type: lambdamart

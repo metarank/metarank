@@ -18,6 +18,7 @@ object TestConfig {
     models = Map("shuffle" -> ShuffleConfig(10)),
     api = ApiConfig(Hostname("localhost"), Port(8080)),
     state = MemoryStateConfig(),
+    train = MemoryStateConfig(),
     input = Some(FileInputConfig("/tmp/events"))
   )
 }

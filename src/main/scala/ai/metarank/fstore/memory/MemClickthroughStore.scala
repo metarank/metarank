@@ -1,6 +1,6 @@
 package ai.metarank.fstore.memory
 
-import ai.metarank.fstore.Persistence.ClickthroughStore
+import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.model.ClickthroughValues
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}

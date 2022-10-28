@@ -47,7 +47,7 @@ case class RedisPersistence(
     stateClient: RedisClient,
     modelClient: RedisClient,
     valuesClient: RedisClient,
-    rankingsClient: RedisClient,
+//    rankingsClient: RedisClient,
     cache: CacheConfig,
     format: StoreFormat
 ) extends Persistence
@@ -153,7 +153,7 @@ case class RedisPersistence(
   override lazy val values: Persistence.KVStore[Key, FeatureValue] =
     RedisKVStore(valuesClient, Prefix.VALUES)(format.key, format.featureValue)
 
-  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
+//  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
 
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void
@@ -162,7 +162,7 @@ case class RedisPersistence(
     start <- IO(System.currentTimeMillis())
     _     <- stateClient.doFlush(stateClient.writer.ping().toCompletableFuture)
     _     <- valuesClient.doFlush(valuesClient.writer.ping().toCompletableFuture)
-    _     <- rankingsClient.doFlush(rankingsClient.writer.ping().toCompletableFuture)
+//    _     <- rankingsClient.doFlush(rankingsClient.writer.ping().toCompletableFuture)
     _     <- modelClient.doFlush(modelClient.writer.ping().toCompletableFuture)
   } yield {
     logger.info(s"redis pipeline flushed, took ${System.currentTimeMillis() - start}ms")
@@ -189,7 +189,7 @@ object RedisPersistence {
     state    <- RedisClient.create(host, port, db.state, pipeline, auth)
     models   <- RedisClient.create(host, port, db.models, pipeline, auth)
     values   <- RedisClient.create(host, port, db.values, pipeline, auth)
-    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
+//    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(
@@ -206,7 +206,7 @@ object RedisPersistence {
       )
     )
   } yield {
-    RedisPersistence(schema, state, models, values, rankings, cache, format)
+    RedisPersistence(schema, state, models, values, cache, format)
   }
 
 }

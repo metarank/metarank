@@ -8,7 +8,7 @@ import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
 import scala.concurrent.duration._
 
-sealed trait StateStoreConfig extends TrainConfig
+sealed trait StateStoreConfig
 
 object StateStoreConfig extends Logging {
   import io.circe.generic.semiauto._

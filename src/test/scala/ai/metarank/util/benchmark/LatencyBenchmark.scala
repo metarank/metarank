@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.StandaloneArgs
 import ai.metarank.main.command.{Serve, Standalone}
 import ai.metarank.model.Event.{ItemRelevancy, RankingEvent}
@@ -87,11 +87,13 @@ object LatencyBenchmark extends IOApp with Logging {
 
   def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = for {
     store <- Persistence.fromConfig(mapping.schema, conf.state)
+    cts <- ClickthroughStore.fromConfig(conf.train)
     buffer <- Resource.liftK(
       Standalone
         .prepare(
           conf,
           store,
+          cts,
           mapping,
           StandaloneArgs(
             conf = Paths.get(confPath),
@@ -103,7 +105,7 @@ object LatencyBenchmark extends IOApp with Logging {
           )
         )
     )
-    api    <- Serve.api(store, mapping, conf.api, buffer).background
+    api    <- Serve.api(store, cts, mapping, conf.api, buffer).background
     client <- BlazeClientBuilder[IO].withConnectTimeout(1.second).withRequestTimeout(1.second).resource
   } yield {
     Services(store, client)

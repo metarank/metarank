@@ -4,6 +4,7 @@ import ai.metarank.config.{ApiConfig, Config, CoreConfig, Hostname, Port}
 import ai.metarank.config.InputConfig._
 import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.config.StateStoreConfig.MemoryStateConfig
+import ai.metarank.config.TrainConfig.MemoryTrainConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
@@ -18,7 +19,7 @@ object TestConfig {
     models = Map("shuffle" -> ShuffleConfig(10)),
     api = ApiConfig(Hostname("localhost"), Port(8080)),
     state = MemoryStateConfig(),
-    train = MemoryStateConfig(),
+    train = MemoryTrainConfig(),
     input = Some(FileInputConfig("/tmp/events"))
   )
 }

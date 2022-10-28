@@ -1,7 +1,7 @@
 package ai.metarank.fstore.cache
 
-import ai.metarank.fstore.Persistence.ClickthroughStore
-import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, EventId, Identifier, ItemValue}
+import ai.metarank.fstore.ClickthroughStore
+import ai.metarank.model.ClickthroughValues
 import cats.effect.IO
 
 case class CachedClickthroughStore(fast: ClickthroughStore, slow: ClickthroughStore) extends ClickthroughStore {

@@ -34,7 +34,7 @@ object Config extends Logging {
       } yield {
         val api   = get(apiOption, ApiConfig(), "api")
         val state = get(stateOption, MemoryStateConfig(), "state")
-        val train = get(trainOption, state, "train")
+        val train = get(trainOption, TrainConfig.fromState(state), "train")
         val core  = coreOption.getOrElse(CoreConfig())
         Config(core, api, state, train, inputOption, features, models)
       }

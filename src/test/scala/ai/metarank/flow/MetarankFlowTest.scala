@@ -115,9 +115,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "generate query for a ranking request" in {
     val q = ranker.makeQuery(rankingEvent1, mapping.models("random").datasetDescriptor).unsafeRunSync()
     q.values shouldBe List(
-      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", 0))),
-      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", 0))),
-      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", 0)))
+      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))),
+      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(0.0)))),
+      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0))))
     )
     q.query.values.toList shouldBe List(
       10.0, 1.0, 0.0, // p1
@@ -133,9 +133,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "generate updated query" in {
     val q = ranker.makeQuery(rankingEvent2, mapping.models("random").datasetDescriptor).unsafeRunSync()
     q.values shouldBe List(
-      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", 0))),
-      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", 1))),
-      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", 0)))
+      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))),
+      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(1.0)))),
+      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0))))
     )
     q.query.values.toList shouldBe List(
       10.0, 1.0, 0.0, // p1
@@ -159,9 +159,18 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
           interactions = List(TypedInteraction(ItemId("p1"), "click"))
         ),
         values = List(
-          ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", 0))),
-          ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", 1))),
-          ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", 0)))
+          ItemValue(
+            ItemId("p1"),
+            List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))
+          ),
+          ItemValue(
+            ItemId("p2"),
+            List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(1.0)))
+          ),
+          ItemValue(
+            ItemId("p3"),
+            List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0)))
+          )
         )
       )
     )

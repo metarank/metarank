@@ -46,6 +46,7 @@ object FeatureOverMissingFieldValidation extends EventValidation {
       case f @ StringFeatureSchema(_, field, _, _, _, _, _) if !fields.contains(field) => List(f -> field)
       case f @ UserAgentSchema(_, field, _, _, _) if !fields.contains(field)           => List(f -> field)
       case f @ WordCountSchema(_, field, _, _, _) if !fields.contains(field)           => List(f -> field)
+      case _                                                                           => Nil
     }.toMap
     if (brokenRefs.isEmpty) {
       logger.info(s"$name = PASS (${config.features.size} features referencing existing ${fields.size} event fields)")

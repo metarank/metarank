@@ -12,23 +12,23 @@ import ai.metarank.util.Logging
 object InteractedWithFeatureRule extends FeatureRule with Logging {
   override def make(model: EventModel): List[FeatureSchema] = for {
     interaction <- model.interactions.types.keys.toList
-    field <- model.itemFields.strings.flatMap {
+  } yield {
+    val fields = model.itemFields.strings.flatMap {
       case (name, stat) if stat.values.size > 1 => Some(name)
       case _                                    => None
     }
-  } yield {
-    make(interaction, field)
+    make(interaction, fields.toList)
   }
 
-  def make(interaction: String, field: String): InteractedWithSchema = {
+  def make(interaction: String, fields: List[String]): InteractedWithSchema = {
     logger.info(
-      s"generated interacted_with feature for interaction '$interaction' over field '${field}'"
+      s"generated interacted_with feature for interaction '$interaction' over fields '${fields.mkString(",")}'"
     )
 
     InteractedWithSchema(
-      name = FeatureName(s"${interaction}_${field}"),
+      name = FeatureName(interaction),
       interaction = interaction,
-      fields = List(FieldName(Item, field)),
+      fields = fields.map(field => FieldName(Item, field)),
       scope = UserScopeType,
       count = None,
       duration = None

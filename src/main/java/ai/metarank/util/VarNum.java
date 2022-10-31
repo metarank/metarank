@@ -6,7 +6,7 @@ import java.io.IOException;
 
 /**
  * Taken from the Bazel:
- * https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/util/VarInt.java
+ * <a href="https://github.com/bazelbuild/bazel/blob/master/src/main/java/com/google/devtools/build/lib/util/VarInt.java">VarInt.java</a>
  */
 public class VarNum {
     public static void putVarLong(long v, DataOutput sink) throws IOException {

@@ -3,7 +3,7 @@ package ai.metarank.main.command
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.{ImportArgs, StandaloneArgs}
 import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.rank.LambdaMARTModel
@@ -16,38 +16,42 @@ object Standalone extends Logging {
   def run(
       conf: Config,
       storeResource: Resource[IO, Persistence],
+      ctsResource: Resource[IO, ClickthroughStore],
       mapping: FeatureMapping,
       args: StandaloneArgs
   ): IO[Unit] = {
     storeResource.use(store =>
-      for {
-        buffer <- prepare(conf, store, mapping, args)
-        _      <- IO(System.gc())
-        _      <- Serve.api(store, mapping, conf.api, buffer)
-      } yield {}
+      ctsResource.use(cts => {
+        for {
+          buffer <- prepare(conf, store, cts, mapping, args)
+          _      <- IO(System.gc())
+          _      <- Serve.api(store, cts, mapping, conf.api, buffer)
+        } yield {}
+      })
     )
   }
 
-  def prepare(conf: Config, store: Persistence, mapping: FeatureMapping, args: StandaloneArgs) = for {
-    buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping))
-    result <- Import.slurp(
-      store,
-      mapping,
-      ImportArgs(args.conf, args.data, args.offset, args.format, args.validation, args.sort),
-      conf,
+  def prepare(conf: Config, store: Persistence, cts: ClickthroughStore, mapping: FeatureMapping, args: StandaloneArgs) =
+    for {
+      buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping))
+      result <- Import.slurp(
+        store,
+        mapping,
+        ImportArgs(args.conf, args.data, args.offset, args.format, args.validation, args.sort),
+        conf,
+        buffer
+      )
+      _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
+      _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
+      _ <- store.sync
+      _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
+      _ <- mapping.models.toList.map {
+        case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
+          Train.train(store, cts, m, name, conf.backend, None) *> info(s"model '$name' training finished")
+        case (other, _) =>
+          info(s"skipping model $other")
+      }.sequence
+    } yield {
       buffer
-    )
-    _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
-    _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
-    _ <- store.sync
-    _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
-    _ <- mapping.models.toList.map {
-      case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
-        Train.train(store, m, name, conf.backend, None) *> info(s"model '$name' training finished")
-      case (other, _) =>
-        info(s"skipping model $other")
-    }.sequence
-  } yield {
-    buffer
-  }
+    }
 }

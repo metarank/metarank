@@ -1,8 +1,9 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec}
+import ai.metarank.fstore.ClickthroughStore
+import ai.metarank.fstore.Persistence.KVCodec
+import ai.metarank.fstore.codec.{KCodec, StoreFormat, VCodec}
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec, VCodec}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, EventId, Identifier, ItemValue, Timestamp}
@@ -44,6 +45,8 @@ case class RedisClickthroughStore(rankings: RedisClient, prefix: String, format:
       }
     )
     .flatMap(batch => Stream.emits(batch))
+
+  override def flush(): IO[Unit] = rankings.doFlush(rankings.reader.ping().toCompletableFuture)
 
   private def decodeValues(map: Map[String, Array[Byte]]): IO[List[ClickthroughValues]] = {
     map.toList.map { case (_, value) => IO.fromEither(format.ctv.decode(value)) }.sequence

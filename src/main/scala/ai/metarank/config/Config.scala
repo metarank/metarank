@@ -13,6 +13,7 @@ case class Config(
     core: CoreConfig,
     api: ApiConfig,
     state: StateStoreConfig,
+    train: TrainConfig,
     input: Option[InputConfig],
     features: NonEmptyList[FeatureSchema],
     models: Map[String, ModelConfig]
@@ -26,14 +27,16 @@ object Config extends Logging {
         coreOption  <- c.downField("core").as[Option[CoreConfig]]
         apiOption   <- c.downField("api").as[Option[ApiConfig]]
         stateOption <- c.downField("state").as[Option[StateStoreConfig]]
+        trainOption <- c.downField("train").as[Option[TrainConfig]]
         inputOption <- c.downField("input").as[Option[InputConfig]]
         features    <- c.downField("features").as[NonEmptyList[FeatureSchema]]
         models      <- c.downField("models").as[Map[String, ModelConfig]]
       } yield {
         val api   = get(apiOption, ApiConfig(), "api")
         val state = get(stateOption, MemoryStateConfig(), "state")
+        val train = get(trainOption, TrainConfig.fromState(state), "train")
         val core  = coreOption.getOrElse(CoreConfig())
-        Config(core, api, state, inputOption, features, models)
+        Config(core, api, state, train, inputOption, features, models)
       }
     )
     .ensure(ConfigValidations.checkFeatureModelReferences)

@@ -1,11 +1,9 @@
 package ai.metarank.fstore
 
 import ai.metarank.config.StateStoreConfig
-import ai.metarank.fstore.Persistence.{ClickthroughStore, KVCodec, KVStore, ModelName}
+import ai.metarank.fstore.Persistence.{KVStore, ModelName}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
-import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.Feature.{
   BoundedListFeature,
   CounterFeature,
@@ -16,7 +14,7 @@ import ai.metarank.model.Feature.{
   StatsEstimatorFeature
 }
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{ClickthroughValues, FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
@@ -36,7 +34,6 @@ trait Persistence {
 
   def values: KVStore[Key, FeatureValue]
   def models: KVStore[ModelName, Scorer]
-  def cts: ClickthroughStore
   def healthcheck(): IO[Unit]
   def sync: IO[Unit]
 }
@@ -94,10 +91,7 @@ object Persistence extends Logging {
     }
   }
 
-  trait ClickthroughStore {
-    def put(cts: List[ClickthroughValues]): IO[Unit]
-    def getall(): fs2.Stream[IO, ClickthroughValues]
-  }
+
 
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
     case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth) =>
@@ -120,7 +114,7 @@ object Persistence extends Logging {
     override def stats: Map[FeatureKey, StatsEstimatorFeature]             = Map.empty
     override def maps: Map[FeatureKey, MapFeature]                         = Map.empty
 
-    override lazy val cts: ClickthroughStore             = ???
+    //override lazy val cts: ClickthroughStore             = ???
     override lazy val models: KVStore[ModelName, Scorer] = KVStore.empty
     override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
     override def healthcheck(): IO[Unit]                 = IO.unit

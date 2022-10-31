@@ -57,7 +57,7 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
   }
 
   def makeQuery(request: RankingEvent, ds: DatasetDescriptor) = for {
-    state             <- FeatureValueLoader.fromStateBackend(mapping, request, store)
+    state             <- FeatureValueLoader.fromStateBackend(mapping, request, store.values)
     itemFeatureValues <- IO { ItemValue.fromState(request, state, mapping, ValueMode.OnlineInference) }
     query             <- IO { ClickthroughQuery(itemFeatureValues, request.id.value, ds) }
     _                 <- IO { logger.info(s"generated query ${query.group} size=${query.columns}x${query.rows}") }

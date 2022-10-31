@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis.codec.impl
 
+import ai.metarank.fstore.codec.impl.ClickthroughValuesCodec
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName

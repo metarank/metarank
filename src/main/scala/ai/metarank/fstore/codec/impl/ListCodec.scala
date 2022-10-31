@@ -1,4 +1,5 @@
-package ai.metarank.fstore.redis.codec.impl
+package ai.metarank.fstore.codec.impl
+
 import java.io.{DataInput, DataOutput}
 
 class ListCodec[T](ec: BinaryCodec[T]) extends BinaryCodec[List[T]] {

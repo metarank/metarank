@@ -1,8 +1,8 @@
 package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.fstore.redis.codec.StoreFormat
-import ai.metarank.fstore.redis.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
+import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.Logging
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 

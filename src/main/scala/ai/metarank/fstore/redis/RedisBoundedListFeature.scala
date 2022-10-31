@@ -1,8 +1,8 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.Persistence.KVCodec
+import ai.metarank.fstore.codec.{KCodec, StoreFormat, VCodec}
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec, VCodec}
 import ai.metarank.model.Feature.BoundedListFeature
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue

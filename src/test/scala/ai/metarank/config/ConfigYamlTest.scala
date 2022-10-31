@@ -3,7 +3,9 @@ package ai.metarank.config
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
+import ai.metarank.config.TrainConfig.FileTrainConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType._
@@ -37,6 +39,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
         ),
         api = ApiConfig(Hostname("0.0.0.0"), Port(8080)),
         state = RedisStateConfig(Hostname("localhost"), Port(6379)),
+        train = FileTrainConfig("/some/path", JsonStoreFormat),
         input = None
       )
     )

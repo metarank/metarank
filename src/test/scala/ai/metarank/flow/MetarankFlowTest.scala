@@ -9,21 +9,11 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.{
-  Clickthrough,
-  ClickthroughValues,
-  EventId,
-  FeatureKey,
-  FieldName,
-  ItemValue,
-  Key,
-  MValue,
-  Timestamp
-}
+import ai.metarank.model.{Clickthrough, ClickthroughValues, EventId, FeatureKey, FieldName, ItemValue, Key, MValue, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -72,7 +62,8 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   val store       = MemPersistence(mapping.schema)
   val ts          = Timestamp.now
   val ranker      = Ranker(mapping, store)
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store, mapping)
+  lazy val cs = MemClickthroughStore()
+  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
 
   val rankingEvent1 = TestRankingEvent(List("p1", "p2", "p3"))
   val rankingEvent2 = rankingEvent1.copy(id = EventId(UUID.randomUUID().toString))
@@ -147,7 +138,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "create updated clickthrough in store" in {
     MetarankFlow.process(store, Stream.emits(List(rankingEvent2, clickEvent2)), mapping, buffer).unsafeRunSync()
     buffer.flushQueue(Timestamp.max).unsafeRunSync()
-    val ctv = store.cts.getall().compile.toList.unsafeRunSync()
+    val ctv = cs.getall().compile.toList.unsafeRunSync()
     ctv.find(_.ct.id == rankingEvent2.id) shouldBe Some(
       ClickthroughValues(
         ct = Clickthrough(

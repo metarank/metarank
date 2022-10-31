@@ -3,6 +3,11 @@ state:
   host: localhost
   port: 6379
 
+train:
+  type: file
+  path: /some/path
+  format: json
+
 models:
   xgboost:
     type: lambdamart

@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.PeriodicCounterSuite
-import ai.metarank.fstore.redis.codec.StoreFormat.JsonStoreFormat
+import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Write.PeriodicIncrement
 
 class RedisPeriodicCounterFeatureTest

@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis.codec.impl
 
+import ai.metarank.fstore.codec.impl.TimeValueCodec
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Timestamp

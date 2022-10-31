@@ -90,6 +90,24 @@ state: # a place to store the feature values for the ML inference and the traine
     #  user: <username>     # optional when Redis ACL is disabled
     #  password: <password> # required if Redis server is run with requirepass argument
 
+# The optional train section describes how Metarank deals with the training dataset persistence.
+# By default, it uses the same way of storing click-through events as set in the state block.
+# train:
+#  type: redis
+
+  # Possible values are:
+  # - redis: with the same options as the state.redis persistence block.
+  # - memory: stores everything in memory
+  # - file: dump clickthroughs to the file
+  # - discard: drop all click-through events to /dev/null
+
+  # An example file configuration, for a case when you import+train everything locally, but with a remote Redis to store
+  # the state for the inference:
+
+  # type: file
+  # path: /path/to/file   # path to a file which will be written during import, and read during training
+  # format: json          # options are: json, binary
+
 # The "source" section describes the source of the data. This parameter is optional.
 # Check https://docs.metarank.ai/reference/overview/data-sources for more information
 source:

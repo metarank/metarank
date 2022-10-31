@@ -1,7 +1,7 @@
-package ai.metarank.fstore.redis.codec.values
+package ai.metarank.fstore.codec.values
 
-import ai.metarank.fstore.redis.codec.VCodec
-import ai.metarank.fstore.redis.codec.impl.BinaryCodec
+import ai.metarank.fstore.codec.VCodec
+import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 
 import java.io.{
@@ -50,12 +50,16 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
   }
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
-    val size = in.readInt()
-    val buf  = new Array[Byte](size)
-    Try(in.readFully(buf)) match {
-      case Success(_)  => decode(buf).map(Option.apply)
+    Try(in.readInt()) match {
+      case Success(size) =>
+        val buf = new Array[Byte](size)
+        Try(in.readFully(buf)) match {
+          case Success(_)  => decode(buf).map(Option.apply)
+          case Failure(ex) => Right(None)
+        }
       case Failure(ex) => Right(None)
     }
+
   }
 
 }

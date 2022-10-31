@@ -14,6 +14,7 @@ import ai.metarank.fstore.cache.CachedFeature.{
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.memory.{
   MemBoundedList,
   MemCounter,
@@ -25,7 +26,6 @@ import ai.metarank.fstore.memory.{
   MemStatsEstimator
 }
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.StoreFormat
 import ai.metarank.model.{FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging

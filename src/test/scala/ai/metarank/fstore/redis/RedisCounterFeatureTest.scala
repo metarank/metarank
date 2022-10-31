@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.CounterSuite
-import ai.metarank.fstore.redis.codec.StoreFormat.JsonStoreFormat
+import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Write.Increment
 
 class RedisCounterFeatureTest extends CounterSuite with RedisFeatureTest[Increment, RedisCounterFeature] {

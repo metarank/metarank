@@ -1,7 +1,6 @@
-package ai.metarank.fstore.redis.codec.values
+package ai.metarank.fstore.codec.values
 
-import ai.metarank.fstore.redis.codec.VCodec
-
+import ai.metarank.fstore.codec.VCodec
 import java.io.{DataInput, DataOutput}
 import scala.util.{Failure, Success, Try}
 
@@ -11,14 +10,16 @@ object StringVCodec extends VCodec[String] {
   override def encode(value: String): Array[Byte] = value.getBytes()
 
   override def encodeDelimited(value: String, output: DataOutput): Unit = {
-    output.writeChars(value)
+    output.write(value.getBytes())
     output.write('\n')
   }
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[String]] = {
-    Try(in.readLine()) match {
-      case Failure(exception) => Right(None)
-      case Success(value)     => Right(Some(value))
+    val line = in.readLine()
+    if (line == null) {
+      Right(None)
+    } else {
+      Right(Some(line))
     }
   }
 

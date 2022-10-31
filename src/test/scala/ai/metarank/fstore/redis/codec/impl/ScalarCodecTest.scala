@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis.codec.impl
 
+import ai.metarank.fstore.codec.impl.ScalarCodec
 import ai.metarank.model.Scalar.{SBoolean, SDouble, SDoubleList, SString, SStringList}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

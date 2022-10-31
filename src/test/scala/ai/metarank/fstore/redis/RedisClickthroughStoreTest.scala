@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.codec.StoreFormat.JsonStoreFormat
+import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue

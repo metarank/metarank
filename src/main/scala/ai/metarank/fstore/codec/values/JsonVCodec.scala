@@ -1,6 +1,6 @@
-package ai.metarank.fstore.redis.codec.values
+package ai.metarank.fstore.codec.values
 
-import ai.metarank.fstore.redis.codec.VCodec
+import ai.metarank.fstore.codec.VCodec
 import io.circe.Codec
 import io.circe.syntax._
 import io.circe.parser.{decode => cdecode}
@@ -19,9 +19,11 @@ case class JsonVCodec[T](c: Codec[T]) extends VCodec[T] {
   override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))(c)
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
-    Try(in.readLine()) match {
-      case Success(line) => cdecode[T](line)(c).map(Option.apply)
-      case Failure(ex)   => Right(None)
+    val line = in.readLine()
+    if (line == null) {
+      Right(None)
+    } else {
+      cdecode[T](line)(c).map(Option.apply)
     }
   }
 

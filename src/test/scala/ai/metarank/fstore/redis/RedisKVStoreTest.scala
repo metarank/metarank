@@ -1,8 +1,8 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.redis.codec.{KCodec, VCodec}
-import ai.metarank.fstore.redis.codec.StoreFormat.{JsonStoreFormat, idEncoder}
-import ai.metarank.fstore.redis.codec.values.StringVCodec
+import ai.metarank.fstore.codec.values.StringVCodec
+import ai.metarank.fstore.codec.StoreFormat.{JsonStoreFormat, idEncoder}
+import ai.metarank.fstore.codec.{KCodec, VCodec}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -1,4 +1,4 @@
-package ai.metarank.fstore.redis.codec.impl
+package ai.metarank.fstore.codec.impl
 
 import ai.metarank.rank.LambdaMARTModel.LambdaMARTScorer
 import ai.metarank.rank.{LambdaMARTModel, NoopModel, ShuffleModel}

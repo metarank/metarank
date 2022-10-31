@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec}
 import ai.metarank.model.Feature.PeriodicCounterFeature
 import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue

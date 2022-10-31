@@ -1,6 +1,6 @@
-package ai.metarank.fstore.redis.codec
+package ai.metarank.fstore.codec
 
-import ai.metarank.fstore.redis.codec.impl.BinaryCodec
+import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import com.google.common.io.ByteStreams
 import io.circe.{Json, Codec => CirceCodec}

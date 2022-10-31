@@ -2,7 +2,7 @@ package ai.metarank.fstore.clickthrough
 
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.fstore.clickthrough.FileClickthroughStore.FileWriter
-import ai.metarank.fstore.redis.codec.StoreFormat
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.model.ClickthroughValues
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource

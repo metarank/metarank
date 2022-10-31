@@ -8,9 +8,11 @@ import ai.metarank.fstore.redis.codec.impl.{
   ScorerCodec,
   TimeValueCodec
 }
+import ai.metarank.fstore.redis.codec.values.{BinaryVCodec, JsonVCodec}
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{ClickthroughValues, EventId, FeatureValue, Key, Scalar, Scope}
+import ai.metarank.rank.Model
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.DelimitedPair.SlashDelimitedPair
 import io.circe.{Codec, Decoder, Encoder, Json}
@@ -31,25 +33,24 @@ sealed trait StoreFormat {
 object StoreFormat {
   case object JsonStoreFormat extends StoreFormat {
     lazy val key          = keyEncoder
-    lazy val timeValue    = VCodec.json[TimeValue](FeatureValue.timeValueCodec)
+    lazy val timeValue    = JsonVCodec[TimeValue](FeatureValue.timeValueCodec)
     lazy val eventId      = idEncoder
-    lazy val ctv          = VCodec.json[ClickthroughValues](ClickthroughValues.ctvJsonCodec)
-    lazy val scalar       = VCodec.json[Scalar](Scalar.scalarJsonCodec)
+    lazy val ctv          = JsonVCodec[ClickthroughValues](ClickthroughValues.ctvJsonCodec)
+    lazy val scalar       = JsonVCodec[Scalar](Scalar.scalarJsonCodec)
     lazy val model        = KCodec.wrap[ModelName](ModelName.apply, _.name)
-    lazy val scorer       = VCodec.json[Scorer]
-    lazy val featureValue = VCodec.json[FeatureValue]
+    lazy val scorer       = JsonVCodec[Scorer](Model.scorerCodec)
+    lazy val featureValue = JsonVCodec[FeatureValue](FeatureValue.featureValueCodec)
   }
 
   case object BinaryStoreFormat extends StoreFormat {
-
     lazy val key          = keyEncoder
-    lazy val timeValue    = VCodec.binary(TimeValueCodec)
+    lazy val timeValue    = BinaryVCodec(compress = false, TimeValueCodec)
     lazy val eventId      = idEncoder
-    lazy val ctv          = VCodec.bincomp(ClickthroughValuesCodec)
-    lazy val scalar       = VCodec.binary(ScalarCodec)
+    lazy val ctv          = BinaryVCodec(compress = true, ClickthroughValuesCodec)
+    lazy val scalar       = BinaryVCodec(compress = false, ScalarCodec)
     lazy val model        = KCodec.wrap[ModelName](ModelName.apply, _.name)
-    lazy val scorer       = VCodec.binary(ScorerCodec)
-    lazy val featureValue = VCodec.binary(FeatureValueCodec)
+    lazy val scorer       = BinaryVCodec(compress = false, ScorerCodec)
+    lazy val featureValue = BinaryVCodec(compress = false, FeatureValueCodec)
   }
 
   val keyEncoder: KCodec[Key] = new KCodec[Key] {

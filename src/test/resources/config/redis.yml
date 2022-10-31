@@ -6,7 +6,7 @@ state:
 train:
   type: s3
   bucket: metarank
-  prefix: /some/prefix
+  prefix: /some/prefixs
 
 models:
   xgboost:

@@ -10,11 +10,11 @@ import io.circe.{Decoder, DecodingFailure}
 sealed trait TrainConfig
 
 object TrainConfig {
-  case class S3TrainConfig(bucket: String, prefix: String) extends TrainConfig
-  implicit val s3decoder: Decoder[S3TrainConfig] = deriveDecoder[S3TrainConfig]
-
-  case class FileTrainConfig(path: String) extends TrainConfig
+  case class FileTrainConfig(path: String, format: StoreFormat = BinaryStoreFormat) extends TrainConfig
   implicit val fileDecoder: Decoder[FileTrainConfig] = deriveDecoder[FileTrainConfig]
+
+  case class DiscardTrainConfig() extends TrainConfig
+  implicit val discardDecoder: Decoder[DiscardTrainConfig] = Decoder.instance(_ => Right(DiscardTrainConfig()))
 
   case class RedisTrainConfig(
       host: Hostname,
@@ -52,12 +52,12 @@ object TrainConfig {
 
   implicit val trainDecoder: Decoder[TrainConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
-      case Left(err)       => Left(err)
-      case Right("s3")     => s3decoder.tryDecode(c)
-      case Right("redis")  => redisDecoder.tryDecode(c)
-      case Right("memory") => memDecoder.tryDecode(c)
-      case Right("file")   => fileDecoder.tryDecode(c)
-      case Right(other)    => Left(DecodingFailure(s"type $other is not yet supported", c.history))
+      case Left(err)        => Left(err)
+      case Right("redis")   => redisDecoder.tryDecode(c)
+      case Right("memory")  => memDecoder.tryDecode(c)
+      case Right("file")    => fileDecoder.tryDecode(c)
+      case Right("discard") => discardDecoder.tryDecode(c)
+      case Right(other)     => Left(DecodingFailure(s"type $other is not yet supported", c.history))
     }
   )
 

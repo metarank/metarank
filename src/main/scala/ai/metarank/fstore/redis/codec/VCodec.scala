@@ -7,8 +7,19 @@ import io.circe.{Json, Codec => CirceCodec}
 import org.typelevel.jawn.AsyncParser
 import org.typelevel.jawn.AsyncParser.ValueStream
 
-import java.io.{BufferedInputStream, BufferedOutputStream, ByteArrayInputStream, ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream, OutputStream}
+import java.io.{
+  BufferedInputStream,
+  BufferedOutputStream,
+  ByteArrayInputStream,
+  ByteArrayOutputStream,
+  DataInput,
+  DataInputStream,
+  DataOutput,
+  DataOutputStream,
+  OutputStream
+}
 import java.nio.CharBuffer
+import java.util.Scanner
 import scala.util.{Failure, Success, Try}
 
 trait VCodec[T] {
@@ -22,44 +33,7 @@ object VCodec {
   import io.circe.syntax._
   import io.circe.parser.{decode => cdecode}
 
-  def json[T](implicit jc: CirceCodec[T]): VCodec[T] = new VCodec[T] {
-    override def encode(value: T): Array[Byte] = value.asJson.noSpaces.getBytes
-    override def encodeDelimited(value: T, output: DataOutput): Unit = {
-      output.write(encode(value))
-      output.write('\n')
-    }
-    override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))
 
-    override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
-      var buf = CharBuffer.allocate(32)
-      Try(in.readChar()) match {
-        case Failure(exception) => ???
-        case Success(value) => ???
-      }
-    }
-  }
-
-  def binary[T](codec: BinaryCodec[T]) = new VCodec[T] {
-    override def decode(bytes: Array[Byte]): Either[Throwable, T] = {
-      val in = ByteStreams.newDataInput(bytes)
-      Try(codec.read(in)) match {
-        case Failure(exception) => Left(exception)
-        case Success(value)     => Right(value)
-      }
-    }
-
-    override def encode(value: T): Array[Byte] = {
-      val out = ByteStreams.newDataOutput()
-      codec.write(value, out)
-      out.toByteArray
-    }
-
-    override def encodeDelimited(value: T, output: DataOutput): Unit = {
-      val bytes = encode(value)
-      output.writeInt(bytes.length)
-      output.write(bytes)
-    }
-  }
 
   def bincomp[T](codec: BinaryCodec[T]) = new VCodec[T] {
     override def decode(bytes: Array[Byte]): Either[Throwable, T] = {
@@ -85,11 +59,30 @@ object VCodec {
       output.writeInt(bytes.length)
       output.write(bytes)
     }
+
+    override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
+      val size = in.readInt()
+      val buf  = new Array[Byte](size)
+      Try(in.readFully(buf)) match {
+        case Success(_)  => decode(buf).map(Option.apply)
+        case Failure(ex) => Right(None)
+      }
+    }
   }
 
   val string = new VCodec[String] {
-    override def decode(bytes: Array[Byte]): Either[Throwable, String]    = Right(new String(bytes))
-    override def encode(value: String): Array[Byte]                       = value.getBytes()
-    override def encodeDelimited(value: String, output: DataOutput): Unit = ???
+    override def decode(bytes: Array[Byte]): Either[Throwable, String] = Right(new String(bytes))
+    override def encode(value: String): Array[Byte]                    = value.getBytes()
+    override def encodeDelimited(value: String, output: DataOutput): Unit = {
+      output.writeChars(value)
+      output.write('\n')
+    }
+
+    override def decodeDelimited(in: DataInput): Either[Throwable, Option[String]] = {
+      Try(in.readLine()) match {
+        case Failure(exception) => Right(None)
+        case Success(value)     => Right(Some(value))
+      }
+    }
   }
 }

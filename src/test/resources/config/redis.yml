@@ -4,9 +4,9 @@ state:
   port: 6379
 
 train:
-  type: s3
-  bucket: metarank
-  prefix: /some/prefixs
+  type: file
+  path: /some/path
+  format: json
 
 models:
   xgboost:

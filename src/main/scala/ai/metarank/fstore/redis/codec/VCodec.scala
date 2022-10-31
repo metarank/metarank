@@ -3,21 +3,19 @@ package ai.metarank.fstore.redis.codec
 import ai.metarank.fstore.redis.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import com.google.common.io.ByteStreams
-import io.circe.{Codec => CirceCodec}
+import io.circe.{Json, Codec => CirceCodec}
+import org.typelevel.jawn.AsyncParser
+import org.typelevel.jawn.AsyncParser.ValueStream
 
-import java.io.{
-  BufferedInputStream,
-  BufferedOutputStream,
-  ByteArrayInputStream,
-  ByteArrayOutputStream,
-  DataInputStream,
-  DataOutputStream
-}
+import java.io.{BufferedInputStream, BufferedOutputStream, ByteArrayInputStream, ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream, OutputStream}
+import java.nio.CharBuffer
 import scala.util.{Failure, Success, Try}
 
 trait VCodec[T] {
   def encode(value: T): Array[Byte]
+  def encodeDelimited(value: T, output: DataOutput): Unit
   def decode(bytes: Array[Byte]): Either[Throwable, T]
+  def decodeDelimited(in: DataInput): Either[Throwable, Option[T]]
 }
 
 object VCodec {
@@ -25,8 +23,20 @@ object VCodec {
   import io.circe.parser.{decode => cdecode}
 
   def json[T](implicit jc: CirceCodec[T]): VCodec[T] = new VCodec[T] {
-    override def encode(value: T): Array[Byte]                    = value.asJson.noSpaces.getBytes
+    override def encode(value: T): Array[Byte] = value.asJson.noSpaces.getBytes
+    override def encodeDelimited(value: T, output: DataOutput): Unit = {
+      output.write(encode(value))
+      output.write('\n')
+    }
     override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))
+
+    override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
+      var buf = CharBuffer.allocate(32)
+      Try(in.readChar()) match {
+        case Failure(exception) => ???
+        case Success(value) => ???
+      }
+    }
   }
 
   def binary[T](codec: BinaryCodec[T]) = new VCodec[T] {
@@ -42,6 +52,12 @@ object VCodec {
       val out = ByteStreams.newDataOutput()
       codec.write(value, out)
       out.toByteArray
+    }
+
+    override def encodeDelimited(value: T, output: DataOutput): Unit = {
+      val bytes = encode(value)
+      output.writeInt(bytes.length)
+      output.write(bytes)
     }
   }
 
@@ -63,10 +79,17 @@ object VCodec {
       buffered.flush()
       bytes.toByteArray
     }
+
+    override def encodeDelimited(value: T, output: DataOutput): Unit = {
+      val bytes = encode(value)
+      output.writeInt(bytes.length)
+      output.write(bytes)
+    }
   }
 
   val string = new VCodec[String] {
-    override def decode(bytes: Array[Byte]): Either[Throwable, String] = Right(new String(bytes))
-    override def encode(value: String): Array[Byte]                    = value.getBytes()
+    override def decode(bytes: Array[Byte]): Either[Throwable, String]    = Right(new String(bytes))
+    override def encode(value: String): Array[Byte]                       = value.getBytes()
+    override def encodeDelimited(value: String, output: DataOutput): Unit = ???
   }
 }

@@ -4,7 +4,7 @@ Metarank is a secondary re-ranker: it's an extra **non-free** step in your retri
  
 * Re-ranking latency: 10-30 ms
 * Redis memory usage: 1-10 GiB
-* Data import throughput: 1000-2000 events/second.
+* Data import throughput: 1000-3000 events/second.
 
 ## Response latency
 
@@ -24,11 +24,18 @@ So while planning your installation, expect Metarank to be within **20-30 ms** l
 
 Using the same reference [RankLens](https://github.com/metarank/ranklens) dataset, we built a fuzzy [synthetic dataset generator](https://github.com/metarank/metarank/blob/master/src/test/scala/ai/metarank/util/SyntheticRanklensDataset.scala) and generated the following dataset variations:
 
-* N users, 1000 items.
-* Each user made 10 rankings within a single session.
+* N users, 100k items.
+* Each user made 2 rankings within a single session.
 * Each ranking event has 2 clicks made by the user.
 
-![Ranklens dataset variations](img/ranklens-synthetic.png)
+| Users | Items | Rankings | Clicks | Total events | Uncompressed size |
+|-------|-------|----------|--------|--------------|-------------------|
+| 128K  | 100K  | 256K     | 512K   | 896K         | 287MiB            |
+| 256K  | 100K  | 512K     | 1M     | 1.8M         | 512MiB            |
+| 512K  | 100K  | 1M       | 2M     | 3.5M         | 963MiB            |
+| 1M    | 100K  | 2M       | 4M     | 7.1M         | 1.8GiB            |
+| 2M    | 100K  | 4M       | 8M     | 14.3M        | 3.5GiB            |
+| 4M    | 100K  | 8M       | 16M    | 28.6M        | 7.1GiB            |
 
 Metarank only tracks aggregated data required for the re-ranking and does not store raw events. Therefore, memory usage depends on the following characteristics of your dataset:
 
@@ -41,6 +48,13 @@ The resulting memory usage for a `binary` state encoding format and `Redis` as a
 
 ![Redis/heap memory usage](img/mem-usage.png)
 
-According to the diagram, the Metarank has a very low RAM usage (around 40-50MiB JVM heap used), as it's stateless and uses Redis for the whole dataset management.
+| Users, thousands | Redis, MB | Import time, min |
+|------------------|-----------|------------------|
+|              128 |       386 |                8 |
+|              256 |       448 |               16 |
+|              512 |       561 |               30 |
+|             1024 |       812 |               61 |
+|             2048 |      1210 |              110 |
+|             4096 |      1860 |              205 |
 
- So while planning your installation, expect Metarank to use around **1.5 GiB per 100k users**.
+ So while planning your installation, expect Metarank to use around **0.8 GiB per 1M users**.

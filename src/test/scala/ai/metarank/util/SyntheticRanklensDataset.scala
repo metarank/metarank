@@ -4,9 +4,10 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, Rank
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId, Timestamp}
-import better.files.File
 import cats.data.NonEmptyList
 import io.circe.syntax._
+
+import java.io.{BufferedOutputStream, File, FileOutputStream}
 import java.util.UUID
 import scala.concurrent.duration._
 import scala.util.Random
@@ -14,30 +15,36 @@ import scala.util.Random
 object SyntheticRanklensDataset {
   def main(args: Array[String]): Unit = {
     for {
-      users <- List(1, 2, 4, 8, 16, 32, 64)
+      users <- List(128, 256, 512, 1024, 2048, 4096)
     } {
       println(users)
       val events = apply(users = users * 1000)
-      val file   = File(s"/tmp/events${users}k.jsonl")
-      file.writeText(events.map(_.asJson.noSpaces).mkString("\n"))
+      val file   = new File(s"/home/shutty/work/metarank/ranklens-syn/events${users}.jsonl")
+      val stream = new BufferedOutputStream(new FileOutputStream(file), 128 * 1024)
+      events.foreach(e => {
+        stream.write(e.asJson.noSpaces.getBytes())
+        stream.write('\n')
+      })
+      stream.close()
     }
   }
   def apply(
       start: Timestamp = Timestamp.date(2022, 9, 1, 0, 0, 0),
       period: FiniteDuration = 30.days,
-      items: Int = 1000,
+      items: Int = 100000,
       users: Int = 1000,
-      rankingsPerUser: Int = 10,
+      rankingsPerUser: Int = 2,
       clicksPerRanking: Int = 2
-  ): List[Event] = {
+  ): Iterator[Event] = {
     val events   = RanklensEvents().collect { case i: ItemEvent => i }
     val genres   = events.flatMap(_.fields.collect { case g @ StringListField("genres", _) => g }).toArray
     val director = events.flatMap(_.fields.collect { case g @ StringField("director", _) => g }).toArray
     val tags     = events.flatMap(_.fields.collect { case g @ StringListField("tags", _) => g }).toArray
     val actors   = events.flatMap(_.fields.collect { case g @ StringListField("actors", _) => g }).toArray
 
+    val step = (period.toMillis / (users * rankingsPerUser * clicksPerRanking)).millis
     val itemEvents = for {
-      i <- (0 until items).toArray
+      i <- (0 until items).iterator
     } yield {
       ItemEvent(
         id = EventId(UUID.randomUUID().toString),
@@ -58,38 +65,36 @@ object SyntheticRanklensDataset {
       )
     }
 
-    val userIds = (0 until users).map(i => UserId(i.toString)).toArray
-
     val rankings = for {
-      user <- userIds
+      user <- (0 until users).iterator
       i    <- 0 until rankingsPerUser
     } yield {
-      RankingEvent(
+      val itemList = (0 until 10).map(_ => ItemRelevancy(ItemId(Random.nextInt(items).toString), 1.0)).toArray
+      val rank = RankingEvent(
         id = EventId(UUID.randomUUID().toString),
-        timestamp = start.plus(Random.nextLong(period.toMillis).millis),
-        user = user,
-        session = Some(SessionId(user.value)),
-        items = NonEmptyList.fromListUnsafe(
-          (0 until 10).map(_ => ItemRelevancy(itemEvents(Random.nextInt(itemEvents.length)).item, 1.0)).toList
+        timestamp = start.plus((user * rankingsPerUser + i) * step),
+        user = UserId(user.toString),
+        session = Some(SessionId(user.toString)),
+        items = NonEmptyList.fromListUnsafe(itemList.toList)
+      )
+      val clickPause = step.toMillis / (clicksPerRanking + 1)
+      val clicks = for {
+        i <- (0 until clicksPerRanking).toList
+      } yield {
+        InteractionEvent(
+          id = EventId(UUID.randomUUID().toString),
+          item = itemList(Random.nextInt(itemList.length)).id,
+          timestamp = rank.timestamp.plus(clickPause.millis),
+          user = rank.user,
+          session = rank.session,
+          ranking = Some(rank.id),
+          `type` = "click"
         )
-      )
+      }
+      val b = 1
+      Iterator.single(rank) ++ clicks.iterator
     }
 
-    val clicks = for {
-      ranking       <- rankings
-      (item, index) <- Random.shuffle(ranking.items.map(_.id).toList).take(clicksPerRanking).zipWithIndex
-    } yield {
-      InteractionEvent(
-        id = EventId(UUID.randomUUID().toString),
-        item = item,
-        timestamp = ranking.timestamp.plus((10 + index * Random.nextInt(10)).seconds),
-        user = ranking.user,
-        session = ranking.session,
-        ranking = Some(ranking.id),
-        `type` = "click"
-      )
-    }
-
-    (itemEvents.toList ++ rankings.toList ++ clicks.toList).sortBy(_.timestamp.ts)
+    itemEvents ++ rankings.flatten
   }
 }

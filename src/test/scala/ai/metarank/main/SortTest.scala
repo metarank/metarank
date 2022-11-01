@@ -22,11 +22,11 @@ class SortTest extends AnyFlatSpec with Matchers {
     file.toFile.deleteOnExit()
     val out = Files.createTempFile("events_out_", ".json")
     out.toFile.deleteOnExit()
-    writeBatch(events, file)
+    writeBatch(events.toList, file)
 
     Sort.run(SortArgs(file, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
-    sorted shouldBe events.sortBy(_.timestamp.ts)
+    sorted shouldBe events.toList.sortBy(_.timestamp.ts)
   }
 
   it should "read directory of unsorted files" in {
@@ -34,15 +34,15 @@ class SortTest extends AnyFlatSpec with Matchers {
     val out = Files.createTempFile("events_out_", ".json")
     out.toFile.deleteOnExit()
     for {
-      (batch, index) <- events.grouped(1000).zipWithIndex
+      (batch, index) <- events.grouped(1000).zipWithIndex.toList
     } {
       val file = Files.createTempFile(dir, s"events_in_${index}_", ".json")
       file.toFile.deleteOnExit()
-      writeBatch(batch, file)
+      writeBatch(batch.toList, file)
     }
     Sort.run(SortArgs(dir, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
-    sorted shouldBe events.sortBy(_.timestamp.ts)
+    sorted shouldBe events.toList.sortBy(_.timestamp.ts)
   }
 
   def writeBatch(events: List[Event], file: Path) = {

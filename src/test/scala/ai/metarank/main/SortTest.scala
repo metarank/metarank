@@ -15,18 +15,18 @@ import scala.util.Random
 import io.circe.syntax._
 
 class SortTest extends AnyFlatSpec with Matchers {
-  lazy val events = Random.shuffle(SyntheticRanklensDataset(items = 100, users = 100))
+  lazy val events = Random.shuffle(SyntheticRanklensDataset(items = 100, users = 100)).toList
 
   it should "sort single file" in {
     val file = Files.createTempFile("events_in_", ".json")
     file.toFile.deleteOnExit()
     val out = Files.createTempFile("events_out_", ".json")
     out.toFile.deleteOnExit()
-    writeBatch(events.toList, file)
+    writeBatch(events, file)
 
     Sort.run(SortArgs(file, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
-    sorted shouldBe events.toList.sortBy(_.timestamp.ts)
+    sorted shouldBe events.sortBy(_.timestamp.ts)
   }
 
   it should "read directory of unsorted files" in {
@@ -34,18 +34,18 @@ class SortTest extends AnyFlatSpec with Matchers {
     val out = Files.createTempFile("events_out_", ".json")
     out.toFile.deleteOnExit()
     for {
-      (batch, index) <- events.grouped(1000).zipWithIndex.toList
+      (batch, index) <- events.grouped(1000).zipWithIndex
     } {
       val file = Files.createTempFile(dir, s"events_in_${index}_", ".json")
       file.toFile.deleteOnExit()
-      writeBatch(batch.toList, file)
+      writeBatch(batch, file)
     }
     Sort.run(SortArgs(dir, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
-    sorted shouldBe events.toList.sortBy(_.timestamp.ts)
+    sorted shouldBe events.sortBy(_.timestamp.ts)
   }
 
-  def writeBatch(events: List[Event], file: Path) = {
+  def writeBatch(events: Seq[Event], file: Path) = {
     val stream = new BufferedOutputStream(new FileOutputStream(file.toFile), 10 * 1024)
     events.foreach(event => {
       stream.write(event.asJson.noSpaces.getBytes())

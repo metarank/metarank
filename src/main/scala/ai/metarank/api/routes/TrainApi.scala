@@ -17,7 +17,7 @@ case class TrainApi(mapping: FeatureMapping, store: Persistence, cts: Clickthrou
     mapping.models.get(modelName) match {
       case Some(model @ LambdaMARTModel(conf, _, _, _)) =>
         Train
-          .train(store, cts, model, modelName, conf.backend, None)
+          .train(store, cts, model, modelName, conf.backend)
           .map(result => Response(entity = Entity.strict(JsonChunk(result))))
       case None =>
         error(Status.NotFound, s"Model $modelName is not defined in config")

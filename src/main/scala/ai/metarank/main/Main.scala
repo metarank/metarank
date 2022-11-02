@@ -6,6 +6,7 @@ import ai.metarank.config.CoreConfig.TrackingConfig
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.{
   AutoFeatureArgs,
+  ExportArgs,
   ImportArgs,
   ServeArgs,
   SortArgs,
@@ -13,7 +14,7 @@ import ai.metarank.main.CliArgs.{
   TrainArgs,
   ValidateArgs
 }
-import ai.metarank.main.command.{AutoFeature, Import, Serve, Standalone, Train, Validate}
+import ai.metarank.main.command.{AutoFeature, Export, Import, Serve, Standalone, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
 import ai.metarank.util.analytics.{AnalyticsReporter, ErrorReporter}
 import ai.metarank.util.{Logging, Version}
@@ -62,6 +63,7 @@ object Main extends IOApp with Logging {
                 case a: TrainArgs      => Train.run(conf, store, cts, mapping, a)
                 case a: ValidateArgs   => Validate.run(conf, a)
                 case a: StandaloneArgs => Standalone.run(conf, store, cts, mapping, a)
+                case a: ExportArgs     => Export.run(conf, cts, mapping, a)
               }
             } yield {}
         }

@@ -39,7 +39,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   }
 
   it should "train the xgboost model" in {
-    Train.train(store, cts, model, "xgboost", modelConfig.backend, None).unsafeRunSync()
+    Train.train(store, cts, model, "xgboost", modelConfig.backend).unsafeRunSync()
   }
 
   it should "rerank things" in {

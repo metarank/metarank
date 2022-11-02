@@ -50,6 +50,8 @@ object CliArgs extends Logging {
       sort: SortingType
   ) extends CliArgs
 
+  case class ExportArgs(conf: Path, model: String, out: Path, sample: Double) extends CliConfArgs
+
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
   def parse(args: List[String], env: Map[String, String]): Either[Throwable, CliArgs] = {
@@ -122,6 +124,15 @@ object CliArgs extends Logging {
               sort    <- parse(parser.autofeature.sort)
             } yield {
               AutoFeatureArgs(data, out, offset, format, ruleset, sort)
+            }
+          case Some(parser.`export`) =>
+            for {
+              conf   <- parse(parser.`export`.config)
+              model  <- parse(parser.`export`.model)
+              out    <- parse(parser.`export`.out)
+              sample <- parse(parser.`export`.sample)
+            } yield {
+              ExportArgs(conf, model, out, sample)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -264,6 +275,30 @@ object CliArgs extends Logging {
       descr("import, train and serve at once")
     }
 
+    object `export` extends Subcommand("export") with ConfigOption {
+      descr("export training dataset for hyperparameter optimization")
+
+      val model = opt[String](
+        "model",
+        required = true,
+        short = 'm',
+        descr = "model name to export data for"
+      )
+      val out = opt[Path](
+        name = "out",
+        required = true,
+        descr = "a directory to export model training files",
+        validate = pathExists
+      )
+      val sample = opt[Double](
+        name = "sample",
+        required = false,
+        default = Some(1.0),
+        descr = "sampling ratio of exported training click-through events",
+        validate = between(0.0, 1.0)
+      )
+    }
+
     def pathExists(path: Path) = {
       val result = path.toFile.exists()
       if (!result) {
@@ -282,6 +317,10 @@ object CliArgs extends Logging {
       result
     }
 
+    def between(min: Double, max: Double)(value: Double): Boolean = {
+      (value >= min) && (value <= max)
+    }
+
     addSubcommand(`import`)
     addSubcommand(train)
     addSubcommand(serve)
@@ -289,6 +328,7 @@ object CliArgs extends Logging {
     addSubcommand(validate)
     addSubcommand(sort)
     addSubcommand(autofeature)
+    addSubcommand(`export`)
     version(Logo.raw + " Metarank v:" + Version().getOrElse("unknown"))
     banner("""Usage: metarank <subcommand> <options>
              |Options:

@@ -39,7 +39,7 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
   }
 
   it should "train the xgboost model" in {
-    Train.train(store, cts, model, "xgboost", modelConfig.backend, None).unsafeRunSync()
+    Train.train(store, cts, model, "xgboost", modelConfig.backend).unsafeRunSync()
   }
 
 }

@@ -9,7 +9,6 @@ java -jar metarank-x.x.x.jar
 ```
 
 ```shell
-
                 __                              __    
   _____   _____/  |______ ____________    ____ |  | __
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
@@ -95,8 +94,14 @@ Subcommand: autofeature - generate reference config based on existing data
                                default=false)
   -h, --help                   Show help message
 
-For all other tricks, consult the docs on https://docs.metarank.ai
-```
+Subcommand: export - export training dataset for hyperparameter optimization
+  -c, --config  <arg>   path to config file
+  -m, --model  <arg>    model name to export data for
+  -o, --out  <arg>      a directory to export model training files
+  -s, --sample  <arg>   sampling ratio of exported training click-through events
+  -h, --help            Show help message
+
+For all other tricks, consult the docs on https://docs.metarank.ai```
 
 The command-line argument structure is:
 
@@ -115,6 +120,7 @@ Metarank CLI has a set of different running modes:
 * [`validate`](#validation): validates data nd configuration files.
 * [`sort`](#historical-data-sorting): pre-sorts the dataset by timestamp.
 * [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on yourr data.
+* [`export`](#dataset-export): export the training dataset for further hyperparam optimization.
 
 ### Validation
 
@@ -187,9 +193,118 @@ java -jar metarank.jar train --config /path/to/config.yaml
 ```
 
 * if the `--model <name>` option is not given, then Metarank will train all the defined models sequentally. 
-* the `--export <dir>` option dumps train+test datasets in the CSV format. It can be useful for separate hyper-parameter optimization.
 
+### Dataset export
 
+Metarank can emit CSV/LibSVM formatted datasets and corresponding config files for LightGBM and XGBoost, so you can later perform a hyper-parameter optimization using your favourite tool:
+
+```shell
+java -jar metarank.jar export --config /path/to/config.yaml --model <modelname> --out /export/dir
+```
+
+Metarank export format is dependent on model backend type:
+* For XGBoost, we export a LibSVM-encoded train/test files with embedded `qid`. This format is not compatible with the LightGBM LibSVM reader implementation (and we were unable to make it work with both). An example:
+
+```text
+1 qid:1 0:1.0 1:0.2
+0 qid:1 0:0.5 1:0.3
+1 qid:2 0:0.1 1:1.0
+```
+
+* for LightGBM, we export a CSV-encoded train/test files with header. XGBoost (as for version 1.70) cannot load query information from CSV files, so it cannot be used for LambdaMART. Example:
+
+```text
+label,group,f1,f2
+1.0,1,1.0,0.2
+0.0,1,0.5,0.3
+1.0,2,0.1,1.0
+```
+
+For both booster implementations Metarank also emits a corresponding config file with all default values filled in. You can just run the lightgbm/xgboost cli tool externally to replicate what's Metarank is doing.
+
+For XGBoost:
+
+```shell
+$> ls -l
+total 35760
+-rw-r--r-- 1 shutty shutty  5852217 Nov  2 12:40 test.svm
+-rw-r--r-- 1 shutty shutty 23830680 Nov  2 12:40 train.svm
+-rw-r--r-- 1 shutty shutty      171 Nov  2 12:59 xgboost.conf
+
+$> cat xgboost.conf
+
+eta=0.1
+max_depth=8
+subsample=0.8
+num_round=5
+objective=rank:pairwise
+eval_metric=ndcg@10
+seed=0
+data=train.svm
+test:data=test.svm
+eval[train=train.svm
+eval[test]=test.svm
+
+$> xgboost xgboost.conf
+[13:00:09] [0] train-ndcg@10:0.58637041553234925      test-ndcg@10:0.54517512609937979
+[13:00:09] [1] train-ndcg@10:0.60275740110564990      test-ndcg@10:0.55988540039586532
+[13:00:09] [2] train-ndcg@10:0.61207514143863639      test-ndcg@10:0.56497256071656654
+[13:00:10] [3] train-ndcg@10:0.61507850860846780      test-ndcg@10:0.56668620039370876
+[13:00:10] [4] train-ndcg@10:0.61723381498663543      test-ndcg@10:0.56796994649060073
+```
+
+For LightGBM:
+
+```shell
+$> ls -l
+total 39740
+-rw-r--r-- 1 shutty shutty      219 Nov  2 13:01 lightgbm.conf
+-rw-r--r-- 1 shutty shutty  6845983 Nov  2 13:01 test.csv
+-rw-r--r-- 1 shutty shutty 28453327 Nov  2 13:01 train.csv
+
+$> cat lightgbm.conf
+
+objective=lambdarank
+data=train.csv
+valid=test.csv
+num_iterations=5
+learning_rate=0.1
+seed=0
+max_depth=8
+header=true
+label_column=name:label
+group_column=name:group
+lambdarank_truncation_level=10
+metric=ndcg
+eval_at=10
+
+$> lightgbm config=lightgbm.conf
+[LightGBM] [Info] Warning: last line of lightgbm.conf has no end of line, still using this line
+[LightGBM] [Warning] Accuracy may be bad since you didn't explicitly set num_leaves OR 2^max_depth > num_leaves. (num_leaves=31).
+[LightGBM] [Info] Finished loading parameters
+[LightGBM] [Info] Using column label as label
+[LightGBM] [Info] Using column group as group/query id
+[LightGBM] [Info] Construct bin mappers from text data time 0.14 seconds
+[LightGBM] [Info] Finished loading data in 0.279901 seconds
+[LightGBM] [Warning] Auto-choosing row-wise multi-threading, the overhead of testing was 0.020266 seconds.
+You can set `force_row_wise=true` to remove the overhead.
+And if memory is not enough, you can set `force_col_wise=true`.
+[LightGBM] [Info] Total Bins 1837
+[LightGBM] [Info] Number of data points in the train set: 164232, number of used features: 29
+[LightGBM] [Info] Finished initializing training
+[LightGBM] [Info] Started training...
+[LightGBM] [Info] Iteration:1, valid_1 ndcg@10 : 0.561739
+[LightGBM] [Info] 0.009204 seconds elapsed, finished iteration 1
+[LightGBM] [Info] Iteration:2, valid_1 ndcg@10 : 0.572802
+[LightGBM] [Info] 0.017980 seconds elapsed, finished iteration 2
+[LightGBM] [Info] Iteration:3, valid_1 ndcg@10 : 0.576812
+[LightGBM] [Info] 0.032011 seconds elapsed, finished iteration 3
+[LightGBM] [Info] Iteration:4, valid_1 ndcg@10 : 0.582428
+[LightGBM] [Info] 0.045455 seconds elapsed, finished iteration 4
+[LightGBM] [Info] Iteration:5, valid_1 ndcg@10 : 0.582633
+[LightGBM] [Info] 0.052650 seconds elapsed, finished iteration 5
+[LightGBM] [Info] Finished training
+```
 ## Environment variables
 
 Config file can be passed to the Metarank not only as a command-line argument, but also as an environment variable.

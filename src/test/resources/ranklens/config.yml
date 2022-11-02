@@ -4,6 +4,9 @@ state:
   port: 6379
   format: binary
 
+#train:
+#  type: discard
+
 core:
   clickthrough:
     maxSessionLength: 60s
@@ -19,9 +22,9 @@ models:
     weights:
       click: 1
     features:
-#      - popularity
+      - popularity
       - vote_avg
-#      - vote_cnt
+      - vote_cnt
       - budget
       - release_date
       - runtime

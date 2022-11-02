@@ -59,7 +59,8 @@ object Train extends Logging {
                         |=======""".stripMargin
                     )
                   )
-                case _ => train(store, cts, model, name, model.conf.backend, args.`export`).void
+                case _ =>
+                  train(store, cts, model, name, model.conf.backend).void
               }
 
             case _ => IO.raiseError(new Exception(s"model ${args.model} is not defined in config"))
@@ -80,12 +81,33 @@ object Train extends Logging {
       cts: ClickthroughStore,
       model: LambdaMARTModel,
       name: String,
-      backend: ModelBackend,
-      `export`: Option[Path]
+      backend: ModelBackend
   ): IO[TrainResult] = for {
+    dataset <- loadDataset(cts, model)
+    (train, test) = dataset
+    _            <- info(s"training model for train=${train.groups.size} test=${test.groups.size}")
+    trainedModel <- IO(model.train(train, test))
+    scorer       <- IO(LambdaMARTScorer(backend, trainedModel.bytes))
+    _            <- store.models.put(Map(ModelName(name) -> scorer))
+    _            <- store.sync
+    _            <- info(s"model uploaded to store, ${trainedModel.bytes.length} bytes")
+  } yield {
+    val result = TrainResult(
+      iterations = trainedModel.iterations.map(r => IterationStatus(r.index, r.took, r.trainMetric, r.testMetric)),
+      sizeBytes = trainedModel.bytes.length,
+      features = trainedModel.weights.map { case (name, weight) =>
+        FeatureStatus(name, weight)
+      }.toList
+    )
+    result.features.sortBy(_.name).foreach(fs => logger.info(fs.asPrintString))
+    result
+  }
+
+  def loadDataset(cts: ClickthroughStore, model: LambdaMARTModel, sample: Double = 1.0): IO[(Dataset, Dataset)] = for {
     clickthroughs <- cts
       .getall()
       .filter(_.ct.interactions.nonEmpty)
+      .filter(_ => Random.nextDouble() < sample)
       .map(ct =>
         QueryTimestamp(
           query = ClickthroughQuery(ct.values, ct.ct.interactions, ct, model.weights, model.datasetDescriptor),
@@ -103,32 +125,7 @@ object Train extends Logging {
       case _   => info(s"generated training dataset: ${dataset.groups.size} groups, ${dataset.desc.dim} dims")
     }
     (train, test) = split(dataset, 80)
-    _            <- info(s"training model for train=${train.groups.size} test=${test.groups.size}")
-    trainedModel <- IO(model.train(train, test))
-    scorer       <- IO(LambdaMARTScorer(backend, trainedModel.bytes))
-    _            <- store.models.put(Map(ModelName(name) -> scorer))
-    _            <- store.sync
-    _            <- info(s"model uploaded to store, ${trainedModel.bytes.length} bytes")
-    _ <- `export` match {
-      case None => info("not exporting dataset files, set --export flag to enable.")
-      case Some(path) =>
-        for {
-          _ <- StreamResource.of(Paths.get(path.toString + "/train.csv")).use(s => IO(CSVOutputFormat.write(s, train)))
-          _ <- StreamResource.of(Paths.get(path.toString + "/test.csv")).use(s => IO(CSVOutputFormat.write(s, test)))
-        } yield {
-          logger.info("export done")
-        }
-
-    }
   } yield {
-    val result = TrainResult(
-      iterations = trainedModel.iterations.map(r => IterationStatus(r.index, r.took, r.trainMetric, r.testMetric)),
-      sizeBytes = trainedModel.bytes.length,
-      features = trainedModel.weights.map { case (name, weight) =>
-        FeatureStatus(name, weight)
-      }.toList
-    )
-    result.features.sortBy(_.name).foreach(fs => logger.info(fs.asPrintString))
-    result
+    train -> test
   }
 }

@@ -5,7 +5,7 @@ import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
@@ -28,9 +28,10 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
   lazy val file   = Files.createTempFile("events", ".jsonl")
   lazy val store  = MemPersistence(mapping.schema)
+  lazy val cts = MemClickthroughStore()
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTModel]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store, mapping)
+  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
 
   it should "import events" in {
     Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer).unsafeRunSync()
@@ -38,7 +39,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   }
 
   it should "train the xgboost model" in {
-    Train.train(store, model, "xgboost", modelConfig.backend, None).unsafeRunSync()
+    Train.train(store, cts, model, "xgboost", modelConfig.backend).unsafeRunSync()
   }
 
   it should "rerank things" in {

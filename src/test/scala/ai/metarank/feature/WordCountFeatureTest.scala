@@ -36,7 +36,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract field" in {
     val event  = TestItemEvent("p1", List(StringField("title", "foo, bar, baz!")))
-    val result = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val result = feature.writes(event).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("title_words")), event.timestamp, SDouble(3))
     )

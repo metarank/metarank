@@ -1,8 +1,8 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.Persistence.KVCodec
+import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec}
 import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue

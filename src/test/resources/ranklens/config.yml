@@ -4,6 +4,9 @@
 #  port: 6379
 #  format: binary
 
+#train:
+#  type: discard
+
 core:
   clickthrough:
     maxSessionLength: 60s
@@ -19,19 +22,16 @@ models:
     weights:
       click: 1
     features:
-#      - popularity
+      - popularity
       - vote_avg
-#      - vote_cnt
+      - vote_cnt
       - budget
       - release_date
       - runtime
       - title_length
       - genre
       - ctr
-      - liked_genre
-      - liked_actors
-      - liked_tags
-      - liked_director
+      - profile
       - position
 #      - visitor_click_count
 #      - global_item_click_count
@@ -106,34 +106,10 @@ features:
     normalize:
       weight: 10
 
-  - name: liked_genre
+  - name: profile
     type: interacted_with
     interaction: click
-    field: metadata.genres
-    scope: session
-    count: 100
-    duration: 24h
-
-  - name: liked_actors
-    type: interacted_with
-    interaction: click
-    field: metadata.actors
-    scope: session
-    count: 100
-    duration: 24h
-
-  - name: liked_tags
-    type: interacted_with
-    interaction: click
-    field: metadata.tags
-    scope: session
-    count: 100
-    duration: 24h
-
-  - name: liked_director
-    type: interacted_with
-    interaction: click
-    field: metadata.director
+    field: [item.genres, item.actors, item.tags, item.director]
     scope: session
     count: 100
     duration: 24h

@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.{StoreFormat, KCodec}
 import ai.metarank.model.Feature.CounterFeature
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue

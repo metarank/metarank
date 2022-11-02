@@ -36,7 +36,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event, features: Persistence): IO[Iterable[Write]] = IO {
+  override def writes(event: Event): IO[Iterable[Write]] = IO {
     for {
       key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.itemField.field)
@@ -108,7 +108,7 @@ object FieldMatchFeature {
       tpe <- c.downField("type").as[String]
       method <- tpe match {
         case "ngram" => NgramMatcher.ngramDecoder.apply(c)
-        case "term"  => NgramMatcher.ngramDecoder.apply(c)
+        case "term"  => TermMatcher.termDecoder.apply(c)
         case other   => Left(DecodingFailure(s"match method $other is not supported", c.history))
       }
     } yield {
@@ -123,7 +123,7 @@ object FieldMatchFeature {
         .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
     case t: TermMatcher =>
       TermMatcher
-        .ngramEncoder(t)
+        .termEncoder(t)
         .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
     case _ => ???
   }

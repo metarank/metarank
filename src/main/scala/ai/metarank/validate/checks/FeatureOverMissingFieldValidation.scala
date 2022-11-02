@@ -34,17 +34,19 @@ object FeatureOverMissingFieldValidation extends EventValidation {
       .flatten
       .toSet
 
-    val brokenRefs: Map[FeatureSchema, FieldName] = config.features.toList.collect {
-      case f @ BooleanFeatureSchema(_, field, _, _, _) if !fields.contains(field)          => f -> field
-      case f @ FieldMatchSchema(_, field, _, _, _, _) if !fields.contains(field)           => f -> field
-      case f @ FieldMatchSchema(_, _, field, _, _, _) if !fields.contains(field)           => f -> field
-      case f @ InteractedWithSchema(_, _, field, _, _, _, _, _) if !fields.contains(field) => f -> field
-      case f @ ItemAgeSchema(_, field, _, _) if !fields.contains(field)                    => f -> field
-      case f @ NumberFeatureSchema(_, field, _, _, _) if !fields.contains(field)           => f -> field
-      case f @ RefererSchema(_, field, _, _, _) if !fields.contains(field)                 => f -> field
-      case f @ StringFeatureSchema(_, field, _, _, _, _, _) if !fields.contains(field)     => f -> field
-      case f @ UserAgentSchema(_, field, _, _, _) if !fields.contains(field)               => f -> field
-      case f @ WordCountSchema(_, field, _, _, _) if !fields.contains(field)               => f -> field
+    val brokenRefs: Map[FeatureSchema, FieldName] = config.features.toList.flatMap {
+      case f @ BooleanFeatureSchema(_, field, _, _, _) if !fields.contains(field) => List(f -> field)
+      case f @ FieldMatchSchema(_, field, _, _, _, _) if !fields.contains(field)  => List(f -> field)
+      case f @ FieldMatchSchema(_, _, field, _, _, _) if !fields.contains(field)  => List(f -> field)
+      case f @ InteractedWithSchema(_, _, fieldSet, _, _, _, _, _) =>
+        fieldSet.filter(f => !fields.contains(f)).map(field => f -> field)
+      case f @ ItemAgeSchema(_, field, _, _) if !fields.contains(field)                => List(f -> field)
+      case f @ NumberFeatureSchema(_, field, _, _, _) if !fields.contains(field)       => List(f -> field)
+      case f @ RefererSchema(_, field, _, _, _) if !fields.contains(field)             => List(f -> field)
+      case f @ StringFeatureSchema(_, field, _, _, _, _, _) if !fields.contains(field) => List(f -> field)
+      case f @ UserAgentSchema(_, field, _, _, _) if !fields.contains(field)           => List(f -> field)
+      case f @ WordCountSchema(_, field, _, _, _) if !fields.contains(field)           => List(f -> field)
+      case _                                                                           => Nil
     }.toMap
     if (brokenRefs.isEmpty) {
       logger.info(s"$name = PASS (${config.features.size} features referencing existing ${fields.size} event fields)")

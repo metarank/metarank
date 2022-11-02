@@ -6,13 +6,14 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.flow.FeatureValueFlow
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Event.ItemRelevancy
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{FeatureKey, FieldName, Key}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.Scalar.{SString, SStringList}
 import ai.metarank.model.Scope.{ItemScope, SessionScope}
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
@@ -28,9 +29,9 @@ import scala.concurrent.duration._
 
 class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf = InteractedWithSchema(
-    name = FeatureName("seen_color"),
+    name = FeatureName("seen"),
     interaction = "impression",
-    field = FieldName(Item, "color"),
+    fields = List(FieldName(Item, "color")),
     scope = SessionScopeType,
     count = Some(10),
     duration = Some(24.hours)
@@ -44,9 +45,9 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   val interactionEvent2 =
     TestInteractionEvent("p2", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
 
-  it should "decode config" in {
+  it should "decode config with single field" in {
     val yaml =
-      """name: seen_color
+      """name: seen
         |interaction: impression
         |field: metadata.color
         |scope: session
@@ -55,11 +56,24 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     parse(yaml).flatMap(_.as[InteractedWithSchema]) shouldBe Right(conf)
   }
 
+  it should "decode config with multiple fields" in {
+    val yaml =
+      """name: seen
+        |interaction: impression
+        |field: [item.color, item.brand]
+        |scope: session
+        |count: 10
+        |duration: 24h""".stripMargin
+    parse(yaml).flatMap(_.as[InteractedWithSchema]) shouldBe Right(
+      conf.copy(fields = List(FieldName(Item, "color"), FieldName(Item, "brand")))
+    )
+  }
+
   it should "emit writes on meta field" in {
-    val writes = feature.writes(itemEvent1, Persistence.blackhole()).unsafeRunSync().toList
+    val writes = feature.writes(itemEvent1).unsafeRunSync().toList
     writes shouldBe List(
       Put(
-        Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
+        Key(ItemScope(ItemId("p1")), FeatureName("seen_color")),
         itemEvent1.timestamp,
         SStringList(List("red"))
       )
@@ -68,10 +82,10 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
   it should "emit writes on meta list field" in {
     val event  = TestItemEvent("p1", List(StringListField("color", List("red"))))
-    val writes = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val writes = feature.writes(event).unsafeRunSync().toList
     writes shouldBe List(
       Put(
-        Key(ItemScope(ItemId("p1")), FeatureName("seen_color_field")),
+        Key(ItemScope(ItemId("p1")), FeatureName("seen_color")),
         event.timestamp,
         SStringList(List("red"))
       )
@@ -87,9 +101,34 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
     values shouldBe List(
       List(
-        SingleValue(FeatureName("seen_color"), 0.5),
-        SingleValue(FeatureName("seen_color"), 0.5),
-        SingleValue(FeatureName("seen_color"), 0)
+        VectorValue(FeatureName("seen"), Array(1.0), VectorDim(1)),
+        VectorValue(FeatureName("seen"), Array(1.0), VectorDim(1)),
+        VectorValue(FeatureName("seen"), Array(0.0), VectorDim(1))
+      )
+    )
+  }
+
+  it should "compute values for multiple fields at once" in {
+    val conf = InteractedWithSchema(
+      name = FeatureName("seen"),
+      interaction = "impression",
+      fields = List(FieldName(Item, "color"), FieldName(Item, "tags")),
+      scope = SessionScopeType,
+      count = Some(10),
+      duration = Some(24.hours)
+    )
+
+    val values = process(
+      List(itemEvent1, itemEvent2, interactionEvent1, interactionEvent2),
+      conf,
+      TestRankingEvent(List("p1", "p2", "p3")).copy(session = Some(SessionId("s1")))
+    )
+
+    values shouldBe List(
+      List(
+        VectorValue(FeatureName("seen"), Array(1.0, 0.0), VectorDim(2)),
+        VectorValue(FeatureName("seen"), Array(1.0, 0.0), VectorDim(2)),
+        VectorValue(FeatureName("seen"), Array(0.0, 0.0), VectorDim(2))
       )
     )
   }

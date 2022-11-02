@@ -3,9 +3,10 @@ package ai.metarank.main
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.TrackingConfig
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.{
   AutoFeatureArgs,
+  ExportArgs,
   ImportArgs,
   ServeArgs,
   SortArgs,
@@ -13,7 +14,7 @@ import ai.metarank.main.CliArgs.{
   TrainArgs,
   ValidateArgs
 }
-import ai.metarank.main.command.{AutoFeature, Import, Serve, Standalone, Train, Validate}
+import ai.metarank.main.command.{AutoFeature, Export, Import, Serve, Standalone, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
 import ai.metarank.util.analytics.{AnalyticsReporter, ErrorReporter}
 import ai.metarank.util.{Logging, Version}
@@ -36,13 +37,16 @@ object Main extends IOApp with Logging {
           .onError(ex =>
             IO {
               logger.error(s"Cannot parse args: ${ex.getMessage}\n\n")
-              CliArgs.printHelp()
             }
           )
         _ <- info("Metarank v" + Version().getOrElse("unknown") + " is starting.")
         _ <- args match {
-          case a: AutoFeatureArgs => AutoFeature.run(a)
-          case a: SortArgs        => Sort.run(a)
+          case a: AutoFeatureArgs =>
+            for {
+              _ <- sendUsageAnalytics(TrackingConfig(), AnalyticsPayload(args), env)
+              _ <- AutoFeature.run(a)
+            } yield {}
+          case a: SortArgs => Sort.run(a)
           case confArgs: CliArgs.CliConfArgs =>
             for {
               confString <- IO.fromTry(
@@ -52,12 +56,14 @@ object Main extends IOApp with Logging {
               _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args), env)
               mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
               store = Persistence.fromConfig(mapping.schema, conf.state)
+              cts   = ClickthroughStore.fromConfig(conf.train)
               _ <- confArgs match {
-                case a: ServeArgs      => Serve.run(conf, store, mapping, a)
-                case a: ImportArgs     => Import.run(conf, store, mapping, a)
-                case a: TrainArgs      => Train.run(conf, store, mapping, a)
+                case a: ServeArgs      => Serve.run(conf, store, cts, mapping, a)
+                case a: ImportArgs     => Import.run(conf, store, cts, mapping, a)
+                case a: TrainArgs      => Train.run(conf, store, cts, mapping, a)
                 case a: ValidateArgs   => Validate.run(conf, a)
-                case a: StandaloneArgs => Standalone.run(conf, store, mapping, a)
+                case a: StandaloneArgs => Standalone.run(conf, store, cts, mapping, a)
+                case a: ExportArgs     => Export.run(conf, cts, mapping, a)
               }
             } yield {}
         }

@@ -30,15 +30,15 @@ class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers with F
 
   it should "count item clicks" in {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
-    val write = feature.writes(event, Persistence.blackhole()).unsafeRunSync().toList
+    val write = feature.writes(event).unsafeRunSync().toList
     write shouldBe List(
       PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
   it should "ignore non-interaction events" in {
-    feature.writes(TestItemEvent("p1"), Persistence.blackhole()).unsafeRunSync().toList shouldBe Nil
-    feature.writes(TestRankingEvent(List("p1")), Persistence.blackhole()).unsafeRunSync().toList shouldBe Nil
+    feature.writes(TestItemEvent("p1")).unsafeRunSync().toList shouldBe Nil
+    feature.writes(TestRankingEvent(List("p1"))).unsafeRunSync().toList shouldBe Nil
   }
 
   it should "compute values" in {

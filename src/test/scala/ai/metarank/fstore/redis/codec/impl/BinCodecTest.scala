@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis.codec.impl
 
+import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.google.common.io.ByteStreams
 import org.scalatest.Suite
 import org.scalatest.matchers.should.Matchers

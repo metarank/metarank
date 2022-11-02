@@ -46,6 +46,45 @@ state: # a place to store the feature values for the ML inference and the traine
     #  password: <password> # required if Redis server is run with requirepass argument
 
 ```
+## Training
+
+Metarank also computes a click-through data structure, which contains the following bits of information:
+
+* ranking: which items were presented to the visitor
+* interactions: what visitor did after seeing the ranking (like clicks, purchases and so on)
+* feature values, which were used to produce the ranking in the past.
+
+These click-through events are essential for model training, as they're later translated into the implicit judgement lists for the underlying LambdaMART model:
+
+![Implicit judgements](../img/ltr-table.png)
+
+Metarank has multiple ways of storing these click-throughs with different pros and cons:
+* **Redis**: no special configuration needed, it's possible to perform periodic ML model retraining by reading the latest click-through events from it. But it takes quite a lot of RAM and maybe costly in a case when you have millions of click-through events.
+* **Local file**: takes much less RAM (as ct's are not stored in redis), but you need to manage the file containing the click-throughs by yourself. 
+
+```yaml
+# The optional train section describes how Metarank deals with the 
+# training dataset persistence.
+# By default, it uses the same way of storing click-through events as set in 
+# the state block.
+train:
+  type: redis
+
+  # Possible values are:
+  # - redis: with the same options as the state.redis persistence block.
+  # - memory: stores everything in memory
+  # - file: dump clickthroughs to the file
+  # - discard: drop all click-through events to /dev/null
+
+  # An example file configuration, for a case when you import+train everything 
+  # locally, but with a remote Redis to store the state for the inference:
+
+  # type: file
+  # path: /path/to/file   # path to a file which will be written during import, 
+  #                       # and read during training
+  # format: json          # options are: json, binary
+```
+
 ## Features
 
 This section describes how to map your input events into ML features that Metarank understands.

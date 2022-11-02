@@ -65,6 +65,6 @@ $ sbt docker
 $ docker images
 
 REPOSITORY                        TAG                           IMAGE ID       CREATED          SIZE
-metarank/metarank                 0.5.7                         e1caa262b1f1   45 seconds ago   632MB
+metarank/metarank                 0.5.9                         e1caa262b1f1   45 seconds ago   632MB
 
 ```

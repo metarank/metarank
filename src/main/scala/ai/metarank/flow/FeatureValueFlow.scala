@@ -24,7 +24,7 @@ case class FeatureValueFlow(
   def process: Pipe[IO, Event, List[FeatureValue]] = events =>
     events
       .evalMap(event => {
-        mapping.features.map(_.writes(event, store)).sequence.map(_.flatten.toList)
+        mapping.features.map(_.writes(event)).sequence.map(_.flatten.toList)
       })
       .evalMapChunk(writes => {
         writes.map(write => commitWrite(write).map(_ => write)).sequence

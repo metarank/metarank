@@ -14,6 +14,7 @@ import ai.metarank.fstore.cache.CachedFeature.{
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.memory.{
   MemBoundedList,
   MemCounter,
@@ -25,7 +26,6 @@ import ai.metarank.fstore.memory.{
   MemStatsEstimator
 }
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.fstore.redis.codec.StoreFormat
 import ai.metarank.model.{FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
@@ -47,7 +47,7 @@ case class RedisPersistence(
     stateClient: RedisClient,
     modelClient: RedisClient,
     valuesClient: RedisClient,
-    rankingsClient: RedisClient,
+//    rankingsClient: RedisClient,
     cache: CacheConfig,
     format: StoreFormat
 ) extends Persistence
@@ -153,20 +153,19 @@ case class RedisPersistence(
   override lazy val values: Persistence.KVStore[Key, FeatureValue] =
     RedisKVStore(valuesClient, Prefix.VALUES)(format.key, format.featureValue)
 
-  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
+//  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
 
   override def healthcheck(): IO[Unit] =
     stateClient.ping().void
 
   override def sync: IO[Unit] = for {
-    _ <- info("flushing redis pipeline")
-    _ <- stateClient.doFlush(stateClient.writer.ping().toCompletableFuture)
-    _ <- valuesClient.doFlush(valuesClient.writer.ping().toCompletableFuture)
-    _ <- rankingsClient.doFlush(rankingsClient.writer.ping().toCompletableFuture)
-    _ <- modelClient.doFlush(modelClient.writer.ping().toCompletableFuture)
-    _ <- IO.sleep(1.second)
+    start <- IO(System.currentTimeMillis())
+    _     <- stateClient.doFlush(stateClient.writer.ping().toCompletableFuture)
+    _     <- valuesClient.doFlush(valuesClient.writer.ping().toCompletableFuture)
+//    _     <- rankingsClient.doFlush(rankingsClient.writer.ping().toCompletableFuture)
+    _     <- modelClient.doFlush(modelClient.writer.ping().toCompletableFuture)
   } yield {
-    logger.info("redis pipeline flushed")
+    logger.info(s"redis pipeline flushed, took ${System.currentTimeMillis() - start}ms")
   }
 }
 
@@ -190,7 +189,7 @@ object RedisPersistence {
     state    <- RedisClient.create(host, port, db.state, pipeline, auth)
     models   <- RedisClient.create(host, port, db.models, pipeline, auth)
     values   <- RedisClient.create(host, port, db.values, pipeline, auth)
-    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
+//    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(
@@ -207,7 +206,7 @@ object RedisPersistence {
       )
     )
   } yield {
-    RedisPersistence(schema, state, models, values, rankings, cache, format)
+    RedisPersistence(schema, state, models, values, cache, format)
   }
 
 }

@@ -4,9 +4,10 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.flow.ClickthroughJoinBuffer.Node
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.Persistence.KVStore
+import ai.metarank.fstore.{ClickthroughStore, FeatureValueLoader}
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, ItemValue, Timestamp}
+import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, FeatureValue, ItemValue, Key, Timestamp}
 import ai.metarank.util.Logging
 import cats.effect.IO
 
@@ -17,7 +18,8 @@ import scala.collection.mutable.ArrayBuffer
 case class ClickthroughJoinBuffer(
     queue: util.Deque[Node],
     rankings: ConcurrentHashMap[String, Node],
-    state: Persistence,
+    values: KVStore[Key, FeatureValue],
+    cts: ClickthroughStore,
     mapping: FeatureMapping,
     conf: ClickthroughJoinConfig
 ) extends Logging {
@@ -34,8 +36,7 @@ case class ClickthroughJoinBuffer(
   }
 
   def handleRanking(event: RankingEvent): IO[Unit] = for {
-    keys    <- IO(mapping.features.flatMap(_.valueKeys(event)))
-    values  <- state.values.get(keys)
+    values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
     mvalues <- IO(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
     ctv = ClickthroughValues(
       Clickthrough(
@@ -66,7 +67,7 @@ case class ClickthroughJoinBuffer(
 
   def flushQueue(now: Timestamp): IO[List[Clickthrough]] = for {
     expired <- IO(pollExpired(now))
-    _       <- if (expired.nonEmpty) state.cts.put(expired) else IO.unit
+    _       <- if (expired.nonEmpty) cts.put(expired) else IO.unit
   } yield {
     expired.map(_.ct)
   }
@@ -92,12 +93,18 @@ case class ClickthroughJoinBuffer(
 
 object ClickthroughJoinBuffer extends Logging {
   class Node(var payload: ClickthroughValues)
-  def apply(conf: ClickthroughJoinConfig, store: Persistence, mapping: FeatureMapping) = {
+  def apply(
+      conf: ClickthroughJoinConfig,
+      values: KVStore[Key, FeatureValue],
+      cts: ClickthroughStore,
+      mapping: FeatureMapping
+  ) = {
     val deque    = new ConcurrentLinkedDeque[Node]()
     val rankings = new ConcurrentHashMap[String, Node](conf.maxParallelSessions)
 
     new ClickthroughJoinBuffer(
-      state = store,
+      values = values,
+      cts = cts,
       queue = deque,
       mapping = mapping,
       rankings = rankings,

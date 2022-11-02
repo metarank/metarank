@@ -1,4 +1,4 @@
-package ai.metarank.fstore.redis.codec
+package ai.metarank.fstore.codec
 
 import ai.metarank.model.Key
 

@@ -5,7 +5,7 @@ import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.flow.MetarankFlow.ProcessResult
 import ai.metarank.flow.{CheckOrderingPipe, ClickthroughJoinBuffer, MetarankFlow}
-import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.FileEventSource
@@ -19,19 +19,22 @@ object Import extends Logging {
   def run(
       conf: Config,
       storeResource: Resource[IO, Persistence],
+      ctsResource: Resource[IO, ClickthroughStore],
       mapping: FeatureMapping,
       args: ImportArgs
   ): IO[Unit] = {
     storeResource.use(store =>
-      for {
-        buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store, mapping))
-        result <- slurp(store, mapping, args, conf, buffer)
-        _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
-        _      <- buffer.flushQueue(Timestamp(Long.MaxValue))
-        _      <- store.sync
-        _      <- IO(System.gc())
-        _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")
-      } yield {}
+      ctsResource.use(cts => {
+        for {
+          buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping))
+          result <- slurp(store, mapping, args, conf, buffer)
+          _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
+          _      <- buffer.flushQueue(Timestamp(Long.MaxValue))
+          _      <- store.sync
+          _      <- IO(System.gc())
+          _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")
+        } yield {}
+      })
     )
   }
 

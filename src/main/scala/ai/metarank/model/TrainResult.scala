@@ -10,18 +10,14 @@ object TrainResult {
   case class IterationStatus(id: Int, millis: Long, trainMetric: Double, testMetric: Double)
   case class FeatureStatus(
       name: String,
-      weight: FeatureWeight,
-      empty: Int,
-      nonEmpty: Int,
-      percentiles: List[Double]
+      weight: FeatureWeight
   ) {
     def asPrintString = {
-      val dist = percentiles.map(d => String.format("%2.2f", d)).mkString("[", ",", "]")
       val w = weight match {
         case FeatureWeight.SingularWeight(value) => value.toString
         case FeatureWeight.VectorWeight(values)  => values.mkString("[", ",", "]")
       }
-      s"$name: weight=$w zero=$empty nz=$nonEmpty dist=$dist"
+      s"$name: weight=$w"
     }
   }
 

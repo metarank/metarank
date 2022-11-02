@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / version      := "0.5.7"
+ThisBuild / version      := "0.5.9"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -43,7 +43,7 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
       "org.http4s"            %% "http4s-blaze-server"      % http4sVersion,
       "org.http4s"            %% "http4s-blaze-client"      % http4sVersion,
-      "io.github.metarank"    %% "ltrlib"                   % "0.1.15",
+      "io.github.metarank"    %% "ltrlib"                   % "0.1.16",
       "com.github.ua-parser"   % "uap-java"                 % "1.5.3",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
@@ -52,11 +52,11 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % "2.17.295",
+      "software.amazon.awssdk" % "kinesis"                  % "2.18.2",
       "io.lettuce"             % "lettuce-core"             % "6.2.1.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.5.0",
+      "io.sentry"              % "sentry-logback"           % "6.6.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.0.2"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
@@ -66,9 +66,13 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"--platform=$PLATFORM ubuntu:jammy-20221003")
+        from(s"--platform=$PLATFORM ubuntu:jammy-20221020")
         runRaw(
-          "apt-get update && apt-get -y install openjdk-17-jdk-headless openjdk-17-dbg htop procps curl inetutils-ping libgomp1"
+          List(
+            "apt-get update",
+            "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1",
+            "rm -rf /var/lib/apt/lists/*"
+          ).mkString(" && ")
         )
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)
@@ -77,7 +81,8 @@ lazy val root = (project in file("."))
       }
     },
     docker / imageNames := Seq(
-      ImageName(s"metarank/metarank:${version.value}-$PLATFORM")
+      ImageName(s"metarank/metarank:${version.value}-$PLATFORM"),
+      ImageName(s"metarank/metarank:snapshot")
     ),
     docker / buildOptions := BuildOptions(
       removeIntermediateContainers = BuildOptions.Remove.Always,
@@ -86,6 +91,7 @@ lazy val root = (project in file("."))
     ThisBuild / assemblyMergeStrategy := {
       case PathList("module-info.class")           => MergeStrategy.discard
       case "META-INF/io.netty.versions.properties" => MergeStrategy.first
+      case "META-INF/MANIFEST.MF"                  => MergeStrategy.discard
       case "findbugsExclude.xml"                   => MergeStrategy.discard
       case "log4j2-test.properties"                => MergeStrategy.discard
       case x if x.endsWith("/module-info.class")   => MergeStrategy.discard

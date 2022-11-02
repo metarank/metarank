@@ -1,11 +1,12 @@
-api:
-  port: 8080
-  host: "0.0.0.0"
-
 state:
   type: redis
   host: localhost
   port: 6379
+
+train:
+  type: file
+  path: /some/path
+  format: json
 
 models:
   xgboost:

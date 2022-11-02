@@ -1,4 +1,5 @@
-package ai.metarank.fstore.redis.codec.impl
+package ai.metarank.fstore.codec.impl
+
 import java.io.{DataInput, DataOutput}
 
 class MapCodec[K, V](kc: BinaryCodec[K], vc: BinaryCodec[V]) extends BinaryCodec[Map[K, V]] {

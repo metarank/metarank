@@ -63,6 +63,7 @@ The `scope: item` means that the extracted popularity field from item metadata s
 
 ### Generic feature extractors
 * [number](features/scalar.md#boolean-and-numerical-extractors): uses a raw numerical field value as a feature.
+* [vector](features/scalar.md#vector-extractor): reduces a variable length number vector to a fixed size value array.
 * [boolean](features/scalar.md#boolean-and-numerical-extractors): uses a raw boolean field as a 1 or 0 feature value.
 * [string](features/scalar.md#string-extractors): uses a raw string or list<string> field as an input and does a one-hot encoding of it.
 * [word_count](features/generic.md#word-count): how many words are in a string field.

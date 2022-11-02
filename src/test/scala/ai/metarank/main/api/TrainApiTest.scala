@@ -4,7 +4,7 @@ import ai.metarank.api.routes.{FeedbackApi, TrainApi}
 import ai.metarank.config.CoreConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.model.{Timestamp, TrainResult}
 import ai.metarank.util.RandomDataset
 import cats.effect.IO
@@ -19,8 +19,10 @@ import io.circe.parser._
 class TrainApiTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)
   lazy val state   = MemPersistence(dataset.mapping.schema)
-  lazy val train   = TrainApi(dataset.mapping, state)
-  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), state, dataset.mapping)
+  lazy val cs      = MemClickthroughStore()
+
+  lazy val train   = TrainApi(dataset.mapping, state, cs)
+  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), state.values, cs, dataset.mapping)
 
   lazy val feedback = FeedbackApi(state, dataset.mapping, buffer)
 

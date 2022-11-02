@@ -27,14 +27,14 @@ class ExportTest extends AnyFlatSpec with Matchers {
     val path = Files.createTempDirectory("export")
     Export.doexport(cs, dataset.mapping, "xgboost", path, 1.0).unsafeRunSync()
     val children = Files.list(path).toScala(List)
-    children.map(_.getFileName.toString).sorted shouldBe List("test.csv", "train.csv")
+    children.map(_.getFileName.toString).sorted shouldBe List("test.svm", "train.svm", "xgboost.conf")
   }
 
   it should "export sampled training data" in {
     val path = Files.createTempDirectory("export")
     Export.doexport(cs, dataset.mapping, "xgboost", path, 0.1).unsafeRunSync()
     val children = Files.list(path).toScala(List)
-    children.map(_.getFileName.toString).sorted shouldBe List("test.csv", "train.csv")
+    children.map(_.getFileName.toString).sorted shouldBe List("test.svm", "train.svm", "xgboost.conf")
   }
 
 }

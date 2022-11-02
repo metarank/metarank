@@ -3,6 +3,12 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.9
+
+* [`interacted_with`](configuration/features/user-session.md#interacted-with) feature now has much less overhead in Redis, and supports multiple fields in a single visitor profile.
+* [click-through events now can be stored in a file](configuration/overview.md#training), and not inside Redis, also reducing the overall costs of running Metarank
+* it is now possible to [export lightgbm/xgboost-compatible](cli.md#dataset-export) datasets for further hyper-parameter optimization.
+
 ## 0.5.8
 
 * bugfix: add explicit sync on /feedback api call

@@ -28,7 +28,7 @@ object InteractedWithFeatureRule extends FeatureRule with Logging {
     InteractedWithSchema(
       name = FeatureName(interaction),
       interaction = interaction,
-      fields = fields.map(field => FieldName(Item, field)),
+      field = fields.map(field => FieldName(Item, field)),
       scope = UserScopeType,
       count = None,
       duration = None

@@ -28,7 +28,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
   lazy val file   = Files.createTempFile("events", ".jsonl")
   lazy val store  = MemPersistence(mapping.schema)
-  lazy val cts = MemClickthroughStore()
+  lazy val cts    = MemClickthroughStore()
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTModel]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
   lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)

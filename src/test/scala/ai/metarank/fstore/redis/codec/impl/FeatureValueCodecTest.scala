@@ -3,7 +3,15 @@ package ai.metarank.fstore.redis.codec.impl
 import ai.metarank.fstore.codec.impl.FeatureValueCodec
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
-import ai.metarank.model.FeatureValue.{BoundedListValue, CounterValue, FrequencyValue, MapValue, NumStatsValue, PeriodicCounterValue, ScalarValue}
+import ai.metarank.model.FeatureValue.{
+  BoundedListValue,
+  CounterValue,
+  FrequencyValue,
+  MapValue,
+  NumStatsValue,
+  PeriodicCounterValue,
+  ScalarValue
+}
 import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Key.FeatureName

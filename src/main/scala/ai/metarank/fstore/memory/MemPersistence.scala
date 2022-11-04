@@ -26,8 +26,8 @@ case class MemPersistence(schema: Schema) extends Persistence {
   override lazy val models: Persistence.KVStore[ModelName, Scorer] = MemModelStore()
   override lazy val values: Persistence.KVStore[Key, FeatureValue] = MemKVStore()
 
-  override def healthcheck(): IO[Unit]                 = IO.unit
-  override def sync: IO[Unit]                          = IO.unit
+  override def healthcheck(): IO[Unit] = IO.unit
+  override def sync: IO[Unit]          = IO.unit
 
 }
 

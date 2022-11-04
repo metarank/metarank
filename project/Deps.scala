@@ -6,7 +6,7 @@ object Deps {
   lazy val scalatestVersion          = "3.2.14"
   lazy val circeVersion              = "0.14.3"
   lazy val circeGenericExtrasVersion = "0.14.3"
-  lazy val circeYamlVersion          = "0.14.1"
+  lazy val circeYamlVersion          = "0.14.2"
   lazy val fs2Version                = "3.2.2"
   lazy val pulsarVersion             = "2.10.2"
   lazy val luceneVersion             = "9.4.1"

@@ -25,7 +25,7 @@ You can find events and their description on the [Supported events](event-schema
 
 **Method**: `POST`
 
-Trrain endpoint runs the training on persisted data. You can run this method at any time to re-train the model.
+Train endpoint runs the training on persisted data. You can run this method at any time to re-train the model.
 
 ## Ranking
 

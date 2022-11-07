@@ -163,7 +163,7 @@ case class RedisPersistence(
     _     <- stateClient.doFlush(stateClient.writer.ping().toCompletableFuture)
     _     <- valuesClient.doFlush(valuesClient.writer.ping().toCompletableFuture)
 //    _     <- rankingsClient.doFlush(rankingsClient.writer.ping().toCompletableFuture)
-    _     <- modelClient.doFlush(modelClient.writer.ping().toCompletableFuture)
+    _ <- modelClient.doFlush(modelClient.writer.ping().toCompletableFuture)
   } yield {
     logger.info(s"redis pipeline flushed, took ${System.currentTimeMillis() - start}ms")
   }
@@ -186,9 +186,9 @@ object RedisPersistence {
       format: StoreFormat,
       auth: Option[RedisCredentials]
   ): Resource[IO, RedisPersistence] = for {
-    state    <- RedisClient.create(host, port, db.state, pipeline, auth)
-    models   <- RedisClient.create(host, port, db.models, pipeline, auth)
-    values   <- RedisClient.create(host, port, db.values, pipeline, auth)
+    state  <- RedisClient.create(host, port, db.state, pipeline, auth)
+    models <- RedisClient.create(host, port, db.models, pipeline, auth)
+    values <- RedisClient.create(host, port, db.values, pipeline, auth)
 //    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(

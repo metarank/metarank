@@ -13,7 +13,17 @@ import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.{Clickthrough, ClickthroughValues, EventId, FeatureKey, FieldName, ItemValue, Key, MValue, Timestamp}
+import ai.metarank.model.{
+  Clickthrough,
+  ClickthroughValues,
+  EventId,
+  FeatureKey,
+  FieldName,
+  ItemValue,
+  Key,
+  MValue,
+  Timestamp
+}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -62,7 +72,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   val store       = MemPersistence(mapping.schema)
   val ts          = Timestamp.now
   val ranker      = Ranker(mapping, store)
-  lazy val cs = MemClickthroughStore()
+  lazy val cs     = MemClickthroughStore()
   lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
 
   val rankingEvent1 = TestRankingEvent(List("p1", "p2", "p3"))

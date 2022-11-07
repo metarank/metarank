@@ -87,7 +87,7 @@ object LatencyBenchmark extends IOApp with Logging {
 
   def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = for {
     store <- Persistence.fromConfig(mapping.schema, conf.state)
-    cts <- ClickthroughStore.fromConfig(conf.train)
+    cts   <- ClickthroughStore.fromConfig(conf.train)
     buffer <- Resource.liftK(
       Standalone
         .prepare(

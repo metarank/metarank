@@ -14,7 +14,7 @@ import scala.util.Try
 
 class RedisTest extends AnyFlatSpec with Matchers {
 
-  it should "connect with password" ignore {
+  it should "connect with password" in {
     val result =
       Try(
         RedisClient.createUnsafe(
@@ -30,7 +30,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
     result.isSuccess shouldBe true
   }
 
-  it should "connect with password and TLS" in {
+  it should "connect with password and TLS (verify=full)" in {
     val result =
       Try(
         RedisClient.createUnsafe(
@@ -43,7 +43,28 @@ class RedisTest extends AnyFlatSpec with Matchers {
           Some(
             RedisTLS(
               ca = Some(new File(".github/tls/redistls.crt")),
-              verify = SslVerifyMode.CA
+              verify = SslVerifyMode.FULL
+            )
+          )
+        )
+      )
+    result.isSuccess shouldBe true
+  }
+
+  it should "connect with password and TLS (verify=off, no CA cert)" in {
+    val result =
+      Try(
+        RedisClient.createUnsafe(
+          "localhost",
+          26379,
+          0,
+          PipelineConfig(),
+          Ref.of[IO, Int](0).unsafeRunSync(),
+          Some(RedisCredentials(None, "password123")),
+          Some(
+            RedisTLS(
+              ca = None,
+              verify = SslVerifyMode.NONE
             )
           )
         )

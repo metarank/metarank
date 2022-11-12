@@ -63,7 +63,7 @@ object StateStoreConfig extends Logging {
   case class RedisCredentials(user: Option[String] = None, password: String)
   implicit val redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
 
-  case class RedisTLS(ca: Option[File], verify: SslVerifyMode)
+  case class RedisTLS(enabled: Boolean, ca: Option[File] = None, verify: SslVerifyMode = SslVerifyMode.FULL)
   implicit val fileDecoder: Decoder[File] = Decoder.decodeString.emapTry(path => {
     val file = new File(path)
     if (file.exists()) Success(file) else Failure(new Exception(s"path $path does not exist"))
@@ -72,15 +72,16 @@ object StateStoreConfig extends Logging {
     for {
       ca     <- c.downField("ca").as[Option[File]]
       verify <- c.downField("verify").as[Option[String]]
-      verufyMode <- verify match {
+      verifyMode <- verify match {
         case None         => Right(SslVerifyMode.FULL)
         case Some("off")  => Right(SslVerifyMode.NONE)
         case Some("ca")   => Right(SslVerifyMode.CA)
         case Some("full") => Right(SslVerifyMode.FULL)
         case Some(other)  => Left(DecodingFailure(s"verify mode '$other' is not supported", c.history))
       }
+      enabled <- c.downField("enabled").as[Option[Boolean]]
     } yield {
-      RedisTLS(ca, verufyMode)
+      RedisTLS(enabled.getOrElse(false), ca, verifyMode)
     }
   )
 
@@ -95,6 +96,7 @@ object StateStoreConfig extends Logging {
       pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
       format <- c.downField("format").as[Option[StoreFormat]]
       auth   <- c.downField("auth").as[Option[RedisCredentials]]
+      tls    <- c.downField("tls").as[Option[RedisTLS]]
     } yield {
       RedisStateConfig(
         host = host,
@@ -103,7 +105,8 @@ object StateStoreConfig extends Logging {
         cache = cache.getOrElse(CacheConfig()),
         pipeline = pipe.getOrElse(PipelineConfig()),
         format = format.getOrElse(BinaryStoreFormat),
-        auth = auth
+        auth = auth,
+        tls = tls
       )
     }
   )

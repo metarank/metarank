@@ -42,6 +42,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
           Some(RedisCredentials(None, "password123")),
           Some(
             RedisTLS(
+              enabled = true,
               ca = Some(new File(".github/tls/redistls.crt")),
               verify = SslVerifyMode.FULL
             )
@@ -63,6 +64,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
           Some(RedisCredentials(None, "password123")),
           Some(
             RedisTLS(
+              enabled = true,
               ca = None,
               verify = SslVerifyMode.NONE
             )

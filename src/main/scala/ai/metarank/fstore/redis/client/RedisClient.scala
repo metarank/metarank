@@ -182,8 +182,7 @@ object RedisClient extends Logging {
         })
     }
     tls match {
-      case None => logger.info("TLS disabled")
-      case Some(RedisTLS(ca, verify)) =>
+      case Some(RedisTLS(true, ca, verify)) =>
         logger.info(s"TLS enabled")
         uri.withSsl(true)
         verify match {
@@ -226,10 +225,9 @@ object RedisClient extends Logging {
               .builder()
               .jdkSslProvider()
               .trustManager(tmf)
-//              .protocols("TLSv1.3")
-//              .sslContext(builder => builder.trustManager(tmf).protocols("TLSv1.3").)
             clientOptions.sslOptions(ssl.build())
         }
+      case _ => logger.info("TLS disabled")
     }
     val client = io.lettuce.core.RedisClient.create(uri.build())
     client.setOptions(clientOptions.build())

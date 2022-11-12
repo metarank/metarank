@@ -13,21 +13,22 @@ import io.lettuce.core.{
   RedisCredentialsProvider,
   RedisURI,
   ScanArgs,
+  SocketOptions,
   SslOptions,
   SslVerifyMode,
+  TimeoutOptions,
   RedisClient => LettuceClient,
   ScanCursor => LettuceCursor
 }
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{ByteArrayCodec, RedisCodec, StringCodec}
-import io.netty.handler.ssl.SslContextBuilder
-import org.apache.commons.io.IOUtils
 import reactor.core.publisher.Mono
 
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.cert.{CertificateFactory, X509Certificate}
-import java.util.concurrent.CompletableFuture
+import java.time.temporal.TemporalUnit
+import java.util.concurrent.{CompletableFuture, TimeUnit}
 import javax.naming.ldap.LdapName
 import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.jdk.CollectionConverters._
@@ -173,9 +174,9 @@ object RedisClient extends Logging {
     val uri           = RedisURI.builder().withHost(host).withPort(port).withDatabase(db)
     val clientOptions = ClientOptions.builder()
     auth match {
-      case None => logger.info("auth is not enabled")
+      case None => logger.info("auth disabled")
       case Some(RedisCredentials(user, password)) =>
-        logger.info(s"auth enabled: user=${user.map(_ => "xxxxxx")} password=xxxxxx")
+        logger.info(s"auth enabled: user=${user.map(_ => "<hidden>")} password=<hidden>")
         uri.withAuthentication(new RedisCredentialsProvider {
           override def resolveCredentials(): Mono[core.RedisCredentials] =
             Mono.just(core.RedisCredentials.just(user.orNull, password))
@@ -229,6 +230,9 @@ object RedisClient extends Logging {
         }
       case _ => logger.info("TLS disabled")
     }
+    clientOptions
+      .socketOptions(SocketOptions.builder().connectTimeout(java.time.Duration.ofSeconds(1)).build())
+
     val client = io.lettuce.core.RedisClient.create(uri.build())
     client.setOptions(clientOptions.build())
     val readConnection =

@@ -12,3 +12,6 @@ api/project
 api/target
 .bsp
 .run
+*.crt
+*.key
+*.csr

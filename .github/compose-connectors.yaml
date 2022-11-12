@@ -7,6 +7,22 @@ services:
     ports:
       - '16379:16379'
 
+  redistls:
+    image: 'bitnami/redis:7.0.5'
+    volumes:
+      - "./tls:/tls"
+    ports:
+      - '26379:26379'
+    command: /opt/bitnami/scripts/redis/run.sh --loglevel debug
+    environment:
+      - "REDIS_TLS_ENABLED=yes"
+      - "REDIS_TLS_PORT=26379"
+      - "REDIS_TLS_CERT_FILE=/tls/redistls.crt"
+      - "REDIS_TLS_KEY_FILE=/tls/redistls.key"
+      - "REDIS_TLS_CA_FILE=/tls/redistls.crt"
+      - "REDIS_PASSWORD=password123"
+      - "REDIS_TLS_AUTH_CLIENTS=no"
+
   kinesis:
     image: ghcr.io/etspaceman/kinesis-mock:0.2.3
     environment:

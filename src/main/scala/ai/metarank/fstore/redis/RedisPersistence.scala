@@ -1,30 +1,13 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.config.StateStoreConfig.RedisCredentials
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.fstore.cache.CachedFeature.{
-  CachedBoundedListFeature,
-  CachedCounterFeature,
-  CachedFreqEstimatorFeature,
-  CachedMapFeature,
-  CachedPeriodicCounterFeature,
-  CachedScalarFeature,
-  CachedStatsEstimatorFeature
-}
+import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.memory.{
-  MemBoundedList,
-  MemCounter,
-  MemFreqEstimator,
-  MemKVStore,
-  MemMapFeature,
-  MemPeriodicCounter,
-  MemScalarFeature,
-  MemStatsEstimator
-}
+import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.{FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer
@@ -184,12 +167,12 @@ object RedisPersistence {
       cache: CacheConfig,
       pipeline: PipelineConfig,
       format: StoreFormat,
-      auth: Option[RedisCredentials]
+      auth: Option[RedisCredentials],
+      tls: Option[RedisTLS]
   ): Resource[IO, RedisPersistence] = for {
-    state  <- RedisClient.create(host, port, db.state, pipeline, auth)
-    models <- RedisClient.create(host, port, db.models, pipeline, auth)
-    values <- RedisClient.create(host, port, db.values, pipeline, auth)
-//    rankings <- RedisClient.create(host, port, db.rankings, pipeline, auth)
+    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls)
+    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls)
+    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(

@@ -60,7 +60,7 @@ object Config extends Logging {
 
   def logConfig(conf: Config): IO[Unit] = IO {
     val stateType = conf.state match {
-      case RedisStateConfig(host, port, db, cache, pipeline, _, _) => s"redis://${host.value}:${port.value}"
+      case RedisStateConfig(host, port, db, cache, pipeline, _, _, _) => s"redis://${host.value}:${port.value}"
       case MemoryStateConfig()                                     => "memory"
     }
     val features = conf.features.map(_.name.value).toList.mkString("[", ",", "]")

@@ -1,17 +1,35 @@
 package ai.metarank.fstore.redis.client
 
-import ai.metarank.config.StateStoreConfig.RedisCredentials
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, PipelineConfig}
 import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
+import io.lettuce.core
 import io.lettuce.core.api.StatefulRedisConnection
-import io.lettuce.core.{ScanArgs, RedisClient => LettuceClient, ScanCursor => LettuceCursor}
+import io.lettuce.core.{
+  ClientOptions,
+  RedisCredentialsProvider,
+  RedisURI,
+  ScanArgs,
+  SslOptions,
+  SslVerifyMode,
+  RedisClient => LettuceClient,
+  ScanCursor => LettuceCursor
+}
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{ByteArrayCodec, RedisCodec, StringCodec}
+import io.netty.handler.ssl.SslContextBuilder
+import org.apache.commons.io.IOUtils
+import reactor.core.publisher.Mono
 
+import java.io.FileInputStream
+import java.security.KeyStore
+import java.security.cert.{CertificateFactory, X509Certificate}
 import java.util.concurrent.CompletableFuture
+import javax.naming.ldap.LdapName
+import javax.net.ssl.{SSLContext, TrustManagerFactory}
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 import scala.concurrent.duration._
@@ -124,12 +142,13 @@ object RedisClient extends Logging {
       port: Int,
       db: Int,
       cache: PipelineConfig,
-      auth: Option[RedisCredentials]
+      auth: Option[RedisCredentials],
+      tls: Option[RedisTLS]
   ): Resource[IO, RedisClient] = {
     Resource
       .make(for {
         buffer <- Ref.of[IO, Int](0)
-        client <- IO { createUnsafe(host, port, db, cache, buffer, auth) }
+        client <- IO { createUnsafe(host, port, db, cache, buffer, auth, tls) }
         tickCancel <-
           if (cache.flushPeriod != 0.millis) {
             info(s"started flush timer every ${cache.flushPeriod}") *> client.tick().background.allocated.map(_._2)
@@ -148,14 +167,72 @@ object RedisClient extends Logging {
       db: Int,
       conf: PipelineConfig,
       buffer: Ref[IO, Int],
-      auth: Option[RedisCredentials]
+      auth: Option[RedisCredentials],
+      tls: Option[RedisTLS]
   ) = {
-    val uri = auth match {
-      case None                                     => s"redis://$host:$port"
-      case Some(RedisCredentials(None, pass))       => s"redis://$pass@$host:$port"
-      case Some(RedisCredentials(Some(user), pass)) => s"redis://$user:$pass@$host:$port"
+    val uri           = RedisURI.builder().withHost(host).withPort(port).withDatabase(db)
+    val clientOptions = ClientOptions.builder()
+    auth match {
+      case None => logger.info("auth is not enabled")
+      case Some(RedisCredentials(user, password)) =>
+        logger.info(s"auth enabled: user=${user.map(_ => "xxxxxx")} password=xxxxxx")
+        uri.withAuthentication(new RedisCredentialsProvider {
+          override def resolveCredentials(): Mono[core.RedisCredentials] =
+            Mono.just(core.RedisCredentials.just(user.orNull, password))
+        })
     }
-    val client = io.lettuce.core.RedisClient.create(uri)
+    tls match {
+      case None => logger.info("TLS disabled")
+      case Some(RedisTLS(ca, verify)) =>
+        logger.info(s"TLS enabled")
+        uri.withSsl(true)
+        verify match {
+          case SslVerifyMode.NONE => logger.info("Skipping TLS cert verification")
+          case SslVerifyMode.CA   => logger.info("Skipping hostname TLS verification (cert verification enabled)")
+          case SslVerifyMode.FULL => logger.info("Cert+host TLS verification enabled")
+        }
+        uri.withVerifyPeer(verify)
+        ca match {
+          case None => logger.info("using system CA store for cert verification")
+          case Some(certFile) =>
+            logger.info("using ONLY custom CA cert for hostname verification")
+            val stream = new FileInputStream(certFile)
+            val cert   = CertificateFactory.getInstance("X.509").generateCertificate(stream)
+            cert match {
+              case x509: X509Certificate =>
+                val ldap = new LdapName(x509.getSubjectX500Principal.getName)
+                ldap.getRdns.asScala.find(_.getType == "CN").map(_.getValue.toString) match {
+                  case Some(cn) if cn != host =>
+                    logger.error(s"custom certificate CN=$cn, but redis hostname is '$host'")
+                    logger.error("If you have verify=full option set, it's going to break due to hostname mismatch")
+                    logger.error(
+                      "Either set verify=ca to ignore the issue, or use a valid CA cert used to sign the redis TLS cert"
+                    )
+                  case Some(cn) =>
+                    logger.info(s"using custom cert for CN=$cn, redis host=$host")
+                  case None =>
+                    logger.info("CN is not defined in cert")
+                }
+              case _ =>
+                logger.warn("Not expected to see the non-X509 certificate here, hopefully you know what you're doing")
+            }
+            stream.close()
+            val keystore = KeyStore.getInstance(KeyStore.getDefaultType)
+            keystore.load(null, null)
+            keystore.setCertificateEntry("redis", cert)
+            val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+            tmf.init(keystore)
+            val ssl = SslOptions
+              .builder()
+              .jdkSslProvider()
+              .trustManager(tmf)
+//              .protocols("TLSv1.3")
+//              .sslContext(builder => builder.trustManager(tmf).protocols("TLSv1.3").)
+            clientOptions.sslOptions(ssl.build())
+        }
+    }
+    val client = io.lettuce.core.RedisClient.create(uri.build())
+    client.setOptions(clientOptions.build())
     val readConnection =
       client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
     readConnection.sync().select(db)

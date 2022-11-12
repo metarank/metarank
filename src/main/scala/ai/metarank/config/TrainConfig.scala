@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.config.StateStoreConfig.RedisCredentials
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
@@ -23,7 +23,8 @@ object TrainConfig {
       cache: CacheConfig = CacheConfig(),
       pipeline: PipelineConfig = PipelineConfig(),
       format: StoreFormat = BinaryStoreFormat,
-      auth: Option[RedisCredentials] = None
+      auth: Option[RedisCredentials] = None,
+      tls: Option[RedisTLS] = None
   ) extends TrainConfig
   implicit val redisDecoder: Decoder[RedisTrainConfig] = Decoder.instance(c =>
     for {
@@ -34,6 +35,7 @@ object TrainConfig {
       pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
       format <- c.downField("format").as[Option[StoreFormat]]
       auth   <- c.downField("auth").as[Option[RedisCredentials]]
+      tls    <- c.downField("tls").as[Option[RedisTLS]]
     } yield {
       RedisTrainConfig(
         host = host,
@@ -42,7 +44,8 @@ object TrainConfig {
         cache = cache.getOrElse(CacheConfig()),
         pipeline = pipe.getOrElse(PipelineConfig()),
         format = format.getOrElse(BinaryStoreFormat),
-        auth = auth
+        auth = auth,
+        tls = tls
       )
     }
   )
@@ -62,8 +65,8 @@ object TrainConfig {
   )
 
   def fromState(conf: StateStoreConfig) = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, format, auth) =>
-      RedisTrainConfig(host, port, db.values, cache, pipeline, format, auth)
+    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, format, auth, tls) =>
+      RedisTrainConfig(host, port, db.values, cache, pipeline, format, auth, tls)
     case StateStoreConfig.MemoryStateConfig() =>
       MemoryTrainConfig()
   }

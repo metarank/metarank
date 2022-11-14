@@ -23,7 +23,7 @@ case class StringFeatureRule(
   }
 
   def fieldValues(stat: StringFieldStat): List[String] = {
-    val sorted         = stat.values.filter(_._2 > 3).toList.sortBy(-_._2)
+    val sorted         = stat.values.filter(_._2 >= 3).toList.sortBy(-_._2)
     val total          = sorted.map(_._2.toLong).sum
     val totalThreshold = percentile * total
     val itemThreshold  = countThreshold * total

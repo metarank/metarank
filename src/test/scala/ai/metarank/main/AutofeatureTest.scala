@@ -18,6 +18,6 @@ class AutofeatureTest extends AnyFlatSpec with Matchers {
   it should "generate test config for ranklens" in {
     val args   = AutoFeatureArgs(Paths.get("/tmp"), Paths.get("/tmp"))
     val result = AutoFeature.run(Stream.emits(RanklensEvents()), RuleSet.stable(args)).unsafeRunSync()
-    result.features.size shouldBe 8
+    result.features.size shouldBe 12
   }
 }

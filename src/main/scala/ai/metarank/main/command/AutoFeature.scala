@@ -20,7 +20,7 @@ object AutoFeature extends Logging {
   def run(args: AutoFeatureArgs): IO[Unit] = for {
     _      <- info("Generating config file")
     source <- IO(FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format)).stream)
-    conf   <- run(source, args.rules)
+    conf   <- run(source, args.rules.create(args))
     yaml   <- IO(yamlFormat.pretty(conf.asJson))
   } yield {
     val file   = args.out.toFile

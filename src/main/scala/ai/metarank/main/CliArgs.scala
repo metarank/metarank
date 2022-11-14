@@ -1,10 +1,13 @@
 package ai.metarank.main
 
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
+import ai.metarank.config.InputConfig.FileInputConfig.SortingType.SortByName
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.config.InputConfig.SourceOffset.Earliest
 import ai.metarank.config.SourceFormat
 import ai.metarank.main.command.autofeature.rules.RuleSet
+import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType
+import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType.{AllRuleSet, StableRuleSet}
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
@@ -44,10 +47,11 @@ object CliArgs extends Logging {
   case class AutoFeatureArgs(
       data: Path,
       out: Path,
-      offset: SourceOffset,
-      format: SourceFormat,
-      rules: RuleSet,
-      sort: SortingType
+      offset: SourceOffset = SourceOffset.Latest,
+      format: SourceFormat = JsonFormat,
+      rules: RuleSetType = StableRuleSet,
+      sort: SortingType = SortByName,
+      catThreshold: Double = 0.003
   ) extends CliArgs
 
   case class ExportArgs(conf: Path, model: String, out: Path, sample: Double) extends CliConfArgs
@@ -122,8 +126,9 @@ object CliArgs extends Logging {
               format  <- parse(parser.autofeature.format)
               ruleset <- parse(parser.autofeature.ruleset)
               sort    <- parse(parser.autofeature.sort)
+              mc      <- parse(parser.autofeature.catThreshold)
             } yield {
-              AutoFeatureArgs(data, out, offset, format, ruleset, sort)
+              AutoFeatureArgs(data, out, offset, format, ruleset, sort, mc)
             }
           case Some(parser.`export`) =>
             for {
@@ -257,11 +262,18 @@ object CliArgs extends Logging {
         descr = "path to an output config file"
       )
 
-      val ruleset = opt[RuleSet](
+      val ruleset = opt[RuleSetType](
         name = "ruleset",
         required = false,
         descr = "set of rules to generate config: stable, all (optional, default=stable, values: [stable, all])",
-        default = Some(RuleSet.stable())
+        default = Some(StableRuleSet)
+      )
+
+      val catThreshold = opt[Double](
+        name = "cat-threshold",
+        required = false,
+        descr = "min threshold of category frequency, when its considered a catergory (optional, default=0.003)",
+        default = Some(0.003)
       )
 
     }
@@ -361,9 +373,9 @@ object CliArgs extends Logging {
     case other                  => throw new IllegalArgumentException(s"cannot parse $other as boolean value")
   })
 
-  implicit val ruleSetConverter: ValueConverter[RuleSet] = singleArgConverter({
-    case "all"    => RuleSet.all()
-    case "stable" => RuleSet.stable()
+  implicit val ruleSetConverter: ValueConverter[RuleSetType] = singleArgConverter({
+    case "all"    => AllRuleSet
+    case "stable" => StableRuleSet
     case other    => throw new IllegalArgumentException(s"cannot parse $other as a ruleset")
   })
 

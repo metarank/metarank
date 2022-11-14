@@ -31,6 +31,8 @@ Subcommand: autofeature - generate reference config based on existing data
       --out  <arg>       path to an output config file
   -r, --ruleset  <arg>   set of rules to generate config: stable, all (optional,
                          default=stable, values: [stable, all])
+  -c, --cat-threshold  <arg>   min threshold of category frequency, when its
+                               considered a catergory (optional, default=0.003)
   -h, --help             Show help message
 
 For all other tricks, consult the docs on https://docs.metarank.ai
@@ -108,6 +110,11 @@ So movie genres field is a good candidate for this type of heuristic due to its 
   - family
   - horror
 ```
+
+If you have a lot of distinct categories, and Metarank does not pick them up (e.g. decides that a category is too infrequent, and you get much less possible categories than expected), you can lower the category frequency threshold with a `--cat-threshold` flag.
+
+The default `--cat-threshold` value of 0.003 means that only categories with frequencies above 0.3% are included.
+
 * **InteractedWith**: all interaction over low-cardinality fields are translated to [interacted_with](../configuration/features/user-session.md#interacted-with) feature.
 So if a user clicked on an item with horror genre, other horror movies may get extra points:
 ```yaml

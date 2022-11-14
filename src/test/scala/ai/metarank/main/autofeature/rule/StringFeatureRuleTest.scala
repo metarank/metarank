@@ -33,7 +33,7 @@ class StringFeatureRuleTest extends AnyFlatSpec with Matchers {
   }
 
   it should "not drop infreq values for low-cardinality fields" in {
-    val result = StringFeatureRule().make("color", StringFieldStat(Map("red" -> 10, "green" -> 1, "blue" -> 1)))
+    val result = StringFeatureRule().make("color", StringFieldStat(Map("red" -> 10, "green" -> 3, "blue" -> 3)))
     result shouldBe Some(
       StringFeatureSchema(
         name = FeatureName("color"),
@@ -54,7 +54,7 @@ class StringFeatureRuleTest extends AnyFlatSpec with Matchers {
         source = FieldName(Item, "color"),
         scope = ItemScopeType,
         encode = Some(IndexEncoderName),
-        values = NonEmptyList.of("c19", "c18", "c17", "c16", "c15", "c14", "c13", "c12", "c11", "c10", "c9", "c8", "c7")
+        values = NonEmptyList.of("c19", "c18", "c17", "c16", "c15", "c14", "c13", "c12", "c11", "c10", "c9", "c8")
       )
     )
   }

@@ -14,7 +14,7 @@ case class StringFeatureRule(
     minValues: Int = 10,
     maxValues: Int = 100,
     percentile: Double = 0.90,
-    countThreshold: Double = 0.01
+    countThreshold: Double = 0.003
 ) extends FeatureRule
     with Logging {
 
@@ -23,7 +23,7 @@ case class StringFeatureRule(
   }
 
   def fieldValues(stat: StringFieldStat): List[String] = {
-    val sorted         = stat.values.toList.sortBy(-_._2)
+    val sorted         = stat.values.filter(_._2 >= 3).toList.sortBy(-_._2)
     val total          = sorted.map(_._2.toLong).sum
     val totalThreshold = percentile * total
     val itemThreshold  = countThreshold * total

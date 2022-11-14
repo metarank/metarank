@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / version      := "0.5.9"
+ThisBuild / version      := "0.5.10"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -52,11 +52,11 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % "2.18.2",
+      "software.amazon.awssdk" % "kinesis"                  % "2.18.12",
       "io.lettuce"             % "lettuce-core"             % "6.2.1.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.6.0",
+      "io.sentry"              % "sentry-logback"           % "6.7.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.0.2"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),

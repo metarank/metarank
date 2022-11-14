@@ -21,8 +21,8 @@ class TrainApiTest extends AnyFlatSpec with Matchers {
   lazy val state   = MemPersistence(dataset.mapping.schema)
   lazy val cs      = MemClickthroughStore()
 
-  lazy val train   = TrainApi(dataset.mapping, state, cs)
-  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), state.values, cs, dataset.mapping)
+  lazy val train  = TrainApi(dataset.mapping, state, cs)
+  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), state.values, cs, dataset.mapping)
 
   lazy val feedback = FeedbackApi(state, dataset.mapping, buffer)
 

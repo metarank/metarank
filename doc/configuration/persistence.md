@@ -44,7 +44,19 @@ state:
   auth:                  # optional
     user: <username>     # optional when Redis ACL is disabled
     password: <password> # required if Redis server is run with requirepass argument
+  
+  tls:                   # optional, defaults to disabled
+    enabled: true        # optional, defaults to false
+    ca: <path/to/ca.crt> # optional path to the CA used to generate the cert, defaults to the default keychain
+    verify: full         # optional, default=full, possible values: full, ca, off
+    # full - verify both certificate and hostname
+    # ca   - verify only certificate
+    # off  - skip verification
 
+  timeout:      # optional, defaults to 1s for all sub-timeouts
+    connect: 1s # optional, defaults to 1s
+    socket: 1s  # optional, defaults to 1s
+    command: 1s # optional, defaults to 1s
 ```
 
 Redis persistence is sensitive to network latencies (as it needs to perform a couple of round-trips on each event), 
@@ -65,6 +77,38 @@ in the same datacenter/AZ)
 * `pipeline.flushPeriod` controls the level of "eventualness" in the overall eventual consistency. With values 
 larger than `10` seconds, a second Metarank instance may not see write buffered in a first instance.
 
+### TLS Support
+
+Metarank supports connecting to Redis using TLS for transport encryption, but there is no way to autodetect
+the type of connection. 
+
+To connect to a TLS-enabled Redis server with self-signed certificate, you need to specify the CA used to sign
+the certificate (for self-signed certs it will be the server certificate itself):
+
+```yaml
+enabled: true
+ca: /tls/key.crt
+```
+
+To connect to a TLS-enabled Redis server with a certificate generated with default CA (for example, AWS ElastiCache Redis),
+then you don't need to specify any custom CA:
+
+```yaml
+enabled: true
+```
+
+In a case when you have cert trust issues connecting to a TLS-enabled redis, you can downgrade the verification level.
+Supported levels are:
+* `full` - verify both certificate and hostname
+* `ca` - verify only the certificate
+* `off` - skip verification, trust all
+
+An example:
+
+```yaml
+enabled: true
+verify: off
+```
 ### State encoding formats
 
 Metarank Redis persistence supports `json` and `binary` encoding formats for data stored in Redis:

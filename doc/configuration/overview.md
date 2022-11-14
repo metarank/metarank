@@ -45,6 +45,19 @@ state: # a place to store the feature values for the ML inference and the traine
     #  user: <username>     # optional when Redis ACL is disabled
     #  password: <password> # required if Redis server is run with requirepass argument
 
+    # tls:                   # optional, defaults to disabled
+    #   enabled: true        # optional, defaults to false
+    #   ca: <path/to/ca.crt> # optional path to the CA used to generate the cert, defaults to the default keychain
+    #   verify: full         # optional, default=full, possible values: full, ca, off
+    # full - verify both certificate and hostname
+    # ca   - verify only certificate
+    # off  - skip verification
+
+    #timeout:      # optional, defaults to 1s for all sub-timeouts
+    #  connect: 1s # optional, defaults to 1s
+    #  socket: 1s  # optional, defaults to 1s
+    #  command: 1s # optional, defaults to 1s
+
 ```
 ## Training
 

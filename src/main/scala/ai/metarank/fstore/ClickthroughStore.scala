@@ -22,7 +22,7 @@ object ClickthroughStore {
     case c: FileTrainConfig    => FileClickthroughStore.create(c.path, c.format)
     case c: RedisTrainConfig =>
       for {
-        rankings <- RedisClient.create(c.host.value, c.port.value, c.db, c.pipeline, c.auth)
+        rankings <- RedisClient.create(c.host.value, c.port.value, c.db, c.pipeline, c.auth, c.tls, c.timeout)
       } yield {
         RedisClickthroughStore(rankings, RedisPersistence.Prefix.CT, c.format)
       }

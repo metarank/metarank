@@ -91,11 +91,9 @@ object Persistence extends Logging {
     }
   }
 
-
-
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth) =>
-      RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth)
+    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth, tls, timeout) =>
+      RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth, tls, timeout)
     case StateStoreConfig.MemoryStateConfig() =>
       Resource.make(
         info("using in-memory persistence")
@@ -114,7 +112,7 @@ object Persistence extends Logging {
     override def stats: Map[FeatureKey, StatsEstimatorFeature]             = Map.empty
     override def maps: Map[FeatureKey, MapFeature]                         = Map.empty
 
-    //override lazy val cts: ClickthroughStore             = ???
+    // override lazy val cts: ClickthroughStore             = ???
     override lazy val models: KVStore[ModelName, Scorer] = KVStore.empty
     override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
     override def healthcheck(): IO[Unit]                 = IO.unit

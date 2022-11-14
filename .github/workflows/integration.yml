@@ -33,6 +33,9 @@ jobs:
           distribution: 'adopt-hotspot'
           java-version: '11'
 
+      - name: Generate TLS certificates
+        run: mkdir -p .github/tls && .github/generate_keys.sh .github/tls
+
       - name:  Run docker-compose
         run: docker-compose -f .github/compose-connectors.yaml up -d
 

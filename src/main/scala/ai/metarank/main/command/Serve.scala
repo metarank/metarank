@@ -30,7 +30,7 @@ object Serve extends Logging {
         val buffer = ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping)
         conf.input match {
           case None =>
-            info("no stream input defined in config, using only REST API") *> api(store,cts,  mapping, conf.api, buffer)
+            info("no stream input defined in config, using only REST API") *> api(store, cts, mapping, conf.api, buffer)
           case Some(sourceConfig) =>
             val source = EventSource.fromConfig(sourceConfig)
             MetarankFlow
@@ -42,7 +42,13 @@ object Serve extends Logging {
     })
   }
 
-  def api(store: Persistence, cts: ClickthroughStore, mapping: FeatureMapping, conf: ApiConfig, buffer: ClickthroughJoinBuffer) = {
+  def api(
+      store: Persistence,
+      cts: ClickthroughStore,
+      mapping: FeatureMapping,
+      conf: ApiConfig,
+      buffer: ClickthroughJoinBuffer
+  ) = {
     val health   = HealthApi(store).routes
     val rank     = RankApi(Ranker(mapping, store)).routes
     val feedback = FeedbackApi(store, mapping, buffer).routes

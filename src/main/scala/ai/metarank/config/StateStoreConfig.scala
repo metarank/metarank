@@ -5,8 +5,11 @@ import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.Logging
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+import io.lettuce.core.SslVerifyMode
 
+import java.io.File
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 sealed trait StateStoreConfig
 
@@ -20,7 +23,9 @@ object StateStoreConfig extends Logging {
       cache: CacheConfig = CacheConfig(),
       pipeline: PipelineConfig = PipelineConfig(),
       format: StoreFormat = BinaryStoreFormat,
-      auth: Option[RedisCredentials] = None
+      auth: Option[RedisCredentials] = None,
+      tls: Option[RedisTLS] = None,
+      timeout: RedisTimeouts = RedisTimeouts()
   ) extends StateStoreConfig
 
   object RedisStateConfig {
@@ -59,17 +64,58 @@ object StateStoreConfig extends Logging {
   case class RedisCredentials(user: Option[String] = None, password: String)
   implicit val redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
 
+  import ai.metarank.util.DurationJson._
+  case class RedisTimeouts(
+      socket: FiniteDuration = 1.second,
+      connect: FiniteDuration = 1.second,
+      command: FiniteDuration = 1.second
+  )
+  implicit val timeoutDecoder: Decoder[RedisTimeouts] = Decoder.instance(c => {
+    val default = RedisTimeouts()
+    for {
+      socket  <- c.downField("socket").as[Option[FiniteDuration]].map(_.getOrElse(default.socket))
+      connect <- c.downField("connect").as[Option[FiniteDuration]].map(_.getOrElse(default.connect))
+      command <- c.downField("command").as[Option[FiniteDuration]].map(_.getOrElse(default.command))
+    } yield {
+      RedisTimeouts(socket, connect, command)
+    }
+  })
+
+  case class RedisTLS(enabled: Boolean, ca: Option[File] = None, verify: SslVerifyMode = SslVerifyMode.FULL)
+  implicit val fileDecoder: Decoder[File] = Decoder.decodeString.emapTry(path => {
+    val file = new File(path)
+    if (file.exists()) Success(file) else Failure(new Exception(s"path $path does not exist"))
+  })
+  implicit val redisTLSDecoder: Decoder[RedisTLS] = Decoder.instance(c =>
+    for {
+      ca     <- c.downField("ca").as[Option[File]]
+      verify <- c.downField("verify").as[Option[String]]
+      verifyMode <- verify match {
+        case None         => Right(SslVerifyMode.FULL)
+        case Some("off")  => Right(SslVerifyMode.NONE)
+        case Some("ca")   => Right(SslVerifyMode.CA)
+        case Some("full") => Right(SslVerifyMode.FULL)
+        case Some(other)  => Left(DecodingFailure(s"verify mode '$other' is not supported", c.history))
+      }
+      enabled <- c.downField("enabled").as[Option[Boolean]]
+    } yield {
+      RedisTLS(enabled.getOrElse(false), ca, verifyMode)
+    }
+  )
+
   case class MemoryStateConfig() extends StateStoreConfig
 
   implicit val redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
     for {
-      host   <- c.downField("host").as[Hostname]
-      port   <- c.downField("port").as[Port]
-      db     <- c.downField("db").as[Option[DBConfig]]
-      cache  <- c.downField("cache").as[Option[CacheConfig]]
-      pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
-      format <- c.downField("format").as[Option[StoreFormat]]
-      auth   <- c.downField("auth").as[Option[RedisCredentials]]
+      host    <- c.downField("host").as[Hostname]
+      port    <- c.downField("port").as[Port]
+      db      <- c.downField("db").as[Option[DBConfig]]
+      cache   <- c.downField("cache").as[Option[CacheConfig]]
+      pipe    <- c.downField("pipeline").as[Option[PipelineConfig]]
+      format  <- c.downField("format").as[Option[StoreFormat]]
+      auth    <- c.downField("auth").as[Option[RedisCredentials]]
+      tls     <- c.downField("tls").as[Option[RedisTLS]]
+      timeout <- c.downField("timeout").as[Option[RedisTimeouts]]
     } yield {
       RedisStateConfig(
         host = host,
@@ -78,7 +124,9 @@ object StateStoreConfig extends Logging {
         cache = cache.getOrElse(CacheConfig()),
         pipeline = pipe.getOrElse(PipelineConfig()),
         format = format.getOrElse(BinaryStoreFormat),
-        auth = auth
+        auth = auth,
+        tls = tls,
+        timeout = timeout.getOrElse(RedisTimeouts())
       )
     }
   )

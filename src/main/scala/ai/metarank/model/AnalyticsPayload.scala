@@ -20,7 +20,16 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.main.CliArgs
-import ai.metarank.main.CliArgs.{AutoFeatureArgs, ExportArgs, ImportArgs, ServeArgs, SortArgs, StandaloneArgs, TrainArgs, ValidateArgs}
+import ai.metarank.main.CliArgs.{
+  AutoFeatureArgs,
+  ExportArgs,
+  ImportArgs,
+  ServeArgs,
+  SortArgs,
+  StandaloneArgs,
+  TrainArgs,
+  ValidateArgs
+}
 import ai.metarank.model.AnalyticsPayload.{SystemParams, UsedFeature}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.Version

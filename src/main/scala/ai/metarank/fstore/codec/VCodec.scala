@@ -28,4 +28,3 @@ trait VCodec[T] {
   def decode(bytes: Array[Byte]): Either[Throwable, T]
   def decodeDelimited(in: DataInput): Either[Throwable, Option[T]]
 }
-

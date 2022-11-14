@@ -7,7 +7,11 @@ import ai.metarank.model.{FeatureValue, Key}
 import cats.effect.IO
 
 object FeatureValueLoader {
-  def fromStateBackend(mapping: FeatureMapping, ranking: RankingEvent, values: KVStore[Key, FeatureValue]): IO[Map[Key, FeatureValue]] =
+  def fromStateBackend(
+      mapping: FeatureMapping,
+      ranking: RankingEvent,
+      values: KVStore[Key, FeatureValue]
+  ): IO[Map[Key, FeatureValue]] =
     for {
       keys1  <- IO { mapping.features.flatMap(_.valueKeys(ranking)) }
       state1 <- values.get(keys1)

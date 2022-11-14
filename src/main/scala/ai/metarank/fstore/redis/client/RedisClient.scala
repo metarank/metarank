@@ -1,17 +1,40 @@
 package ai.metarank.fstore.redis.client
 
-import ai.metarank.config.StateStoreConfig.RedisCredentials
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, PipelineConfig}
 import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
+import io.lettuce.core
 import io.lettuce.core.api.StatefulRedisConnection
-import io.lettuce.core.{ScanArgs, RedisClient => LettuceClient, ScanCursor => LettuceCursor}
+import io.lettuce.core.{
+  ClientOptions,
+  RedisCommandTimeoutException,
+  RedisConnectionException,
+  RedisCredentialsProvider,
+  RedisURI,
+  ScanArgs,
+  SocketOptions,
+  SslOptions,
+  SslVerifyMode,
+  TimeoutOptions,
+  RedisClient => LettuceClient,
+  ScanCursor => LettuceCursor
+}
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{ByteArrayCodec, RedisCodec, StringCodec}
+import io.netty.handler.ssl.SslContextBuilder
+import org.apache.commons.io.IOUtils
+import reactor.core.publisher.Mono
 
+import java.io.FileInputStream
+import java.net.UnknownHostException
+import java.security.KeyStore
+import java.security.cert.{CertificateFactory, X509Certificate}
 import java.util.concurrent.CompletableFuture
+import javax.naming.ldap.LdapName
+import javax.net.ssl.{SSLContext, SSLHandshakeException, TrustManagerFactory}
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
 import scala.concurrent.duration._
@@ -124,12 +147,14 @@ object RedisClient extends Logging {
       port: Int,
       db: Int,
       cache: PipelineConfig,
-      auth: Option[RedisCredentials]
+      auth: Option[RedisCredentials],
+      tls: Option[RedisTLS],
+      timeout: RedisTimeouts
   ): Resource[IO, RedisClient] = {
     Resource
       .make(for {
         buffer <- Ref.of[IO, Int](0)
-        client <- IO { createUnsafe(host, port, db, cache, buffer, auth) }
+        client <- createIO(host, port, db, cache, buffer, auth, tls)
         tickCancel <-
           if (cache.flushPeriod != 0.millis) {
             info(s"started flush timer every ${cache.flushPeriod}") *> client.tick().background.allocated.map(_._2)
@@ -142,38 +167,122 @@ object RedisClient extends Logging {
       .map(_._1)
   }
 
-  def createUnsafe(
+  def createIO(
       host: String,
       port: Int,
       db: Int,
       conf: PipelineConfig,
       buffer: Ref[IO, Int],
-      auth: Option[RedisCredentials]
-  ) = {
-    val uri = auth match {
-      case None                                     => s"redis://$host:$port"
-      case Some(RedisCredentials(None, pass))       => s"redis://$pass@$host:$port"
-      case Some(RedisCredentials(Some(user), pass)) => s"redis://$user:$pass@$host:$port"
-    }
-    val client = io.lettuce.core.RedisClient.create(uri)
-    val readConnection =
-      client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
-    readConnection.sync().select(db)
-    val writeConnection =
-      client.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec()))
-    writeConnection.sync().select(db)
-    writeConnection.setAutoFlushCommands(false)
-    logger.info(
+      auth: Option[RedisCredentials],
+      tls: Option[RedisTLS]
+  ): IO[RedisClient] = for {
+    lettuce <- createLettuceClient(host, port, db, tls, auth)
+    read <- IO(lettuce.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec())))
+      .handleErrorWith {
+        case re: RedisConnectionException =>
+          re.getCause match {
+            case _: UnknownHostException =>
+              warn(s"Cannot DNS resolve hostname '$host'") *> IO.raiseError(re)
+            case _: SSLHandshakeException =>
+              warn("Cannot setup TLS. Check the cert and try to set redis.tls.verify=off for debugging") *> IO
+                .raiseError(re)
+            case _: RedisCommandTimeoutException =>
+              warn("Connected to Redis, but got command timeout. Maybe you're using TLS?") *> IO.raiseError(re)
+            case _ => IO.raiseError(re)
+          }
+        case ex: Throwable => IO.raiseError(ex)
+      }
+    _     <- IO(read.sync().select(db))
+    write <- IO(lettuce.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec())))
+    _     <- IO(write.sync().select(db))
+    _     <- IO(write.setAutoFlushCommands(false))
+    _ <- info(
       s"opened read+write connection redis://$host:$port, db=$db (pipeline size: ${conf.maxSize} period: ${conf.flushPeriod})"
     )
+  } yield {
     new RedisClient(
-      client,
-      readConnection.async(),
-      readConnection,
-      writeConnection.async(),
-      writeConnection,
+      lettuce,
+      read.async(),
+      read,
+      write.async(),
+      write,
       buffer,
       conf
     )
   }
+
+  def createLettuceClient(
+      host: String,
+      port: Int,
+      db: Int,
+      tls: Option[RedisTLS],
+      auth: Option[RedisCredentials]
+  ): IO[io.lettuce.core.RedisClient] =
+    IO {
+      val uri =
+        RedisURI.builder().withHost(host).withPort(port).withDatabase(db).withTimeout(java.time.Duration.ofSeconds(1))
+      val socket        = SocketOptions.builder().connectTimeout(java.time.Duration.ofSeconds(1))
+      val timeout       = TimeoutOptions.builder().fixedTimeout(java.time.Duration.ofSeconds(1)).timeoutCommands()
+      val clientOptions = ClientOptions.builder().socketOptions(socket.build()).timeoutOptions(timeout.build())
+      auth match {
+        case None => logger.info("auth is not enabled")
+        case Some(RedisCredentials(user, password)) =>
+          logger.info(s"auth enabled: user=${user.map(_ => "xxxxxx")} password=xxxxxx")
+          uri.withAuthentication(new RedisCredentialsProvider {
+            override def resolveCredentials(): Mono[core.RedisCredentials] =
+              Mono.just(core.RedisCredentials.just(user.orNull, password))
+          })
+      }
+      tls match {
+        case Some(RedisTLS(true, ca, verify)) =>
+          logger.info(s"TLS enabled")
+          uri.withSsl(true)
+          verify match {
+            case SslVerifyMode.NONE => logger.info("Skipping TLS cert verification")
+            case SslVerifyMode.CA   => logger.info("Skipping hostname TLS verification (cert verification enabled)")
+            case SslVerifyMode.FULL => logger.info("Cert+host TLS verification enabled")
+          }
+          uri.withVerifyPeer(verify)
+          ca match {
+            case None => logger.info("using system CA store for cert verification")
+            case Some(certFile) =>
+              logger.info("using ONLY custom CA cert for hostname verification")
+              val stream = new FileInputStream(certFile)
+              val cert   = CertificateFactory.getInstance("X.509").generateCertificate(stream)
+              cert match {
+                case x509: X509Certificate =>
+                  val ldap = new LdapName(x509.getSubjectX500Principal.getName)
+                  ldap.getRdns.asScala.find(_.getType == "CN").map(_.getValue.toString) match {
+                    case Some(cn) if cn != host =>
+                      logger.error(s"custom certificate CN=$cn, but redis hostname is '$host'")
+                      logger.error("If you have verify=full option set, it's going to break due to hostname mismatch")
+                      logger.error(
+                        "Either set verify=ca to ignore the issue, or use a valid CA cert used to sign the redis TLS cert"
+                      )
+                    case Some(cn) =>
+                      logger.info(s"using custom cert for CN=$cn, redis host=$host")
+                    case None =>
+                      logger.info("CN is not defined in cert")
+                  }
+                case _ =>
+                  logger.warn("Not expected to see the non-X509 certificate here, hopefully you know what you're doing")
+              }
+              stream.close()
+              val keystore = KeyStore.getInstance(KeyStore.getDefaultType)
+              keystore.load(null, null)
+              keystore.setCertificateEntry("redis", cert)
+              val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+              tmf.init(keystore)
+              val ssl = SslOptions
+                .builder()
+                .jdkSslProvider()
+                .trustManager(tmf)
+              clientOptions.sslOptions(ssl.build())
+          }
+        case _ => logger.info("TLS disabled")
+      }
+      val client = io.lettuce.core.RedisClient.create(uri.build())
+      client.setOptions(clientOptions.build())
+      client
+    }
 }

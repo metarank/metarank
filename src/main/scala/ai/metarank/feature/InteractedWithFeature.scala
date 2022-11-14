@@ -41,7 +41,7 @@ import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeature with Logging {
-  override val dim = VectorDim(schema.fields.size)
+  override val dim = VectorDim(schema.field.size)
 
   // stores last interactions of customer
   val interactions = BoundedListConfig(
@@ -53,7 +53,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  val fields = schema.fields
+  val fields = schema.field
     .map(field =>
       field.field -> ScalarConfig(
         scope = ItemScopeType,
@@ -170,7 +170,7 @@ object InteractedWithFeature {
   case class InteractedWithSchema(
       name: FeatureName,
       interaction: String,
-      fields: List[FieldName],
+      field: List[FieldName],
       scope: ScopeType,
       count: Option[Int],
       duration: Option[FiniteDuration],
@@ -202,7 +202,7 @@ object InteractedWithFeature {
 
   implicit val interWithEncoder: Encoder[InteractedWithSchema] = deriveEncoder
 
-  def onlyItem(schema: InteractedWithSchema) = schema.fields.forall(f =>
+  def onlyItem(schema: InteractedWithSchema) = schema.field.forall(f =>
     f.event match {
       case EventType.Item => true
       case _              => false

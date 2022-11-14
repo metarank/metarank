@@ -1,7 +1,13 @@
 package ai.metarank.fstore.codec
 
 import ai.metarank.fstore.Persistence.ModelName
-import ai.metarank.fstore.codec.impl.{ClickthroughValuesCodec, FeatureValueCodec, ScalarCodec, ScorerCodec, TimeValueCodec}
+import ai.metarank.fstore.codec.impl.{
+  ClickthroughValuesCodec,
+  FeatureValueCodec,
+  ScalarCodec,
+  ScorerCodec,
+  TimeValueCodec
+}
 import ai.metarank.fstore.codec.values.{BinaryVCodec, JsonVCodec}
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Key.FeatureName

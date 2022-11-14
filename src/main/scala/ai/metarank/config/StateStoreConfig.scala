@@ -24,7 +24,8 @@ object StateStoreConfig extends Logging {
       pipeline: PipelineConfig = PipelineConfig(),
       format: StoreFormat = BinaryStoreFormat,
       auth: Option[RedisCredentials] = None,
-      tls: Option[RedisTLS] = None
+      tls: Option[RedisTLS] = None,
+      timeout: RedisTimeouts = RedisTimeouts()
   ) extends StateStoreConfig
 
   object RedisStateConfig {
@@ -63,6 +64,23 @@ object StateStoreConfig extends Logging {
   case class RedisCredentials(user: Option[String] = None, password: String)
   implicit val redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
 
+  import ai.metarank.util.DurationJson._
+  case class RedisTimeouts(
+      socket: FiniteDuration = 1.second,
+      connect: FiniteDuration = 1.second,
+      command: FiniteDuration = 1.second
+  )
+  implicit val timeoutDecoder: Decoder[RedisTimeouts] = Decoder.instance(c => {
+    val default = RedisTimeouts()
+    for {
+      socket  <- c.downField("socket").as[Option[FiniteDuration]].map(_.getOrElse(default.socket))
+      connect <- c.downField("connect").as[Option[FiniteDuration]].map(_.getOrElse(default.connect))
+      command <- c.downField("command").as[Option[FiniteDuration]].map(_.getOrElse(default.command))
+    } yield {
+      RedisTimeouts(socket, connect, command)
+    }
+  })
+
   case class RedisTLS(enabled: Boolean, ca: Option[File] = None, verify: SslVerifyMode = SslVerifyMode.FULL)
   implicit val fileDecoder: Decoder[File] = Decoder.decodeString.emapTry(path => {
     val file = new File(path)
@@ -89,14 +107,15 @@ object StateStoreConfig extends Logging {
 
   implicit val redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
     for {
-      host   <- c.downField("host").as[Hostname]
-      port   <- c.downField("port").as[Port]
-      db     <- c.downField("db").as[Option[DBConfig]]
-      cache  <- c.downField("cache").as[Option[CacheConfig]]
-      pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
-      format <- c.downField("format").as[Option[StoreFormat]]
-      auth   <- c.downField("auth").as[Option[RedisCredentials]]
-      tls    <- c.downField("tls").as[Option[RedisTLS]]
+      host    <- c.downField("host").as[Hostname]
+      port    <- c.downField("port").as[Port]
+      db      <- c.downField("db").as[Option[DBConfig]]
+      cache   <- c.downField("cache").as[Option[CacheConfig]]
+      pipe    <- c.downField("pipeline").as[Option[PipelineConfig]]
+      format  <- c.downField("format").as[Option[StoreFormat]]
+      auth    <- c.downField("auth").as[Option[RedisCredentials]]
+      tls     <- c.downField("tls").as[Option[RedisTLS]]
+      timeout <- c.downField("timeout").as[Option[RedisTimeouts]]
     } yield {
       RedisStateConfig(
         host = host,
@@ -106,7 +125,8 @@ object StateStoreConfig extends Logging {
         pipeline = pipe.getOrElse(PipelineConfig()),
         format = format.getOrElse(BinaryStoreFormat),
         auth = auth,
-        tls = tls
+        tls = tls,
+        timeout = timeout.getOrElse(RedisTimeouts())
       )
     }
   )

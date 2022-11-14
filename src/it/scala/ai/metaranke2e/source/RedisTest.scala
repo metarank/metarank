@@ -1,6 +1,6 @@
 package ai.metaranke2e.source
 
-import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS}
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.PipelineConfig
 import ai.metarank.fstore.redis.client.RedisClient
 import cats.effect.unsafe.implicits.global
@@ -17,15 +17,18 @@ class RedisTest extends AnyFlatSpec with Matchers {
   it should "connect with password" in {
     val result =
       Try(
-        RedisClient.createIO(
-          "localhost",
-          16379,
-          0,
-          PipelineConfig(),
-          Ref.of[IO, Int](0).unsafeRunSync(),
-          Some(RedisCredentials(None, "test")),
-          None
-        ).unsafeRunSync()
+        RedisClient
+          .createIO(
+            "localhost",
+            16379,
+            0,
+            PipelineConfig(),
+            Ref.of[IO, Int](0).unsafeRunSync(),
+            Some(RedisCredentials(None, "test")),
+            None,
+            RedisTimeouts()
+          )
+          .unsafeRunSync()
       )
     result.isSuccess shouldBe true
   }
@@ -33,21 +36,24 @@ class RedisTest extends AnyFlatSpec with Matchers {
   it should "connect with password and TLS (verify=full)" in {
     val result =
       Try(
-        RedisClient.createIO(
-          "localhost",
-          26379,
-          0,
-          PipelineConfig(),
-          Ref.of[IO, Int](0).unsafeRunSync(),
-          Some(RedisCredentials(None, "password123")),
-          Some(
-            RedisTLS(
-              enabled = true,
-              ca = Some(new File(".github/tls/redistls.crt")),
-              verify = SslVerifyMode.FULL
-            )
+        RedisClient
+          .createIO(
+            "localhost",
+            26379,
+            0,
+            PipelineConfig(),
+            Ref.of[IO, Int](0).unsafeRunSync(),
+            Some(RedisCredentials(None, "password123")),
+            Some(
+              RedisTLS(
+                enabled = true,
+                ca = Some(new File(".github/tls/redistls.crt")),
+                verify = SslVerifyMode.FULL
+              )
+            ),
+            RedisTimeouts()
           )
-        ).unsafeRunSync()
+          .unsafeRunSync()
       )
     result.isSuccess shouldBe true
   }
@@ -55,21 +61,24 @@ class RedisTest extends AnyFlatSpec with Matchers {
   it should "connect with password and TLS (verify=off, no CA cert)" in {
     val result =
       Try(
-        RedisClient.createIO(
-          "localhost",
-          26379,
-          0,
-          PipelineConfig(),
-          Ref.of[IO, Int](0).unsafeRunSync(),
-          Some(RedisCredentials(None, "password123")),
-          Some(
-            RedisTLS(
-              enabled = true,
-              ca = None,
-              verify = SslVerifyMode.NONE
-            )
+        RedisClient
+          .createIO(
+            "localhost",
+            26379,
+            0,
+            PipelineConfig(),
+            Ref.of[IO, Int](0).unsafeRunSync(),
+            Some(RedisCredentials(None, "password123")),
+            Some(
+              RedisTLS(
+                enabled = true,
+                ca = None,
+                verify = SslVerifyMode.NONE
+              )
+            ),
+            RedisTimeouts()
           )
-        ).unsafeRunSync()
+          .unsafeRunSync()
       )
     result.isSuccess shouldBe true
   }

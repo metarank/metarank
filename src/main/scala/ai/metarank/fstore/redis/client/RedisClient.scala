@@ -154,7 +154,7 @@ object RedisClient extends Logging {
     Resource
       .make(for {
         buffer <- Ref.of[IO, Int](0)
-        client <- createIO(host, port, db, cache, buffer, auth, tls)
+        client <- createIO(host, port, db, cache, buffer, auth, tls, timeout)
         tickCancel <-
           if (cache.flushPeriod != 0.millis) {
             info(s"started flush timer every ${cache.flushPeriod}") *> client.tick().background.allocated.map(_._2)
@@ -174,9 +174,10 @@ object RedisClient extends Logging {
       conf: PipelineConfig,
       buffer: Ref[IO, Int],
       auth: Option[RedisCredentials],
-      tls: Option[RedisTLS]
+      tls: Option[RedisTLS],
+      timeouts: RedisTimeouts
   ): IO[RedisClient] = for {
-    lettuce <- createLettuceClient(host, port, db, tls, auth)
+    lettuce <- createLettuceClient(host, port, db, tls, auth, timeouts)
     read <- IO(lettuce.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec())))
       .handleErrorWith {
         case re: RedisConnectionException =>
@@ -216,14 +217,17 @@ object RedisClient extends Logging {
       port: Int,
       db: Int,
       tls: Option[RedisTLS],
-      auth: Option[RedisCredentials]
+      auth: Option[RedisCredentials],
+      timeouts: RedisTimeouts
   ): IO[io.lettuce.core.RedisClient] =
     IO {
-      val uri =
-        RedisURI.builder().withHost(host).withPort(port).withDatabase(db).withTimeout(java.time.Duration.ofSeconds(1))
-      val socket        = SocketOptions.builder().connectTimeout(java.time.Duration.ofSeconds(1))
-      val timeout       = TimeoutOptions.builder().fixedTimeout(java.time.Duration.ofSeconds(1)).timeoutCommands()
-      val clientOptions = ClientOptions.builder().socketOptions(socket.build()).timeoutOptions(timeout.build())
+      val commandTimeout = java.time.Duration.ofNanos(timeouts.command.toNanos)
+      val socketTimeout  = java.time.Duration.ofNanos(timeouts.socket.toNanos)
+      val connectTimeout = java.time.Duration.ofNanos(timeouts.connect.toNanos)
+      val uri            = RedisURI.builder().withHost(host).withPort(port).withDatabase(db).withTimeout(connectTimeout)
+      val socket         = SocketOptions.builder().connectTimeout(socketTimeout)
+      val timeout        = TimeoutOptions.builder().fixedTimeout(commandTimeout).timeoutCommands()
+      val clientOptions  = ClientOptions.builder().socketOptions(socket.build()).timeoutOptions(timeout.build())
       auth match {
         case None => logger.info("auth is not enabled")
         case Some(RedisCredentials(user, password)) =>

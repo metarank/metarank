@@ -29,14 +29,14 @@ object TrainConfig {
   ) extends TrainConfig
   implicit val redisDecoder: Decoder[RedisTrainConfig] = Decoder.instance(c =>
     for {
-      host   <- c.downField("host").as[Hostname]
-      port   <- c.downField("port").as[Port]
-      db     <- c.downField("db").as[Option[Int]]
-      cache  <- c.downField("cache").as[Option[CacheConfig]]
-      pipe   <- c.downField("pipeline").as[Option[PipelineConfig]]
-      format <- c.downField("format").as[Option[StoreFormat]]
-      auth   <- c.downField("auth").as[Option[RedisCredentials]]
-      tls    <- c.downField("tls").as[Option[RedisTLS]]
+      host    <- c.downField("host").as[Hostname]
+      port    <- c.downField("port").as[Port]
+      db      <- c.downField("db").as[Option[Int]]
+      cache   <- c.downField("cache").as[Option[CacheConfig]]
+      pipe    <- c.downField("pipeline").as[Option[PipelineConfig]]
+      format  <- c.downField("format").as[Option[StoreFormat]]
+      auth    <- c.downField("auth").as[Option[RedisCredentials]]
+      tls     <- c.downField("tls").as[Option[RedisTLS]]
       timeout <- c.downField("timeout").as[Option[RedisTimeouts]].map(_.getOrElse(RedisTimeouts()))
     } yield {
       RedisTrainConfig(
@@ -69,7 +69,7 @@ object TrainConfig {
 
   def fromState(conf: StateStoreConfig) = conf match {
     case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, format, auth, tls, timeout) =>
-      RedisTrainConfig(host, port, db.values, cache, pipeline, format, auth, tls, timeout)
+      RedisTrainConfig(host, port, db.rankings, cache, pipeline, format, auth, tls, timeout)
     case StateStoreConfig.MemoryStateConfig() =>
       MemoryTrainConfig()
   }

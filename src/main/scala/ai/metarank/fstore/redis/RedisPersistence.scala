@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS}
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
 import ai.metarank.fstore.Persistence
@@ -168,11 +168,12 @@ object RedisPersistence {
       pipeline: PipelineConfig,
       format: StoreFormat,
       auth: Option[RedisCredentials],
-      tls: Option[RedisTLS]
+      tls: Option[RedisTLS],
+      timeout: RedisTimeouts
   ): Resource[IO, RedisPersistence] = for {
-    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls)
-    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls)
-    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls)
+    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls,timeout)
+    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls,timeout)
+    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls,timeout)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(

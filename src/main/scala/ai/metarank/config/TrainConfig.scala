@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS}
+import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
@@ -24,7 +24,8 @@ object TrainConfig {
       pipeline: PipelineConfig = PipelineConfig(),
       format: StoreFormat = BinaryStoreFormat,
       auth: Option[RedisCredentials] = None,
-      tls: Option[RedisTLS] = None
+      tls: Option[RedisTLS] = None,
+      timeout: RedisTimeouts = RedisTimeouts()
   ) extends TrainConfig
   implicit val redisDecoder: Decoder[RedisTrainConfig] = Decoder.instance(c =>
     for {
@@ -36,6 +37,7 @@ object TrainConfig {
       format <- c.downField("format").as[Option[StoreFormat]]
       auth   <- c.downField("auth").as[Option[RedisCredentials]]
       tls    <- c.downField("tls").as[Option[RedisTLS]]
+      timeout <- c.downField("timeout").as[Option[RedisTimeouts]].map(_.getOrElse(RedisTimeouts()))
     } yield {
       RedisTrainConfig(
         host = host,
@@ -45,7 +47,8 @@ object TrainConfig {
         pipeline = pipe.getOrElse(PipelineConfig()),
         format = format.getOrElse(BinaryStoreFormat),
         auth = auth,
-        tls = tls
+        tls = tls,
+        timeout = timeout
       )
     }
   )
@@ -65,8 +68,8 @@ object TrainConfig {
   )
 
   def fromState(conf: StateStoreConfig) = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, format, auth, tls) =>
-      RedisTrainConfig(host, port, db.values, cache, pipeline, format, auth, tls)
+    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, format, auth, tls, timeout) =>
+      RedisTrainConfig(host, port, db.values, cache, pipeline, format, auth, tls, timeout)
     case StateStoreConfig.MemoryStateConfig() =>
       MemoryTrainConfig()
   }

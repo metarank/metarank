@@ -52,6 +52,11 @@ state:
     # full - verify both certificate and hostname
     # ca   - verify only certificate
     # off  - skip verification
+
+  timeout:      # optional, defaults to 1s for all sub-timeouts
+    connect: 1s # optional, defaults to 1s
+    socket: 1s  # optional, defaults to 1s
+    command: 1s # optional, defaults to 1s
 ```
 
 Redis persistence is sensitive to network latencies (as it needs to perform a couple of round-trips on each event), 

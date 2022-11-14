@@ -17,7 +17,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
   it should "connect with password" in {
     val result =
       Try(
-        RedisClient.createUnsafe(
+        RedisClient.createIO(
           "localhost",
           16379,
           0,
@@ -25,7 +25,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
           Ref.of[IO, Int](0).unsafeRunSync(),
           Some(RedisCredentials(None, "test")),
           None
-        )
+        ).unsafeRunSync()
       )
     result.isSuccess shouldBe true
   }
@@ -33,7 +33,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
   it should "connect with password and TLS (verify=full)" in {
     val result =
       Try(
-        RedisClient.createUnsafe(
+        RedisClient.createIO(
           "localhost",
           26379,
           0,
@@ -47,7 +47,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
               verify = SslVerifyMode.FULL
             )
           )
-        )
+        ).unsafeRunSync()
       )
     result.isSuccess shouldBe true
   }
@@ -55,7 +55,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
   it should "connect with password and TLS (verify=off, no CA cert)" in {
     val result =
       Try(
-        RedisClient.createUnsafe(
+        RedisClient.createIO(
           "localhost",
           26379,
           0,
@@ -69,7 +69,7 @@ class RedisTest extends AnyFlatSpec with Matchers {
               verify = SslVerifyMode.NONE
             )
           )
-        )
+        ).unsafeRunSync()
       )
     result.isSuccess shouldBe true
   }

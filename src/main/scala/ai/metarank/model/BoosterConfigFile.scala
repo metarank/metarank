@@ -31,7 +31,7 @@ object BoosterConfigFile {
     override def write(stream: OutputStream): Unit = {
       val catRow = cats match {
         case Nil  => ""
-        case list => s"categorial_feature: ${list.map(f => s"name:$f").mkString(",")}"
+        case list => s"categorical_feature: ${list.mkString("name:", ",", "")}"
       }
       val out = s"""objective=lambdarank
                    |data=$train

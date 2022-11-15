@@ -18,7 +18,7 @@ import cats.implicits._
 case class RedisClickthroughStore(rankings: RedisClient, prefix: String, format: StoreFormat)
     extends ClickthroughStore
     with Logging {
-  val BATCH_SIZE        = 128
+  val BATCH_SIZE        = 1024
   val LARGE_BATCH_COUNT = 2
 
   override def put(cts: List[ClickthroughValues]): IO[Unit] = for {

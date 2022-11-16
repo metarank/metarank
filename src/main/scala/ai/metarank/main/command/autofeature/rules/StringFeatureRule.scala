@@ -53,7 +53,7 @@ case class StringFeatureRule(
             source = FieldName(Item, field),
             scope = ItemScopeType,
             encode = Some(OnehotEncoderName),
-            values = NonEmptyList(head, tail)
+            values = NonEmptyList(head, tail).sorted
           )
         )
       case head :: tail if values.size >= 10 =>
@@ -66,7 +66,7 @@ case class StringFeatureRule(
             source = FieldName(Item, field),
             scope = ItemScopeType,
             encode = Some(IndexEncoderName),
-            values = NonEmptyList(head, tail)
+            values = NonEmptyList(head, tail).sorted
           )
         )
       case _ =>

@@ -1,6 +1,7 @@
 package ai.metarank.main.command
 
 import ai.metarank.config.InputConfig.FileInputConfig
+import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.CliArgs.AutoFeatureArgs
 import ai.metarank.main.command.autofeature.{ConfigMirror, EventModel}
 import ai.metarank.main.command.autofeature.rules.RuleSet
@@ -15,7 +16,7 @@ import io.circe.yaml.Printer
 import java.io.FileOutputStream
 
 object AutoFeature extends Logging {
-  val yamlFormat = Printer.spaces2.copy(dropNullKeys = true)
+  val yamlFormat = Printer.spaces2.copy(dropNullKeys = true, preserveOrder = true)
 
   def run(args: AutoFeatureArgs): IO[Unit] = for {
     _      <- info("Generating config file")
@@ -44,4 +45,5 @@ object AutoFeature extends Logging {
   } yield {
     conf
   }
+
 }

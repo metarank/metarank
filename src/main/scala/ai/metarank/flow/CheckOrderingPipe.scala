@@ -20,7 +20,7 @@ object CheckOrderingPipe {
                    |  current event happened ${prev.timestamp.diff(head.timestamp)} before previous.
                    |  
                    |Metarank expects that events should be sorted by timestamp, as it replays your click-through history.
-                   |Please pre-sort the events: metarank sort --config conf.yml --data path/to/events --out path/out\n\n""".stripMargin
+                   |Please pre-sort the events: metarank sort --data path/to/events --out path/out\n\n""".stripMargin
               )
             )
           case _ =>

@@ -8,6 +8,7 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import com.fasterxml.sort.std.{RawTextLineReader, RawTextLineWriter}
 import com.fasterxml.sort.{DataReader, DataReaderFactory, DataWriter, DataWriterFactory, SortConfig, Sorter}
+import com.github.luben.zstd.ZstdInputStream
 import io.circe.syntax._
 import io.circe.parser._
 import org.apache.commons.io.FileUtils
@@ -15,6 +16,7 @@ import org.apache.commons.io.FileUtils
 import java.io.{BufferedInputStream, BufferedOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream}
 import java.nio.file.{Files, Path}
 import java.util.Comparator
+import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import scala.jdk.CollectionConverters._
 
 object Sort extends Logging {
@@ -77,8 +79,9 @@ object Sort extends Logging {
       logger.info(s"Sorting all files in directory ${args.in}")
       val single = Files.createTempFile("metarank_presort_", ".json")
       single.toFile.deleteOnExit()
-      val stream = new BufferedOutputStream(new FileOutputStream(single.toFile))
+      val stream = new BufferedOutputStream(new FileOutputStream(single.toFile), 64 * 1024)
       for {
+        _     <- info("merging all files into a single blob")
         start <- IO(System.currentTimeMillis())
         _ <- FileEventSource(FileInputConfig(args.in.toString)).stream
           .foreach(e =>
@@ -95,7 +98,6 @@ object Sort extends Logging {
       } yield {
         logger.info(s"Sorting done in ${System.currentTimeMillis() - start}ms")
       }
-
     } else {
       for {
         start <- IO(System.currentTimeMillis())
@@ -113,9 +115,13 @@ object Sort extends Logging {
     val conf = new SortConfig().withMaxMemoryUsage(MAX_MEM)
     logger.info(s"using ${FileUtils.byteCountToDisplaySize(MAX_MEM)} RAM for on-disk merge sort")
     val sorter = new Sorter[SortableEvent](conf, EventReaderFactory, EventWriterFactory, EventTimestampComparator)
-    val source = new BufferedInputStream(new FileInputStream(in.toFile), 1024 * 1024)
-    val dest   = new BufferedOutputStream(new FileOutputStream(out.toFile), 1024 * 1024)
-    val sortedIterator = sorter.sort(new EventReader(source))
+    val source = in.getFileName match {
+      case name if name.endsWith(".gz") || name.endsWith(".gzip") => new GZIPInputStream(new FileInputStream(in.toFile))
+      case name if name.endsWith(".zst")                          => new ZstdInputStream(new FileInputStream(in.toFile))
+      case _                                                      => new FileInputStream(in.toFile)
+    }
+    val dest           = new BufferedOutputStream(new FileOutputStream(out.toFile), 1024 * 1024)
+    val sortedIterator = sorter.sort(new EventReader(new BufferedInputStream(source, 1024 * 1024)))
     logger.info(s"on-disk merge pre-sorting done, ${sorter.getNumberOfPreSortFiles} shards")
     var count     = 0
     var byteCount = 0L

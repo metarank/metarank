@@ -8,6 +8,7 @@ import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.clickthrough.FileClickthroughStore
 import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Timestamp
 import ai.metarank.rank.LambdaMARTModel
@@ -39,7 +40,7 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
   }
 
   it should "train the xgboost model" in {
-    Train.train(store, cts, model, "xgboost", modelConfig.backend).unsafeRunSync()
+    Train.train(store, cts, model, "xgboost", modelConfig.backend, SplitStrategy.default).unsafeRunSync()
   }
 
 }

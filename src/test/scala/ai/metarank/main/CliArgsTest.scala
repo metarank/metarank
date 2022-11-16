@@ -3,6 +3,7 @@ package ai.metarank.main
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TrainArgs}
+import ai.metarank.main.command.train.SplitStrategy.HoldLastStrategy
 import ai.metarank.source.format.JsonFormat
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -46,24 +47,21 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse train args, short" in {
     CliArgs.parse(List("train", "-c", conf.toString, "-m", "xgboost"), Map.empty) shouldBe Right(
-      TrainArgs(conf, Some("xgboost"), None)
+      TrainArgs(conf, Some("xgboost"))
     )
   }
 
-  it should "parse train args with export" in {
-    val dir = Files.createTempDirectory("exportdir")
+  it should "parse train args with split strategy" in {
     CliArgs.parse(
-      List("train", "-c", conf.toString, "-m", "xgboost", "--export", dir.toString),
+      List("train", "-c", conf.toString, "-m", "xgboost", "--split", "user=50%"),
       Map.empty
     ) shouldBe Right(
-      TrainArgs(conf, Some("xgboost"), Some(dir))
+      TrainArgs(conf, Some("xgboost"), HoldLastStrategy(50))
     )
   }
 
   it should "parse train args, no model" in {
-    CliArgs.parse(List("train", "-c", conf.toString), Map.empty) shouldBe Right(
-      TrainArgs(conf, None, None)
-    )
+    CliArgs.parse(List("train", "-c", conf.toString), Map.empty) shouldBe Right(TrainArgs(conf, None))
   }
 
   it should "parse serve with config taken from env" in {

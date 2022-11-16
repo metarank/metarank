@@ -11,7 +11,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.io.{BufferedOutputStream, FileOutputStream}
 import java.nio.file.{Files, Path}
-import scala.util.Random
+import scala.util.{Failure, Random, Try}
 import io.circe.syntax._
 
 class SortTest extends AnyFlatSpec with Matchers {
@@ -43,6 +43,11 @@ class SortTest extends AnyFlatSpec with Matchers {
     Sort.run(SortArgs(dir, out)).unsafeRunSync()
     val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
     sorted shouldBe events.toList.sortBy(_.timestamp.ts)
+  }
+
+  it should "complain on same in+out file" in {
+    val dir = Files.createTempDirectory("events_in")
+    Try(Sort.run(SortArgs(dir, dir)).unsafeRunSync()) shouldBe a[Failure[_]]
   }
 
   def writeBatch(events: Seq[Event], file: Path) = {

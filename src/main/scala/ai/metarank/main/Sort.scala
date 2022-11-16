@@ -70,6 +70,9 @@ object Sort extends Logging {
   }
 
   def run(args: SortArgs): IO[Unit] = {
+    if (args.in == args.out) {
+      IO.raiseError(new Exception(s"input file ${args.in} is the same as ${args.out}, use different files"))
+    }
     if (args.in.toFile.isDirectory) {
       logger.info(s"Sorting all files in directory ${args.in}")
       val single = Files.createTempFile("metarank_presort_", ".json")

@@ -242,7 +242,7 @@ object CliArgs extends Logging {
         "data",
         required = true,
         short = 'd',
-        descr = "path to a directory with input files",
+        descr = "path to a file/directory with input files",
         validate = pathExists
       )
 

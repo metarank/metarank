@@ -4,6 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.api.JsonChunk
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.command.Train
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -17,7 +18,7 @@ case class TrainApi(mapping: FeatureMapping, store: Persistence, cts: Clickthrou
     mapping.models.get(modelName) match {
       case Some(model @ LambdaMARTModel(conf, _, _, _)) =>
         Train
-          .train(store, cts, model, modelName, conf.backend)
+          .train(store, cts, model, modelName, conf.backend, SplitStrategy.default)
           .map(result => Response(entity = Entity.strict(JsonChunk(result))))
       case None =>
         error(Status.NotFound, s"Model $modelName is not defined in config")

@@ -8,6 +8,8 @@ import ai.metarank.config.SourceFormat
 import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType
 import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType.{AllRuleSet, StableRuleSet}
+import ai.metarank.main.command.train.SplitStrategy
+import ai.metarank.main.command.train.SplitStrategy.TimeSplit
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
@@ -40,7 +42,8 @@ object CliArgs extends Logging {
       validation: Boolean,
       sort: SortingType
   ) extends CliConfArgs
-  case class TrainArgs(conf: Path, model: Option[String], `export`: Option[Path]) extends CliConfArgs
+  case class TrainArgs(conf: Path, model: Option[String], split: SplitStrategy = SplitStrategy.default)
+      extends CliConfArgs
   case class ValidateArgs(conf: Path, data: Path, offset: SourceOffset, format: SourceFormat, sort: SortingType)
       extends CliConfArgs
   case class SortArgs(in: Path, out: Path) extends CliArgs
@@ -54,7 +57,13 @@ object CliArgs extends Logging {
       catThreshold: Double = 0.003
   ) extends CliArgs
 
-  case class ExportArgs(conf: Path, model: String, out: Path, sample: Double) extends CliConfArgs
+  case class ExportArgs(
+      conf: Path,
+      model: String,
+      out: Path,
+      sample: Double,
+      split: SplitStrategy = SplitStrategy.default
+  ) extends CliConfArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -95,11 +104,11 @@ object CliArgs extends Logging {
             }
           case Some(parser.train) =>
             for {
-              conf   <- parse(parser.train.config)
-              model  <- parseOption(parser.train.model)
-              export <- parseOption(parser.train.export)
+              conf  <- parse(parser.train.config)
+              model <- parseOption(parser.train.model)
+              split <- parseOption(parser.train.split)
             } yield {
-              TrainArgs(conf, model, export)
+              TrainArgs(conf, model, split.getOrElse(SplitStrategy.default))
             }
           case Some(parser.validate) =>
             for {
@@ -136,8 +145,9 @@ object CliArgs extends Logging {
               model  <- parse(parser.`export`.model)
               out    <- parse(parser.`export`.out)
               sample <- parse(parser.`export`.sample)
+              split  <- parseOption(parser.`export`.split)
             } yield {
-              ExportArgs(conf, model, out, sample)
+              ExportArgs(conf, model, out, sample, split.getOrElse(SplitStrategy.default))
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -171,6 +181,15 @@ object CliArgs extends Logging {
           default = env.get("METARANK_CONFIG").map(Path.of(_)),
           validate = pathExists
         )
+    }
+
+    trait SplitLikeOption { this: Subcommand =>
+      val split = opt[SplitStrategy](
+        name = "split",
+        required = false,
+        default = Some(SplitStrategy.default),
+        descr = "train/test splitting strategy (optional, default: time=80%, options: random=N%,time=N%,hold_last=N%)"
+      )
     }
 
     trait ImportLikeOption { this: Subcommand =>
@@ -218,7 +237,7 @@ object CliArgs extends Logging {
       descr("run the input data validation suite")
     }
 
-    object train extends Subcommand("train") with ConfigOption {
+    object train extends Subcommand("train") with ConfigOption with SplitLikeOption {
       descr("train the ML model")
       val model = opt[String](
         "model",
@@ -226,13 +245,6 @@ object CliArgs extends Logging {
         default = None,
         short = 'm',
         descr = "model name to train"
-      )
-      val `export` = opt[Path](
-        name = "export",
-        required = false,
-        default = None,
-        descr = "a directory to export model training files",
-        validate = pathExists
       )
     }
 
@@ -287,7 +299,7 @@ object CliArgs extends Logging {
       descr("import, train and serve at once")
     }
 
-    object `export` extends Subcommand("export") with ConfigOption {
+    object `export` extends Subcommand("export") with ConfigOption with SplitLikeOption {
       descr("export training dataset for hyperparameter optimization")
 
       val model = opt[String](
@@ -386,5 +398,12 @@ object CliArgs extends Logging {
     case "last-modified" => SortingType.SortByTime
     case other           => throw new IllegalArgumentException(s"cannot parse $other as a sorting method")
   })
+
+  implicit val splitConverter: ValueConverter[SplitStrategy] = singleArgConverter(str =>
+    SplitStrategy.parse(str) match {
+      case Left(error)  => throw error
+      case Right(value) => value
+    }
+  )
 
 }

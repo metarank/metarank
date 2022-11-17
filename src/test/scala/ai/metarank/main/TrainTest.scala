@@ -4,6 +4,7 @@ import ai.metarank.config.CoreConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Timestamp
 import ai.metarank.rank.LambdaMARTModel
@@ -46,6 +47,6 @@ class TrainTest extends AnyFlatSpec with Matchers {
 
   def train(name: String) = {
     val model = dataset.mapping.models(name).asInstanceOf[LambdaMARTModel]
-    Train.train(store, cs, model, "xgboost", model.conf.backend).unsafeRunSync()
+    Train.train(store, cs, model, "xgboost", model.conf.backend, SplitStrategy.default).unsafeRunSync()
   }
 }

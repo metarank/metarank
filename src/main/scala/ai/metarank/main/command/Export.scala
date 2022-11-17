@@ -5,6 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.main.CliArgs.ExportArgs
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.util.StreamResource
 import ai.metarank.model.BoosterConfigFile.{LightGBMConfigFile, XGBoostConfigFile}
 import ai.metarank.rank.{LambdaMARTModel, NoopModel, ShuffleModel}
@@ -22,20 +23,26 @@ object Export extends Logging {
       ctsResource: Resource[IO, ClickthroughStore],
       mapping: FeatureMapping,
       args: ExportArgs
-  ): IO[Unit] = ctsResource.use(cts => doexport(cts, mapping, args.model, args.out, args.sample))
+  ): IO[Unit] = ctsResource.use(cts => doexport(cts, mapping, args.model, args.out, args.sample, args.split))
 
-  def doexport(cts: ClickthroughStore, mapping: FeatureMapping, modelName: String, out: Path, sample: Double) = for {
+  def doexport(
+      cts: ClickthroughStore,
+      mapping: FeatureMapping,
+      modelName: String,
+      out: Path,
+      sample: Double,
+      splitter: SplitStrategy
+  ) = for {
     modelConf <- IO
       .fromOption(mapping.models.get(modelName))(new Exception(s"model $modelName is not defined in config"))
     model <- modelConf match {
       case lm: LambdaMARTModel => IO.pure(lm)
       case _                   => IO.raiseError(new Exception(s"don't know how to export dataset for model $modelName"))
     }
-    dataset <- Train.loadDataset(cts, model, sample)
-    (train, test) = dataset
+    dataset <- Train.loadDataset(cts, model, splitter, sample)
     _ <- model.conf.backend match {
-      case c: LightGBMBackend => exportLightgbm(out, train, test, c)
-      case c: XGBoostBackend  => exportXgboost(out, train, test, c)
+      case c: LightGBMBackend => exportLightgbm(out, dataset.train, dataset.test, c)
+      case c: XGBoostBackend  => exportXgboost(out, dataset.train, dataset.test, c)
     }
   } yield {
     logger.info("export done")

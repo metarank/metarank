@@ -6,6 +6,7 @@ import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
@@ -39,7 +40,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   }
 
   it should "train the xgboost model" in {
-    Train.train(store, cts, model, "xgboost", modelConfig.backend).unsafeRunSync()
+    Train.train(store, cts, model, "xgboost", modelConfig.backend, SplitStrategy.default).unsafeRunSync()
   }
 
   it should "rerank things" in {

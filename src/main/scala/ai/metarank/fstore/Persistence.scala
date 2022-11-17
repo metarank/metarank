@@ -101,23 +101,4 @@ object Persistence extends Logging {
           .flatMap(_ => IO(MemPersistence(schema)))
       )(_ => IO.unit)
   }
-
-  def blackhole() = new Persistence {
-    override def schema: Schema                                            = Schema(Nil)
-    override def counters: Map[FeatureKey, CounterFeature]                 = Map.empty
-    override def periodicCounters: Map[FeatureKey, PeriodicCounterFeature] = Map.empty
-    override def lists: Map[FeatureKey, BoundedListFeature]                = Map.empty
-    override def freqs: Map[FeatureKey, FreqEstimatorFeature]              = Map.empty
-    override def scalars: Map[FeatureKey, ScalarFeature]                   = Map.empty
-    override def stats: Map[FeatureKey, StatsEstimatorFeature]             = Map.empty
-    override def maps: Map[FeatureKey, MapFeature]                         = Map.empty
-
-    // override lazy val cts: ClickthroughStore             = ???
-    override lazy val models: KVStore[ModelName, Scorer] = KVStore.empty
-    override lazy val values: KVStore[Key, FeatureValue] = KVStore.empty
-    override def healthcheck(): IO[Unit]                 = IO.unit
-
-    override def sync: IO[Unit] = IO.unit
-  }
-
 }

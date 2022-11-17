@@ -121,7 +121,7 @@ object RanklensDatasetGenerator {
         RankingEvent(
           id = id,
           timestamp = ts,
-          user = UserId(t.user),
+          user = Some(UserId(t.user)),
           session = Some(SessionId(t.user)),
           fields = Nil,
           items = NonEmptyList.fromListUnsafe(t.shown).map(id => ItemRelevancy(ItemId(id.toString), 0))
@@ -131,7 +131,7 @@ object RanklensDatasetGenerator {
         InteractionEvent(
           id = EventId(UUID.randomUUID().toString),
           timestamp = ts.plus(5.second),
-          user = UserId(t.user),
+          user = Some(UserId(t.user)),
           session = Some(SessionId(t.user)),
           fields = Nil,
           item = ItemId(item.toString),

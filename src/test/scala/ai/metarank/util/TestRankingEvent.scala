@@ -11,7 +11,7 @@ object TestRankingEvent {
   def apply(items: List[String]) = RankingEvent(
     id = EventId(UUID.randomUUID().toString),
     timestamp = Timestamp.now,
-    user = UserId("u1"),
+    user = Some(UserId("u1")),
     session = Some(SessionId("s1")),
     fields = Nil,
     items = NonEmptyList.fromListUnsafe(items).map(item => ItemRelevancy(ItemId(item), 1.0))

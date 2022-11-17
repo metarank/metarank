@@ -73,7 +73,7 @@ object SyntheticRanklensDataset {
       val rank = RankingEvent(
         id = EventId(UUID.randomUUID().toString),
         timestamp = start.plus((user * rankingsPerUser + i) * step),
-        user = UserId(user.toString),
+        user = Some(UserId(user.toString)),
         session = Some(SessionId(user.toString)),
         items = NonEmptyList.fromListUnsafe(itemList.toList)
       )

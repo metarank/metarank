@@ -10,7 +10,7 @@ class ImpressionInjectTest extends AnyFlatSpec with Matchers {
   val ct = Clickthrough(
     id = EventId("i1"),
     ts = Timestamp.now,
-    user = UserId("u1"),
+    user = Some(UserId("u1")),
     session = None,
     items = List(ItemId("p1"), ItemId("p2"), ItemId("p3"), ItemId("p4")),
     interactions = List(TypedInteraction(ItemId("p2"), "click"))

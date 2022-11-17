@@ -36,14 +36,14 @@ object Event {
   ) extends MetadataEvent
 
   sealed trait FeedbackEvent extends Event {
-    def user: UserId
+    def user: Option[UserId]
     def session: Option[SessionId]
   }
 
   case class RankingEvent(
       id: EventId,
       timestamp: Timestamp,
-      user: UserId,
+      user: Option[UserId],
       session: Option[SessionId],
       fields: List[Field] = Nil,
       items: NonEmptyList[ItemRelevancy]
@@ -54,7 +54,7 @@ object Event {
       item: ItemId,
       timestamp: Timestamp,
       ranking: Option[EventId] = None,
-      user: UserId,
+      user: Option[UserId],
       session: Option[SessionId],
       `type`: String,
       fields: List[Field] = Nil

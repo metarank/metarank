@@ -42,7 +42,7 @@ object StaticScoreTool extends IOApp with Logging {
               val json: Event = RankingEvent(
                 id = EventId(UUID.randomUUID().toString),
                 timestamp = Timestamp.now,
-                user = UserId("alice"),
+                user = Some(UserId("alice")),
                 session = None,
                 items = NonEmptyList.fromListUnsafe(batch).map(id => ItemRelevancy(id))
               )

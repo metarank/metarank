@@ -77,10 +77,10 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
     }
   }
 
-  def writeField(event: Event, user: UserId, session: Option[SessionId]): Iterable[Put] = {
+  def writeField(event: Event, user: Option[UserId], session: Option[SessionId]): Iterable[Put] = {
     for {
       key <- schema.scope match {
-        case ScopeType.UserScopeType    => Some(Key(UserScope(user), conf.name))
+        case ScopeType.UserScopeType    => user.map(u => Key(UserScope(u), conf.name))
         case ScopeType.SessionScopeType => session.map(s => Key(SessionScope(s), conf.name))
         case _                          => None
       }
@@ -102,7 +102,7 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
   override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue]): MValue = {
     val result = for {
       key <- schema.scope match {
-        case ScopeType.UserScopeType    => Some(Key(UserScope(request.user), conf.name))
+        case ScopeType.UserScopeType    => request.user.map(u => Key(UserScope(u), conf.name))
         case ScopeType.SessionScopeType => request.session.map(s => Key(SessionScope(s), conf.name))
         case _                          => None
       }

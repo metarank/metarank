@@ -9,7 +9,7 @@ import io.circe.generic.semiauto._
 case class Clickthrough(
     id: EventId,
     ts: Timestamp,
-    user: UserId,
+    user: Option[UserId],
     session: Option[SessionId],
     items: List[ItemId],
     interactions: List[TypedInteraction] = Nil

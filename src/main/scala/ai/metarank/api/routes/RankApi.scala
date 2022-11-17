@@ -39,7 +39,7 @@ case class RankApi(ranker: Ranker) extends Logging {
   def logRequest(r: RankingEvent) = {
     val items = r.items.map(_.id.value).toList.mkString("[", ",", "]")
     logger.info(
-      s"request: user=${r.user.value} session=${r.session.map(_.value)} items=$items fields=${Field.toString(r.fields)}"
+      s"request: user=${r.user.getOrElse("")} session=${r.session.map(_.value)} items=$items fields=${Field.toString(r.fields)}"
     )
   }
 

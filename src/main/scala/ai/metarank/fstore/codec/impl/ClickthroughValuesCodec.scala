@@ -32,7 +32,10 @@ object ClickthroughValuesCodec extends BinaryCodec[ClickthroughValues] {
     override def read(in: DataInput): Clickthrough = Clickthrough(
       id = EventId(in.readUTF()),
       ts = Timestamp(in.readVarLong()),
-      user = UserId(in.readUTF()),
+      user = { // compat user -> option[user]
+        val line = in.readUTF()
+        if (line.isEmpty) None else Some(UserId(line))
+      },
       session = optionSessionCodec.read(in),
       items = listItemCodec.read(in),
       interactions = listInterCodec.read(in)
@@ -41,7 +44,7 @@ object ClickthroughValuesCodec extends BinaryCodec[ClickthroughValues] {
     override def write(value: Clickthrough, out: DataOutput): Unit = {
       out.writeUTF(value.id.value)
       out.writeVarLong(value.ts.ts)
-      out.writeUTF(value.user.value)
+      out.writeUTF(value.user.map(_.value).getOrElse("")) // compat user -> option[user]
       optionSessionCodec.write(value.session, out)
       listItemCodec.write(value.items, out)
       listInterCodec.write(value.interactions, out)

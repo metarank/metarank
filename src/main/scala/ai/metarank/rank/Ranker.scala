@@ -38,7 +38,7 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
         val total   = System.currentTimeMillis() - start
         val kendall = KendallCorrelation(request.items.map(_.id).toList, result.map(_.item))
         logger.info(
-          s"response: krr=$kendall user=${request.user.value} items=$items state=${stateTook - start}ms, total=${total}ms"
+          s"response: krr=$kendall user=${request.user.getOrElse("")} items=$items state=${stateTook - start}ms, total=${total}ms"
         )
       }
 

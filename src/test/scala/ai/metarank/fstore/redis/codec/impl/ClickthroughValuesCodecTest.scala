@@ -17,7 +17,7 @@ class ClickthroughValuesCodecTest extends AnyFlatSpec with Matchers with BinCode
         ct = Clickthrough(
           id = EventId("i1"),
           ts = Timestamp.now,
-          user = UserId("u1"),
+          user = Some(UserId("u1")),
           session = Some(SessionId("foo")),
           items = List(ItemId("p1")),
           interactions = List(TypedInteraction(ItemId("p1"), "click"))

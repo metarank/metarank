@@ -47,7 +47,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val ranking = RankingEvent(
       id = EventId("event1"),
       timestamp = Timestamp(1636993838000L),
-      user = UserId("u1"),
+      user = Some(UserId("u1")),
       session = Some(SessionId("s1")),
       items = NonEmptyList.of(
         ItemRelevancy(ItemId("96610"), 0.0),
@@ -80,7 +80,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
       id = EventId("event2"),
       item = ItemId("102880"),
       timestamp = Timestamp(1636993838000L),
-      user = UserId("u1"),
+      user = Some(UserId("u1")),
       session = Some(SessionId("s1")),
       `type` = "click",
       ranking = Some(EventId("event1"))

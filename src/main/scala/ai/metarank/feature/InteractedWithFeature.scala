@@ -122,9 +122,9 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     Key(ItemScope(ItemId(item)), itemFieldFeature.name)
   }
 
-  private def makeVisitorKey(user: UserId, session: Option[SessionId]) = schema.scope match {
+  private def makeVisitorKey(user: Option[UserId], session: Option[SessionId]) = schema.scope match {
     case SessionScopeType => session.map(s => Key(SessionScope(s), interactions.name))
-    case UserScopeType    => Some(Key(UserScope(user), interactions.name))
+    case UserScopeType    => user.map(u => Key(UserScope(u), interactions.name))
     case _                => None
   }
 

@@ -51,7 +51,7 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
       RankingEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         timestamp = Timestamp.date(2020, 9, 6, 11, 24, 27),
-        user = UserId("user1"),
+        user = Some(UserId("user1")),
         session = Some(SessionId("session1")),
         fields = List(
           StringField("query", "cat"),
@@ -69,7 +69,7 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
   val expectedInteraction = InteractionEvent(
     id = EventId("0f4c0036-04fb-4409-b2c6-7163a59f6b7d"),
     timestamp = Timestamp.date(2020, 9, 6, 11, 24, 27),
-    user = UserId("user1"),
+    user = Some(UserId("user1")),
     session = Some(SessionId("session1")),
     item = ItemId("item1"),
     ranking = Some(EventId("81f46c34-a4bb-469c-8708-f8127cd67d27")),

@@ -44,7 +44,7 @@ object LatencyBenchmark extends IOApp with Logging {
       RankingEvent(
         id = EventId(UUID.randomUUID().toString),
         timestamp = Timestamp.now,
-        user = UserId(uid),
+        user = Some(UserId(uid)),
         session = Some(SessionId(uid)),
         fields = Nil,
         items = NonEmptyList.fromListUnsafe(

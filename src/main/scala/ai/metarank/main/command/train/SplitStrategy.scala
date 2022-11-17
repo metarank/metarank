@@ -57,7 +57,7 @@ object SplitStrategy {
     case splitPattern("random", ratio)    => Right(RandomSplit(ratio.toInt))
     case "time"                           => Right(TimeSplit(80))
     case splitPattern("time", ratio)      => Right(TimeSplit(ratio.toInt))
-    case "user"                           => Right(HoldLastStrategy(80))
+    case "hold_last"                      => Right(HoldLastStrategy(80))
     case splitPattern("hold_last", ratio) => Right(HoldLastStrategy(ratio.toInt))
     case other                            => Left(new Exception(s"split pattern $other cannot be parsed"))
   }

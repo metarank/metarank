@@ -53,7 +53,7 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse train args with split strategy" in {
     CliArgs.parse(
-      List("train", "-c", conf.toString, "-m", "xgboost", "--split", "user=50%"),
+      List("train", "-c", conf.toString, "-m", "xgboost", "--split", "hold_last=50%"),
       Map.empty
     ) shouldBe Right(
       TrainArgs(conf, Some("xgboost"), HoldLastStrategy(50))

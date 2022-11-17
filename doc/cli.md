@@ -37,8 +37,9 @@ Subcommand: import - import historical clickthrough data
 
 Subcommand: train - train the ML model
   -c, --config  <arg>   path to config file
-  -e, --export  <arg>   a directory to export model training files
   -m, --model  <arg>    model name to train
+  -s, --split  <arg>    train/test splitting strategy (optional, default:
+                        time=80%, options: random=N%,time=N%,hold_last=N%)
   -h, --help            Show help message
 
 Subcommand: serve - run the inference API
@@ -74,11 +75,13 @@ Subcommand: validate - run the input data validation suite
   -h, --help                   Show help message
 
 Subcommand: sort - sort the dataset by timestamp
-  -d, --data  <arg>   path to a directory with input files
+  -d, --data  <arg>   path to a file/directory with input files
   -o, --out  <arg>    path to an output file
   -h, --help          Show help message
 
 Subcommand: autofeature - generate reference config based on existing data
+  -c, --cat-threshold  <arg>   min threshold of category frequency, when its
+                               considered a catergory (optional, default=0.003)
   -d, --data  <arg>            path to an input file
   -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
                                snowplow:json (optional, default=json)
@@ -98,10 +101,13 @@ Subcommand: export - export training dataset for hyperparameter optimization
   -c, --config  <arg>   path to config file
   -m, --model  <arg>    model name to export data for
   -o, --out  <arg>      a directory to export model training files
-  -s, --sample  <arg>   sampling ratio of exported training click-through events
+      --sample  <arg>   sampling ratio of exported training click-through events
+  -s, --split  <arg>    train/test splitting strategy (optional, default:
+                        time=80%, options: random=N%,time=N%,hold_last=N%)
   -h, --help            Show help message
 
-For all other tricks, consult the docs on https://docs.metarank.ai```
+For all other tricks, consult the docs on https://docs.metarank.ai
+```
 
 The command-line argument structure is:
 
@@ -192,7 +198,22 @@ You can train the underlying ML ranking model:
 java -jar metarank.jar train --config /path/to/config.yaml
 ```
 
-* if the `--model <name>` option is not given, then Metarank will train all the defined models sequentally. 
+* if the `--model <name>` option is not given, then Metarank will train all the defined models sequentially. 
+
+While training the model, Metarank will split your data into train/validation datasets with the following supported splitting strategies:
+* `random`: shuffle all the training samples and take N% as a training part. May result in an implicit model leakage, when information about the future was leaked in the training set. 
+
+    An example: on Christmas items with Santa are selling much better (and not selling at all afterwards), and leaking this knowledge into your training set will result in better offline scores (as model knows that Christmas is coming). In production, it will behave significantly worse, as there is no way to predict the future out of the training data anymore.
+
+* `time`: sort all training samples by timestamp and pick first N% as training set (the default option).
+* `hold_last`: group all samples by user, and sort per-user samples by timestamp. N% first samples within each user are picked into the training dataset.
+
+    Has the same issue with future leaking in the model, but optimizes the train dataset to focus on last user click.
+
+The format of split strategy CLI flag is `--strategy name=ratio%`. For example:
+* random with 90% ratio: `--split random=90%`
+* random with a default 80% ratio: `--split random`
+
 
 ### Dataset export
 
@@ -305,6 +326,9 @@ And if memory is not enough, you can set `force_col_wise=true`.
 [LightGBM] [Info] 0.052650 seconds elapsed, finished iteration 5
 [LightGBM] [Info] Finished training
 ```
+
+Metarank supports the same train/test split strategies for `export` subcommand as for the [train](cli.md#training-the-model) one.
+
 ## Environment variables
 
 Config file can be passed to the Metarank not only as a command-line argument, but also as an environment variable.

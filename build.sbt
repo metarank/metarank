@@ -24,11 +24,11 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.4.0",
+      "org.typelevel"         %% "cats-effect"              % "3.4.1",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.4",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.5",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
@@ -53,12 +53,12 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % "2.18.19",
+      "software.amazon.awssdk" % "kinesis"                  % "2.18.21",
       "io.lettuce"             % "lettuce-core"             % "6.2.1.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
       "io.sentry"              % "sentry-logback"           % "6.8.0",
-      "com.fasterxml.util"     % "java-merge-sort"          % "1.0.2"
+      "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),

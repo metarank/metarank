@@ -4,6 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event
+import ai.metarank.util.analytics.Metrics
 import cats.effect.{IO, Ref}
 import fs2.Stream
 
@@ -25,6 +26,7 @@ object MetarankFlow {
       _ <- source
         .evalTapChunk(e => IO(store.ticker.tick(e)))
         .evalTapChunk(_ => eventCounter.update(_ + 1))
+        .evalTapChunk(e => IO(Metrics.events.inc()))
         .through(ai.metarank.flow.PrintProgress.tap)
         .flatMap(event =>
           Stream.evalSeq[IO, List, Event](

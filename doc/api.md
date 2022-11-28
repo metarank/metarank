@@ -19,13 +19,102 @@ Integrating these events is crucial for personalization to operate properly and 
 ### Payload format
 You can find events and their description on the [Supported events](event-schema.md).
 
+### Response
+
+A JSON message with the following fields:
+* `accepted`: how many events from the submitted batch were processed
+* `status`: "ok" when no errors found
+* `tookMillis`: how many milliseconds batch processing took
+* `updated`: how many underlying ranking features were recomputed. 
+
+Example:
+```json
+{"accepted":1,"status":"ok","tookMillis":3,"updated":0}
+```
+
+### Example
+
+```shell
+$> curl http://localhost:8080/feedback -d '{
+    "event": "ranking",
+    "id": "id1",
+    "items": [
+        {"id":"72998"}, {"id":"589"}, {"id":"134130"}, {"id":"5459"}, 
+        {"id":"1917"}, {"id":"2571"}, {"id":"1527"}, {"id":"97752"}, 
+        {"id":"1270"}, {"id":"1580"}, {"id":"109487"}, {"id":"79132"}
+    ],
+    "user": "alice",
+    "session": "alice1",
+    "timestamp": 1661431894711
+}'
+*   Trying 127.0.0.1:8080...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> POST /feedback HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.86.0
+> Accept: */*
+> Content-Length: 354
+> Content-Type: application/x-www-form-urlencoded
+> 
+< HTTP/1.1 200 OK
+< Date: Mon, 28 Nov 2022 13:09:44 GMT
+< Content-Length: 55
+< 
+{"accepted":1,"status":"ok","tookMillis":3,"updated":0}
+```
+
 ## Train
 
 **API Endpoint**: `/train/<model name>`
 
 **Method**: `POST`
 
-Train endpoint runs the training on persisted data. You can run this method at any time to re-train the model.
+Train endpoint runs the training on persisted click-through data. You can run this method at any time to re-train the model. See the [Model retraining how-to](howto/model-retraining.md) on how to set up the retraining.
+
+**Payload**: none
+
+### Response
+
+A JSON response with the following fields:
+* `weights`: per-field model weights
+* `sizeBytes`: model size in bytes
+* `iterations`: test/train error loss while training.
+
+Example:
+```json
+{
+  "features": [
+    {
+      "name": "vote_avg",
+      "weight": 629.0
+    },
+    {
+      "name": "profile",
+      "weight": [
+        1202.0,
+        373.0,
+        627.0,
+        145.0
+      ]
+    }
+  ],
+  "iterations": [
+    {
+      "id": 0,
+      "millis": 274,
+      "testMetric": 0.5787768851757988,
+      "trainMetric": 0.593075630098252
+    },
+    {
+      "id": 1,
+      "millis": 104,
+      "testMetric": 0.5903952545996365,
+      "trainMetric": 0.6083208266384491
+    }
+  ],
+  "sizeBytes": 843792
+}
+```
 
 ## Ranking
 
@@ -83,3 +172,41 @@ define which model to invoke.
 - `items.id`: id of the content item. Will match `item` property from the item metadata event.
 - `items.relevancy`: a score calculated by personalization model
 - `items.features`: an array of feature values calculated by pesonaliization model. This field will be returned if `explain` field is set to `true` in the request. The structure of this object will vary depending on the feature type.
+
+
+## Prometheus metrics
+
+**API Endpoint**: `/metrics`
+
+**Method**: `GET`
+
+Dumps app and JVM metrics in a prometheus format.
+
+### Example
+
+```shell
+> GET /metrics HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.86.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Date: Mon, 28 Nov 2022 13:30:41 GMT
+< Transfer-Encoding: chunked
+< 
+# HELP metarank_feedback_events_total Number of feedback events received
+# TYPE metarank_feedback_events_total counter
+metarank_feedback_events_total 58441.0
+# HELP metarank_rank_requests_total Number of /rank requests
+# TYPE metarank_rank_requests_total counter
+metarank_rank_requests_total{model="xgboost",} 5.0
+# HELP metarank_rank_latency_seconds rank endpoint latency
+# TYPE metarank_rank_latency_seconds summary
+metarank_rank_latency_seconds{model="xgboost",quantile="0.5",} 0.011451508
+metarank_rank_latency_seconds{model="xgboost",quantile="0.8",} 0.014340056
+metarank_rank_latency_seconds{model="xgboost",quantile="0.9",} 0.119447575
+metarank_rank_latency_seconds{model="xgboost",quantile="0.95",} 0.119447575
+metarank_rank_latency_seconds{model="xgboost",quantile="0.98",} 0.119447575
+metarank_rank_latency_seconds{model="xgboost",quantile="0.99",} 0.119447575
+
+```

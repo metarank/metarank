@@ -58,7 +58,10 @@ lazy val root = (project in file("."))
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
       "io.sentry"              % "sentry-logback"           % "6.8.0",
-      "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0"
+      "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
+      "io.prometheus"          % "simpleclient"             % prometheusVersion,
+      "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
+      "io.prometheus"          % "simpleclient_httpserver"  % prometheusVersion
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),

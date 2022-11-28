@@ -14,6 +14,7 @@ import org.http4s.headers.`Content-Type`
 import ai.metarank.model.Identifier._
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
 import ai.metarank.model.{FeatureValue, MValue}
+import ai.metarank.util.analytics.Metrics
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -23,10 +24,13 @@ case class RankApi(ranker: Ranker) extends Logging {
 
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
+      _           <- IO(Metrics.requests.labels(model).inc())
+      start       <- IO(Metrics.requestLatency.labels(model).startTimer())
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))
       _           <- IO { logRequest(request) }
       response    <- ranker.rerank(request, model, explain.getOrElse(false))
+      _           <- IO(start.observeDuration())
     } yield {
       Response[IO](
         Status.Ok,

@@ -28,6 +28,7 @@
   * [Standalone](deploy/standalone.md)
   * [Docker](deploy/docker.md)
   * [Kubernetes](deploy/kubernetes.md)
+  * [Prometheus metrics export](deploy/prometheus.md)
 * [Integrations](integrations/overview.md)
   * [Snowplow](integrations/snowplow.md) 
 

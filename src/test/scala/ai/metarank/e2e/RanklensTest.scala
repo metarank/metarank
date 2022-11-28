@@ -24,7 +24,7 @@ import java.nio.file.Files
 
 class RanklensTest extends AnyFlatSpec with Matchers {
   val config = Config
-    .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8))
+    .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8), Map.empty)
     .unsafeRunSync()
   val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
   lazy val file   = Files.createTempFile("events", ".jsonl")

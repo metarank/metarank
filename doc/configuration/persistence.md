@@ -109,6 +109,25 @@ An example:
 enabled: true
 verify: off
 ```
+
+### Authentication
+
+`auth.user` and `auth.password` can control the credentials used to connect to Redis. As hardcoding the credentials into the config file is not usually considered secure, you can supply the credentials from environment variables:
+* `METARANK_REDIS_USER` - only needed when Redis ACL is enabled.
+* `METARANK_REDIS_PASSWORD` - the pre-shared password used to connect to the Redis instance.
+
+Metarank's [Helm chart](../deploy/kubernetes.md) has a placeholder for the env variables passed inside the container inside Kubernetes. Usage example:
+```yaml
+env: 
+  - name: METARANK_REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: redis-secret
+        key: REDIS_PASSWORD
+```
+
+
+
 ### State encoding formats
 
 Metarank Redis persistence supports `json` and `binary` encoding formats for data stored in Redis:

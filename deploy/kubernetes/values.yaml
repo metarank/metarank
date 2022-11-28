@@ -10,6 +10,16 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
+# Can be used to pass auth secrets as env variables
+env: []
+#  - name: METARANK_REDIS_PASSWORD
+#    valueFrom:
+#      secretKeyRef:
+#        name: redis-secret
+#        key: REDIS_PASSWORD
+#  - name: METARANK_TRACKING
+#    value: false
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

@@ -48,20 +48,21 @@ object Config extends Logging {
       default
   }
 
-  def load(contents: String): IO[Config] = {
+  def load(contents: String, env: Map[String, String]): IO[Config] = {
     for {
-      yaml    <- IO.fromEither(parseYaml(contents))
-      decoded <- IO.fromEither(yaml.as[Config])
-      _       <- logConfig(decoded)
+      yaml     <- IO.fromEither(parseYaml(contents))
+      decoded  <- IO.fromEither(yaml.as[Config])
+      envSubst <- ConfigEnvSubst(decoded, env)
+      _        <- logConfig(envSubst)
     } yield {
-      decoded
+      envSubst
     }
   }
 
   def logConfig(conf: Config): IO[Unit] = IO {
     val stateType = conf.state match {
       case RedisStateConfig(host, port, db, cache, pipeline, _, _, _, _) => s"redis://${host.value}:${port.value}"
-      case MemoryStateConfig()                                     => "memory"
+      case MemoryStateConfig()                                           => "memory"
     }
     val features = conf.features.map(_.name.value).toList.mkString("[", ",", "]")
     val models   = conf.models.keys.mkString("[", ",", "]")

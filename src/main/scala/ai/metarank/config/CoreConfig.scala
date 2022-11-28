@@ -1,6 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.config.CoreConfig.{ClickthroughJoinConfig, TrackingConfig}
+import cats.effect.IO
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Decoder, Encoder}
 
@@ -14,6 +15,9 @@ case class CoreConfig(
 object CoreConfig {
   import ai.metarank.util.DurationJson._
   case class TrackingConfig(analytics: Boolean = true, errors: Boolean = true)
+  object TrackingConfig {
+    def fromEnv(env: Map[String, String]): IO[TrackingConfig] = ConfigEnvSubst.substTracking(TrackingConfig(), env)
+  }
   case class ClickthroughJoinConfig(maxSessionLength: FiniteDuration = 30.minutes, maxParallelSessions: Int = 10000)
 
   implicit val clickthroughJoinConfigDecoder: Decoder[ClickthroughJoinConfig] = Decoder.instance(c =>

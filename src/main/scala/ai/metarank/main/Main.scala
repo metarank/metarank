@@ -43,8 +43,9 @@ object Main extends IOApp with Logging {
         _ <- args match {
           case a: AutoFeatureArgs =>
             for {
-              _ <- sendUsageAnalytics(TrackingConfig(), AnalyticsPayload(args), env)
-              _ <- AutoFeature.run(a)
+              tracking <- TrackingConfig.fromEnv(env)
+              _        <- sendUsageAnalytics(tracking, AnalyticsPayload(args))
+              _        <- AutoFeature.run(a)
             } yield {}
           case a: SortArgs => Sort.run(a)
           case confArgs: CliArgs.CliConfArgs =>
@@ -52,8 +53,8 @@ object Main extends IOApp with Logging {
               confString <- IO.fromTry(
                 Try(IOUtils.toString(new FileInputStream(confArgs.conf.toFile), StandardCharsets.UTF_8))
               )
-              conf    <- Config.load(confString)
-              _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args), env)
+              conf    <- Config.load(confString, env)
+              _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args))
               mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
               store = Persistence.fromConfig(mapping.schema, conf.state)
               cts   = ClickthroughStore.fromConfig(conf.train)
@@ -73,24 +74,13 @@ object Main extends IOApp with Logging {
       }
   }
 
-  def sendUsageAnalytics(conf: TrackingConfig, payload: AnalyticsPayload, env: Map[String, String]): IO[Unit] = {
-    val envVar = env.get("METARANK_TRACKING")
-    val shouldSend = (envVar, Version.isRelease) match {
-      case (Some("true"), _)  => true
-      case (Some("false"), _) => false
-      case (_, true)          => true
-      case (_, false)         => false
-    }
-    if (!shouldSend) {
-      info(s"usage analytics disabled: METARANK_TRACKING=$envVar isRelease=${Version.isRelease}")
-    } else {
-      for {
-        _ <- info(
-          s"usage analytics enabled: env=$envVar release=${Version.isRelease} analytics=${conf.analytics} errors=${conf.errors}"
-        )
-        _ <- ErrorReporter.init(conf.errors)
-        _ <- AnalyticsReporter.ping(conf.analytics, payload)
-      } yield {}
-    }
+  def sendUsageAnalytics(conf: TrackingConfig, payload: AnalyticsPayload): IO[Unit] = {
+    for {
+      _ <- info(
+        s"usage analytics enabled: release=${Version.isRelease} analytics=${conf.analytics} errors=${conf.errors}"
+      )
+      _ <- IO.whenA(conf.analytics)(AnalyticsReporter.ping(conf.analytics, payload))
+      _ <- IO.whenA(conf.errors)(ErrorReporter.init(conf.errors))
+    } yield {}
   }
 }

@@ -19,6 +19,20 @@ object MValue {
 
   case class SingleValue(name: FeatureName, value: Double) extends MValue {
     override val dim = SingleDim
+
+    override def equals(obj: Any): Boolean = obj match {
+      case SingleValue(xname, xval) =>
+        if (xval.isNaN && value.isNaN) {
+          xname == name
+        } else {
+          (xname == name) && (xval == value)
+        }
+      case _ => false
+    }
+  }
+
+  object SingleValue {
+    def missing(name: FeatureName) = new SingleValue(name, Double.NaN)
   }
 
   case class VectorValue(name: FeatureName, values: Array[Double], dim: VectorDim) extends MValue {
@@ -31,8 +45,13 @@ object MValue {
   }
   object VectorValue {
     def apply(name: FeatureName, values: Array[Double], dim: Int) = new VectorValue(name, values, VectorDim(dim))
-    def empty(name: FeatureName, dim: Int)       = VectorValue(name, new Array[Double](dim), VectorDim(dim))
-    def empty(name: FeatureName, dim: VectorDim) = VectorValue(name, new Array[Double](dim.dim), dim)
+
+    def missing(name: FeatureName, dim: Int): VectorValue = {
+      val nans = new Array[Double](dim)
+      util.Arrays.fill(nans, Double.NaN)
+      VectorValue(name, nans, VectorDim(dim))
+    }
+    def missing(name: FeatureName, dim: VectorDim): VectorValue = missing(name, dim.dim)
   }
 
   case class CategoryValue(name: FeatureName, cat: String, index: Int) extends MValue {

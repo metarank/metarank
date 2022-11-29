@@ -59,7 +59,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
     } yield {
       VectorValue(schema.name, valueNum.values.map(_.value.toDouble).toArray, dim)
     }
-    result.getOrElse(VectorValue.empty(schema.name, dim))
+    result.getOrElse(VectorValue.missing(schema.name, dim))
   }
 
 }

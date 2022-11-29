@@ -74,7 +74,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
       case Some(ScalarValue(_, _, SDouble(value))) =>
         val updatedAt = Timestamp(math.round(value * 1000))
         SingleValue(schema.name, updatedAt.diff(request.timestamp).toSeconds.toDouble)
-      case _ => SingleValue(schema.name, 0.0)
+      case _ => SingleValue.missing(schema.name)
     }
 
 }

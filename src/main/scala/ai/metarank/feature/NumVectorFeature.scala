@@ -37,7 +37,6 @@ case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature wit
   override def states: List[FeatureConfig] = List(conf)
 
   override def writes(event: Event): IO[Iterable[Put]] = IO {
-    val br = 1
     for {
       key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.source.field)
@@ -69,7 +68,7 @@ case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature wit
     } yield {
       value
     }
-    result.getOrElse(VectorValue.empty(schema.name, dim))
+    result.getOrElse(VectorValue.missing(schema.name, dim))
   }
 
 }

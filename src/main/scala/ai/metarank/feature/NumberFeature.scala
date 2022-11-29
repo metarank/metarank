@@ -64,7 +64,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
     } yield {
       value
     }
-    result.getOrElse(SingleValue(schema.name, 0.0))
+    result.getOrElse(SingleValue.missing(schema.name))
   }
 
   override def values(

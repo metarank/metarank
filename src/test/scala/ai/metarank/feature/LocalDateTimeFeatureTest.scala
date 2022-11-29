@@ -41,12 +41,12 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
   it should "ignore on format errors" in {
     val result =
       timeofday.value(TestRankingEvent(List("p1")).copy(fields = List(StringField("localts", "now"))), Map.empty)
-    result shouldBe SingleValue(FeatureName("x"), 0.0)
+    result shouldBe SingleValue.missing(FeatureName("x"))
   }
 
   it should "ignore on missing field" in {
     val result = timeofday.value(TestRankingEvent(List("p1")), Map.empty)
-    result shouldBe SingleValue(FeatureName("x"), 0.0)
+    result shouldBe SingleValue.missing(FeatureName("x"))
   }
 
   it should "parse time of day" in {

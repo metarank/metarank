@@ -39,10 +39,10 @@ case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeat
             SingleValue(schema.name, schema.parse.map(datetime))
           case Failure(ex) =>
             logger.warn(s"cannot parse field '$value' as an ISO DateTime", ex)
-            SingleValue(schema.name, 0.0)
+            SingleValue.missing(schema.name)
         }
       case _ =>
-        SingleValue(schema.name, 0.0)
+        SingleValue.missing(schema.name)
     }
   }
 }

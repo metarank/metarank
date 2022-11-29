@@ -56,7 +56,7 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Lo
   ): MValue =
     readKey(request, conf, id.id).flatMap(features.get) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
-      case _                                       => SingleValue(schema.name, 0)
+      case _                                       => SingleValue.missing(schema.name)
     }
 
   val whitespacePattern = "\\s+".r

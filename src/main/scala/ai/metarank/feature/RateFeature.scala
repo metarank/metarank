@@ -108,7 +108,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
           val values = topNum.values.zip(bottomNum.values).map(x => x._1.value / x._2.value.toDouble).toArray
           VectorValue(schema.name, values, dim)
         }
-        result.getOrElse(VectorValue.empty(schema.name, dim))
+        result.getOrElse(VectorValue.missing(schema.name, dim))
       case Some(norm) =>
         val result = for {
           topValue          <- features.get(Key(ItemScope(id.id), topItem.name))
@@ -132,7 +132,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
             .toArray
           VectorValue(schema.name, values, dim)
         }
-        result.getOrElse(VectorValue.empty(schema.name, dim))
+        result.getOrElse(VectorValue.missing(schema.name, dim))
     }
   }
 }

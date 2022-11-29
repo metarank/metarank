@@ -12,9 +12,16 @@ class MValueJsonTest extends AnyFlatSpec with Matchers {
   it should "encode single value" in {
     enc(SingleValue(FeatureName("foo"), 1)) shouldBe """{"foo":1.0}"""
   }
+  it should "encode missing" in {
+    enc(SingleValue.missing(FeatureName("foo"))) shouldBe """{"foo":null}"""
+  }
 
   it should "encode vector value" in {
     enc(VectorValue(FeatureName("foo"), Array(1.0), 1)) shouldBe """{"foo":[1.0]}"""
+  }
+
+  it should "encode missing vector" in {
+    enc(VectorValue.missing(FeatureName("foo"), 1)) shouldBe """{"foo":[null]}"""
   }
 
   it should "encode cat value" in {
@@ -25,8 +32,16 @@ class MValueJsonTest extends AnyFlatSpec with Matchers {
     dec("""{"foo":1.0}""") shouldBe Right(SingleValue(FeatureName("foo"), 1.0))
   }
 
+  it should "decode missing" in {
+    dec("""{"foo":null}""") shouldBe Right(SingleValue.missing(FeatureName("foo")))
+  }
+
   it should "decode vector" in {
     dec("""{"foo":[1.0]}""") shouldBe Right(VectorValue(FeatureName("foo"), Array(1.0), 1))
+  }
+
+  it should "decode missing vector" in {
+    dec("""{"foo":[null]}""") shouldBe Right(VectorValue.missing(FeatureName("foo"), 1))
   }
 
   it should "decode cat value" in {

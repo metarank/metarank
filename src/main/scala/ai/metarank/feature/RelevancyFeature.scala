@@ -39,13 +39,14 @@ case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
       mode: BaseFeature.ValueMode
   ): List[MValue] = {
     request.items.toList.map(item => {
-      val value = item.fields
+      item.fields
         .find(_.name == "relevancy")
         .collectFirst { case NumberField(_, value) =>
           value
         }
-        .getOrElse(0.0)
-      SingleValue(schema.name, value)
+        .map(SingleValue(schema.name, _))
+        .getOrElse(SingleValue.missing(schema.name))
+
     })
   }
 }

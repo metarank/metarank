@@ -1,5 +1,6 @@
 package ai.metarank.fstore.codec.impl
 
+import ai.metarank.fstore.codec.impl.ClickthroughValuesCodec.MValueCodec
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
@@ -71,5 +72,12 @@ class ClickthroughValuesCodecTest extends AnyFlatSpec with Matchers {
   it should "decode reference bytes" in {
     val actual = ClickthroughValuesCodec.read(new DataInputStream(new ByteArrayInputStream(bytes)))
     actual shouldBe ctv
+  }
+
+  it should "handle NaNs" in {
+    val out = new ByteArrayOutputStream()
+    MValueCodec.write(SingleValue(FeatureName("foo"), Double.NaN), new DataOutputStream(out))
+    val decoded = MValueCodec.read(new DataInputStream(new ByteArrayInputStream(out.toByteArray)))
+    decoded shouldBe SingleValue(FeatureName("foo"), Double.NaN)
   }
 }

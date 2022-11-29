@@ -63,7 +63,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
     } yield {
       SingleValue(schema.name, if (bool.value) 1.0 else 0.0)
     }
-    result.getOrElse(SingleValue(schema.name, 0.0))
+    result.getOrElse(SingleValue.missing(schema.name))
   }
 }
 

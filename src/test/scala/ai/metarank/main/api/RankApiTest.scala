@@ -37,8 +37,9 @@ class RankApiTest extends AnyFlatSpec with Matchers {
       uri = "http://localhost:8080/rank/random?explain=true",
       payload = TestRankingEvent.event(List("p1", "p2", "p3")).asJson.noSpaces
     )
-    response.map(_.items.size) shouldBe Some(3)
-    response.map(_.state.isDefined) shouldBe Some(true)
+    val br = 1
+    response.map(_.items.size) shouldBe Right(3)
+    response.map(_.state.isDefined) shouldBe Right(true)
     response.forall(_.items.forall(_.features.isEmpty)) shouldBe false
   }
 
@@ -47,20 +48,22 @@ class RankApiTest extends AnyFlatSpec with Matchers {
       uri = "http://localhost:8080/rank/random?explain=false",
       payload = TestRankingEvent.event(List("p1", "p2", "p3")).asJson.noSpaces
     )
-    response.map(_.items.size) shouldBe Some(3)
-    response.map(_.state.isDefined) shouldBe Some(false)
+    response.map(_.items.size) shouldBe Right(3)
+    response.map(_.state.isDefined) shouldBe Right(false)
     response.forall(_.items.forall(_.features.isEmpty)) shouldBe true
   }
 
-  def post(uri: String, payload: String): Option[RankResponse] = {
+  def post(uri: String, payload: String): Either[Throwable, RankResponse] = {
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString(uri),
       entity = Entity.strict(ByteVector(payload.getBytes))
     )
     val response = service.routes.apply(request).value.unsafeRunSync()
-    val json     = response.map(r => new String(r.entity.body.compile.toList.unsafeRunSync().toArray))
-    json.flatMap(s => decode[RankResponse](s).toOption)
+    response.map(r => new String(r.entity.body.compile.toList.unsafeRunSync().toArray)) match {
+      case None       => Left(new Exception("empty response"))
+      case Some(json) => decode[RankResponse](json)
+    }
   }
 
 }

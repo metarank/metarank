@@ -71,25 +71,36 @@ object MValue {
       case Some(obj) =>
         obj.toMap
           .map { case (name, value) =>
-            value.asNumber match {
-              case Some(num) => Right(SingleValue(FeatureName(name), num.toDouble))
-              case None =>
-                value.asArray match {
-                  case Some(array) if array.forall(_.isNumber) =>
-                    val nums = array.flatMap(_.asNumber.map(_.toDouble)).toArray
-                    Right(VectorValue(FeatureName(name), nums, VectorDim(nums.length)))
-                  case _ =>
-                    value.asString match {
-                      case Some(str) =>
-                        str.split('@').toList match {
-                          case cat :: index :: Nil => Right(CategoryValue(FeatureName(name), cat, index.toInt))
-                          case _                   => Left(DecodingFailure(s"cannot decode mvalue $value", c.history))
-                        }
-                      case _ => Left(DecodingFailure(s"cannot decode mvalue $value", c.history))
-                    }
-
+            val result = value.fold[Either[DecodingFailure, MValue]](
+              jsonNull = Right(SingleValue.missing(FeatureName(name))),
+              jsonBoolean = _ => Left(DecodingFailure(s"cannot decode bool MValue '$value'", c.history)),
+              jsonNumber = num => Right(SingleValue(FeatureName(name), num.toDouble)),
+              jsonString = str =>
+                str.split('@').toList match {
+                  case cat :: index :: Nil => Right(CategoryValue(FeatureName(name), cat, index.toInt))
+                  case _                   => Left(DecodingFailure(s"cannot decode mvalue $value", c.history))
+                },
+              jsonObject = _ => Left(DecodingFailure(s"cannot decode object MValue '$value'", c.history)),
+              jsonArray = array => {
+                val numbers = array.foldLeft[Either[DecodingFailure, List[Double]]](Right(List.empty[Double])) {
+                  case (Right(acc), json) =>
+                    json.fold(
+                      jsonNull = Right(Double.NaN +: acc),
+                      jsonNumber = num => Right(num.toDouble +: acc),
+                      jsonBoolean = _ => Left(DecodingFailure(s"cannot parse number $json", c.history)),
+                      jsonString = _ => Left(DecodingFailure(s"cannot parse number $json", c.history)),
+                      jsonArray = _ => Left(DecodingFailure(s"cannot parse number $json", c.history)),
+                      jsonObject = _ => Left(DecodingFailure(s"cannot parse number $json", c.history))
+                    )
+                  case (Left(err), _) => Left(err)
                 }
-            }
+                numbers.map(n => {
+                  val array = n.toArray
+                  VectorValue(FeatureName(name), array, array.length)
+                })
+              }
+            )
+            result
           }
           .toList
           .sequence

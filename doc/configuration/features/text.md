@@ -33,9 +33,9 @@ And a following ranking event:
       {"name": "query", "value": "sock"}
   ],
   "items": [
-    {"id": "item3", "relevancy":  2.0},
-    {"id": "item1", "relevancy":  1.0},
-    {"id": "item2", "relevancy":  0.5} 
+    {"id": "item3"},
+    {"id": "item1"},
+    {"id": "item2"} 
   ]
 }
 ```

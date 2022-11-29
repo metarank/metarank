@@ -41,12 +41,12 @@ Metadata event is used to provide Metarank with updates of your content items (n
 You don't need to pass all values that your items have; only the ones that you might use as your personalization model features.
 
 ### Event format
-```json5
+```json
 {
   "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
-  "timestamp": "1599391467000", // required
-  "item": "item1", // required
+  "timestamp": "1599391467000",
+  "item": "item1", 
   "fields": [
     {"name": "title", "value": "You favourite cat"},
     {"name": "color", "value": ["white", "black"]},
@@ -54,9 +54,9 @@ You don't need to pass all values that your items have; only the ones that you m
   ]
 }
 ```
-- `id`: event id. This field is not yet used, but the value must be provided at the moment.
+- `id`: event id. 
 - `item`: id of the content item.
-- `fields`: an array of content item properties.
+- `fields`: an array of content item properties, see [event fields chapter](#fields-parameter) for details.
 
 ## User metadata event
 
@@ -64,12 +64,12 @@ User metadata is useful when you have some extra knowledge about your visitor. F
 it could be gender or age.
 
 ### Event format
-```json5
+```json
 {
   "event": "user",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
-  "timestamp": "1599391467000", // required
-  "user": "user1", // required
+  "timestamp": "1599391467000",
+  "user": "user1",
   "fields": [
     {"name": "age", "value": 33},
     {"name": "gender", "value": "m"}
@@ -78,7 +78,7 @@ it could be gender or age.
 ```
 - `id`: event id. This field is not yet used, but the value must be provided at the moment.
 - `user`: id of the visitor.
-- `fields`: an array of content item properties.
+- `fields`: an array of content item properties, see [event fields chapter](#fields-parameter) for details.
 
 
 ## Ranking event
@@ -88,21 +88,21 @@ This information is used by personalization algorithms to understand which items
 
 ### Event format
 
-```json5
+```json
 {
   "event": "ranking",
-  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
-  "timestamp": "1599391467000",// required
-  "user": "user1",// optional
-  "session": "session1",// optional
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000",
+  "user": "user1",
+  "session": "session1",
   "fields": [
       {"name": "query", "value": "cat"},
       {"name": "source", "value": "search"}
   ],
   "items": [
-    {"id": "item3", "relevancy":  2.0},
-    {"id": "item1", "relevancy":  1.0},
-    {"id": "item2", "relevancy":  0.5} 
+    {"id": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
+    {"id": "item1", "fields": [{"name": "relevancy", "value": 1.0}]},
+    {"id": "item2", "fields": [{"name": "relevancy", "value": 0.1}]} 
   ]
 }
 ```
@@ -113,8 +113,7 @@ This information is used by personalization algorithms to understand which items
 - `fields`: an optional array of extra fields that you can use in your model, as described above.
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from metadata event.
-- `items.relevancy`: a score which was used to rank these items. You can use relevancy score returned by Metarank, 
-or other score that your system generated. The value is optional and can be undefined.
+- `items.fields`: a set of optional per-item fields.
 
 ## Interaction event
 
@@ -124,20 +123,20 @@ The `type` field must match the `name` provided in the [Configuration](configura
 
 ### Event format
 
-```json5
+```json
 {
   "event": "interaction",
-  "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",// required
-  "ranking": "81f46c34-a4bb-469c-8708-f8127cd67d27", //optional
-  "timestamp": "1599391467000",// required
-  "user": "user1",// optional
-  "session": "session1",// optional
-  "type": "purchase",// required
-  "item": "item1",// required
+  "id": "0f4c0036-04fb-4409-b2c6-7163a59f6b7d",
+  "ranking": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000",
+  "user": "user1",
+  "session": "session1",
+  "type": "purchase",
+  "item": "item1",
   "fields": [
     {"name": "count", "value": 1},
     {"name": "shipping", "value": "DHL"}
-  ],
+  ]
 }
 ```
 

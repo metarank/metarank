@@ -13,11 +13,11 @@ Consider this type of incoming event, emitted by your backend system when a prod
 {
   "event": "item",
   "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
-  "item": "product1", // required
-  "timestamp": "1599391467000", // required
+  "item": "product1",
+  "timestamp": "1599391467000",
   "fields": [
     {"name": "availability", "value": true},
-    {"name": "price", "value": 69.0},
+    {"name": "price", "value": 69.0}
   ]
 }
 ```
@@ -46,9 +46,9 @@ An example for ranking events:
       {"name": "banner_examined", "value": true}
   ],
   "items": [
-    {"id": "product3", "relevancy":  2.0},
-    {"id": "product1", "relevancy":  1.0},
-    {"id": "product2", "relevancy":  0.5} 
+    {"id": "product3", "fields": [{"name": "relevancy", "value": 2.0}]},
+    {"id": "product1", "fields": [{"name": "relevancy", "value": 1.0}]},
+    {"id": "product2", "fields": [{"name": "relevancy", "value": 0.1}]} 
   ]
 }
 ```
@@ -59,6 +59,15 @@ So you can extract this `banner_examined` value using the following config:
   type: boolean
   scope: item
   field: ranking.banner_examined
+```
+
+It is also possible to extract per-item fields from the ranking event. For example, the `relevancy` field can be extracted this way:
+
+```yaml
+- name: relevancy
+  type: number
+  scope: item
+  field: ranking.relevancy
 ```
 
 Extracting fields from interaction events is not possible, as at the moment of ranking request happening, there

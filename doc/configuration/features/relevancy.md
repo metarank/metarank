@@ -12,7 +12,7 @@ Most of these primary sources of input may also have a per-item score: how much 
 * BM25 or TF/IDF score in search
 * cosine difference between embeddings in recommendations
 
-Metarank [ranking event schema](../../event-schema.md) has a special field for it, see the example: 
+Metarank [ranking event schema](../../event-schema.md) allows adding a per-item fields, which can be used for relevance score, see the example: 
 ```json
 {
   "event": "ranking",
@@ -25,21 +25,23 @@ Metarank [ranking event schema](../../event-schema.md) has a special field for i
       {"name": "source", "value": "search"}
   ],
   "items": [
-    {"id": "item3", "relevancy":  2.0},
-    {"id": "item1", "relevancy":  1.0},
-    {"id": "item2", "relevancy":  0.5} 
+    {"id": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
+    {"id": "item1", "fields": [{"name": "relevancy", "value": 1.0}]},
+    {"id": "item2", "fields": [{"name": "relevancy", "value": 0.1}]} 
   ]
 }
 ```
 
 This per-item "relevancy" field is the one holding information about score from the upstream ranking system, like BM25 score.
-To use this information, you should configure the corresponding extractor:
+
+Metarank <= 0.5.10 included now deprecated `relevancy` extractor. With Metarank 0.5.11+ you can use regular [`number`](scalar.md#numerical-extractor) extractor for this case:
+
 ```yaml
 - name: relevancy
-  type: relevancy
+  type: number
+  scope: item
+  field: item.relevancy
 ```
-
-There are no options to configure, as relevancy is taken only from ranking events and never stored separately.
 
 ## Position
 

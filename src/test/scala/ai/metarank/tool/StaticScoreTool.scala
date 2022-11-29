@@ -2,7 +2,7 @@ package ai.metarank.tool
 
 import ai.metarank.api.routes.RankApi.RankResponse
 import ai.metarank.config.InputConfig.FileInputConfig
-import ai.metarank.model.Event.{ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.{Event, EventId, Timestamp}
 import ai.metarank.source.FileEventSource
@@ -44,7 +44,7 @@ object StaticScoreTool extends IOApp with Logging {
                 timestamp = Timestamp.now,
                 user = Some(UserId("alice")),
                 session = None,
-                items = NonEmptyList.fromListUnsafe(batch).map(id => ItemRelevancy(id))
+                items = NonEmptyList.fromListUnsafe(batch).map(id => RankItem(id))
               )
               val request = Request[IO](
                 method = Method.POST,

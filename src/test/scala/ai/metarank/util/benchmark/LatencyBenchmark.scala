@@ -7,7 +7,7 @@ import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.StandaloneArgs
 import ai.metarank.main.command.{Serve, Standalone}
-import ai.metarank.model.Event.{ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{RankItem, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId, Timestamp}
 import ai.metarank.source.format.JsonFormat
@@ -48,7 +48,7 @@ object LatencyBenchmark extends IOApp with Logging {
         session = Some(SessionId(uid)),
         fields = Nil,
         items = NonEmptyList.fromListUnsafe(
-          Random.shuffle((0 until itemRange.end).toList).take(items).map(id => ItemRelevancy(ItemId(id.toString)))
+          Random.shuffle((0 until itemRange.end).toList).take(items).map(id => RankItem(ItemId(id.toString)))
         )
       )
     }

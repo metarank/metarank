@@ -4,7 +4,7 @@ import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.FeatureValue.CounterValue
@@ -44,7 +44,7 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     val result = for {
       key   <- readKey(request, conf, id.id)

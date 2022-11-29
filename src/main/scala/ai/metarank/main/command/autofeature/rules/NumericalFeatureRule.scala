@@ -3,14 +3,16 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.main.command.autofeature.EventModel
 import ai.metarank.main.command.autofeature.FieldStat.NumericFieldStat
 import ai.metarank.model.FieldName.EventType.Item
-import ai.metarank.model.{FeatureSchema, FieldName}
+import ai.metarank.model.{FeatureSchema, FieldName, ScopeType}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.Logging
 
 object NumericalFeatureRule extends FeatureRule with Logging {
-  override def make(model: EventModel): List[FeatureSchema] =
-    model.itemFields.nums.flatMap { case (name, stat) => make(name, stat) }.toList
+  override def make(model: EventModel): List[FeatureSchema] = {
+    val fields = model.itemFields.nums ++ model.rankFields.nums
+    fields.flatMap { case (name, stat) => make(name, stat) }.toList
+  }
 
   def make(field: String, stat: NumericFieldStat): Option[NumberFeatureSchema] = {
     val sorted = stat.values.sorted

@@ -3,12 +3,13 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Dimension.{SingleDim, VectorDim}
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
+import ai.metarank.model.Field.NumberField
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
-import ai.metarank.model.MValue.SingleValue
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType}
+import ai.metarank.model.MValue.{SingleValue, VectorValue}
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import cats.effect.IO
@@ -18,7 +19,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import scala.concurrent.duration.FiniteDuration
 
 case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
-  override def dim = SingleDim
+  override lazy val dim = SingleDim
 
   override def states: List[FeatureConfig] = Nil
 
@@ -29,9 +30,24 @@ case class RelevancyFeature(schema: RelevancySchema) extends ItemFeature {
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
-  ): MValue = SingleValue(schema.name, id.relevancy.getOrElse(0.0))
+      id: RankItem
+  ): MValue = ???
 
+  override def values(
+      request: Event.RankingEvent,
+      features: Map[Key, FeatureValue],
+      mode: BaseFeature.ValueMode
+  ): List[MValue] = {
+    request.items.toList.map(item => {
+      val value = item.fields
+        .find(_.name == "relevancy")
+        .collectFirst { case NumberField(_, value) =>
+          value
+        }
+        .getOrElse(0.0)
+      SingleValue(schema.name, value)
+    })
+  }
 }
 
 object RelevancyFeature {

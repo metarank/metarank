@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -53,7 +53,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     val result = for {
       key <- readKey(request, conf, id.id)
@@ -65,6 +65,24 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
       value
     }
     result.getOrElse(SingleValue(schema.name, 0.0))
+  }
+
+  override def values(
+      request: Event.RankingEvent,
+      features: Map[Key, FeatureValue],
+      mode: BaseFeature.ValueMode
+  ): List[MValue] = {
+    request.items.toList.map { item =>
+      {
+        val fromField = item.fields.collectFirst {
+          case NumberField(name, value) if name == schema.source.field => value
+        }
+        fromField match {
+          case Some(fieldOverride) => SingleValue(schema.name, fieldOverride)
+          case None                => value(request, features, item)
+        }
+      }
+    }
   }
 
 }

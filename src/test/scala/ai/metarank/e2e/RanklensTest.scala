@@ -8,7 +8,7 @@ import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, RankItem, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{EventId, Timestamp}
 import ai.metarank.rank.{LambdaMARTModel, Ranker}
@@ -50,30 +50,30 @@ class RanklensTest extends AnyFlatSpec with Matchers {
       user = Some(UserId("u1")),
       session = Some(SessionId("s1")),
       items = NonEmptyList.of(
-        ItemRelevancy(ItemId("96610"), 0.0),
-        ItemRelevancy(ItemId("8371"), 0.0),
-        ItemRelevancy(ItemId("4975"), 0.0),
-        ItemRelevancy(ItemId("7163"), 0.0),
-        ItemRelevancy(ItemId("111759"), 0.0),
-        ItemRelevancy(ItemId("102880"), 0.0),
-        ItemRelevancy(ItemId("109487"), 0.0),
-        ItemRelevancy(ItemId("95309"), 0.0),
-        ItemRelevancy(ItemId("115713"), 0.0),
-        ItemRelevancy(ItemId("122882"), 0.0),
-        ItemRelevancy(ItemId("134130"), 0.0),
-        ItemRelevancy(ItemId("8644"), 0.0),
-        ItemRelevancy(ItemId("49278"), 0.0),
-        ItemRelevancy(ItemId("2916"), 0.0),
-        ItemRelevancy(ItemId("2012"), 0.0),
-        ItemRelevancy(ItemId("68358"), 0.0),
-        ItemRelevancy(ItemId("132046"), 0.0),
-        ItemRelevancy(ItemId("2709"), 0.0),
-        ItemRelevancy(ItemId("79357"), 0.0),
-        ItemRelevancy(ItemId("5903"), 0.0),
-        ItemRelevancy(ItemId("107406"), 0.0),
-        ItemRelevancy(ItemId("1210"), 0.0),
-        ItemRelevancy(ItemId("85056"), 0.0),
-        ItemRelevancy(ItemId("1270"), 0.0)
+        RankItem(ItemId("96610"), 0.0),
+        RankItem(ItemId("8371"), 0.0),
+        RankItem(ItemId("4975"), 0.0),
+        RankItem(ItemId("7163"), 0.0),
+        RankItem(ItemId("111759"), 0.0),
+        RankItem(ItemId("102880"), 0.0),
+        RankItem(ItemId("109487"), 0.0),
+        RankItem(ItemId("95309"), 0.0),
+        RankItem(ItemId("115713"), 0.0),
+        RankItem(ItemId("122882"), 0.0),
+        RankItem(ItemId("134130"), 0.0),
+        RankItem(ItemId("8644"), 0.0),
+        RankItem(ItemId("49278"), 0.0),
+        RankItem(ItemId("2916"), 0.0),
+        RankItem(ItemId("2012"), 0.0),
+        RankItem(ItemId("68358"), 0.0),
+        RankItem(ItemId("132046"), 0.0),
+        RankItem(ItemId("2709"), 0.0),
+        RankItem(ItemId("79357"), 0.0),
+        RankItem(ItemId("5903"), 0.0),
+        RankItem(ItemId("107406"), 0.0),
+        RankItem(ItemId("1210"), 0.0),
+        RankItem(ItemId("85056"), 0.0),
+        RankItem(ItemId("1270"), 0.0)
       )
     )
     val i1 = InteractionEvent(

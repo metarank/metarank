@@ -11,8 +11,10 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.Logging
 
 object VectorFeatureRule extends FeatureRule with Logging {
-  override def make(model: EventModel): List[FeatureSchema] =
-    model.itemFields.numlists.flatMap { case (name, stat) => make(name, stat) }.toList
+  override def make(model: EventModel): List[FeatureSchema] = {
+    val fields = model.itemFields.numlists ++ model.rankFields.numlists
+    fields.flatMap { case (name, stat) => make(name, stat) }.toList
+  }
 
   def make(field: String, stat: NumericListFieldStat): Option[VectorFeatureSchema] = {
     val sorted = stat.values.sorted

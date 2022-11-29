@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, UserEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
@@ -50,7 +50,7 @@ object BaseFeature {
     def value(
         request: Event.RankingEvent,
         features: Map[Key, FeatureValue],
-        id: ItemRelevancy
+        id: RankItem
     ): MValue
 
     def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] =

@@ -34,7 +34,7 @@ Metarank [ranking event schema](../../event-schema.md) allows adding a per-item 
 
 This per-item "relevancy" field is the one holding information about score from the upstream ranking system, like BM25 score.
 
-Metarank <= 0.5.10 included now deprecated `relevancy` extractor. With Metarank 0.5.11+ you can use regular [`number`](scalar.md#numerical-extractor) extractor for this case:
+Metarank <= 0.5.11 included now deprecated `relevancy` extractor. With Metarank 0.5.12+ you can use regular [`number`](scalar.md#numerical-extractor) extractor for this case:
 
 ```yaml
 - name: relevancy

@@ -3,6 +3,12 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.12
+
+* Redis AUTH override with [env vars](configuration/persistence.md#redis-persistence)
+* Prometheus `/metrics` [endpoint](deploy/prometheus.md)
+* Per-item [ranking fields](event-schema.md#ranking-event)
+
 ## 0.5.11
 
 * linux/aarch64 support, so docker images on Mac M1 are OK.

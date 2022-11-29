@@ -19,7 +19,7 @@ object ConfigMirror {
   implicit val configMirrorEncoder: Encoder[ConfigMirror] = deriveEncoder[ConfigMirror]
 
   def create(model: EventModel, ruleSet: RuleSet): IO[ConfigMirror] = for {
-    features <- IO(ruleSet.rules.flatMap(_.make(model)))
+    features <- IO(ruleSet.rules.flatMap(_.make(model)).sortBy(_.name.value))
     featuresNel <- features match {
       case Nil          => IO.raiseError(new IllegalArgumentException("generated empty list of features"))
       case head :: tail => IO.pure(NonEmptyList(head, tail))
@@ -31,9 +31,9 @@ object ConfigMirror {
         "default" -> LambdaMARTConfig(
           backend = XGBoostBackend(
             iterations = 50,
-            ndcgCutoff = 10
+            seed = 0
           ),
-          features = featuresNel.map(_.name),
+          features = featuresNel.map(_.name).sortBy(_.value),
           weights = model.interactions.types.map { case (interaction, _) => interaction -> 1.0 }
         )
       )

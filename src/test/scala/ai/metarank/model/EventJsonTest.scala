@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import cats.data.NonEmptyList
@@ -104,16 +104,16 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
       RankingEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         timestamp = Timestamp(1599391467000L),
-        user = UserId("user1"),
+        user = Some(UserId("user1")),
         session = Some(SessionId("session1")),
         fields = List(
           StringField("query", "jeans"),
           StringField("source", "search")
         ),
         items = NonEmptyList.of(
-          ItemRelevancy(ItemId("product3"), 2.0),
-          ItemRelevancy(ItemId("product1"), 1.0),
-          ItemRelevancy(ItemId("product2"), 0.5)
+          RankItem(ItemId("product3"), 2.0),
+          RankItem(ItemId("product1"), 1.0),
+          RankItem(ItemId("product2"), 0.5)
         )
       )
     )
@@ -139,7 +139,7 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
         id = EventId("0f4c0036-04fb-4409-b2c6-7163a59f6b7d"),
         ranking = Some(EventId("81f46c34-a4bb-469c-8708-f8127cd67d27")),
         timestamp = Timestamp(1599391467000L),
-        user = UserId("user1"),
+        user = Some(UserId("user1")),
         session = Some(SessionId("session1")),
         `type` = "purchase",
         item = ItemId("product1"),

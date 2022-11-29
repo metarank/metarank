@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
+import ai.metarank.model.Event.{InteractionEvent, RankItem}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
@@ -50,7 +50,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     val result = for {
       key      <- readKey(request, conf, id.id)
@@ -59,7 +59,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
     } yield {
       VectorValue(schema.name, valueNum.values.map(_.value.toDouble).toArray, dim)
     }
-    result.getOrElse(VectorValue.empty(schema.name, dim))
+    result.getOrElse(VectorValue.missing(schema.name, dim))
   }
 
 }

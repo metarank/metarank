@@ -9,7 +9,7 @@ case class EventModel(
     items: Set[ItemId] = Set.empty,
     itemFields: ItemFieldStat = ItemFieldStat(),
     interactions: InteractionStat = InteractionStat(),
-    relevancy: RelevancyStat = RelevancyStat()
+    rankFields: ItemFieldStat = ItemFieldStat()
 ) {
   def refresh(event: Event): EventModel = {
     (event match {
@@ -19,7 +19,7 @@ case class EventModel(
         val updated = interactions.refresh(e)
         copy(interactions = updated)
       case e: RankingEvent =>
-        copy(relevancy = relevancy.refresh(e))
+        copy(rankFields = rankFields.refresh(e))
       case _ => this
     }).copy(eventCount = eventCount + 1)
   }

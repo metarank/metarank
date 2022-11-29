@@ -5,7 +5,7 @@ import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEn
 import ai.metarank.feature.StringFeature.{IndexCategoricalEncoder, OnehotCategoricalEncoder, StringFeatureSchema}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.{SingleDim, VectorDim}
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -66,16 +66,32 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
 
   override def valueKeys(event: Event.RankingEvent): Iterable[Key] = conf.readKeys(event)
 
-  // todo: should load field directly from ranking
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     readKey(request, conf, id.id).flatMap(features.get) match {
       case Some(ScalarValue(_, _, SStringList(values))) => encoder.encode(values)
       case _                                            => encoder.encode(Nil)
     }
+  }
+
+  override def values(
+      request: Event.RankingEvent,
+      features: Map[Key, FeatureValue],
+      mode: BaseFeature.ValueMode
+  ): List[MValue] = {
+    request.items.toList.map(item => {
+      val fieldOverride = item.fields.collectFirst {
+        case StringField(name, value) if name == schema.source.field      => List(value)
+        case StringListField(name, values) if name == schema.source.field => values
+      }
+      fieldOverride match {
+        case Some(over) => encoder.encode(over)
+        case None       => value(request, features, item)
+      }
+    })
   }
 
 }

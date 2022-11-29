@@ -11,7 +11,7 @@ Metarank docker images are published on DockerHub as [metarank/metarank](https:/
 
 To start using metarank with docker, just run:
 ```bash
-docker run metarank/metarank:0.5.10 --help
+docker run metarank/metarank:0.5.12 --help
 ```
 
 ## JAR File
@@ -19,9 +19,9 @@ docker run metarank/metarank:0.5.10 --help
 Metarank is a JVM application and also available as a JAR application on [Releases](https://github.com/metarank/metarank/releases)
 page. As it bundles a couple of native libraries (interfaces to [LightGBM](https://github.com/metarank/lightgbm4j) and
 [XGBoost](https://github.com/metarank/xgboost-java)), it supports the following platforms and operating systems:
-* Linux: x86_64, JVM 11+
+* Linux: x86_64/AArch64, JVM 11+
 * Windows: x86_64, Windows 10+, JVM 11+
-* MacOS: x86_64, AArch64, MacOS 11+, JVM 11+
+* MacOS: x86_64/AArch64, MacOS 11+, JVM 11+
 
 To start metarank JAR file, just run:
 ```bash

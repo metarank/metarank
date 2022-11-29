@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.{ItemRelevancy, eventCodec}
+import ai.metarank.model.Event.{RankItem, eventCodec}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -68,13 +68,13 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue =
     features.get(Key(ItemScope(id.id), conf.name)) match {
       case Some(ScalarValue(_, _, SDouble(value))) =>
         val updatedAt = Timestamp(math.round(value * 1000))
         SingleValue(schema.name, updatedAt.diff(request.timestamp).toSeconds.toDouble)
-      case _ => SingleValue(schema.name, 0.0)
+      case _ => SingleValue.missing(schema.name)
     }
 
 }

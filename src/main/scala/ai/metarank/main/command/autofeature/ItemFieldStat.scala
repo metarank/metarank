@@ -1,8 +1,8 @@
 package ai.metarank.main.command.autofeature
 
 import ai.metarank.main.command.autofeature.FieldStat._
-import ai.metarank.model.Event.ItemEvent
-import ai.metarank.model.Field
+import ai.metarank.model.Event.{ItemEvent, RankingEvent}
+import ai.metarank.model.{Event, Field}
 import ai.metarank.model.Field._
 
 case class ItemFieldStat(
@@ -13,6 +13,10 @@ case class ItemFieldStat(
 ) {
   def refresh(event: ItemEvent): ItemFieldStat = {
     event.fields.foldLeft(this)((next, field) => next.refresh(field))
+  }
+
+  def refresh(event: RankingEvent): ItemFieldStat = {
+    event.items.toList.flatMap(_.fields).foldLeft(this)((next, field) => next.refresh(field))
   }
 
   def refresh(field: Field): ItemFieldStat = {

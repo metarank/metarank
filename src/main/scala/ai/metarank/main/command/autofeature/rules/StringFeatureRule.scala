@@ -14,16 +14,17 @@ case class StringFeatureRule(
     minValues: Int = 10,
     maxValues: Int = 100,
     percentile: Double = 0.90,
-    countThreshold: Double = 0.01
+    countThreshold: Double = 0.003
 ) extends FeatureRule
     with Logging {
 
   override def make(model: EventModel): List[FeatureSchema] = {
-    model.itemFields.strings.flatMap { case (name, stat) => make(name, stat) }.toList
+    val fields = model.itemFields.strings ++ model.rankFields.strings
+    fields.flatMap { case (name, stat) => make(name, stat) }.toList
   }
 
   def fieldValues(stat: StringFieldStat): List[String] = {
-    val sorted         = stat.values.toList.sortBy(-_._2)
+    val sorted         = stat.values.filter(_._2 >= 3).toList.sortBy(-_._2)
     val total          = sorted.map(_._2.toLong).sum
     val totalThreshold = percentile * total
     val itemThreshold  = countThreshold * total
@@ -53,7 +54,7 @@ case class StringFeatureRule(
             source = FieldName(Item, field),
             scope = ItemScopeType,
             encode = Some(OnehotEncoderName),
-            values = NonEmptyList(head, tail)
+            values = NonEmptyList(head, tail).sorted
           )
         )
       case head :: tail if values.size >= 10 =>
@@ -66,7 +67,7 @@ case class StringFeatureRule(
             source = FieldName(Item, field),
             scope = ItemScopeType,
             encode = Some(IndexEncoderName),
-            values = NonEmptyList(head, tail)
+            values = NonEmptyList(head, tail).sorted
           )
         )
       case _ =>

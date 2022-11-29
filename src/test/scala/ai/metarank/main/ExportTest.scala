@@ -3,12 +3,14 @@ package ai.metarank.main
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Export, Import}
 import ai.metarank.model.Timestamp
 import ai.metarank.util.RandomDataset
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.jdk.StreamConverters._
 import java.nio.file.Files
 
@@ -25,14 +27,14 @@ class ExportTest extends AnyFlatSpec with Matchers {
 
   it should "export training data" in {
     val path = Files.createTempDirectory("export")
-    Export.doexport(cs, dataset.mapping, "xgboost", path, 1.0).unsafeRunSync()
+    Export.doexport(cs, dataset.mapping, "xgboost", path, 1.0, SplitStrategy.default).unsafeRunSync()
     val children = Files.list(path).toScala(List)
     children.map(_.getFileName.toString).sorted shouldBe List("test.svm", "train.svm", "xgboost.conf")
   }
 
   it should "export sampled training data" in {
     val path = Files.createTempDirectory("export")
-    Export.doexport(cs, dataset.mapping, "xgboost", path, 0.1).unsafeRunSync()
+    Export.doexport(cs, dataset.mapping, "xgboost", path, 0.1, SplitStrategy.default).unsafeRunSync()
     val children = Files.list(path).toScala(List)
     children.map(_.getFileName.toString).sorted shouldBe List("test.svm", "train.svm", "xgboost.conf")
   }

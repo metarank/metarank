@@ -10,7 +10,7 @@ import java.nio.file.Path
 
 class AnalyticsPayloadTest extends AnyFlatSpec with Matchers {
   it should "generate payload" in {
-    val payload = AnalyticsPayload(TestConfig(), TrainArgs(Path.of("x"), Some("foo"), None))
+    val payload = AnalyticsPayload(TestConfig(), TrainArgs(Path.of("x"), Some("foo")))
     payload.state shouldBe "memory"
     payload.modelTypes shouldBe List("shuffle")
     payload.usedFeatures shouldBe List(UsedFeature(FeatureName("price"), "number"))

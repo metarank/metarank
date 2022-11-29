@@ -4,7 +4,7 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.{SingleDim, VectorDim}
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, ItemRelevancy}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, ItemEvent, RankItem}
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -122,13 +122,13 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     Key(ItemScope(ItemId(item)), itemFieldFeature.name)
   }
 
-  private def makeVisitorKey(user: UserId, session: Option[SessionId]) = schema.scope match {
+  private def makeVisitorKey(user: Option[UserId], session: Option[SessionId]) = schema.scope match {
     case SessionScopeType => session.map(s => Key(SessionScope(s), interactions.name))
-    case UserScopeType    => Some(Key(UserScope(user), interactions.name))
+    case UserScopeType    => user.map(u => Key(UserScope(u), interactions.name))
     case _                => None
   }
 
-  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: ItemRelevancy): MValue = ???
+  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: RankItem): MValue = ???
 
   override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] = {
     val visitorFields = (for {

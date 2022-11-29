@@ -2,7 +2,7 @@ package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
 import ai.metarank.api.routes
-import ai.metarank.api.routes.{FeedbackApi, HealthApi, RankApi, TrainApi}
+import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config, InputConfig}
 import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
@@ -11,9 +11,12 @@ import ai.metarank.main.Logo
 import ai.metarank.rank.Ranker
 import ai.metarank.source.EventSource
 import ai.metarank.util.Logging
+import ai.metarank.util.analytics.Metrics
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits._
+import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.hotspot.DefaultExports
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
 
@@ -48,18 +51,20 @@ object Serve extends Logging {
       mapping: FeatureMapping,
       conf: ApiConfig,
       buffer: ClickthroughJoinBuffer
-  ) = {
-    val health   = HealthApi(store).routes
-    val rank     = RankApi(Ranker(mapping, store)).routes
-    val feedback = FeedbackApi(store, mapping, buffer).routes
-    val train    = TrainApi(mapping, store, cts).routes
-    val routes   = health <+> rank <+> feedback <+> train
-    val httpApp  = Router("/" -> routes).orNotFound
-    val api = BlazeServerBuilder[IO]
+  ): IO[Unit] = for {
+    health     <- IO.pure(HealthApi(store).routes)
+    rank       <- IO.pure(RankApi(Ranker(mapping, store)).routes)
+    feedback   <- IO.pure(FeedbackApi(store, mapping, buffer).routes)
+    train      <- IO.pure(TrainApi(mapping, store, cts).routes)
+    metricsApi <- IO(DefaultExports.initialize()) *> IO.pure(MetricsApi())
+    routes  = health <+> rank <+> feedback <+> train <+> metricsApi.routes
+    httpApp = Router("/" -> routes).orNotFound
+    api = BlazeServerBuilder[IO]
       .bindHttp(conf.port.value, conf.host.value)
       .withHttpApp(httpApp)
       .withBanner(Logo.lines)
 
-    info("Starting API...") *> api.serve.compile.drain
-  }
+    _ <- info("Starting API...")
+    _ <- api.serve.compile.drain
+  } yield {}
 }

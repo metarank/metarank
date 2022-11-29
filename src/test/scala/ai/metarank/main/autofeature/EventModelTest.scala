@@ -1,8 +1,8 @@
 package ai.metarank.main.autofeature
 
-import ai.metarank.main.command.autofeature.FieldStat.StringFieldStat
-import ai.metarank.main.command.autofeature.{EventModel, InteractionStat, ItemFieldStat, RelevancyStat}
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.main.command.autofeature.FieldStat.{NumericFieldStat, StringFieldStat}
+import ai.metarank.main.command.autofeature.{EventModel, InteractionStat, ItemFieldStat}
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.EventId
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
@@ -22,7 +22,7 @@ class EventModelTest extends AnyFlatSpec with Matchers {
       TestRankingEvent(List("p1", "p2"))
         .copy(
           id = EventId("2"),
-          items = NonEmptyList.of(ItemRelevancy(ItemId("p1"), Some(2.0)), ItemRelevancy(ItemId("p2"), Some(3.0)))
+          items = NonEmptyList.of(RankItem(ItemId("p1"), 2.0), RankItem(ItemId("p2"), 3.0))
         )
     )
     val model = events.foldLeft(EventModel())((model, event) => model.refresh(event))
@@ -32,7 +32,7 @@ class EventModelTest extends AnyFlatSpec with Matchers {
       items = Set(ItemId("p1"), ItemId("p2")),
       itemFields = ItemFieldStat(strings = Map("color" -> StringFieldStat(Map("red" -> 1, "green" -> 1)))),
       interactions = InteractionStat(Map("click" -> 1, "cart" -> 1)),
-      relevancy = RelevancyStat(4, Some(1.0), Some(3.0))
+      rankFields = ItemFieldStat(nums = Map("relevancy" -> NumericFieldStat(List(3.0, 2.0, 1.0, 1.0))))
     )
   }
 }

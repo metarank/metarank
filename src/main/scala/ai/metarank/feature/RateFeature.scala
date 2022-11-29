@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
+import ai.metarank.model.Event.{InteractionEvent, RankItem}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
@@ -95,7 +95,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     schema.normalize match {
       case None =>
@@ -108,7 +108,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
           val values = topNum.values.zip(bottomNum.values).map(x => x._1.value / x._2.value.toDouble).toArray
           VectorValue(schema.name, values, dim)
         }
-        result.getOrElse(VectorValue.empty(schema.name, dim))
+        result.getOrElse(VectorValue.missing(schema.name, dim))
       case Some(norm) =>
         val result = for {
           topValue          <- features.get(Key(ItemScope(id.id), topItem.name))
@@ -132,7 +132,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
             .toArray
           VectorValue(schema.name, values, dim)
         }
-        result.getOrElse(VectorValue.empty(schema.name, dim))
+        result.getOrElse(VectorValue.missing(schema.name, dim))
     }
   }
 }

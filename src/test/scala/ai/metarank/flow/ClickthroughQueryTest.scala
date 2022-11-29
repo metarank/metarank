@@ -58,7 +58,7 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
       ct = Clickthrough(
         id = EventId("i1"),
         ts = now,
-        user = UserId("u1"),
+        user = Some(UserId("u1")),
         session = None,
         items = List(ItemId("p1"), ItemId("p2"), ItemId("p3")),
         interactions = List(TypedInteraction(ItemId("p2"), "click"))

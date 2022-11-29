@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / version      := "0.5.10"
+ThisBuild / version      := "0.5.12"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -24,11 +24,11 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.3.14",
+      "org.typelevel"         %% "cats-effect"              % "3.4.1",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.4",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.5",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
@@ -43,7 +43,8 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
       "org.http4s"            %% "http4s-blaze-server"      % http4sVersion,
       "org.http4s"            %% "http4s-blaze-client"      % http4sVersion,
-      "io.github.metarank"    %% "ltrlib"                   % "0.1.16",
+      "org.http4s"            %% "http4s-circe"             % http4sVersion,
+      "io.github.metarank"    %% "ltrlib"                   % "0.1.18",
       "com.github.ua-parser"   % "uap-java"                 % "1.5.3",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
@@ -52,12 +53,15 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % "2.18.12",
+      "software.amazon.awssdk" % "kinesis"                  % "2.18.25",
       "io.lettuce"             % "lettuce-core"             % "6.2.1.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.7.0",
-      "com.fasterxml.util"     % "java-merge-sort"          % "1.0.2"
+      "io.sentry"              % "sentry-logback"           % "6.8.0",
+      "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
+      "io.prometheus"          % "simpleclient"             % prometheusVersion,
+      "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
+      "io.prometheus"          % "simpleclient_httpserver"  % prometheusVersion
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),

@@ -93,8 +93,8 @@ trackSelfDescribingEvent({
             { name: 'source', value: 'search' }
         ],
         items: [
-            { id: "item1", relevancy: 2.0 },
-            { id: "item2", relevancy: 1.0 }
+            { id: "item1" },
+            { id: "item2" }
         ]
     }
   }

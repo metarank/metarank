@@ -5,6 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.{ImportArgs, StandaloneArgs}
+import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.rank.LambdaMARTModel
 import ai.metarank.util.Logging
@@ -47,7 +48,7 @@ object Standalone extends Logging {
       _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
       _ <- mapping.models.toList.map {
         case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
-          Train.train(store, cts, m, name, conf.backend) *> info(s"model '$name' training finished")
+          Train.train(store, cts, m, name, conf.backend, SplitStrategy.default) *> info(s"model '$name' training finished")
         case (other, _) =>
           info(s"skipping model $other")
       }.sequence

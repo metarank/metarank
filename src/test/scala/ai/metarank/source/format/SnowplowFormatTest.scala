@@ -1,6 +1,6 @@
 package ai.metarank.source.format
 
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, UserEvent}
 import ai.metarank.model.{Event, EventId, Timestamp}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
@@ -51,16 +51,16 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
       RankingEvent(
         id = EventId("81f46c34-a4bb-469c-8708-f8127cd67d27"),
         timestamp = Timestamp.date(2020, 9, 6, 11, 24, 27),
-        user = UserId("user1"),
+        user = Some(UserId("user1")),
         session = Some(SessionId("session1")),
         fields = List(
           StringField("query", "cat"),
           StringField("source", "search")
         ),
         items = NonEmptyList.of(
-          ItemRelevancy(ItemId("item3"), 2.0),
-          ItemRelevancy(ItemId("item1"), 1.0),
-          ItemRelevancy(ItemId("item2"), 0.5)
+          RankItem(ItemId("item3"), 2.0),
+          RankItem(ItemId("item1"), 1.0),
+          RankItem(ItemId("item2"), 0.5)
         )
       )
     )
@@ -69,7 +69,7 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
   val expectedInteraction = InteractionEvent(
     id = EventId("0f4c0036-04fb-4409-b2c6-7163a59f6b7d"),
     timestamp = Timestamp.date(2020, 9, 6, 11, 24, 27),
-    user = UserId("user1"),
+    user = Some(UserId("user1")),
     session = Some(SessionId("session1")),
     item = ItemId("item1"),
     ranking = Some(EventId("81f46c34-a4bb-469c-8708-f8127cd67d27")),

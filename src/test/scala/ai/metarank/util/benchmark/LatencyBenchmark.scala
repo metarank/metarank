@@ -7,7 +7,7 @@ import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.StandaloneArgs
 import ai.metarank.main.command.{Serve, Standalone}
-import ai.metarank.model.Event.{ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{RankItem, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId, Timestamp}
 import ai.metarank.source.format.JsonFormat
@@ -44,11 +44,11 @@ object LatencyBenchmark extends IOApp with Logging {
       RankingEvent(
         id = EventId(UUID.randomUUID().toString),
         timestamp = Timestamp.now,
-        user = UserId(uid),
+        user = Some(UserId(uid)),
         session = Some(SessionId(uid)),
         fields = Nil,
         items = NonEmptyList.fromListUnsafe(
-          Random.shuffle((0 until itemRange.end).toList).take(items).map(id => ItemRelevancy(ItemId(id.toString)))
+          Random.shuffle((0 until itemRange.end).toList).take(items).map(id => RankItem(ItemId(id.toString)))
         )
       )
     }
@@ -60,8 +60,8 @@ object LatencyBenchmark extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = for {
     dataPath <- IO.fromOption(args.lift(1))(new Exception("need data"))
     confPath <- IO.fromOption(args.lift(0))(new Exception("need conf"))
-    conf     <- Config.load(IOUtils.toString(new FileInputStream(new File(confPath)), StandardCharsets.UTF_8))
-    mapping  <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
+    conf    <- Config.load(IOUtils.toString(new FileInputStream(new File(confPath)), StandardCharsets.UTF_8), Map.empty)
+    mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
 
     results <- start(mapping, conf, confPath, dataPath).use(s =>
       for {

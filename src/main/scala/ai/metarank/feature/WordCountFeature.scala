@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -52,11 +52,11 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Lo
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue =
     readKey(request, conf, id.id).flatMap(features.get) match {
       case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
-      case _                                       => SingleValue(schema.name, 0)
+      case _                                       => SingleValue.missing(schema.name)
     }
 
   val whitespacePattern = "\\s+".r

@@ -1,6 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId, Timestamp}
@@ -69,11 +69,11 @@ object SyntheticRanklensDataset {
       user <- (0 until users).iterator
       i    <- 0 until rankingsPerUser
     } yield {
-      val itemList = (0 until 10).map(_ => ItemRelevancy(ItemId(Random.nextInt(items).toString), 1.0)).toArray
+      val itemList = (0 until 10).map(_ => RankItem(ItemId(Random.nextInt(items).toString), 1.0)).toArray
       val rank = RankingEvent(
         id = EventId(UUID.randomUUID().toString),
         timestamp = start.plus((user * rankingsPerUser + i) * step),
-        user = UserId(user.toString),
+        user = Some(UserId(user.toString)),
         session = Some(SessionId(user.toString)),
         items = NonEmptyList.fromListUnsafe(itemList.toList)
       )

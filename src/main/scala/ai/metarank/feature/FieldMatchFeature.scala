@@ -52,7 +52,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
   }
   override def valueKeys(event: Event.RankingEvent): Iterable[Key] = conf.readKeys(event)
   // we have a batch method overridden, so ??? is deliberate
-  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: Event.ItemRelevancy): MValue =
+  override def value(request: Event.RankingEvent, features: Map[Key, FeatureValue], id: Event.RankItem): MValue =
     ???
 
   override def values(request: Event.RankingEvent, features: Map[Key, FeatureValue], mode: ValueMode): List[MValue] = {

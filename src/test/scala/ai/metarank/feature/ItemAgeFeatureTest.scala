@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.{FieldName, Key, Timestamp}
@@ -82,7 +82,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       Map(
         key -> ScalarValue(key, Timestamp(updatedAt.toInstant.toEpochMilli), SDouble(updatedAt.toEpochSecond.toDouble))
       ),
-      ItemRelevancy(ItemId("p1"))
+      RankItem(ItemId("p1"))
     )
     result shouldBe SingleValue(FeatureName("itemage"), 2332800.0)
   }

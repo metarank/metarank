@@ -4,7 +4,7 @@ import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -53,7 +53,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     val result = for {
       key    <- readKey(request, conf, id.id)
@@ -63,7 +63,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
     } yield {
       SingleValue(schema.name, if (bool.value) 1.0 else 0.0)
     }
-    result.getOrElse(SingleValue(schema.name, 0.0))
+    result.getOrElse(SingleValue.missing(schema.name))
   }
 }
 

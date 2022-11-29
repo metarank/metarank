@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key
 import ai.metarank.model.Key.FeatureName

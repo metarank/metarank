@@ -19,13 +19,102 @@ Integrating these events is crucial for personalization to operate properly and 
 ### Payload format
 You can find events and their description on the [Supported events](event-schema.md).
 
+### Response
+
+A JSON message with the following fields:
+* `accepted`: how many events from the submitted batch were processed
+* `status`: "ok" when no errors found
+* `tookMillis`: how many milliseconds batch processing took
+* `updated`: how many underlying ranking features were recomputed. 
+
+Example:
+```json
+{"accepted":1,"status":"ok","tookMillis":3,"updated":0}
+```
+
+### Example
+
+```shell
+$> curl http://localhost:8080/feedback -d '{
+    "event": "ranking",
+    "id": "id1",
+    "items": [
+        {"id":"72998"}, {"id":"589"}, {"id":"134130"}, {"id":"5459"}, 
+        {"id":"1917"}, {"id":"2571"}, {"id":"1527"}, {"id":"97752"}, 
+        {"id":"1270"}, {"id":"1580"}, {"id":"109487"}, {"id":"79132"}
+    ],
+    "user": "alice",
+    "session": "alice1",
+    "timestamp": 1661431894711
+}'
+*   Trying 127.0.0.1:8080...
+* Connected to localhost (127.0.0.1) port 8080 (#0)
+> POST /feedback HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.86.0
+> Accept: */*
+> Content-Length: 354
+> Content-Type: application/x-www-form-urlencoded
+> 
+< HTTP/1.1 200 OK
+< Date: Mon, 28 Nov 2022 13:09:44 GMT
+< Content-Length: 55
+< 
+{"accepted":1,"status":"ok","tookMillis":3,"updated":0}
+```
+
 ## Train
 
 **API Endpoint**: `/train/<model name>`
 
 **Method**: `POST`
 
-Train endpoint runs the training on persisted data. You can run this method at any time to re-train the model.
+Train endpoint runs the training on persisted click-through data. You can run this method at any time to re-train the model. See the [Model retraining how-to](howto/model-retraining.md) on how to set up the retraining.
+
+**Payload**: none
+
+### Response
+
+A JSON response with the following fields:
+* `weights`: per-field model weights
+* `sizeBytes`: model size in bytes
+* `iterations`: test/train error loss while training.
+
+Example:
+```json
+{
+  "features": [
+    {
+      "name": "vote_avg",
+      "weight": 629.0
+    },
+    {
+      "name": "profile",
+      "weight": [
+        1202.0,
+        373.0,
+        627.0,
+        145.0
+      ]
+    }
+  ],
+  "iterations": [
+    {
+      "id": 0,
+      "millis": 274,
+      "testMetric": 0.5787768851757988,
+      "trainMetric": 0.593075630098252
+    },
+    {
+      "id": 1,
+      "millis": 104,
+      "testMetric": 0.5903952545996365,
+      "trainMetric": 0.6083208266384491
+    }
+  ],
+  "sizeBytes": 843792
+}
+```
 
 ## Ranking
 
@@ -41,20 +130,20 @@ define which model to invoke.
 
 ### Payload format
 
-```json5
+```json
 {
-  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",// required
-  "timestamp": "1599391467000",// required
-  "user": "user1", // optional
-  "session": "session1", // optional
-  "fields": [ // optional
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000",
+  "user": "user1",
+  "session": "session1",
+  "fields": [ 
     {"name": "query", "value": "jeans"},
     {"name": "source", "value": "search"}
   ],
-  "items": [ // required
-    {"id": "item3", "relevancy":  2.0},
-    {"id": "item1", "relevancy":  1.0},
-    {"id": "item2", "relevancy":  0.5}
+  "items": [ 
+    {"id": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
+    {"id": "item1", "fields": [{"name": "relevancy", "value": 1.0}]},
+    {"id": "item2", "fields": [{"name": "relevancy", "value": 0.1}]}
   ]
 }
 ```
@@ -66,20 +155,58 @@ define which model to invoke.
 - `fields`: an optional array of extra fields that you can use in your model, for more information refer to [Supported events](event-schema.md).
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.
-- `items.relevancy`: a score which was used to rank these items. For example, it can be BM25/tfidf score coming from ElasticSearch. If your system doesn't return any relevancy score, just use `1` as a value.
+- `items.fields`: an optional set of per-item fields, for example BM25 scores coming from ES. See [how to use BM25 scores](configuration/features/relevancy.md#ranking) in ranking.
 
 ### Response format
 
 ```json
 {
   "items": [
-    {"id": "item2", "relevancy":  2.0, "features": [{"name": "popularity", "value": 10 }]},
-    {"id": "item3", "relevancy":  1.0, "features": [{"name": "popularity", "value": 5 }]},
-    {"id": "item1", "relevancy":  0.5, "features": [{"name": "popularity", "value": 2 }]}
+    {"id": "item2", "score":  2.0, "features": [{"name": "popularity", "value": 10 }]},
+    {"id": "item3", "score":  1.0, "features": [{"name": "popularity", "value": 5 }]},
+    {"id": "item1", "score":  0.5, "features": [{"name": "popularity", "value": 2 }]}
   ]
 }
 ```
 
 - `items.id`: id of the content item. Will match `item` property from the item metadata event.
-- `items.relevancy`: a score calculated by personalization model
+- `items.score`: a score calculated by personalization model
 - `items.features`: an array of feature values calculated by pesonaliization model. This field will be returned if `explain` field is set to `true` in the request. The structure of this object will vary depending on the feature type.
+
+
+## Prometheus metrics
+
+**API Endpoint**: `/metrics`
+
+**Method**: `GET`
+
+Dumps app and JVM metrics in a prometheus format.
+
+### Example
+
+```shell
+> GET /metrics HTTP/1.1
+> Host: localhost:8080
+> User-Agent: curl/7.86.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Date: Mon, 28 Nov 2022 13:30:41 GMT
+< Transfer-Encoding: chunked
+< 
+# HELP metarank_feedback_events_total Number of feedback events received
+# TYPE metarank_feedback_events_total counter
+metarank_feedback_events_total 58441.0
+# HELP metarank_rank_requests_total Number of /rank requests
+# TYPE metarank_rank_requests_total counter
+metarank_rank_requests_total{model="xgboost",} 5.0
+# HELP metarank_rank_latency_seconds rank endpoint latency
+# TYPE metarank_rank_latency_seconds summary
+metarank_rank_latency_seconds{model="xgboost",quantile="0.5",} 0.011451508
+metarank_rank_latency_seconds{model="xgboost",quantile="0.8",} 0.014340056
+metarank_rank_latency_seconds{model="xgboost",quantile="0.9",} 0.119447575
+metarank_rank_latency_seconds{model="xgboost",quantile="0.95",} 0.119447575
+metarank_rank_latency_seconds{model="xgboost",quantile="0.98",} 0.119447575
+metarank_rank_latency_seconds{model="xgboost",quantile="0.99",} 0.119447575
+
+```

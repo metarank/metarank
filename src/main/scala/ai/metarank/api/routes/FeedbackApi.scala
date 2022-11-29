@@ -10,6 +10,7 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserE
 import ai.metarank.model.{Event, Field}
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
+import ai.metarank.util.analytics.Metrics
 import cats.effect.IO
 import fs2.Chunk
 import org.http4s.dsl.io._
@@ -56,11 +57,13 @@ case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: Clic
         logger.info(s"user: id=${e.id.value} user=${e.user.value} fields=${Field.toString(e.fields)}")
       case e: RankingEvent =>
         val items = e.items.map(_.id.value).toList.mkString("[", ",", "]")
-        logger.info(s"ranking: id=${e.id.value} user=${e.user.value} items=$items fields=${Field.toString(e.fields)}")
+        logger.info(
+          s"ranking: id=${e.id.value} user=${e.user.getOrElse("")} items=$items fields=${Field.toString(e.fields)}"
+        )
       case e: InteractionEvent =>
         logger.info(
           s"interaction: id=${e.id.value} ranking=${e.ranking
-              .map(_.value)} user=${e.user.value} item=${e.item.value} type=${e.`type`} fields=${Field.toString(e.fields)}"
+              .map(_.value)} user=${e.user.getOrElse("")} item=${e.item.value} type=${e.`type`} fields=${Field.toString(e.fields)}"
         )
     }
   }

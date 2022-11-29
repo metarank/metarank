@@ -1,6 +1,6 @@
 package ai.metarank.util
 
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model._
@@ -121,17 +121,17 @@ object RanklensDatasetGenerator {
         RankingEvent(
           id = id,
           timestamp = ts,
-          user = UserId(t.user),
+          user = Some(UserId(t.user)),
           session = Some(SessionId(t.user)),
           fields = Nil,
-          items = NonEmptyList.fromListUnsafe(t.shown).map(id => ItemRelevancy(ItemId(id.toString), 0))
+          items = NonEmptyList.fromListUnsafe(t.shown).map(id => RankItem(ItemId(id.toString), 0))
         )
       )
       val clicks = t.liked.map(item =>
         InteractionEvent(
           id = EventId(UUID.randomUUID().toString),
           timestamp = ts.plus(5.second),
-          user = UserId(t.user),
+          user = Some(UserId(t.user)),
           session = Some(SessionId(t.user)),
           fields = Nil,
           item = ItemId(item.toString),

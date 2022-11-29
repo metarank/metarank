@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
-import ai.metarank.model.Event.{InteractionEvent, ItemRelevancy}
+import ai.metarank.model.Event.{InteractionEvent, RankItem}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
@@ -95,7 +95,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     schema.normalize match {
       case None =>

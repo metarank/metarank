@@ -1,6 +1,6 @@
 package ai.metarank.source.format
 
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, UserEvent}
 import ai.metarank.model.{Event, EventId, Timestamp}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
@@ -58,9 +58,9 @@ class SnowplowFormatTest extends AnyFlatSpec with Matchers {
           StringField("source", "search")
         ),
         items = NonEmptyList.of(
-          ItemRelevancy(ItemId("item3"), 2.0),
-          ItemRelevancy(ItemId("item1"), 1.0),
-          ItemRelevancy(ItemId("item2"), 0.5)
+          RankItem(ItemId("item3"), 2.0),
+          RankItem(ItemId("item1"), 1.0),
+          RankItem(ItemId("item2"), 0.5)
         )
       )
     )

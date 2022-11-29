@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, ItemRelevancy, RankingEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import cats.data.NonEmptyList
@@ -111,9 +111,9 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
           StringField("source", "search")
         ),
         items = NonEmptyList.of(
-          ItemRelevancy(ItemId("product3"), 2.0),
-          ItemRelevancy(ItemId("product1"), 1.0),
-          ItemRelevancy(ItemId("product2"), 0.5)
+          RankItem(ItemId("product3"), 2.0),
+          RankItem(ItemId("product1"), 1.0),
+          RankItem(ItemId("product2"), 0.5)
         )
       )
     )

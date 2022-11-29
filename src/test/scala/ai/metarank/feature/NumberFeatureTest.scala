@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.{FeatureSchema, FieldName, Key}
 import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
@@ -13,6 +14,7 @@ import ai.metarank.model.Scalar.SDouble
 import ai.metarank.model.Scope.{ItemScope, UserScope}
 import ai.metarank.model.Write.Put
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestSchema, TestUserEvent}
+import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
@@ -82,6 +84,16 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(TestItemEvent("p1", List(NumberField("popularity", 100)))),
       feature.schema,
       TestRankingEvent(List("p1"))
+    )
+    values shouldBe List(List(SingleValue(FeatureName("popularity"), 100.0)))
+  }
+
+  it should "compute value with field override" in {
+    val values = process(
+      Nil,
+      feature.schema,
+      TestRankingEvent(List("p1"))
+        .copy(items = NonEmptyList.one(RankItem(ItemId("p1"), List(NumberField("popularity", 100)))))
     )
     values shouldBe List(List(SingleValue(FeatureName("popularity"), 100.0)))
   }

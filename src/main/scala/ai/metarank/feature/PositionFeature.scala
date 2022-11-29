@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Key, MValue, ScopeType}
 import ai.metarank.model.Key.FeatureName
@@ -37,7 +37,7 @@ case class PositionFeature(schema: PositionFeatureSchema) extends ItemFeature wi
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = ???
 
 }

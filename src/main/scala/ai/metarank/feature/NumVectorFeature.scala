@@ -5,7 +5,7 @@ import ai.metarank.feature.NumVectorFeature.Reducer._
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
@@ -58,7 +58,7 @@ case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature wit
   override def value(
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue],
-      id: ItemRelevancy
+      id: RankItem
   ): MValue = {
     val result = for {
       key <- readKey(request, conf, id.id)

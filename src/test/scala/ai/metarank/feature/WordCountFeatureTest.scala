@@ -2,7 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.ItemRelevancy
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.{FeatureSchema, FieldName, Key}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Field.StringField

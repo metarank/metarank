@@ -19,7 +19,8 @@ case class StringFeatureRule(
     with Logging {
 
   override def make(model: EventModel): List[FeatureSchema] = {
-    model.itemFields.strings.flatMap { case (name, stat) => make(name, stat) }.toList
+    val fields = model.itemFields.strings ++ model.rankFields.strings
+    fields.flatMap { case (name, stat) => make(name, stat) }.toList
   }
 
   def fieldValues(stat: StringFieldStat): List[String] = {

@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.model.Field.NumberField
 import cats.data.NonEmptyList
 import io.circe.generic.extras.Configuration
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
@@ -46,7 +47,7 @@ object Event {
       user: Option[UserId],
       session: Option[SessionId],
       fields: List[Field] = Nil,
-      items: NonEmptyList[ItemRelevancy]
+      items: NonEmptyList[RankItem]
   ) extends FeedbackEvent
 
   case class InteractionEvent(
@@ -60,9 +61,9 @@ object Event {
       fields: List[Field] = Nil
   ) extends FeedbackEvent
 
-  case class ItemRelevancy(id: ItemId, relevancy: Option[Double] = None)
-  object ItemRelevancy {
-    def apply(id: ItemId, relevancy: Double) = new ItemRelevancy(id, Some(relevancy))
+  case class RankItem(id: ItemId, fields: List[Field] = Nil)
+  object RankItem {
+    def apply(id: ItemId, relevancy: Double) = new RankItem(id, List(NumberField("relevancy", relevancy)))
   }
 
   object EventCodecs {
@@ -78,8 +79,18 @@ object Event {
         .map(Timestamp.apply),
       encodeA = Encoder.encodeString.contramap(_.ts.toString)
     )
-    implicit val conf                                 = Configuration.default.withDefaults
-    implicit val relevancyCodec: Codec[ItemRelevancy] = deriveCodec
+    implicit val conf                                     = Configuration.default.withDefaults
+    implicit val relevancyEncoder: Encoder[RankItem] = deriveEncoder
+    implicit val relevancyDecoder: Decoder[RankItem] = Decoder.instance(c =>
+      for {
+        id     <- c.downField("id").as[ItemId]
+        rel    <- c.downField("relevancy").as[Option[Double]]
+        fields <- c.downField("fields").as[Option[List[Field]]]
+      } yield {
+        RankItem(id, rel.toList.map(r => NumberField("relevancy", r)) ++ fields.toList.flatten)
+      }
+    )
+    implicit val relevancyCodec: Codec[RankItem] = Codec.from(relevancyDecoder, relevancyEncoder)
 
     implicit val itemCodec: Codec[ItemEvent]               = deriveConfiguredCodec
     implicit val userCodec: Codec[UserEvent]               = deriveConfiguredCodec

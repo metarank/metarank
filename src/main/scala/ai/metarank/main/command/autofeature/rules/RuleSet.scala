@@ -10,7 +10,6 @@ object RuleSet {
       InteractedWithFeatureRule,
       NumericalFeatureRule,
       StringFeatureRule(percentile = 0.90, countThreshold = args.catThreshold),
-      RelevancyRule,
       VectorFeatureRule
     )
   )
@@ -20,7 +19,6 @@ object RuleSet {
       InteractedWithFeatureRule,
       NumericalFeatureRule,
       StringFeatureRule(minValues = 20, percentile = 0.95, countThreshold = args.catThreshold),
-      RelevancyRule,
       VectorFeatureRule,
       InteractionRateFeatureRule,
       InteractionCountFeatureRule

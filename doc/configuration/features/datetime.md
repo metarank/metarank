@@ -15,9 +15,9 @@ catch a seasonality: maybe visitor behavior is different on morning and in eveni
       {"name": "localts", "value": "2021-12-03T10:15:30+01:00"}
   ],
   "items": [
-    {"id": "item3", "relevancy":  2.0},
-    {"id": "item1", "relevancy":  1.0},
-    {"id": "item2", "relevancy":  0.5} 
+    {"id": "item3"},
+    {"id": "item1"},
+    {"id": "item2"} 
   ]
 }
 ```

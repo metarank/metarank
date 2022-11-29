@@ -97,8 +97,8 @@ For a ranking event:
       {"name": "referer", "value": "http://www.google.com"}
   ],
   "items": [
-    {"id": "item1", "relevancy":  1.0},
-    {"id": "item2", "relevancy":  0.5} 
+    {"id": "item1"},
+    {"id": "item2"} 
   ]
 }
 ```

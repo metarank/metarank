@@ -13,7 +13,7 @@ object InteractionTypeValidation extends EventValidation {
 
   override def validate(config: Config, events: List[Event]): List[EventValidation.ValidationError] = {
     val types = config.models.values
-      .collect { case ModelConfig.LambdaMARTConfig(_, _, weights) =>
+      .collect { case ModelConfig.LambdaMARTConfig(_, _, weights, _) =>
         weights.keys
       }
       .flatten

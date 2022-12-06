@@ -12,7 +12,8 @@ case class Clickthrough(
     user: Option[UserId],
     session: Option[SessionId],
     items: List[ItemId],
-    interactions: List[TypedInteraction] = Nil
+    interactions: List[TypedInteraction] = Nil,
+    rankingFields: List[Field] = Nil
 ) {
   def withInteraction(item: ItemId, tpe: String): Clickthrough =
     copy(interactions = TypedInteraction(item, tpe) +: interactions)

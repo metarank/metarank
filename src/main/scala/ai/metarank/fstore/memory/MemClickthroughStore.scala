@@ -14,8 +14,6 @@ case class MemClickthroughStore(
     cts.foreach(ct => cache.put(ct.ct.id.value, ct))
   }
 
-  override def flush(): IO[Unit] = IO.unit
-
   override def getall(): fs2.Stream[IO, ClickthroughValues] =
     fs2.Stream.emits(cache.asMap().values.toList.flatMap(_.cast[ClickthroughValues]))
 }

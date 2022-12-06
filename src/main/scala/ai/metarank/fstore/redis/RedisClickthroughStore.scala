@@ -46,7 +46,6 @@ case class RedisClickthroughStore(rankings: RedisClient, prefix: String, format:
     )
     .flatMap(batch => Stream.emits(batch))
 
-  override def flush(): IO[Unit] = rankings.doFlush(rankings.reader.ping().toCompletableFuture)
 
   private def decodeValues(map: Map[String, Array[Byte]]): IO[List[ClickthroughValues]] = {
     map.toList.map { case (_, value) => IO.fromEither(format.ctv.decode(value)) }.sequence

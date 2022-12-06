@@ -7,9 +7,46 @@ import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, DecodingFailure}
 
+import scala.concurrent.duration._
+
 sealed trait TrainConfig
 
 object TrainConfig {
+  import ai.metarank.util.DurationJson._
+  case class S3TrainConfig(
+      key: Option[String],
+      secret: Option[String],
+      bucket: String,
+      prefix: String,
+      region: String,
+      batchSize: Int = 1024,
+      rollInterval: FiniteDuration = 1.hour,
+      endpoint: Option[String]
+  ) extends TrainConfig
+  implicit val s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
+    for {
+      key          <- c.downField("key").as[Option[String]]
+      secret       <- c.downField("secret").as[Option[String]]
+      bucket       <- c.downField("bucket").as[String]
+      prefix       <- c.downField("prefix").as[String]
+      region       <- c.downField("region").as[String]
+      batchSize    <- c.downField("batchSize").as[Option[Int]]
+      rollInterval <- c.downField("rollInterval").as[Option[FiniteDuration]]
+      endpoint     <- c.downField("endpoint").as[Option[String]]
+    } yield {
+      S3TrainConfig(
+        key,
+        secret,
+        bucket,
+        prefix,
+        region,
+        batchSize.getOrElse(1024),
+        rollInterval.getOrElse(1.hour),
+        endpoint
+      )
+    }
+  )
+
   case class FileTrainConfig(path: String, format: StoreFormat = BinaryStoreFormat) extends TrainConfig
   implicit val fileDecoder: Decoder[FileTrainConfig] = deriveDecoder[FileTrainConfig]
 
@@ -63,6 +100,7 @@ object TrainConfig {
       case Right("memory")  => memDecoder.tryDecode(c)
       case Right("file")    => fileDecoder.tryDecode(c)
       case Right("discard") => discardDecoder.tryDecode(c)
+      case Right("s3")      => s3TrainConfigDecoder.tryDecode(c)
       case Right(other)     => Left(DecodingFailure(s"type $other is not yet supported", c.history))
     }
   )

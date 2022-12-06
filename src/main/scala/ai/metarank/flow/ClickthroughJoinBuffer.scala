@@ -44,7 +44,8 @@ case class ClickthroughJoinBuffer(
         ts = event.timestamp,
         user = event.user,
         session = event.session,
-        items = event.items.toList.map(_.id)
+        items = event.items.toList.map(_.id),
+        rankingFields = event.fields
       ),
       mvalues
     )

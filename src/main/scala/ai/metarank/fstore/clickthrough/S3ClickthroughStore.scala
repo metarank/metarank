@@ -13,39 +13,23 @@ import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import org.apache.commons.io.FileUtils
 import software.amazon.awssdk.auth.credentials.{
   AwsBasicCredentials,
-  AwsCredentials,
   AwsCredentialsProvider,
   DefaultCredentialsProvider,
   StaticCredentialsProvider
 }
 import software.amazon.awssdk.core.async.AsyncRequestBody
-import software.amazon.awssdk.endpoints.Endpoint
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.s3.model.{
-  CompleteMultipartUploadRequest,
-  CompletedMultipartUpload,
-  CompletedPart,
-  CreateMultipartUploadRequest,
-  GetObjectRequest,
-  ListObjectsRequest,
-  PutObjectRequest,
-  UploadPartRequest
-}
-import software.amazon.awssdk.services.s3.{S3AsyncClient, S3Configuration}
-import software.amazon.awssdk.services.s3.endpoints.{S3EndpointParams, S3EndpointProvider}
-import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider
+import software.amazon.awssdk.services.s3.model.{GetObjectRequest, ListObjectsRequest, PutObjectRequest}
+import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream, OutputStream}
 import java.net.URI
-import java.nio.ByteBuffer
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.CompletableFuture
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
-import scala.util.Random
 
 case class S3ClickthroughStore(
     conf: S3TrainConfig,

@@ -1,14 +1,16 @@
 package ai.metarank.fstore.clickthrough
 
-import ai.metarank.config.TrainConfig.S3TrainConfig
+import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.ClickthroughStore
-import ai.metarank.fstore.clickthrough.S3ClickthroughStore.Upload
+import ai.metarank.fstore.clickthrough.S3ClickthroughStore.{Buffer, format}
 import ai.metarank.fstore.codec.impl.ClickthroughValuesCodec
 import ai.metarank.fstore.codec.values.BinaryVCodec
 import ai.metarank.model.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
+import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
+import org.apache.commons.io.FileUtils
 import software.amazon.awssdk.auth.credentials.{
   AwsBasicCredentials,
   AwsCredentials,
@@ -26,36 +28,37 @@ import software.amazon.awssdk.services.s3.model.{
   CreateMultipartUploadRequest,
   GetObjectRequest,
   ListObjectsRequest,
+  PutObjectRequest,
   UploadPartRequest
 }
-import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.{S3AsyncClient, S3Configuration}
 import software.amazon.awssdk.services.s3.endpoints.{S3EndpointParams, S3EndpointProvider}
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider
 
-import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream}
+import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream, OutputStream}
 import java.net.URI
-import java.nio.file.Files
+import java.nio.ByteBuffer
+import java.nio.file.{Files, Path}
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
-import java.time.Instant
+import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CompletableFuture
+import java.util.zip.{GZIPInputStream, GZIPOutputStream}
+import scala.util.Random
 
 case class S3ClickthroughStore(
     conf: S3TrainConfig,
     client: S3AsyncClient,
-    bufferRef: Ref[IO, List[ClickthroughValues]],
-    etagsRef: Ref[IO, List[CompletedPart]],
-    uploadRef: Ref[IO, Upload],
+    bufferRef: Ref[IO, Buffer],
     tickCancel: IO[Unit]
 ) extends ClickthroughStore
     with Logging {
-  val codec = BinaryVCodec(false, ClickthroughValuesCodec)
+  val tmpdir = System.getProperty("java.io.tmpdir")
 
   override def put(cts: List[ClickthroughValues]): IO[Unit] = for {
-    _ <- bufferRef.update(last => last ++ cts)
+    _ <- bufferRef.update(_.put(cts))
     _ <- maybeFlush()
-    _ <- maybeRollNext()
   } yield {}
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] =
@@ -64,10 +67,11 @@ case class S3ClickthroughStore(
   def getPart(key: String): fs2.Stream[IO, ClickthroughValues] = {
     fs2.Stream
       .eval(for {
-        file     <- IO(Files.createTempFile("chunk_", ".bin"))
+        file     <- IO(Path.of(tmpdir, key))
+        _        <- IO(Files.createDirectories(file.getParent))
         request  <- IO(GetObjectRequest.builder().bucket(conf.bucket).key(key).build())
         response <- IO.fromCompletableFuture(IO(client.getObject(request, file)))
-        _        <- info(s"read part $key")
+        _        <- info(s"read part $key size=${FileUtils.byteCountToDisplaySize(response.contentLength())}")
       } yield {
         file
       })
@@ -80,89 +84,53 @@ case class S3ClickthroughStore(
     request  <- IO(ListObjectsRequest.builder().bucket(conf.bucket).prefix(conf.prefix).build())
     response <- IO.fromCompletableFuture(IO(client.listObjects(request)))
     files    <- IO(response.contents().asScala.map(_.key()).toList.sorted)
-    _        <- info(s"S3 list objects: $files")
+    _        <- info(s"S3 list objects: count=${files.size} values=$files")
   } yield {
     files
   }
 
   def tick(): IO[Unit] = for {
     _ <- IO.sleep(1.second)
-    _ <- info("tick!")
-    _ <- maybeRollNext()
+    _ <- maybeFlush()
     _ <- tick()
   } yield {}
 
-  def close(): IO[Unit] = info("close()") *> tickCancel *> flushPart() *> finishMultipart()
+  def close(): IO[Unit] = info("close()") *> tickCancel *> flushPart()
 
-  def maybeRollNext(): IO[Unit] = for {
-    upload <- uploadRef.get
-    now    <- IO(System.currentTimeMillis())
-    _ <- IO.whenA(now - upload.start > conf.rollInterval.toMillis)(for {
-      _ <- flushPart()
-      _ <- rollNext()
-    } yield {})
-  } yield {}
+  override def flush(): IO[Unit] = info("forced flush") *> flushPart()
 
   def maybeFlush(): IO[Unit] = for {
     buffer <- bufferRef.get
-    _      <- IO.whenA(buffer.size > conf.batchSize)(flushPart())
+    _      <- IO.whenA((buffer.eventCount > conf.partSizeEvents) || (buffer.byteSize > conf.partSizeBytes))(flushPart())
   } yield {}
+
+  def makeFileName(now: Long): String = format.format(Instant.ofEpochMilli(now)) + conf.compress.ext
 
   def flushPart(): IO[Unit] = for {
-    upload <- uploadRef.get
-    request <- IO(
-      UploadPartRequest
-        .builder()
-        .bucket(conf.bucket)
-        .uploadId(upload.id)
-        .key(upload.key)
-        .partNumber(upload.num)
-        .build()
-    )
-    buffer   <- bufferRef.getAndSet(List.empty)
-    body     <- IO(AsyncRequestBody.fromBytes(write(buffer)))
-    response <- IO.fromCompletableFuture(IO(client.uploadPart(request, body)))
-    _ <- etagsRef.update(etags => etags :+ CompletedPart.builder().eTag(response.eTag()).partNumber(upload.num).build())
-    _ <- uploadRef.set(upload.copy(num = upload.num + 1))
-    _ <- info(s"part uploaded, key=${upload.key} num=${upload.num}")
+    buffer <- bufferRef.get
+    _      <- bufferRef.set(Buffer(conf.compress))
+    _ <- IO.whenA(buffer.nonEmpty)(for {
+      key     <- IO(conf.prefix + "/" + makeFileName(System.currentTimeMillis()))
+      request <- IO(PutObjectRequest.builder().bucket(conf.bucket).key(key).build())
+      _ <- info(
+        s"flushing part key=$key size=(${FileUtils.byteCountToDisplaySize(buffer.byteSize)}, ${buffer.eventCount} events)"
+      )
+      body     <- IO(AsyncRequestBody.fromBytes(buffer.toByteArray()))
+      response <- IO.fromCompletableFuture(IO(client.putObject(request, body)))
+    } yield {})
   } yield {}
-
-  def finishMultipart(): IO[Unit] = for {
-    upload <- uploadRef.get
-    etags  <- etagsRef.getAndSet(Nil)
-    request <- IO(
-      CompleteMultipartUploadRequest
-        .builder()
-        .bucket(conf.bucket)
-        .key(upload.key)
-        .uploadId(upload.id)
-        .multipartUpload(CompletedMultipartUpload.builder().parts(etags: _*).build())
-        .build()
-    )
-    response <- IO.fromCompletableFuture(IO(client.completeMultipartUpload(request)))
-    _        <- info(s"Multipart upload finished, key=${upload.key} num=${upload.num}")
-  } yield {}
-
-  def rollNext(): IO[Unit] = for {
-    _          <- finishMultipart()
-    nextUpload <- Upload.create(conf, client)
-    _          <- uploadRef.set(nextUpload)
-    _          <- info(s"Part key=${nextUpload.key} num=${nextUpload.num} rolled")
-  } yield {}
-
-  def write(buf: List[ClickthroughValues]): Array[Byte] = {
-    val out    = new ByteArrayOutputStream()
-    val stream = new DataOutputStream(out)
-    buf.foreach(c => codec.encodeDelimited(c, stream))
-    stream.close()
-    out.toByteArray
-  }
 
   def read(stream: InputStream): fs2.Stream[IO, ClickthroughValues] = {
-    val in = new DataInputStream(stream)
+    val raw = conf.compress match {
+      case CompressionType.GzipCompressionType => new GZIPInputStream(stream)
+      case CompressionType.ZstdCompressionType => new ZstdInputStream(stream)
+      case CompressionType.NoCompressionType   => stream
+    }
+    val in = new DataInputStream(raw)
+
     fs2.Stream.fromBlockingIterator[IO](
       Iterator
-        .continually(codec.decodeDelimited(in))
+        .continually(S3ClickthroughStore.codec.decodeDelimited(in))
         .takeWhile {
           case Right(Some(_)) => true
           case _              => false
@@ -170,47 +138,72 @@ case class S3ClickthroughStore(
         .collect { case Right(Some(value)) =>
           value
         },
-      chunkSize = 128 * 1024
+      chunkSize = 1024
     )
   }
 
 }
 
 object S3ClickthroughStore extends Logging {
-  case class Upload(id: String, start: Long, num: Int, key: String)
 
-  object Upload {
-    def create(conf: S3TrainConfig, client: S3AsyncClient): IO[Upload] = for {
-      now <- IO(System.currentTimeMillis())
-      key     = conf.prefix + "/" + makeFileName(now)
-      request = CreateMultipartUploadRequest.builder().bucket(conf.bucket).key(key).build()
-      uploadResponse <- IO.fromCompletableFuture(IO(client.createMultipartUpload(request)))
-    } yield {
-      Upload(uploadResponse.uploadId(), now, 0, key)
+  val codec  = BinaryVCodec(false, ClickthroughValuesCodec)
+  val format = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS").withZone(ZoneId.systemDefault())
+
+  case class Buffer(
+      stream: ByteArrayOutputStream,
+      wrap: OutputStream,
+      out: DataOutputStream,
+      eventCount: Int,
+      byteSize: Int
+  ) {
+    def isEmpty  = eventCount == 0
+    def nonEmpty = !isEmpty
+
+    def put(event: ClickthroughValues): Buffer = {
+      codec.encodeDelimited(event, out)
+      copy(eventCount = eventCount + 1, byteSize = stream.size())
+    }
+
+    def put(events: List[ClickthroughValues]): Buffer = {
+      events.foreach(codec.encodeDelimited(_, out))
+      copy(eventCount = eventCount + events.size, byteSize = stream.size())
+    }
+
+    def toByteArray() = stream.toByteArray
+    def close()       = wrap.close()
+  }
+
+  object Buffer {
+    def apply(compress: CompressionType): Buffer = {
+      val stream = new ByteArrayOutputStream()
+      val wrap = compress match {
+        case CompressionType.GzipCompressionType => new GZIPOutputStream(stream)
+        case CompressionType.ZstdCompressionType => new ZstdOutputStream(stream)
+        case CompressionType.NoCompressionType   => stream
+      }
+      new Buffer(stream, wrap, new DataOutputStream(wrap), 0, 0)
     }
   }
 
   def create(conf: S3TrainConfig): Resource[IO, S3ClickthroughStore] = {
     Resource.make(for {
-      creds    <- makeCredentials(conf)
-      endpoint <- makeEndpoint(conf)
-      client <- IO(
+      creds <- makeCredentials(conf)
+      clientBuilder <- IO(
         S3AsyncClient
           .builder()
           .region(Region.of(conf.region))
           .credentialsProvider(creds)
-          .endpointProvider(endpoint)
-          .build()
+          .forcePathStyle(conf.endpoint.isDefined)
       )
-      buffer <- Ref.of[IO, List[ClickthroughValues]](Nil)
-      etags  <- Ref.of[IO, List[CompletedPart]](Nil)
-      upload <- Ref.ofEffect(Upload.create(conf, client))
+      client = conf.endpoint match {
+        case Some(endpoint) => clientBuilder.endpointOverride(URI.create(endpoint)).build()
+        case None           => clientBuilder.build()
+      }
+      buffer <- Ref.of[IO, Buffer](Buffer(conf.compress))
       store = S3ClickthroughStore(
         conf = conf,
         client = client,
         bufferRef = buffer,
-        etagsRef = etags,
-        uploadRef = upload,
         tickCancel = IO.unit
       )
       ticker <- store.tick().background.allocated
@@ -220,7 +213,7 @@ object S3ClickthroughStore extends Logging {
   }
 
   def makeCredentials(conf: S3TrainConfig): IO[AwsCredentialsProvider] = {
-    (conf.key, conf.secret) match {
+    (conf.awsKey, conf.awsKeySecret) match {
       case (Some(key), Some(secret)) =>
         info("Using custom AWS credentials from config") *> IO.pure(
           StaticCredentialsProvider.create(AwsBasicCredentials.create(key, secret))
@@ -230,20 +223,4 @@ object S3ClickthroughStore extends Logging {
     }
   }
 
-  def makeEndpoint(conf: S3TrainConfig): IO[S3EndpointProvider] = {
-    conf.endpoint match {
-      case None => IO.pure(new DefaultS3EndpointProvider())
-      case Some(uri) =>
-        info(s"Using custom S3 endpoint: $uri") *> IO(StaticEndpointProvider(uri))
-    }
-
-  }
-  val format = DateTimeFormatter.ofPattern("yyyyMMdd_hhmmss")
-
-  def makeFileName(now: Long): String = format.format(Instant.ofEpochMilli(now)) + ".bin"
-
-  case class StaticEndpointProvider(uri: String) extends S3EndpointProvider {
-    override def resolveEndpoint(endpointParams: S3EndpointParams): CompletableFuture[Endpoint] =
-      CompletableFuture.completedFuture(Endpoint.builder().url(URI.create(uri)).build())
-  }
 }

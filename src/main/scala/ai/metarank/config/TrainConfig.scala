@@ -2,37 +2,72 @@ package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
+import ai.metarank.config.TrainConfig.CompressionType.{GzipCompressionType, NoCompressionType, ZstdCompressionType}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import io.circe.generic.semiauto.deriveDecoder
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 sealed trait TrainConfig
 
 object TrainConfig {
   import ai.metarank.util.DurationJson._
+
+  sealed trait CompressionType {
+    def ext: String
+  }
+  object CompressionType {
+    case object GzipCompressionType extends CompressionType {
+      def ext = ".gz"
+    }
+    case object ZstdCompressionType extends CompressionType {
+      def ext = ".zst"
+    }
+    case object NoCompressionType extends CompressionType {
+      def ext = ".bin"
+    }
+  }
+
+  implicit val compressEncoder: Encoder[CompressionType] = Encoder.instance {
+    case CompressionType.GzipCompressionType => Json.fromString("gzip")
+    case CompressionType.ZstdCompressionType => Json.fromString("zstd")
+    case CompressionType.NoCompressionType   => Json.fromString("none")
+  }
+
+  implicit val compressDecoder: Decoder[CompressionType] = Decoder.decodeString.emapTry {
+    case "gzip" | "gz"  => Success(GzipCompressionType)
+    case "zstd" | "zst" => Success(ZstdCompressionType)
+    case "none"         => Success(NoCompressionType)
+    case other          => Failure(new Exception(s"compression type $other not supported. Try gzip/zstd/none."))
+  }
+
   case class S3TrainConfig(
-      key: Option[String],
-      secret: Option[String],
+      awsKey: Option[String],
+      awsKeySecret: Option[String],
       bucket: String,
       prefix: String,
       region: String,
-      batchSize: Int = 1024,
-      rollInterval: FiniteDuration = 1.hour,
+      compress: CompressionType,
+      partSizeBytes: Long = 10 * 1024 * 1024,
+      partSizeEvents: Int = 1024,
+      partInterval: FiniteDuration = 1.hour,
       endpoint: Option[String]
   ) extends TrainConfig
   implicit val s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
     for {
-      key          <- c.downField("key").as[Option[String]]
-      secret       <- c.downField("secret").as[Option[String]]
-      bucket       <- c.downField("bucket").as[String]
-      prefix       <- c.downField("prefix").as[String]
-      region       <- c.downField("region").as[String]
-      batchSize    <- c.downField("batchSize").as[Option[Int]]
-      rollInterval <- c.downField("rollInterval").as[Option[FiniteDuration]]
-      endpoint     <- c.downField("endpoint").as[Option[String]]
+      key             <- c.downField("key").as[Option[String]]
+      secret          <- c.downField("secret").as[Option[String]]
+      bucket          <- c.downField("bucket").as[String]
+      prefix          <- c.downField("prefix").as[String]
+      region          <- c.downField("region").as[String]
+      compress        <- c.downField("compress").as[Option[CompressionType]]
+      batchSizeBytes  <- c.downField("batchSizeBytes").as[Option[Long]]
+      batchSizeEvents <- c.downField("batchSizeEvents").as[Option[Int]]
+      partInterval    <- c.downField("partInterval").as[Option[FiniteDuration]]
+      endpoint        <- c.downField("endpoint").as[Option[String]]
     } yield {
       S3TrainConfig(
         key,
@@ -40,8 +75,10 @@ object TrainConfig {
         bucket,
         prefix,
         region,
-        batchSize.getOrElse(1024),
-        rollInterval.getOrElse(1.hour),
+        compress.getOrElse(GzipCompressionType),
+        batchSizeBytes.getOrElse(1024 * 1024L),
+        batchSizeEvents.getOrElse(1024),
+        partInterval.getOrElse(1.hour),
         endpoint
       )
     }

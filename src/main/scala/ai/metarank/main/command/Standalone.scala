@@ -45,10 +45,13 @@ object Standalone extends Logging {
       _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
       _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
       _ <- store.sync
+      _ <- cts.flush()
       _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")
       _ <- mapping.models.toList.map {
         case (name, m @ LambdaMARTModel(conf, _, _, _)) =>
-          Train.train(store, cts, m, name, conf.backend, SplitStrategy.default) *> info(s"model '$name' training finished")
+          Train.train(store, cts, m, name, conf.backend, SplitStrategy.default) *> info(
+            s"model '$name' training finished"
+          )
         case (other, _) =>
           info(s"skipping model $other")
       }.sequence

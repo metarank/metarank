@@ -4,8 +4,12 @@
 #  port: 6379
 #  format: binary
 
-#train:
-#  type: discard
+train:
+  type: s3
+  endpoint: 'http://localhost:4566'
+  bucket: bucket
+  prefix: "foo"
+  region: eu-west-1
 
 core:
   clickthrough:

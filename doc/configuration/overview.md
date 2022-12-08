@@ -76,6 +76,7 @@ These click-through events are essential for model training, as they're later tr
 Metarank has multiple ways of storing these click-throughs with different pros and cons:
 * **Redis**: no special configuration needed, it's possible to perform periodic ML model retraining by reading the latest click-through events from it. But it takes quite a lot of RAM and maybe costly in a case when you have millions of click-through events.
 * **Local file**: takes much less RAM (as ct's are not stored in redis), but you need to manage the file containing the click-throughs by yourself. 
+* **S3**: like local file, but offloads data to an external block storage, suits well
 
 ```yaml
 # The optional train section describes how Metarank deals with the 

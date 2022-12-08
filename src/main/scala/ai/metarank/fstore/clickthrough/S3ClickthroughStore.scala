@@ -191,8 +191,9 @@ object S3ClickthroughStore extends Logging {
         tickCancel = IO.unit
       )
       ticker <- store.tick().background.allocated
+      (_, tickerCancel) = ticker
     } yield {
-      store.copy(tickCancel = ticker._2)
+      store.copy(tickCancel = tickerCancel)
     })(_.close())
   }
 

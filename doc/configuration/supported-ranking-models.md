@@ -66,21 +66,23 @@ You can define interaction by `name` and set `weight` for how much this interact
 
 ### Event selectors
 
-In a case when you're serving multiple models with different contexts (for example separate model for search, collection and recommendations ranking), you may need to route search click-throughs only to search model.
+When serving multiple models, there are cases when you need to separate ranking and interaction events per model. This is useful when your models have different contexts, e.g. you do personalized ranking for search results and recommendation results using the same Metarank installation, but utilizing different models. 
 
-Metarank supports the following click-through selectors:
+Metarank supports `selector` configuration that can be used to route your events to correct model or drop events in certain scenarios.
+
+Metarank supports the following event selectors:
 * **Accept selector**. Enabled by default to accept all events, if no selectors are defined. 
 ```yaml
 selector:
   accept: true # true = accept all, false = reject all
 ```
-* **Field selector**. Accepts click-through when it has a specific string (or string-list) field defined for a ranking event. For example:
+* **Field selector**. Accepts event when it has a specific string (or string-list) field defined for a ranking event. For example:
 ```yaml
 selector:
   rankingField: source
   value: search
 ```
-The filter abobve will accept all ranking events having the `source=search` field defined:
+The filter above will accept only events that have the `source=search` field defined in the `fields` section of the event:
 ```json
 {
   "event": "ranking",
@@ -96,7 +98,7 @@ The filter abobve will accept all ranking events having the `source=search` fiel
   ]
 }
 ```
-* **Sampling selector**: randomly accept or drop an event, depending on a defined acceptance ratio:
+* **Sampling selector**: randomly accept or drop an event, depending on the acceptance ratio:
 ```yaml
 selector:
   ratio: 0.5

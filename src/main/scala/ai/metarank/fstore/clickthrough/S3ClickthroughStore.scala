@@ -3,6 +3,7 @@ package ai.metarank.fstore.clickthrough
 import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.fstore.clickthrough.S3ClickthroughStore.{Buffer, format}
+import ai.metarank.fstore.codec.VCodec
 import ai.metarank.fstore.codec.impl.ClickthroughValuesCodec
 import ai.metarank.fstore.codec.values.BinaryVCodec
 import ai.metarank.model.ClickthroughValues
@@ -74,7 +75,7 @@ case class S3ClickthroughStore(
   }
 
   def tick(): IO[Unit] = for {
-    _ <- IO.sleep(1.second)
+    _ <- IO.sleep(conf.partInterval)
     _ <- maybeFlush()
     _ <- tick()
   } yield {}
@@ -85,20 +86,23 @@ case class S3ClickthroughStore(
 
   def maybeFlush(): IO[Unit] = for {
     buffer <- bufferRef.get
-    _      <- IO.whenA((buffer.eventCount > conf.partSizeEvents) || (buffer.byteSize > conf.partSizeBytes))(flushPart())
+    isEventOverflow = buffer.eventCount > conf.partSizeEvents
+    isBytesOverflow = buffer.byteSize > conf.partSizeBytes
+    isTimeUp <- IO(System.currentTimeMillis() - buffer.start > conf.partInterval.toMillis)
+    _        <- IO.whenA(isEventOverflow || isBytesOverflow || isTimeUp)(flushPart())
   } yield {}
 
   def makeFileName(now: Long): String = format.format(Instant.ofEpochMilli(now)) + conf.compress.ext
 
   def flushPart(): IO[Unit] = for {
     buffer <- bufferRef.get
-    _      <- bufferRef.set(Buffer(conf.compress))
+    _      <- bufferRef.set(Buffer(conf.compress, conf.format.ctv))
     _ <- IO.whenA(buffer.nonEmpty)(for {
-      key     <- IO(conf.prefix + "/" + makeFileName(System.currentTimeMillis()))
-      request <- IO(PutObjectRequest.builder().bucket(conf.bucket).key(key).build())
+      key <- IO(conf.prefix + "/" + makeFileName(System.currentTimeMillis()))
       _ <- info(
         s"flushing part key=$key size=(${FileUtils.byteCountToDisplaySize(buffer.byteSize)}, ${buffer.eventCount} events)"
       )
+      request  <- IO(PutObjectRequest.builder().bucket(conf.bucket).key(key).build())
       body     <- IO(AsyncRequestBody.fromBytes(buffer.toByteArray()))
       response <- IO.fromCompletableFuture(IO(client.putObject(request, body)))
     } yield {})
@@ -114,7 +118,7 @@ case class S3ClickthroughStore(
 
     fs2.Stream.fromBlockingIterator[IO](
       Iterator
-        .continually(S3ClickthroughStore.codec.decodeDelimited(in))
+        .continually(conf.format.ctv.decodeDelimited(in))
         .takeWhile {
           case Right(Some(_)) => true
           case _              => false
@@ -130,7 +134,6 @@ case class S3ClickthroughStore(
 
 object S3ClickthroughStore extends Logging {
 
-  val codec  = BinaryVCodec(false, ClickthroughValuesCodec)
   val format = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS").withZone(ZoneId.systemDefault())
 
   case class Buffer(
@@ -138,34 +141,39 @@ object S3ClickthroughStore extends Logging {
       wrap: OutputStream,
       out: DataOutputStream,
       eventCount: Int,
-      byteSize: Int
+      byteSize: Int,
+      codec: VCodec[ClickthroughValues],
+      start: Long
   ) {
     def isEmpty  = eventCount == 0
     def nonEmpty = !isEmpty
 
     def put(event: ClickthroughValues): Buffer = {
-      codec.encodeDelimited(event, out)
-      copy(eventCount = eventCount + 1, byteSize = stream.size())
+      val extraBytes = codec.encodeDelimited(event, out)
+      copy(eventCount = eventCount + 1, byteSize = byteSize + extraBytes)
     }
 
     def put(events: List[ClickthroughValues]): Buffer = {
-      events.foreach(codec.encodeDelimited(_, out))
-      copy(eventCount = eventCount + events.size, byteSize = stream.size())
+      val extraBytes = events.foldLeft(0)((size, next) => size + codec.encodeDelimited(next, out))
+      copy(eventCount = eventCount + events.size, byteSize = byteSize + extraBytes)
     }
 
-    def toByteArray() = stream.toByteArray
-    def close()       = wrap.close()
+    def toByteArray() = {
+      out.close()
+      stream.toByteArray
+    }
+    def close() = wrap.close()
   }
 
   object Buffer {
-    def apply(compress: CompressionType): Buffer = {
+    def apply(compress: CompressionType, codec: VCodec[ClickthroughValues]): Buffer = {
       val stream = new ByteArrayOutputStream()
       val wrap = compress match {
         case CompressionType.GzipCompressionType => new GZIPOutputStream(stream)
         case CompressionType.ZstdCompressionType => new ZstdOutputStream(stream)
         case CompressionType.NoCompressionType   => stream
       }
-      new Buffer(stream, wrap, new DataOutputStream(wrap), 0, 0)
+      new Buffer(stream, wrap, new DataOutputStream(wrap), 0, 0, codec, System.currentTimeMillis())
     }
   }
 
@@ -183,7 +191,7 @@ object S3ClickthroughStore extends Logging {
         case Some(endpoint) => clientBuilder.endpointOverride(URI.create(endpoint)).build()
         case None           => clientBuilder.build()
       }
-      buffer <- Ref.of[IO, Buffer](Buffer(conf.compress))
+      buffer <- Ref.of[IO, Buffer](Buffer(conf.compress, conf.format.ctv))
       store = S3ClickthroughStore(
         conf = conf,
         client = client,

@@ -45,16 +45,17 @@ object TrainConfig {
   }
 
   case class S3TrainConfig(
-      awsKey: Option[String],
-      awsKeySecret: Option[String],
+      awsKey: Option[String] = None,
+      awsKeySecret: Option[String] = None,
       bucket: String,
       prefix: String,
       region: String,
-      compress: CompressionType,
+      compress: CompressionType = GzipCompressionType,
       partSizeBytes: Long = 10 * 1024 * 1024,
       partSizeEvents: Int = 1024,
       partInterval: FiniteDuration = 1.hour,
-      endpoint: Option[String]
+      endpoint: Option[String] = None,
+      format: StoreFormat = BinaryStoreFormat
   ) extends TrainConfig
   implicit val s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
     for {
@@ -68,6 +69,7 @@ object TrainConfig {
       batchSizeEvents <- c.downField("batchSizeEvents").as[Option[Int]]
       partInterval    <- c.downField("partInterval").as[Option[FiniteDuration]]
       endpoint        <- c.downField("endpoint").as[Option[String]]
+      format          <- c.downField("format").as[Option[StoreFormat]]
     } yield {
       S3TrainConfig(
         key,
@@ -79,7 +81,8 @@ object TrainConfig {
         batchSizeBytes.getOrElse(1024 * 1024L),
         batchSizeEvents.getOrElse(1024),
         partInterval.getOrElse(1.hour),
-        endpoint
+        endpoint,
+        format.getOrElse(BinaryStoreFormat)
       )
     }
   )

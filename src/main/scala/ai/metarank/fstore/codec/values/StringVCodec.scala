@@ -9,9 +9,11 @@ object StringVCodec extends VCodec[String] {
 
   override def encode(value: String): Array[Byte] = value.getBytes()
 
-  override def encodeDelimited(value: String, output: DataOutput): Unit = {
-    output.write(value.getBytes())
+  override def encodeDelimited(value: String, output: DataOutput): Int = {
+    val bytes = value.getBytes()
+    output.write(bytes)
     output.write('\n')
+    bytes.length + 1
   }
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[String]] = {

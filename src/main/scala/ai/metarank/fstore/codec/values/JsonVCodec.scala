@@ -11,9 +11,11 @@ import scala.util.{Failure, Success, Try}
 case class JsonVCodec[T](c: Codec[T]) extends VCodec[T] {
   override def encode(value: T): Array[Byte] = value.asJson(c).noSpaces.getBytes
 
-  override def encodeDelimited(value: T, output: DataOutput): Unit = {
-    output.write(encode(value))
+  override def encodeDelimited(value: T, output: DataOutput): Int = {
+    val bytes = encode(value)
+    output.write(bytes)
     output.write('\n')
+    bytes.length + 1
   }
 
   override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))(c)

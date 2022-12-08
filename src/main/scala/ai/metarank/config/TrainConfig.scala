@@ -2,14 +2,91 @@ package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
+import ai.metarank.config.TrainConfig.CompressionType.{GzipCompressionType, NoCompressionType, ZstdCompressionType}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import io.circe.generic.semiauto.deriveDecoder
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+
+import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 sealed trait TrainConfig
 
 object TrainConfig {
+  import ai.metarank.util.DurationJson._
+
+  sealed trait CompressionType {
+    def ext: String
+  }
+  object CompressionType {
+    case object GzipCompressionType extends CompressionType {
+      def ext = ".gz"
+    }
+    case object ZstdCompressionType extends CompressionType {
+      def ext = ".zst"
+    }
+    case object NoCompressionType extends CompressionType {
+      def ext = ".bin"
+    }
+  }
+
+  implicit val compressEncoder: Encoder[CompressionType] = Encoder.instance {
+    case CompressionType.GzipCompressionType => Json.fromString("gzip")
+    case CompressionType.ZstdCompressionType => Json.fromString("zstd")
+    case CompressionType.NoCompressionType   => Json.fromString("none")
+  }
+
+  implicit val compressDecoder: Decoder[CompressionType] = Decoder.decodeString.emapTry {
+    case "gzip" | "gz"  => Success(GzipCompressionType)
+    case "zstd" | "zst" => Success(ZstdCompressionType)
+    case "none"         => Success(NoCompressionType)
+    case other          => Failure(new Exception(s"compression type $other not supported. Try gzip/zstd/none."))
+  }
+
+  case class S3TrainConfig(
+      awsKey: Option[String] = None,
+      awsKeySecret: Option[String] = None,
+      bucket: String,
+      prefix: String,
+      region: String,
+      compress: CompressionType = GzipCompressionType,
+      partSizeBytes: Long = 10 * 1024 * 1024,
+      partSizeEvents: Int = 1024,
+      partInterval: FiniteDuration = 1.hour,
+      endpoint: Option[String] = None,
+      format: StoreFormat = BinaryStoreFormat
+  ) extends TrainConfig
+  implicit val s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
+    for {
+      key             <- c.downField("key").as[Option[String]]
+      secret          <- c.downField("secret").as[Option[String]]
+      bucket          <- c.downField("bucket").as[String]
+      prefix          <- c.downField("prefix").as[String]
+      region          <- c.downField("region").as[String]
+      compress        <- c.downField("compress").as[Option[CompressionType]]
+      batchSizeBytes  <- c.downField("batchSizeBytes").as[Option[Long]]
+      batchSizeEvents <- c.downField("batchSizeEvents").as[Option[Int]]
+      partInterval    <- c.downField("partInterval").as[Option[FiniteDuration]]
+      endpoint        <- c.downField("endpoint").as[Option[String]]
+      format          <- c.downField("format").as[Option[StoreFormat]]
+    } yield {
+      S3TrainConfig(
+        key,
+        secret,
+        bucket,
+        prefix,
+        region,
+        compress.getOrElse(GzipCompressionType),
+        batchSizeBytes.getOrElse(1024 * 1024L),
+        batchSizeEvents.getOrElse(1024),
+        partInterval.getOrElse(1.hour),
+        endpoint,
+        format.getOrElse(BinaryStoreFormat)
+      )
+    }
+  )
+
   case class FileTrainConfig(path: String, format: StoreFormat = BinaryStoreFormat) extends TrainConfig
   implicit val fileDecoder: Decoder[FileTrainConfig] = deriveDecoder[FileTrainConfig]
 
@@ -63,6 +140,7 @@ object TrainConfig {
       case Right("memory")  => memDecoder.tryDecode(c)
       case Right("file")    => fileDecoder.tryDecode(c)
       case Right("discard") => discardDecoder.tryDecode(c)
+      case Right("s3")      => s3TrainConfigDecoder.tryDecode(c)
       case Right(other)     => Left(DecodingFailure(s"type $other is not yet supported", c.history))
     }
   )

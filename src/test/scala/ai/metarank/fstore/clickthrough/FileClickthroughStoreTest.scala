@@ -18,7 +18,6 @@ class FileClickthroughStoreTest extends AnyFlatSpec with Matchers {
       .unsafeRunSync()
     store.put(List(ctv, ctv, ctv)).unsafeRunSync()
     store.flush().unsafeRunSync()
-
     val read = store.getall().compile.toList.unsafeRunSync()
     read shouldBe List(ctv, ctv, ctv)
     close.unsafeRunSync()

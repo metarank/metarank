@@ -4,9 +4,6 @@
 #  port: 6379
 #  format: binary
 
-#train:
-#  type: discard
-
 core:
   clickthrough:
     maxSessionLength: 60s

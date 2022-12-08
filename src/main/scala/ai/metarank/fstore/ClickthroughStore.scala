@@ -18,7 +18,7 @@ import cats.effect.kernel.Resource
 
 trait ClickthroughStore {
   def put(cts: List[ClickthroughValues]): IO[Unit]
-  def flush(): IO[Unit] = IO.unit
+  def flush(): IO[Unit]
   def getall(): fs2.Stream[IO, ClickthroughValues]
 }
 

@@ -76,7 +76,7 @@ features:
     type: string
     scope: item
     source: metadata.genres
-    encode: onehot
+    encode: index
     values:
       - drama
       - comedy

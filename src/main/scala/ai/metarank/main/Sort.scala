@@ -8,7 +8,7 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import com.fasterxml.sort.std.{RawTextLineReader, RawTextLineWriter}
 import com.fasterxml.sort.{DataReader, DataReaderFactory, DataWriter, DataWriterFactory, SortConfig, Sorter}
-import com.github.luben.zstd.ZstdInputStream
+import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import io.circe.syntax._
 import io.circe.parser._
 import org.apache.commons.io.FileUtils
@@ -109,18 +109,29 @@ object Sort extends Logging {
 
     }
   }
-  val MAX_MEM = 128 * 1024 * 1024
+  val MAX_MEM     = 128 * 1024 * 1024
+  val BUFFER_SIZE = 1024 * 1024
 
   def sortFile(in: Path, out: Path): IO[Unit] = IO {
     val conf = new SortConfig().withMaxMemoryUsage(MAX_MEM)
     logger.info(s"using ${FileUtils.byteCountToDisplaySize(MAX_MEM)} RAM for on-disk merge sort")
     val sorter = new Sorter[SortableEvent](conf, EventReaderFactory, EventWriterFactory, EventTimestampComparator)
-    val source = in.getFileName match {
-      case name if name.endsWith(".gz") || name.endsWith(".gzip") => new GZIPInputStream(new FileInputStream(in.toFile))
-      case name if name.endsWith(".zst")                          => new ZstdInputStream(new FileInputStream(in.toFile))
-      case _                                                      => new FileInputStream(in.toFile)
+    val source = in.getFileName.toString match {
+      case name if name.endsWith(".gz") || name.endsWith(".gzip") =>
+        new BufferedInputStream(new GZIPInputStream(new FileInputStream(in.toFile)), BUFFER_SIZE)
+      case name if name.endsWith(".zst") =>
+        new BufferedInputStream(new ZstdInputStream(new FileInputStream(in.toFile)), BUFFER_SIZE)
+      case name =>
+        new BufferedInputStream(new FileInputStream(in.toFile), BUFFER_SIZE)
     }
-    val dest           = new BufferedOutputStream(new FileOutputStream(out.toFile), 1024 * 1024)
+    val dest = out.getFileName.toString match {
+      case name if name.endsWith(".gz") || name.endsWith(".gzip") =>
+        new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(out.toFile)), BUFFER_SIZE)
+      case name if name.endsWith(".zst") =>
+        new BufferedOutputStream(new ZstdOutputStream(new FileOutputStream(out.toFile)), BUFFER_SIZE)
+      case _ =>
+        new BufferedOutputStream(new FileOutputStream(out.toFile), BUFFER_SIZE)
+    }
     val sortedIterator = sorter.sort(new EventReader(new BufferedInputStream(source, 1024 * 1024)))
     logger.info(s"on-disk merge pre-sorting done, ${sorter.getNumberOfPreSortFiles} shards")
     var count     = 0

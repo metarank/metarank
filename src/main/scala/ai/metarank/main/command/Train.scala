@@ -90,7 +90,8 @@ object Train extends Logging {
       backend: ModelBackend,
       splitter: SplitStrategy
   ): IO[TrainResult] = for {
-    split        <- loadDataset(cts, model, splitter)
+    data        <- loadDataset(cts, model)
+    split <- splitDataset(splitter, model, data)
     _            <- info(s"training model for train=${split.train.groups.size} test=${split.test.groups.size}")
     trainedModel <- IO(model.train(split.train, split.test))
     scorer       <- IO(LambdaMARTScorer(backend, trainedModel.bytes))
@@ -112,12 +113,12 @@ object Train extends Logging {
   def loadDataset(
       cts: ClickthroughStore,
       model: LambdaMARTModel,
-      splitter: SplitStrategy,
       sample: Double = 1.0
-  ): IO[Split] = for {
+  ): IO[List[QueryMetadata]] = for {
     clickthroughs <- cts
       .getall()
       .filter(_.ct.interactions.nonEmpty)
+      .filter(ct => model.conf.selector.accept(ct.ct))
       // .filter(_ => Random.nextDouble() <= sample)
       .map(ct =>
         QueryMetadata(
@@ -141,21 +142,30 @@ object Train extends Logging {
         )
       )
     )
-    split <- splitter.split(model.datasetDescriptor, clickthroughs)
-    _ <- split match {
-      case Split(train, _) if train.groups.isEmpty =>
-        IO.raiseError(new Exception(s"Train dataset is empty (with ${clickthroughs.size} total click-through events)"))
-      case Split(_, test) if test.groups.isEmpty =>
-        IO.raiseError(new Exception(s"Test dataset is empty (with ${clickthroughs.size} total click-through events)"))
-      case Split(train, test) if (train.groups.size < 10) || (test.groups.size < 10) =>
-        IO.raiseError(
-          new Exception(s"""Train/test datasets are too small: train=${train.groups.size}, test=${test.groups.size}.
-                           |It is not possible to train the ML model on such a small dataset.""".stripMargin)
-        )
-      case Split(train, test) =>
-        info(s"Train/Test split finished: ${train.groups.size}/${test.groups.size} click-through events")
-    }
   } yield {
-    split
+    clickthroughs
   }
+
+  def splitDataset(splitter: SplitStrategy, model: LambdaMARTModel, clickthroughs: List[QueryMetadata]): IO[Split] =
+    for {
+      split <- splitter.split(model.datasetDescriptor, clickthroughs)
+      _ <- split match {
+        case Split(train, _) if train.groups.isEmpty =>
+          IO.raiseError(
+            new Exception(s"Train dataset is empty (with ${clickthroughs.size} total click-through events)")
+          )
+        case Split(_, test) if test.groups.isEmpty =>
+          IO.raiseError(new Exception(s"Test dataset is empty (with ${clickthroughs.size} total click-through events)"))
+        case Split(train, test) if (train.groups.size < 10) || (test.groups.size < 10) =>
+          IO.raiseError(
+            new Exception(s"""Train/test datasets are too small: train=${train.groups.size}, test=${test.groups.size}.
+                             |It is not possible to train the ML model on such a small dataset.""".stripMargin)
+          )
+        case Split(train, test) =>
+          info(s"Train/Test split finished: ${train.groups.size}/${test.groups.size} click-through events")
+      }
+
+    } yield {
+      split
+    }
 }

@@ -63,8 +63,20 @@ class SortTest extends AnyFlatSpec with Matchers {
     Try(Sort.run(SortArgs(dir, dir)).unsafeRunSync()) shouldBe a[Failure[_]]
   }
 
+  it should "emit compressed files" in {
+    val file = Files.createTempFile("events_in_", ".json.gz")
+    file.toFile.deleteOnExit()
+    val out = Files.createTempFile("events_out_", ".json.gz")
+    out.toFile.deleteOnExit()
+    writeBatch(events, file)
+
+    Sort.run(SortArgs(file, out)).unsafeRunSync()
+    val sorted = FileEventSource(FileInputConfig(out.toString)).stream.compile.toList.unsafeRunSync()
+    sorted shouldBe events.sortBy(_.timestamp.ts)
+  }
+
   def writeBatch(events: Seq[Event], file: Path) = {
-    val stream = if (file.endsWith(".gz")) {
+    val stream = if (file.toString.endsWith(".gz")) {
       new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(file.toFile)), 10 * 1024)
     } else {
       new BufferedOutputStream(new FileOutputStream(file.toFile), 10 * 1024)

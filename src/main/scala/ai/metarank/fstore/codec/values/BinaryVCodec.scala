@@ -43,10 +43,11 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
     bytes.toByteArray
   }
 
-  override def encodeDelimited(value: T, output: DataOutput): Unit = {
+  override def encodeDelimited(value: T, output: DataOutput): Int = {
     val bytes = encode(value)
     output.writeInt(bytes.length)
     output.write(bytes)
+    bytes.length
   }
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {

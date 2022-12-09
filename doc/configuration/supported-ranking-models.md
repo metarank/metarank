@@ -41,11 +41,15 @@ To configure the model, use the following snippet:
     features: # features from the previous section used in the model
       - foo
       - bar
+#    selector: # optional set of selectors to filter events for this specific model
+#      rankingField: source
+#      value: search
 ```
 
 * `backend`: *required*, *xgboost* or *lightgbm*, specifies the backend and it's configuration.
 * `weights`: *required*, *list of string:number pairs*, specifies what interaction events are used for training. You can specify multiple events with different weights.
 * `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature-extractors.md) documentation.
+* `selector`: *optional*, *list of selectors*, a set of rules to filter which events should be accepted by this model.
 
 ### Interaction weight
 
@@ -59,6 +63,62 @@ You can define interaction by `name` and set `weight` for how much this interact
 ```yaml
   click: 1.0
 ```
+
+### Event selectors
+
+When serving multiple models, there are cases when you need to separate ranking and interaction events per model. This is useful when your models have different contexts, e.g. you do personalized ranking for search results and recommendation results using the same Metarank installation, but utilizing different models. 
+
+Metarank supports `selector` configuration that can be used to route your events to correct model or drop events in certain scenarios.
+
+Metarank supports the following event selectors:
+* **Accept selector**. Enabled by default to accept all events, if no selectors are defined. 
+```yaml
+selector:
+  accept: true # true = accept all, false = reject all
+```
+* **Field selector**. Accepts event when it has a specific string (or string-list) field defined for a ranking event. For example:
+```yaml
+selector:
+  rankingField: source
+  value: search
+```
+The filter above will accept only events that have the `source=search` field defined in the `fields` section of the event:
+```json
+{
+  "event": "ranking",
+  "id": "81f46c34-a4bb-469c-8708-f8127cd67d27",
+  "timestamp": "1599391467000",
+  "user": "user1",
+  "session": "session1",
+  "fields": [
+      {"name": "source", "value": "search"}
+  ],
+  "items": [
+    {"id": "item1", "fields": [{"name": "relevancy", "value": 1.0}]},
+  ]
+}
+```
+* **Sampling selector**: randomly accept or drop an event, depending on the acceptance ratio:
+```yaml
+selector:
+  ratio: 0.5
+```
+The sampling selector above will accept only half of events randomly.
+* **AND/OR/NOT selector**: combine multiple selectors within a single boolean combination:
+```yaml
+selector:
+  and:
+    - rankingField: source
+      value: search
+    - or:
+        - rankingField: segment
+          value: test
+        - ratio: 0.5
+        - not:
+            accept: false
+    
+```
+AND and OR selectors take a list of nested selectors as arguments, NOT selector only takes a single selector argument.
 
 ### XGBoost and LightGBM backend options
 

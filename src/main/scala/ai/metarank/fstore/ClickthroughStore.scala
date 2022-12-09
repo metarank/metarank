@@ -1,8 +1,14 @@
 package ai.metarank.fstore
 
-import ai.metarank.config.TrainConfig.{DiscardTrainConfig, FileTrainConfig, MemoryTrainConfig, RedisTrainConfig}
+import ai.metarank.config.TrainConfig.{
+  DiscardTrainConfig,
+  FileTrainConfig,
+  MemoryTrainConfig,
+  RedisTrainConfig,
+  S3TrainConfig
+}
 import ai.metarank.config.{StateStoreConfig, TrainConfig}
-import ai.metarank.fstore.clickthrough.{DiscardClickthroughStore, FileClickthroughStore}
+import ai.metarank.fstore.clickthrough.{DiscardClickthroughStore, FileClickthroughStore, S3ClickthroughStore}
 import ai.metarank.fstore.memory.MemClickthroughStore
 import ai.metarank.fstore.redis.{RedisClickthroughStore, RedisPersistence}
 import ai.metarank.fstore.redis.client.RedisClient
@@ -19,6 +25,7 @@ trait ClickthroughStore {
 object ClickthroughStore {
   def fromConfig(conf: TrainConfig): Resource[IO, ClickthroughStore] = conf match {
     case c: DiscardTrainConfig => Resource.pure(DiscardClickthroughStore)
+    case c: S3TrainConfig      => S3ClickthroughStore.create(c)
     case c: FileTrainConfig    => FileClickthroughStore.create(c.path, c.format)
     case c: RedisTrainConfig =>
       for {

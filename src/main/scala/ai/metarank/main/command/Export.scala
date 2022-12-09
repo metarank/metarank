@@ -39,7 +39,8 @@ object Export extends Logging {
       case lm: LambdaMARTModel => IO.pure(lm)
       case _                   => IO.raiseError(new Exception(s"don't know how to export dataset for model $modelName"))
     }
-    dataset <- Train.loadDataset(cts, model, splitter, sample)
+    data    <- Train.loadDataset(cts, model, sample)
+    dataset <- Train.splitDataset(splitter, model, data)
     _ <- model.conf.backend match {
       case c: LightGBMBackend => exportLightgbm(out, dataset.train, dataset.test, c)
       case c: XGBoostBackend  => exportXgboost(out, dataset.train, dataset.test, c)

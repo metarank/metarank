@@ -4,9 +4,6 @@
 #  port: 6379
 #  format: binary
 
-#train:
-#  type: discard
-
 core:
   clickthrough:
     maxSessionLength: 60s
@@ -33,13 +30,13 @@ models:
       - ctr
       - profile
       - position
-#      - visitor_click_count
-#      - global_item_click_count
-#      - day_item_click_count
+
+
 features:
   - name: position
     type: position
     position: 5
+
   - name: popularity
     type: number
     scope: item
@@ -79,7 +76,7 @@ features:
     type: string
     scope: item
     source: metadata.genres
-    encode: onehot
+    encode: index
     values:
       - drama
       - comedy

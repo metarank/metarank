@@ -75,30 +75,43 @@ These click-through events are essential for model training, as they're later tr
 
 Metarank has multiple ways of storing these click-throughs with different pros and cons:
 * **Redis**: no special configuration needed, it's possible to perform periodic ML model retraining by reading the latest click-through events from it. But it takes quite a lot of RAM and maybe costly in a case when you have millions of click-through events.
-* **Local file**: takes much less RAM (as ct's are not stored in redis), but you need to manage the file containing the click-throughs by yourself. 
 
 ```yaml
-# The optional train section describes how Metarank deals with the 
-# training dataset persistence.
-# By default, it uses the same way of storing click-through events as set in 
-# the state block.
 train:
   type: redis
-
-  # Possible values are:
-  # - redis: with the same options as the state.redis persistence block.
-  # - memory: stores everything in memory
-  # - file: dump clickthroughs to the file
-  # - discard: drop all click-through events to /dev/null
-
-  # An example file configuration, for a case when you import+train everything 
-  # locally, but with a remote Redis to store the state for the inference:
-
-  # type: file
-  # path: /path/to/file   # path to a file which will be written during import, 
-  #                       # and read during training
-  # format: json          # options are: json, binary
+  # all options from state.redis here
 ```
+* **Discard**: do not store click-through events at all.
+```yaml
+train:
+  type: discard
+```
+* **Local file**: takes much less RAM (as ct's are not stored in redis), but you need to manage the file containing the click-throughs by yourself. 
+```yaml
+train:
+  type: file
+  path: /path/to/file   # path to a file which will be written during export/import
+  format: json          # options are: json, binary
+```
+* **S3**: like local file, but offloads data to an external block storage, suits well for Kubernetes deployments.
+```yaml
+train:
+  type: s3
+  bucket: <bucket name>       # required, S3 bucket name
+  prefix: <prefix name>       # required, Prefix/dir name to store files into
+  region: <aws region>        # required, S3 region
+  compress: none | gzip | zst # optional, default: gzip
+  partSizeBytes: 10485760     # optional, pre-compression, default: 10Mb
+  partSizeEvents: 1024        # optional, default: 1024 events
+  partInterval: 1h            # optional, default: 1h
+  endpoint: <endpoint URI>    # optional, custom S3 endpoint
+  format: json | binary       # optional, default: binary
+  awsKey: "<key>"             # optional, you should prefer setting
+  # AWS_KEY_ID and AWS_SECRET_KEY_ID env vars
+  awsKeySecret: "<secret>"    # optional
+```
+
+S3 click-through store can either use hardcoded AWS credentials from config (which is not good from security perspective), or fall-back to the ones defined in env variables.
 
 ## Features
 

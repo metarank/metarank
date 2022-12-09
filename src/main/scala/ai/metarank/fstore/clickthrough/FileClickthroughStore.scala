@@ -28,7 +28,7 @@ case class FileClickthroughStore(file: File, output: DataOutput, stream: OutputS
     cts.foreach(fmt.ctv.encodeDelimited(_, output))
   }
 
-  override def flush(): IO[Unit] = IO { stream.flush() }
+  override def flush(): IO[Unit] = IO(stream.flush())
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] = {
     Stream

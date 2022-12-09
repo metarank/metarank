@@ -102,10 +102,10 @@ object AnalyticsPayload {
         case _: MemoryStateConfig => "memory"
       },
       modelTypes = config.models.values.map {
-        case LambdaMARTConfig(_: LightGBMBackend, _, _) => "lambdamart-lightgbm"
-        case LambdaMARTConfig(_: XGBoostBackend, _, _)  => "lambdamart-xgboost"
-        case ShuffleConfig(_)                           => "shuffle"
-        case NoopConfig()                               => "noop"
+        case LambdaMARTConfig(_: LightGBMBackend, _, _, _) => "lambdamart-lightgbm"
+        case LambdaMARTConfig(_: XGBoostBackend, _, _, _)  => "lambdamart-xgboost"
+        case ShuffleConfig(_, _)                           => "shuffle"
+        case NoopConfig(_)                                 => "noop"
       }.toList,
       usedFeatures = config.features.toList.map {
         case f: RateFeatureSchema            => UsedFeature(f.name, "rate")

@@ -2,6 +2,7 @@ package ai.metarank.fstore.codec.impl
 
 import ai.metarank.fstore.codec.impl.ClickthroughValuesCodec.MValueCodec
 import ai.metarank.model.Clickthrough.TypedInteraction
+import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
@@ -22,7 +23,8 @@ class ClickthroughValuesCodecTest extends AnyFlatSpec with Matchers {
       user = Some(UserId("alice")),
       session = Some(SessionId("wow")),
       items = List(ItemId("p1"), ItemId("p2"), ItemId("p3"), ItemId("p4")),
-      interactions = List(TypedInteraction(ItemId("p2"), "click"), TypedInteraction(ItemId("p2"), "purchase"))
+      interactions = List(TypedInteraction(ItemId("p2"), "click"), TypedInteraction(ItemId("p2"), "purchase")),
+      rankingFields = List(StringField("foo", "bar"))
     ),
     values = List(
       ItemValue(
@@ -57,7 +59,7 @@ class ClickthroughValuesCodecTest extends AnyFlatSpec with Matchers {
   it should "roundtrip ctv" in {
     val out = new ByteArrayOutputStream()
     ClickthroughValuesCodec.write(ctv, new DataOutputStream(out))
-    // val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
+    //val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
     val decoded = ClickthroughValuesCodec.read(new DataInputStream(new ByteArrayInputStream(out.toByteArray)))
     decoded shouldBe ctv
   }

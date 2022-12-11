@@ -131,7 +131,7 @@ docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank\
 
 This command will:
 * run the dataset import process from the current directory,
-* train the [ML model for ranking](/doc/configuration/supported-ranking-models.md),
+* train the [ML model for ranking](../configuration/supported-ranking-models.md),
 * start the [API](../api.md) on port 8080.
 
 ![import and training process](img/training.gif)
@@ -300,6 +300,6 @@ Ranking was adjusted to a taste of the visitor, we can see that:
 
 ## What's next?
 
-* play with the contents of [config.yml](/doc/configuration/overview.md), enabling and disabling different features and see 
+* play with the contents of [config.yml](../configuration/overview.md), enabling and disabling different features and see 
 how ranking changes depending on used features.
 * generate your own set of [input events](../event-schema.md), describing your use case.

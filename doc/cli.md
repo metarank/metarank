@@ -180,7 +180,7 @@ java -jar metarank.jar sort --data /my_folder --out sorted_file.jsonl.gz
 
 ### Auto feature generation
 
-If you don't know what [features](/doc/configuration/feature-extractors.md) to include in the configuration file, the `autofeature` sub-command can generate the configuration for you
+If you don't know what [features](../configuration/feature-extractors.md) to include in the configuration file, the `autofeature` sub-command can generate the configuration for you
 based on the historical data you have. 
 
 Simply run

@@ -7,6 +7,7 @@ Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
 * XGBoost LambdaMART impl now supports categorical encoding.
 * [Event selector support](configuration/supported-ranking-models.md#event-selectors) when serving multiple models.
+* [Clickthrough storage configuration](configuration/overview.md#training) for storing clickthrough data.
 
 ## 0.5.12
 

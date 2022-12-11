@@ -223,7 +223,7 @@ the same HOCON definition:
 ```
 
 To make metarank connect to this stream, configure the 
-[kinesis source](../data-sources.md#aws-kinesis-streams) in the following way:
+[kinesis source](/doc/configuration/data-sources.md#aws-kinesis-streams) in the following way:
 ```yaml
 inference:
   port: 8080
@@ -288,7 +288,7 @@ Given the following [sample S3 Loader config snippet](https://github.com/snowplo
 ```
 
 You can instrument Metarank to load these GZIP-compressed event dumps for the bootstrapping
-process with the [file source](../data-sources.md) in the following way:
+process with the [file source](/doc/configuration/data-sources.md) in the following way:
 ```yaml
 bootstrap:
   source:
@@ -302,4 +302,4 @@ bootstrap:
 
 With Metarank configured to pick live events from the enriched stream, and historical events
 from the offloaded files in S3, it should be straightforward to do the usual routine of
-[setting up](/doc/configuration//overview.md) and [running it](../deploy/README.md) Metarank.
+[setting up](/doc/configuration//overview.md) and [running it](../deploy/deployment-overview.md) Metarank.

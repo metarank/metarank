@@ -2,12 +2,12 @@
 
 These are general recommendations on running Metarank in a production environment.
 
-![Production environment overview](/doc/img/production-deployment.png)
+![Production environment overview](../img/production-deployment.png)
 
 ## Persistence
 
-Metarank provides several [Persistence](/doc/configuration/persistence.md) options, however for production setup we recommend
-using only [Redis persistance](/doc/configuration/persistence.md#redis-persistence) as it operates separately from running Metarank instances.
+Metarank provides several [Persistence](../configuration/persistence.md) options, however for production setup we recommend
+using only [Redis persistance](../configuration/persistence.md#redis-persistence) as it operates separately from running Metarank instances.
 
 Redis does not depend on Metarank instances being re-deployed and should be configured with [disc backup](https://redis.io/docs/manual/persistence/).
 
@@ -15,7 +15,7 @@ At the moment, Metarank stores only processed events in Redis, so we recommend s
 
 ## API Serving
 
-[Metarank CLI](/doc/cli.md) exposes several modes with which you can run Metarank: `standalone` and `serve`. 
+[Metarank CLI](../cli.md) exposes several modes with which you can run Metarank: `standalone` and `serve`. 
 
 Although `standalone` mode is great for development purposes, it can't be used for production deployment:
 - standalone mode cannot be scaled as it's not possible to run several instances that point to the same database

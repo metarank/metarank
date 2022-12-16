@@ -8,7 +8,7 @@ import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.Field.StringField
+import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
@@ -41,7 +41,8 @@ case class FieldMatchFeature(schema: FieldMatchSchema) extends ItemFeature with 
       key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.itemField.field)
       fieldValue <- field match {
-        case StringField(_, value) => Some(SStringList(schema.method.tokenize(value).toList))
+        case StringField(_, value)      => Some(SStringList(schema.method.tokenize(value).toList))
+        case StringListField(_, values) => Some(SStringList(schema.method.tokenize(values.mkString(" ")).toList))
         case other =>
           logger.warn(s"field extractor ${schema.name} expects a string, but got $other in event $event")
           None
@@ -133,7 +134,7 @@ object FieldMatchFeature {
       pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
       message = "ranking field can only be read from ranking event, and item field - only from metadata"
     )
-    .withErrorMessage("cannot parse a feature definition of type 'field_match'")
+  // .withErrorMessage("cannot parse a feature definition of type 'field_match'")
 
   implicit val fieldMatchEncoder: Encoder[FieldMatchSchema] = deriveEncoder[FieldMatchSchema]
 }

@@ -10,14 +10,23 @@ import java.nio.file.Files
 class FileClickthroughStoreTest extends AnyFlatSpec with Matchers {
   val ctv = TestClickthroughValues()
 
-  it should "write+read cts" in {
-    val path = Files.createTempFile("cts", ".dat").toString
+  lazy val path = Files.createTempFile("cts", ".dat").toString
+
+  it should "write cts" in {
     val (store, close) = FileClickthroughStore
       .create(path, BinaryStoreFormat)
       .allocated
       .unsafeRunSync()
     store.put(List(ctv, ctv, ctv)).unsafeRunSync()
     store.flush().unsafeRunSync()
+    close.unsafeRunSync()
+  }
+
+  it should "write+read cts" in {
+    val (store, close) = FileClickthroughStore
+      .create(path, BinaryStoreFormat)
+      .allocated
+      .unsafeRunSync()
     val read = store.getall().compile.toList.unsafeRunSync()
     read shouldBe List(ctv, ctv, ctv)
     close.unsafeRunSync()

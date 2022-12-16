@@ -60,7 +60,7 @@ object FileClickthroughStore {
 
   def create(path: String, fmt: StoreFormat): Resource[IO, FileClickthroughStore] = for {
     file <- Resource.liftK(IO { new File(path) })
-    stream <- Resource.make(IO { new BufferedOutputStream(new FileOutputStream(file), FILE_BUFFER_SIZE) })(stream =>
+    stream <- Resource.make(IO { new BufferedOutputStream(new FileOutputStream(file, true), FILE_BUFFER_SIZE) })(stream =>
       IO(stream.close())
     )
   } yield {

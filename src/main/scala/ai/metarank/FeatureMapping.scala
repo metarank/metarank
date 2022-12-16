@@ -11,6 +11,7 @@ import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
+import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
@@ -75,6 +76,7 @@ object FeatureMapping extends Logging {
         case c: RefererSchema                => RefererFeature(c)
         case c: PositionFeatureSchema        => PositionFeature(c)
         case c: VectorFeatureSchema          => NumVectorFeature(c)
+        case c: RandomFeatureSchema          => RandomFeature(c)
       }
 
     val featurySchema = Schema(features.flatMap(_.states))

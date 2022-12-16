@@ -10,6 +10,7 @@ import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.feature.{NumVectorFeature, NumberFeature}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
+import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
@@ -51,6 +52,7 @@ object FeatureSchema {
         case "referer"           => implicitly[Decoder[RefererSchema]].apply(c)
         case "position"          => implicitly[Decoder[PositionFeatureSchema]].apply(c)
         case "vector"            => implicitly[Decoder[VectorFeatureSchema]].apply(c)
+        case "random"            => implicitly[Decoder[RandomFeatureSchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {
@@ -74,6 +76,7 @@ object FeatureSchema {
     case c: FieldMatchSchema             => encode(c, "field_match")
     case c: RefererSchema                => encode(c, "referer")
     case c: VectorFeatureSchema          => encode(c, "vector")
+    case c: RandomFeatureSchema          => encode(c, "random")
   }
 
   def encode[T <: FeatureSchema](c: T, name: String)(implicit enc: Encoder[T]): Json = {

@@ -3,6 +3,11 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.14
+
+* interacted_with feature now supports string[] fields
+* fixed a notorious bug with local-file click-through store. 
+
 ## 0.5.13
 
 * XGBoost LambdaMART impl now supports categorical encoding.

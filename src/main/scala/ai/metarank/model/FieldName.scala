@@ -48,7 +48,13 @@ object FieldName {
         case "ranking"  => Success(FieldName(Ranking, field))
         case other      => Failure(new IllegalArgumentException(s"cannot decode source field $other"))
       }
-    case other => Failure(new IllegalArgumentException(s"cannot decode source field $other"))
+    case other =>
+      Failure(
+        new IllegalArgumentException(
+          s"cannot decode source field '$other': " +
+            s"it should have a format of <type>.<name>, like item.title, but the delimiter was not found."
+        )
+      )
   }
 
   implicit val codec: Codec[FieldName] = Codec.from(decoder, encoder)

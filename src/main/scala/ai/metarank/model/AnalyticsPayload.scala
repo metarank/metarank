@@ -12,6 +12,7 @@ import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
+import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
@@ -123,6 +124,7 @@ object AnalyticsPayload {
         case f: WindowInteractionCountSchema => UsedFeature(f.name, "window_count")
         case f: WordCountSchema              => UsedFeature(f.name, "word_count")
         case f: PositionFeatureSchema        => UsedFeature(f.name, "position")
+        case f: RandomFeatureSchema          => UsedFeature(f.name, "random")
       },
       system = SystemParams(),
       ts = System.currentTimeMillis()

@@ -19,7 +19,7 @@ import scala.concurrent.duration._
 case class FeatureValueFlow(
     mapping: FeatureMapping,
     store: Persistence,
-    updated: Cache[Key, Timestamp] = Scaffeine().expireAfterAccess(1.hour).build[Key, Timestamp]()
+    updated: Cache[Key, Timestamp]
 ) extends Logging {
   def process: Pipe[IO, Event, List[FeatureValue]] = events =>
     events
@@ -100,4 +100,12 @@ case class FeatureValueFlow(
       case Some(feature) => feature.computeValue(write.key, write.ts)
     }
 
+}
+
+object FeatureValueFlow {
+  def apply(mapping: FeatureMapping, store: Persistence) = new FeatureValueFlow(
+    mapping,
+    store,
+    Scaffeine().ticker(store.ticker).expireAfterAccess(1.hour).maximumSize(20000).weakValues().build[Key, Timestamp]()
+  )
 }

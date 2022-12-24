@@ -41,7 +41,7 @@ class FeatureValueCodecTest extends AnyFlatSpec with Matchers with BinCodecTest 
   }
 
   it should "do periodic counters" in {
-    roundtrip(FeatureValueCodec, PeriodicCounterValue(k, ts, List(PeriodicValue(ts, ts, 1, 1L))))
+    roundtrip(FeatureValueCodec, PeriodicCounterValue(k, ts, Array(PeriodicValue(ts, ts, 1, 1L))))
   }
 
   it should "do freqs" in {

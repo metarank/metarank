@@ -14,21 +14,25 @@ sealed trait Scope extends {
 
 object Scope {
   case class UserScope(user: UserId) extends Scope {
+    override val hashCode: Int      = user.value.hashCode
     override val asString: String   = s"user=${user.value}"
     override val getType: ScopeType = UserScopeType
   }
 
   case class ItemScope(item: ItemId) extends Scope {
+    override val hashCode: Int      = item.value.hashCode
     override val asString: String   = s"item=${item.value}"
     override val getType: ScopeType = ItemScopeType
   }
 
   case object GlobalScope extends Scope {
+    override val hashCode: Int      = 20221223
     override val asString: String   = "global"
     override val getType: ScopeType = GlobalScopeType
   }
 
   case class SessionScope(session: SessionId) extends Scope {
+    override val hashCode: Int      = session.value.hashCode
     override val asString: String   = s"session=${session.value}"
     override val getType: ScopeType = SessionScopeType
   }

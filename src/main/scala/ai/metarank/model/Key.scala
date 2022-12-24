@@ -4,7 +4,8 @@ import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, Encoder, Json, JsonObject}
 
 case class Key(scope: Scope, feature: FeatureName) {
-  def encode = s"${scope.asString}/${feature.value}"
+  override val hashCode: Int = scope.hashCode() ^ feature.value.hashCode
+  def encode                 = s"${scope.asString}/${feature.value}"
 }
 
 object Key {

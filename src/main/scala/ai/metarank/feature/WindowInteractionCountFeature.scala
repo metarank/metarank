@@ -55,9 +55,9 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
     val result = for {
       key      <- readKey(request, conf, id.id)
       value    <- features.get(key)
-      valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.size == dim.dim
+      valueNum <- value.cast[PeriodicCounterValue] if valueNum.values.length == dim.dim
     } yield {
-      VectorValue(schema.name, valueNum.values.map(_.value.toDouble).toArray, dim)
+      VectorValue(schema.name, valueNum.values.map(_.value.toDouble), dim)
     }
     result.getOrElse(VectorValue.missing(schema.name, dim))
   }

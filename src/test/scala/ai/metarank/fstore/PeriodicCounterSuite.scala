@@ -25,7 +25,7 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement] {
       PeriodicCounterValue(
         k,
         now,
-        List(
+        Array(
           PeriodicValue(
             now.toStartOfPeriod(config.period),
             now.toStartOfPeriod(config.period).plus(config.period),
@@ -56,7 +56,7 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement] {
       PeriodicCounterValue(
         k,
         now,
-        List(
+        Array(
           PeriodicValue(
             now.toStartOfPeriod(config.period),
             now.toStartOfPeriod(config.period).plus(config.period),
@@ -88,7 +88,7 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement] {
       PeriodicCounterValue(
         k,
         now,
-        List(
+        Array(
           PeriodicValue(
             now.toStartOfPeriod(config.period),
             now.toStartOfPeriod(config.period).plus(config.period),
@@ -120,7 +120,7 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement] {
       PeriodicCounterValue(
         k,
         now,
-        List(
+        Array(
           PeriodicValue(
             now.toStartOfPeriod(config.period),
             now.toStartOfPeriod(config.period).plus(config.period),

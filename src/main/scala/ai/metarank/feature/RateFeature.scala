@@ -102,10 +102,15 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
         val result = for {
           topValue    <- features.get(Key(ItemScope(id.id), topItem.name))
           bottomValue <- features.get(Key(ItemScope(id.id), bottomItem.name))
-          topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim.dim
-          bottomNum   <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.size == dim.dim
+          topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.length == dim.dim
+          bottomNum   <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.length == dim.dim
         } yield {
-          val values = topNum.values.zip(bottomNum.values).map(x => x._1.value / x._2.value.toDouble).toArray
+          val values = new Array[Double](dim.dim)
+          var i      = 0
+          while (i < dim.dim) {
+            values(i) = topNum.values(i).value / bottomNum.values(i).value.toDouble
+            i += 1
+          }
           VectorValue(schema.name, values, dim)
         }
         result.getOrElse(VectorValue.missing(schema.name, dim))
@@ -115,21 +120,20 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
           bottomValue       <- features.get(Key(ItemScope(id.id), bottomItem.name))
           topGlobalValue    <- features.get(Key(GlobalScope, topGlobal.name))
           bottomGlobalValue <- features.get(Key(GlobalScope, bottomGlobal.name))
-          topNum            <- topValue.cast[PeriodicCounterValue] if topNum.values.size == dim.dim
-          bottomNum         <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.size == dim.dim
-          topGlobalNum      <- topGlobalValue.cast[PeriodicCounterValue] if topGlobalNum.values.size == dim.dim
-          bottomGlobalNum   <- bottomGlobalValue.cast[PeriodicCounterValue] if bottomGlobalNum.values.size == dim.dim
+          topNum            <- topValue.cast[PeriodicCounterValue] if topNum.values.length == dim.dim
+          bottomNum         <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.length == dim.dim
+          topGlobalNum      <- topGlobalValue.cast[PeriodicCounterValue] if topGlobalNum.values.length == dim.dim
+          bottomGlobalNum   <- bottomGlobalValue.cast[PeriodicCounterValue] if bottomGlobalNum.values.length == dim.dim
         } yield {
-          val values = topNum.values
-            .zip(bottomNum.values)
-            .zip(topGlobalNum.values)
-            .zip(bottomGlobalNum.values)
-            .map { case (((topItem, bottomItem), topGlobal), bottomGlobal) =>
-              val reweighted =
-                (norm.weight + topItem.value) / (norm.weight * (bottomGlobal.value / topGlobal.value.toDouble) + bottomItem.value)
-              reweighted
-            }
-            .toArray
+          val values = new Array[Double](dim.dim)
+          var i      = 0
+          while (i < dim.dim) {
+            values(i) = (norm.weight + topNum.values(i).value) / (norm.weight * (bottomGlobalNum
+              .values(i)
+              .value / topGlobalNum.values(i).value) + bottomNum.values(i).value)
+            i += 1
+          }
+
           VectorValue(schema.name, values, dim)
         }
         result.getOrElse(VectorValue.missing(schema.name, dim))

@@ -1,6 +1,7 @@
 package ai.metarank.validate.checks
 
 import ai.metarank.config.{Config, ModelConfig}
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.validate.EventValidation
@@ -13,7 +14,7 @@ object InteractionTypeValidation extends EventValidation {
 
   override def validate(config: Config, events: List[Event]): List[EventValidation.ValidationError] = {
     val types = config.models.values
-      .collect { case ModelConfig.LambdaMARTConfig(_, _, weights, _) =>
+      .collect { case LambdaMARTConfig(_, _, weights, _, _) =>
         weights.keys
       }
       .flatten

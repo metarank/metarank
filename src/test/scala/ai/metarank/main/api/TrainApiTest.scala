@@ -43,7 +43,6 @@ class TrainApiTest extends AnyFlatSpec with Matchers {
     val json     = result.map(_.entity.body.compile.toList.unsafeRunSync()).map(x => new String(x.toArray))
     val response = json.map(decode[TrainResult](_))
     response.map(_.map(_.features.size)) shouldBe Some(Right(2))
-    response.map(_.map(_.iterations.size)) shouldBe Some(Right(10))
   }
 
   it should "respond with 404 on non-existent model" in {

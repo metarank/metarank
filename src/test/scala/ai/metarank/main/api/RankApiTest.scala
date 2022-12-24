@@ -3,7 +3,7 @@ package ai.metarank.main.api
 import ai.metarank.api.routes.RankApi
 import ai.metarank.api.routes.RankApi.RankResponse
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.rank.Ranker
+import ai.metarank.ml.Ranker
 import ai.metarank.util.{TestFeatureMapping, TestRankingEvent}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global

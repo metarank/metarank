@@ -4,13 +4,13 @@ import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTim
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
-import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
+import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
+import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore, CachedModelStore}
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
+import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemModelStore, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.ml.Model
 import ai.metarank.model.{FeatureValue, Key, Schema}
-import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -77,7 +77,7 @@ case class RedisPersistence(
     .ticker(ticker)
     .maximumSize(32)
     .expireAfterAccess(1.hour)
-    .build[ModelName, Scorer]()
+    .build[ModelName, Model[_]]()
 
   override lazy val lists = schema.lists.map { case (name, conf) =>
     name -> CachedBoundedListFeature(
@@ -127,10 +127,9 @@ case class RedisPersistence(
     )
   }
 
-  import ai.metarank.rank.Model._
-  override lazy val models: Persistence.KVStore[ModelName, Scorer] = CachedKVStore(
-    fast = MemKVStore(modelCache),
-    slow = RedisKVStore(modelClient, Prefix.MODELS)(format.model, format.scorer)
+  override lazy val models: ModelStore = CachedModelStore(
+    fast = MemModelStore(modelCache),
+    slow = RedisModelStore(modelClient, Prefix.MODELS)(format.modelName, format.model)
   )
 
   override lazy val values: Persistence.KVStore[Key, FeatureValue] =
@@ -171,9 +170,9 @@ object RedisPersistence {
       tls: Option[RedisTLS],
       timeout: RedisTimeouts
   ): Resource[IO, RedisPersistence] = for {
-    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls,timeout)
-    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls,timeout)
-    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls,timeout)
+    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls, timeout)
+    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls, timeout)
+    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls, timeout)
     _ <- Resource.liftK(
       IO.fromCompletableFuture(
         IO(

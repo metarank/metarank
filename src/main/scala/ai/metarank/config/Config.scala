@@ -1,6 +1,5 @@
 package ai.metarank.config
 
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging

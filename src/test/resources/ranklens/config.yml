@@ -9,6 +9,19 @@ core:
     maxSessionLength: 60s
 
 models:
+  similar:
+    type: als
+    interactions: [click]
+    factors: 100
+    iterations: 100
+
+  trending:
+    type: trending
+    weights:
+      - interaction: click
+        decay: 1.0
+        weight: 1.0
+
   xgboost:
     type: lambdamart
     backend:

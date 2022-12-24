@@ -37,7 +37,7 @@ case class ClickthroughJoinBuffer(
 
   def handleRanking(event: RankingEvent): IO[Unit] = for {
     values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
-    mvalues <- IO(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
+    mvalues <- IO.fromEither(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
     ctv = ClickthroughValues(
       Clickthrough(
         id = event.id,
@@ -47,7 +47,7 @@ case class ClickthroughJoinBuffer(
         items = event.items.toList.map(_.id),
         rankingFields = event.fields
       ),
-      mvalues
+      mvalues.toList
     )
     node = new Node(ctv)
     _ <- IO(queue.addLast(node))

@@ -29,7 +29,7 @@ object Import extends Logging {
           buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping))
           result <- slurp(store, mapping, args, conf, buffer)
           _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
-          _      <- buffer.flushQueue(Timestamp(Long.MaxValue))
+          _      <- buffer.flushAll()
           _      <- store.sync
           _      <- IO(System.gc())
           _      <- info(s"Imported ${result.events} in ${result.tookMillis}ms, generated ${result.updates} updates")

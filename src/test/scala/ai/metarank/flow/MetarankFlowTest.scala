@@ -147,7 +147,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
 
   it should "create updated clickthrough in store" in {
     MetarankFlow.process(store, Stream.emits(List(rankingEvent2, clickEvent2)), mapping, buffer).unsafeRunSync()
-    buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
     val ctv = cs.getall().compile.toList.unsafeRunSync()
     ctv.find(_.ct.id == rankingEvent2.id) shouldBe Some(
       ClickthroughValues(

@@ -43,7 +43,7 @@ object Standalone extends Logging {
         buffer
       )
       _ <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
-      _ <- buffer.flushQueue(Timestamp(Long.MaxValue))
+      _ <- buffer.flushAll()
       _ <- store.sync
       _ <- cts.flush()
       _ <- info(s"Imported ${result.events} events in ${result.tookMillis}ms, generated ${result.updates} updates")

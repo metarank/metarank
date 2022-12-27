@@ -35,7 +35,7 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
 
   it should "import events" in {
     Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer).unsafeRunSync()
-    buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
     cts.flush().unsafeRunSync()
   }
 

@@ -71,7 +71,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
               PeriodicIncrement(Key(ItemScope(e.item), topItem.name), event.timestamp, 1),
               PeriodicIncrement(Key(GlobalScope, topGlobal.name), event.timestamp, 1)
             )
-          case None => List(PeriodicIncrement(Key(ItemScope(e.item), topItem.name), event.timestamp, 1))
+          case None =>
+            List(PeriodicIncrement(Key(ItemScope(e.item), topItem.name), event.timestamp, 1))
         }
 
       case e: InteractionEvent if e.`type` == schema.bottom =>
@@ -81,7 +82,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
               PeriodicIncrement(Key(ItemScope(e.item), bottomItem.name), event.timestamp, 1),
               PeriodicIncrement(Key(GlobalScope, bottomGlobal.name), event.timestamp, 1)
             )
-          case None => List(PeriodicIncrement(Key(ItemScope(e.item), bottomItem.name), event.timestamp, 1))
+          case None =>
+            List(PeriodicIncrement(Key(ItemScope(e.item), bottomItem.name), event.timestamp, 1))
         }
 
       case _ => None

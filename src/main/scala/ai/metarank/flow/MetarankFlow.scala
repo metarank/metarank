@@ -35,6 +35,11 @@ object MetarankFlow {
               .map(cts => event +: cts.flatMap(ct => ImpressionInject.process(ct)))
           )
         )
+        .onComplete(
+          Stream.evalSeq[IO, List, Event](
+            clickthrough.flushAll().map(cts => cts.flatMap(ct => ImpressionInject.process(ct)))
+          )
+        )
         .through(event.process)
         .evalTapChunk(values => updateCounter.update(_ + values.size))
         .through(sink.write)

@@ -108,7 +108,13 @@ case class ClickthroughJoinBuffer(
     }
   }
 
-  def flushAll(): IO[List[Clickthrough]] = IO(cache.invalidateAll()) *> flushQueue()
+  def flushAll(): IO[List[Clickthrough]] = for {
+    items <- IO(cache.asMap().values)
+    _     <- IO(items.foreach(ct => queue.add(ct)))
+    cts   <- flushQueue()
+  } yield {
+    cts
+  }
 
 }
 
@@ -127,7 +133,7 @@ object ClickthroughJoinBuffer extends Logging {
       .expireAfterWrite(conf.maxSessionLength)
       .ticker(ticker)
       .evictionListener(evictionListener(queue))
-      .removalListener(evictionListener(queue))
+//      .removalListener(evictionListener(queue))
       .executor(MoreExecutors.directExecutor())
       .build[String, ClickthroughValues]()
     new ClickthroughJoinBuffer(

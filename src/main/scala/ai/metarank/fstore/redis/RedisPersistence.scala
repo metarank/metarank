@@ -65,10 +65,10 @@ case class RedisPersistence(
             val keyString = keyRaw.substring(2)
             val keyType   = keyRaw.substring(0, 1)
             invalidate(keyType, keyString)
-            //logger.debug(s"cache invalidation message: key=$keyString type=$keyType")
+            // logger.debug(s"cache invalidation message: key=$keyString type=$keyType")
           })
         } else {
-          //logger.debug("empty invalidation message")
+          // logger.debug("empty invalidation message")
         }
       }
 
@@ -87,7 +87,7 @@ case class RedisPersistence(
   lazy val stateCache = Scaffeine()
     .ticker(ticker)
     .maximumSize(cache.maxSize)
-    .weakValues()
+    .softValues()
     .expireAfterAccess(cache.ttl)
     .build[Key, AnyRef]()
 
@@ -193,18 +193,20 @@ object RedisPersistence {
     models <- RedisClient.create(host, port, db.models, pipeline, auth, tls, timeout)
     values <- RedisClient.create(host, port, db.values, pipeline, auth, tls, timeout)
     _ <- Resource.liftK(
-      IO.fromCompletableFuture(
-        IO(
-          state.reader
-            .clientTracking(
-              TrackingArgs.Builder
-                .enabled()
-                .bcast()
-                .noloop()
-                .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
-            )
-            .toCompletableFuture
-        )
+      IO.whenA(cache.maxSize > 0)(
+        IO.fromCompletableFuture(
+          IO(
+            state.reader
+              .clientTracking(
+                TrackingArgs.Builder
+                  .enabled()
+                  .bcast()
+                  .noloop()
+                  .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
+              )
+              .toCompletableFuture
+          )
+        ).void
       )
     )
   } yield {

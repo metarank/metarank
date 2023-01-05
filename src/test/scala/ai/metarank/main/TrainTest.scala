@@ -30,7 +30,7 @@ class TrainTest extends AnyFlatSpec with Matchers {
 
   it should "generate test data" in {
     Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer).unsafeRunSync()
-    buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
   }
 
   it should "train xgboost model" in {

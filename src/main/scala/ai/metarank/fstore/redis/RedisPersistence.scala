@@ -2,12 +2,29 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
+import ai.metarank.fstore.cache.CachedFeature.{
+  CachedBoundedListFeature,
+  CachedCounterFeature,
+  CachedFreqEstimatorFeature,
+  CachedMapFeature,
+  CachedPeriodicCounterFeature,
+  CachedScalarFeature,
+  CachedStatsEstimatorFeature
+}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
+import ai.metarank.fstore.memory.{
+  MemBoundedList,
+  MemCounter,
+  MemFreqEstimator,
+  MemKVStore,
+  MemMapFeature,
+  MemPeriodicCounter,
+  MemScalarFeature,
+  MemStatsEstimator
+}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.{FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer
@@ -48,10 +65,10 @@ case class RedisPersistence(
             val keyString = keyRaw.substring(2)
             val keyType   = keyRaw.substring(0, 1)
             invalidate(keyType, keyString)
-            logger.debug(s"cache invalidation message: key=$keyString type=$keyType")
+            // logger.debug(s"cache invalidation message: key=$keyString type=$keyType")
           })
         } else {
-          logger.debug("empty invalidation message")
+          // logger.debug("empty invalidation message")
         }
       }
 
@@ -70,6 +87,7 @@ case class RedisPersistence(
   lazy val stateCache = Scaffeine()
     .ticker(ticker)
     .maximumSize(cache.maxSize)
+    .softValues()
     .expireAfterAccess(cache.ttl)
     .build[Key, AnyRef]()
 
@@ -171,22 +189,24 @@ object RedisPersistence {
       tls: Option[RedisTLS],
       timeout: RedisTimeouts
   ): Resource[IO, RedisPersistence] = for {
-    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls,timeout)
-    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls,timeout)
-    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls,timeout)
+    state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls, timeout)
+    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls, timeout)
+    values <- RedisClient.create(host, port, db.values, pipeline, auth, tls, timeout)
     _ <- Resource.liftK(
-      IO.fromCompletableFuture(
-        IO(
-          state.reader
-            .clientTracking(
-              TrackingArgs.Builder
-                .enabled()
-                .bcast()
-                .noloop()
-                .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
-            )
-            .toCompletableFuture
-        )
+      IO.whenA(cache.maxSize > 0)(
+        IO.fromCompletableFuture(
+          IO(
+            state.reader
+              .clientTracking(
+                TrackingArgs.Builder
+                  .enabled()
+                  .bcast()
+                  .noloop()
+                  .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
+              )
+              .toCompletableFuture
+          )
+        ).void
       )
     )
   } yield {

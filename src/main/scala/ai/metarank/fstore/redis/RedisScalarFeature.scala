@@ -19,14 +19,14 @@ case class RedisScalarFeature(
 ) extends ScalarFeature
     with Logging {
   override def put(action: Put): IO[Unit] = {
-    debug(s"writing scalar key=${action.key}")
+    // debug(s"writing scalar key=${action.key}")
     client.set(format.key.encode(prefix, action.key), format.scalar.encode(action.value)).void
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[ScalarValue]] = {
     client.get(format.key.encode(prefix, key)).flatMap {
       case Some(value) =>
-        debug(s"loading scalar $key") *> IO
+        IO
           .fromEither(format.scalar.decode(value))
           .map(s => Some(ScalarValue(key, ts, s)))
       case None => IO.pure(None)

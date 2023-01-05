@@ -122,9 +122,9 @@ object Feature {
 
   trait PeriodicCounterFeature extends Feature[PeriodicIncrement, PeriodicCounterValue] {
     def config: PeriodicCounterConfig
-    def fromMap(map: Map[Timestamp, Long]): List[PeriodicValue] = {
+    def fromMap(map: Map[Timestamp, Long]): Array[PeriodicValue] = {
       for {
-        range         <- config.sumPeriodRanges
+        range         <- config.sumPeriodRanges.toArray
         lastTimestamp <- map.keys.toList.sortBy(_.ts).lastOption
       } yield {
         val start = lastTimestamp.minus(config.period * range.startOffset)

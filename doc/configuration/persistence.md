@@ -142,4 +142,5 @@ important factor.
 ### Redis support limitations
 
 * Metarank requires Redis 6+ due to a lack of client-side caching support in 5.x
+  * you can disable client caching altogether (for example, for managed Redis-compatible engines, like GCP Memorystore Redis) with `cache.maxSize: 0`.
 * Redis Cluster is not yet supported; see ticket [568](https://github.com/metarank/metarank/issues/568) for the progress.

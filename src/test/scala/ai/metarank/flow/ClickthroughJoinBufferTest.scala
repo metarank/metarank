@@ -20,7 +20,8 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
     val now    = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.process(TestInteractionEvent("p1", "i1").copy(timestamp = now.plus(1.second))).unsafeRunSync()
-    val cts = buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
+    val cts = cs.getall().compile.toList.unsafeRunSync()
     cts shouldNot be(empty)
   }
 
@@ -28,7 +29,9 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
     val buffer = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now    = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
-    val cts = buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.cache.invalidateAll()
+    Thread.sleep(100)
+    val cts = buffer.flushQueue().unsafeRunSync()
     cts shouldBe empty
   }
 }

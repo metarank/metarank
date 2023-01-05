@@ -3,6 +3,12 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.5.15
+
+* `cache.maxSize` for redis now disables client-side caching altogether. Makes Metarank compatible with GCP Memstore Redis.
+* fixed mem leak in clickthrough joining buffer.
+* lower mem allocation pressure in interacted_with feature.
+
 ## 0.5.14
 
 * interacted_with feature now supports string[] fields

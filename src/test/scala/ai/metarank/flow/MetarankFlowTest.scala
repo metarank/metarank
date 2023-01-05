@@ -7,6 +7,7 @@ import ai.metarank.config.ModelConfig.LambdaMARTConfig
 import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
@@ -59,6 +60,13 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       SessionScopeType,
       count = Some(10),
       duration = Some(24.hours)
+    ),
+    RateFeatureSchema(
+      FeatureName("ctr"),
+      top = "click",
+      bottom = "impression",
+      bucket = 1.hour,
+      periods = List(1)
     )
   )
   val models = Map(
@@ -86,7 +94,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       TestItemEvent("p2", List(NumberField("pop", 5), StringListField("genre", List("comedy")))).copy(timestamp = ts),
       TestItemEvent("p3", List(NumberField("pop", 15), StringField("genre", "drama"))).copy(timestamp = ts)
     )
-    MetarankFlow.process(store, Stream.emits(items), mapping, buffer).unsafeRunSync()
+    MetarankFlow
+      .process(store, Stream.emits(items ++ List(rankingEvent1, clickEvent1)), mapping, buffer)
+      .unsafeRunSync()
   }
 
   it should "have popularities values present in store" in {
@@ -116,14 +126,48 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "generate query for a ranking request" in {
     val q = ranker.makeQuery(rankingEvent1, mapping.models("random").datasetDescriptor).unsafeRunSync()
     q.values shouldBe List(
-      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))),
-      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(0.0)))),
-      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0))))
+      ItemValue(
+        ItemId("p1"),
+        List(
+          MValue("pop", 10),
+          MValue("genre", "action", 1),
+          MValue("liked_genre", Array(0.0)),
+          MValue("ctr", Array(Double.NaN))
+        )
+      ),
+      ItemValue(
+        ItemId("p2"),
+        List(
+          MValue("pop", 5),
+          MValue("genre", "comedy", 3),
+          MValue("liked_genre", Array(1.0)),
+          MValue("ctr", Array(1.0))
+        )
+      ),
+      ItemValue(
+        ItemId("p3"),
+        List(
+          MValue("pop", 15),
+          MValue("genre", "drama", 2),
+          MValue("liked_genre", Array(0.0)),
+          MValue("ctr", Array(Double.NaN))
+        )
+      )
     )
-    q.query.values.toList shouldBe List(
-      10.0, 1.0, 0.0, // p1
-      5.0, 3.0, 0.0,  // p2
-      15.0, 2.0, 0.0  // p3
+    import ai.metarank.util.DoubleNaNEquality._
+    q.query.values.toList should contain theSameElementsInOrderAs List(
+      10.0,
+      1.0,
+      0.0,
+      Double.NaN, // p1
+      5.0,
+      3.0,
+      1.0,
+      1.0, // p2
+      15.0,
+      2.0,
+      0.0,
+      Double.NaN // p3
     )
   }
 
@@ -134,20 +178,54 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "generate updated query" in {
     val q = ranker.makeQuery(rankingEvent2, mapping.models("random").datasetDescriptor).unsafeRunSync()
     q.values shouldBe List(
-      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))),
-      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(1.0)))),
-      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0))))
+      ItemValue(
+        ItemId("p1"),
+        List(
+          MValue("pop", 10),
+          MValue("genre", "action", 1),
+          MValue("liked_genre", Array(0.0)),
+          MValue("ctr", Array(Double.NaN))
+        )
+      ),
+      ItemValue(
+        ItemId("p2"),
+        List(
+          MValue("pop", 5),
+          MValue("genre", "comedy", 3),
+          MValue("liked_genre", Array(2.0)),
+          MValue("ctr", Array(1.0))
+        )
+      ),
+      ItemValue(
+        ItemId("p3"),
+        List(
+          MValue("pop", 15),
+          MValue("genre", "drama", 2),
+          MValue("liked_genre", Array(0.0)),
+          MValue("ctr", Array(Double.NaN))
+        )
+      )
     )
-    q.query.values.toList shouldBe List(
-      10.0, 1.0, 0.0, // p1
-      5.0, 3.0, 1.0,  // p2
-      15.0, 2.0, 0.0  // p3
+    import ai.metarank.util.DoubleNaNEquality._
+    q.query.values.toList should contain theSameElementsInOrderAs List(
+      10.0,
+      1.0,
+      0.0,
+      Double.NaN, // p1
+      5.0,
+      3.0,
+      2.0,
+      1.0, // p2
+      15.0,
+      2.0,
+      0.0,
+      Double.NaN // p3
     )
   }
 
   it should "create updated clickthrough in store" in {
     MetarankFlow.process(store, Stream.emits(List(rankingEvent2, clickEvent2)), mapping, buffer).unsafeRunSync()
-    buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
     val ctv = cs.getall().compile.toList.unsafeRunSync()
     ctv.find(_.ct.id == rankingEvent2.id) shouldBe Some(
       ClickthroughValues(
@@ -162,15 +240,30 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
         values = List(
           ItemValue(
             ItemId("p1"),
-            List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))
+            List(
+              MValue("pop", 10),
+              MValue("genre", "action", 1),
+              MValue("liked_genre", Array(0.0)),
+              MValue("ctr", Array(Double.NaN))
+            )
           ),
           ItemValue(
             ItemId("p2"),
-            List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(1.0)))
+            List(
+              MValue("pop", 5),
+              MValue("genre", "comedy", 3),
+              MValue("liked_genre", Array(2.0)),
+              MValue("ctr", Array(1.0))
+            )
           ),
           ItemValue(
             ItemId("p3"),
-            List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0)))
+            List(
+              MValue("pop", 15),
+              MValue("genre", "drama", 2),
+              MValue("liked_genre", Array(0.0)),
+              MValue("ctr", Array(Double.NaN))
+            )
           )
         )
       )

@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / version      := "0.5.14"
+ThisBuild / version      := "0.5.15"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.4.2",
+      "org.typelevel"         %% "cats-effect"              % "3.4.4",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
@@ -57,7 +57,7 @@ lazy val root = (project in file("."))
       "io.lettuce"             % "lettuce-core"             % "6.2.2.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.9.2",
+      "io.sentry"              % "sentry-logback"           % "6.11.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,

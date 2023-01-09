@@ -55,9 +55,7 @@ curl -O -L https://raw.githubusercontent.com/metarank/metarank/master/src/test/r
 With the final step we will use Metarank’s `standalone` mode that combines training and running the API into one command:
 
 ```bash
-docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:latest standalone\
-    --config /opt/metarank/config.yml\
-    --data /opt/metarank/events.jsonl.gz
+docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:latest standalone --config /opt/metarank/config.yml --data /opt/metarank/events.jsonl.gz
 ```
 
 You will see some useful output while Metarank is starting and grinding through the data. Once this is done, you can send requests to `localhost:8080` to get personalized results.

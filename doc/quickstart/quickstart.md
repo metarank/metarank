@@ -123,10 +123,7 @@ drwxr-xr-x 81 user user  16384 Aug 23 14:24 ..
 ## Running Metarank in Docker
 
 ```bash
-docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank\ 
-    metarank/metarank:0.5.15 standalone\
-    --config /opt/metarank/config.yml\
-    --data /opt/metarank/events.jsonl.gz
+docker run -i -t -p 8080:8080 -v $(pwd):/opt/metarank metarank/metarank:latest standalone --config /opt/metarank/config.yml --data /opt/metarank/events.jsonl.gz
 ```
 
 This command will:

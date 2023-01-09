@@ -41,9 +41,7 @@ $ java -jar metarank.jar standalone --data /path/to/events.json --config /path/t
 
 Another option is to run Metarank standalone mode from a docker container:
 ```bash
-$ docker run -v /data/:<path to data dir> metarank/metarank:latest standalone \
-    --data /data/events.json \
-    --config /data/config.yml
+$ docker run -v /data/:<path to data dir> metarank/metarank:latest standalone --data /data/events.json --config /data/config.yml
 ```
 
 The follwing options are used for the docker container:

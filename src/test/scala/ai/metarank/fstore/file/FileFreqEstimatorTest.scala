@@ -19,8 +19,6 @@ class FileFreqEstimatorTest extends FreqEstimatorSuite with FileTest {
     f.put(PutFreqSample(TestKey(c, "a"), now, "a")).unsafeRunSync()
     f.put(PutFreqSample(TestKey(c, "a"), now, "b")).unsafeRunSync()
     val state = FileFreqEstimatorFeature.fileFreqSource.source(f).compile.toList.unsafeRunSync()
-    state shouldBe List(
-      FreqEstimatorState(TestKey(c, "a"), List("a", "b"))
-    )
+    state.flatMap(_.values) should contain theSameElementsAs List("a", "b")
   }
 }

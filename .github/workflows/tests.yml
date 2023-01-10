@@ -46,6 +46,8 @@ jobs:
       run: choco install memurai-developer
       if: runner.os == 'Windows'
 
+    - name: check enthropy
+      run: cat /proc/sys/kernel/random/entropy_avail
 
     - uses: actions/cache@v2
       with:

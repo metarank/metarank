@@ -51,7 +51,7 @@ jobs:
       if: runner.os == 'Linux'
 
     - name: check enthropy
-      run: cat /proc/sys/kernel/random/entropy_avail && cat /var/log/syslog
+      run: cat /proc/sys/kernel/random/entropy_avail && dmesg
       if: runner.os == 'Linux'
 
     - uses: actions/cache@v2

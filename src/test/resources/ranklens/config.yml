@@ -1,15 +1,15 @@
-state:
+#state:
 #  type: file
 #  path: /tmp/lmdb4/
 #  backend: mapdb
-  type: redis
-  host: localhost
-  port: 6379
-  format: binary
-train:
-  type: file
-  path: /tmp
-  format: binary
+#  type: redis
+#  host: localhost
+#  port: 6379
+#  format: binary
+#train:
+#  type: file
+#  path: /tmp
+#  format: binary
 
 core:
   clickthrough:

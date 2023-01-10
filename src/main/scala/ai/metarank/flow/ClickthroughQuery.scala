@@ -30,12 +30,13 @@ object ClickthroughQuery {
       id: Any,
       dataset: DatasetDescriptor
   ): Query = {
+    val group = math.abs(id.hashCode)
     val items = for {
       item <- values
     } yield {
       LabeledItem(
         label = 0.0,
-        group = math.abs(id.hashCode),
+        group = group,
         values = collectFeatureValues(dataset, item.values)
       )
     }

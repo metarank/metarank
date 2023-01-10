@@ -2,9 +2,12 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.transfer.StateSink
+import ai.metarank.fstore.transfer.StateSink.TransferResult
 import ai.metarank.model.Feature.CounterFeature
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
+import ai.metarank.model.State.CounterState
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.Increment
 import ai.metarank.util.Logging
@@ -27,4 +30,17 @@ case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefi
       case None => IO.pure(None)
     }
   }
+}
+
+object RedisCounterFeature {
+  implicit val counterSink: StateSink[CounterState, RedisCounterFeature] =
+    new StateSink[CounterState, RedisCounterFeature] {
+      override def sink(f: RedisCounterFeature, state: fs2.Stream[IO, CounterState]): IO[TransferResult] =
+        state
+          .evalMap(c => f.client.incrBy(f.format.key.encode(f.prefix, c.key), c.value).map(_ => 1))
+          .compile
+          .fold(0)(_ + _)
+          .map(TransferResult.apply)
+
+    }
 }

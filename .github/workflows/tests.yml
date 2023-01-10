@@ -47,7 +47,8 @@ jobs:
       if: runner.os == 'Windows'
 
     - name: check enthropy
-      run: cat /proc/sys/kernel/random/entropy_avail
+      run: docker run --privileged -d hortonworks/haveged:1.1.0
+      if: runner.os == 'Linux'
 
     - uses: actions/cache@v2
       with:

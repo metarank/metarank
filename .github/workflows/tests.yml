@@ -46,8 +46,12 @@ jobs:
       run: choco install memurai-developer
       if: runner.os == 'Windows'
 
-    - name: check enthropy
+    - name: start haveged
       run: docker run --privileged -d hortonworks/haveged:1.1.0
+      if: runner.os == 'Linux'
+
+    - name: check enthropy
+      run: cat /proc/sys/kernel/random/entropy_avail
       if: runner.os == 'Linux'
 
     - uses: actions/cache@v2

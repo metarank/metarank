@@ -3,17 +3,25 @@ package ai.metarank.main.command
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.config.InputConfig.FileInputConfig
+import ai.metarank.config.StateStoreConfig.FileStateConfig
+import ai.metarank.config.StateStoreConfig.FileStateConfig.MapDBBackend
 import ai.metarank.flow.MetarankFlow.ProcessResult
 import ai.metarank.flow.{CheckOrderingPipe, ClickthroughJoinBuffer, MetarankFlow}
+import ai.metarank.fstore.file.FilePersistence
+import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.fstore.redis.RedisPersistence
+import ai.metarank.fstore.transfer.FileRedisTransfer
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.ImportArgs
-import ai.metarank.model.{Event, Timestamp}
+import ai.metarank.model.{Event, Schema, Timestamp}
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
 import ai.metarank.validate.EventValidation.ValidationError
 import ai.metarank.validate.checks.EventOrderValidation.EventOrderError
 import cats.effect.IO
 import cats.effect.kernel.Resource
+
+import java.nio.file.Files
 
 object Import extends Logging {
   def run(
@@ -74,13 +82,29 @@ object Import extends Logging {
       mapping: FeatureMapping,
       buffer: ClickthroughJoinBuffer
   ): IO[ProcessResult] = {
-    for {
-      result <- MetarankFlow.process(store, source, mapping, buffer)
-      _      <- store.sync
-    } yield {
-      result
+    store match {
+      case redis: RedisPersistence =>
+        for {
+          dir <- IO(Files.createTempDirectory("metarank-rocksdb-temp"))
+          _   <- info(s"using local disk cache for redis persistence: $dir")
+          result <- FilePersistence
+            .create(FileStateConfig(dir.toString, backend = MapDBBackend), mapping.schema)
+            .use(cache =>
+              for {
+                buf2 <- IO(buffer.copy(values = cache.values))
+                r2   <- MetarankFlow.process(cache, source, mapping, buf2).flatTap(_ => cache.sync)
+                _    <- info("local import done, uploading data to redis")
+                _    <- FileRedisTransfer.copy(cache, redis)
+                _    <- store.sync
+              } yield {
+                r2
+              }
+            )
+        } yield {
+          result
+        }
+      case other => MetarankFlow.process(store, source, mapping, buffer).flatTap(_ => store.sync)
     }
-
   }
 
 }

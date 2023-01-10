@@ -2,9 +2,12 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.transfer.StateSink
+import ai.metarank.fstore.transfer.StateSink.TransferResult
 import ai.metarank.model.Feature.{StatsEstimatorFeature, shouldSample}
 import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.NumStatsValue
+import ai.metarank.model.State.StatsEstimatorState
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutStatSample
 import cats.effect.IO
@@ -35,4 +38,19 @@ case class RedisStatsEstimatorFeature(
   } yield {
     if (decoded.isEmpty) None else Some(fromPool(key, ts, decoded))
   }
+
+}
+
+object RedisStatsEstimatorFeature {
+  implicit val statsSink: StateSink[StatsEstimatorState, RedisStatsEstimatorFeature] =
+    new StateSink[StatsEstimatorState, RedisStatsEstimatorFeature] {
+      override def sink(f: RedisStatsEstimatorFeature, state: fs2.Stream[IO, StatsEstimatorState]): IO[TransferResult] =
+        state
+          .evalMap(s =>
+            f.client.lpush(f.format.key.encode(f.prefix, s.key), s.values.toList.map(_.toString.getBytes())).map(_ => 1)
+          )
+          .compile
+          .fold(0)(_ + _)
+          .map(TransferResult.apply)
+    }
 }

@@ -63,6 +63,7 @@ object Config extends Logging {
     val stateType = conf.state match {
       case RedisStateConfig(host, port, db, cache, pipeline, _, _, _, _) => s"redis://${host.value}:${port.value}"
       case MemoryStateConfig()                                           => "memory"
+      case StateStoreConfig.FileStateConfig(path, format, backend)       => s"file://$path"
     }
     val features = conf.features.map(_.name.value).toList.mkString("[", ",", "]")
     val models   = conf.models.keys.mkString("[", ",", "]")

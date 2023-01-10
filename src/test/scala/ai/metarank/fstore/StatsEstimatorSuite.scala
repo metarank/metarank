@@ -1,5 +1,6 @@
 package ai.metarank.fstore
 
+import ai.metarank.model.Feature.StatsEstimatorFeature
 import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.NumStatsValue
 import ai.metarank.model.Key.FeatureName
@@ -7,7 +8,7 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PutStatSample
 import ai.metarank.util.TestKey
 
-trait StatsEstimatorSuite extends FeatureSuite[PutStatSample] {
+trait StatsEstimatorSuite extends FeatureSuite[PutStatSample, StatsEstimatorConfig, StatsEstimatorFeature] {
   val config =
     StatsEstimatorConfig(scope = ItemScopeType, FeatureName("f1"), 100, 1, List(50, 90))
 

@@ -3,6 +3,9 @@ package ai.metarank.fstore.redis
 import ai.metarank.fstore.Persistence.{KVCodec, KVStore}
 import ai.metarank.fstore.codec.{KCodec, VCodec}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.transfer.StateSink
+import ai.metarank.fstore.transfer.StateSink.TransferResult
+import ai.metarank.model.{FeatureValue, Key}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.implicits._
@@ -32,4 +35,17 @@ case class RedisKVStore[K, V](client: RedisClient, prefix: String)(implicit
     client.mset(values.map { case (k, v) => kc.encode(prefix, k) -> vc.encode(v) }).void
 
   }
+}
+
+object RedisKVStore {
+  implicit val valueSink: StateSink[FeatureValue, RedisKVStore[Key, FeatureValue]] =
+    new StateSink[FeatureValue, RedisKVStore[Key, FeatureValue]] {
+      override def sink(f: RedisKVStore[Key, FeatureValue], state: fs2.Stream[IO, FeatureValue]): IO[TransferResult] =
+        state
+          .evalMap(fv => f.put(Map(fv.key -> fv)).map(_ => 1))
+          .compile
+          .fold(0)(_ + _)
+          .map(TransferResult.apply)
+
+    }
 }

@@ -20,6 +20,7 @@ import java.io.{
   InputStream,
   OutputStream
 }
+import java.nio.file.{Files, Paths}
 
 case class FileClickthroughStore(file: File, output: DataOutput, stream: OutputStream, fmt: StoreFormat)
     extends ClickthroughStore {
@@ -37,21 +38,15 @@ case class FileClickthroughStore(file: File, output: DataOutput, stream: OutputS
       )
       .flatMap(stream => {
         val input = new DataInputStream(stream)
-        Stream.fromIterator[IO](
-          iterator = Iterator
-            .continually(fmt.ctv.decodeDelimited(input))
-            .takeWhile {
-              case Left(_)     => false
-              case Right(None) => false
-              case Right(_)    => true
-            }
-            .collect { case Right(Some(value)) =>
-              value
-            },
-          chunkSize = 32
-        )
+        Stream
+          .fromBlockingIterator[IO](
+            iterator = Iterator.continually(fmt.ctv.decodeDelimited(input)),
+            chunkSize = 32
+          )
+          .evalMap(x => IO.fromEither(x))
+          .takeWhile(_.isDefined)
+          .flatMap(x => Stream.fromOption(x))
       })
-
   }
 }
 
@@ -60,8 +55,8 @@ object FileClickthroughStore {
 
   def create(path: String, fmt: StoreFormat): Resource[IO, FileClickthroughStore] = for {
     file <- Resource.liftK(IO { new File(path) })
-    stream <- Resource.make(IO { new BufferedOutputStream(new FileOutputStream(file, true), FILE_BUFFER_SIZE) })(stream =>
-      IO(stream.close())
+    stream <- Resource.make(IO { new BufferedOutputStream(new FileOutputStream(file, true), FILE_BUFFER_SIZE) })(
+      stream => IO(stream.close())
     )
   } yield {
     FileClickthroughStore(file, new DataOutputStream(stream), stream, fmt)

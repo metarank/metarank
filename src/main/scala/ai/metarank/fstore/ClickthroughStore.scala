@@ -26,7 +26,7 @@ object ClickthroughStore {
   def fromConfig(conf: TrainConfig): Resource[IO, ClickthroughStore] = conf match {
     case c: DiscardTrainConfig => Resource.pure(DiscardClickthroughStore)
     case c: S3TrainConfig      => S3ClickthroughStore.create(c)
-    case c: FileTrainConfig    => FileClickthroughStore.create(c.path, c.format)
+    case c: FileTrainConfig    => FileClickthroughStore.create(c.path + "/cts/", c.format)
     case c: RedisTrainConfig =>
       for {
         rankings <- RedisClient.create(c.host.value, c.port.value, c.db, c.pipeline, c.auth, c.tls, c.timeout)

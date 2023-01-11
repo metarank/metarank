@@ -35,7 +35,7 @@ class TrainApiTest extends AnyFlatSpec with Matchers {
     )
     val response = feedback.routes(request).value.unsafeRunSync()
     response.map(_.status.code) shouldBe Some(200)
-    buffer.flushQueue(Timestamp.max).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
   }
   it should "train the xgboost model" in {
     val request  = Request[IO](uri = Uri.unsafeFromString("http://localhost/train/xgboost"), method = Method.POST)

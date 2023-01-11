@@ -5,19 +5,26 @@ import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.flow.ClickthroughJoinBuffer.Node
 import ai.metarank.fstore.Persistence.KVStore
-import ai.metarank.fstore.{ClickthroughStore, FeatureValueLoader}
+import ai.metarank.fstore.{ClickthroughStore, EventTicker, FeatureValueLoader}
+import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, FeatureValue, ItemValue, Key, Timestamp}
 import ai.metarank.util.Logging
 import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import com.github.benmanes.caffeine.cache.{RemovalCause, Ticker}
+import com.github.blemale.scaffeine.{Cache, Scaffeine}
+import com.google.common.collect.Queues
+import com.google.common.util.concurrent.MoreExecutors
 
 import java.util
-import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedDeque}
+import java.util.concurrent.{BlockingQueue, ConcurrentHashMap, ConcurrentLinkedDeque, Executors}
 import scala.collection.mutable.ArrayBuffer
 
 case class ClickthroughJoinBuffer(
-    queue: util.Deque[Node],
-    rankings: ConcurrentHashMap[String, Node],
+    cache: Cache[String, ClickthroughValues],
+    queue: util.Queue[ClickthroughValues],
+    ticker: EventTicker,
     values: KVStore[Key, FeatureValue],
     cts: ClickthroughStore,
     mapping: FeatureMapping,
@@ -27,11 +34,11 @@ case class ClickthroughJoinBuffer(
   def process(event: Event): IO[List[Clickthrough]] = {
     event match {
       case e: RankingEvent =>
-        handleRanking(e) *> flushQueue(event.timestamp)
+        IO(ticker.tick(event)) *> handleRanking(e) *> flushQueue()
       case e: InteractionEvent =>
-        handleInteraction(e) *> flushQueue(event.timestamp)
+        IO(ticker.tick(event)) *> handleInteraction(e) *> flushQueue()
       case _ =>
-        flushQueue(event.timestamp)
+        IO(ticker.tick(event)) *> flushQueue()
     }
   }
 
@@ -49,47 +56,62 @@ case class ClickthroughJoinBuffer(
       ),
       mvalues.toList
     )
-    node = new Node(ctv)
-    _ <- IO(queue.addLast(node))
-    _ <- IO(rankings.put(ctv.ct.id.value, node))
+    _ <- IO(cache.put(ctv.ct.id.value, ctv))
   } yield {}
 
-  def handleInteraction(event: InteractionEvent): IO[Unit] = for {
-    nodeOption <- IO(event.ranking.flatMap(id => Option(rankings.get(id.value))))
-    _ <- nodeOption match {
-      case None => IO.unit
-      case Some(node) =>
+  def handleInteraction(event: InteractionEvent): IO[Unit] = {
+
+    event.ranking match {
+      case None => // probably a rec event, flush now
         IO {
-          val updated = node.payload.copy(node.payload.ct.withInteraction(event.item, event.`type`))
-          node.payload = updated
+          queue.add(
+            ClickthroughValues(
+              Clickthrough(
+                id = event.id,
+                ts = event.timestamp,
+                user = event.user,
+                session = event.session,
+                items = List(event.item),
+                interactions = List(TypedInteraction(event.item, event.`type`))
+              ),
+              Nil
+            )
+          )
+        }
+      case Some(id) =>
+        IO(cache.getIfPresent(id.value)).flatMap {
+          case None =>
+            // ranking already gone, nothing to do
+            IO.unit
+          // warn(s"ranking $id is present in interaction, but missing in cache")
+          case Some(ctv) =>
+            IO {
+              val updated = ctv.copy(ct = ctv.ct.withInteraction(event.item, event.`type`))
+              cache.put(ctv.ct.id.value, updated)
+            }
         }
     }
-  } yield {}
-
-  def flushQueue(now: Timestamp): IO[List[Clickthrough]] = for {
-    expired <- IO(pollExpired(now))
-    _       <- if (expired.nonEmpty) cts.put(expired) else IO.unit
-  } yield {
-    expired.map(_.ct)
   }
 
-  def pollExpired(now: Timestamp) = {
-    val buffer    = new ArrayBuffer[ClickthroughValues]()
-    val threshold = now.minus(conf.maxSessionLength)
-    while (
-      (rankings.size() > conf.maxParallelSessions) || (!queue.isEmpty && queue
-        .peekFirst()
-        .payload
-        .ct
-        .ts
-        .isBeforeOrEquals(threshold))
-    ) {
-      val expired = queue.pollFirst()
-      rankings.remove(expired.payload.ct.id.value)
-      if (expired.payload.ct.interactions.nonEmpty) buffer.addOne(expired.payload)
+  def flushQueue(): IO[List[Clickthrough]] = {
+    for {
+      expired   <- IO(Iterator.continually(queue.poll()).takeWhile(_ != null).toList)
+      flushable <- IO(expired.filter(_.ct.interactions.nonEmpty))
+      _         <- cts.put(expired)
+    } yield {
+      // logger.info(s"expired $expired")
+      flushable.map(_.ct)
     }
-    buffer.toList
   }
+
+  def flushAll(): IO[List[Clickthrough]] = for {
+    items <- IO(cache.asMap().values)
+    _     <- IO(items.foreach(ct => queue.add(ct)))
+    cts   <- flushQueue()
+  } yield {
+    cts
+  }
+
 }
 
 object ClickthroughJoinBuffer extends Logging {
@@ -100,16 +122,35 @@ object ClickthroughJoinBuffer extends Logging {
       cts: ClickthroughStore,
       mapping: FeatureMapping
   ) = {
-    val deque    = new ConcurrentLinkedDeque[Node]()
-    val rankings = new ConcurrentHashMap[String, Node](conf.maxParallelSessions)
-
+    val queue  = Queues.newConcurrentLinkedQueue[ClickthroughValues]()
+    val ticker = new EventTicker()
+    val cache = Scaffeine()
+      .maximumSize(conf.maxParallelSessions)
+      .expireAfterWrite(conf.maxSessionLength)
+      .ticker(ticker)
+      .evictionListener(evictionListener(queue))
+//      .removalListener(evictionListener(queue))
+      .executor(MoreExecutors.directExecutor())
+      .build[String, ClickthroughValues]()
     new ClickthroughJoinBuffer(
       values = values,
       cts = cts,
-      queue = deque,
       mapping = mapping,
-      rankings = rankings,
-      conf = conf
+      conf = conf,
+      queue = queue,
+      ticker = ticker,
+      cache = cache
     )
+  }
+
+  def evictionListener(
+      queue: util.Queue[ClickthroughValues]
+  )(key: String, ctv: ClickthroughValues, reason: RemovalCause): Unit = {
+    reason match {
+      case RemovalCause.REPLACED => //
+      case _                     => queue.add(ctv)
+    }
+    // println(s"evicted $key due to $reason")
+
   }
 }

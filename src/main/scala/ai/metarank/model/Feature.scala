@@ -12,6 +12,15 @@ import ai.metarank.model.Write._
 import ai.metarank.model.FeatureValue._
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.State.{
+  BoundedListState,
+  CounterState,
+  FreqEstimatorState,
+  MapState,
+  PeriodicCounterState,
+  ScalarState,
+  StatsEstimatorState
+}
 import cats.effect.IO
 import com.google.common.math.Quantiles
 
@@ -122,9 +131,9 @@ object Feature {
 
   trait PeriodicCounterFeature extends Feature[PeriodicIncrement, PeriodicCounterValue] {
     def config: PeriodicCounterConfig
-    def fromMap(map: Map[Timestamp, Long]): List[PeriodicValue] = {
+    def fromMap(map: Map[Timestamp, Long]): Array[PeriodicValue] = {
       for {
-        range         <- config.sumPeriodRanges
+        range         <- config.sumPeriodRanges.toArray
         lastTimestamp <- map.keys.toList.sortBy(_.ts).lastOption
       } yield {
         val start = lastTimestamp.minus(config.period * range.startOffset)

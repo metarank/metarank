@@ -24,7 +24,7 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
   val mapIntDoubleCodec      = new MapCodec(BinaryCodec.int, BinaryCodec.double)
   val mapStringScalarCodec   = new MapCodec(BinaryCodec.string, ScalarCodec)
   val mapStringDoubleCodec   = new MapCodec(BinaryCodec.string, BinaryCodec.double)
-  val listPeriodicValueCodec = new ListCodec(PeriodicValueCodec)
+  val arrayPeriodicValueCodec = new ArrayCodec(PeriodicValueCodec)
   val listTimeValueCodec     = new ListCodec(TimeValueCodec)
 
   override def read(in: DataInput): FeatureValue = in.readByte() match {
@@ -43,7 +43,7 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
     case 3 =>
       MapValue(KeyCodec.read(in), Timestamp(in.readVarLong()), mapStringScalarCodec.read(in))
     case 4 =>
-      PeriodicCounterValue(KeyCodec.read(in), Timestamp(in.readVarLong()), listPeriodicValueCodec.read(in))
+      PeriodicCounterValue(KeyCodec.read(in), Timestamp(in.readVarLong()), arrayPeriodicValueCodec.read(in))
     case 5 =>
       FrequencyValue(KeyCodec.read(in), Timestamp(in.readVarLong()), mapStringDoubleCodec.read(in))
     case 6 =>
@@ -83,7 +83,7 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
       out.writeByte(4)
       KeyCodec.write(key, out)
       out.writeVarLong(ts.ts)
-      listPeriodicValueCodec.write(values, out)
+      arrayPeriodicValueCodec.write(values, out)
 
     case FeatureValue.FrequencyValue(key, ts, values) =>
       out.writeByte(5)

@@ -2,9 +2,12 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.transfer.StateSink
+import ai.metarank.fstore.transfer.StateSink.TransferResult
 import ai.metarank.model.Feature.{FreqEstimatorFeature, shouldSample}
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.FeatureValue.FrequencyValue
+import ai.metarank.model.State.FreqEstimatorState
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutFreqSample
 import cats.effect.IO
@@ -30,4 +33,16 @@ case class RedisFreqEstimatorFeature(
       case list                 => IO(freqFromSamples(list.map(new String(_))).map(FrequencyValue(key, ts, _)))
     }
   }
+}
+
+object RedisFreqEstimatorFeature {
+  implicit val freqSink: StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] =
+    new StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] {
+      override def sink(f: RedisFreqEstimatorFeature, state: fs2.Stream[IO, FreqEstimatorState]): IO[TransferResult] =
+        state
+          .evalMap(fs => f.client.lpush(f.format.key.encode(f.prefix, fs.key), fs.values.map(_.getBytes())).map(_ => 1))
+          .compile
+          .fold(0)(_ + _)
+          .map(TransferResult.apply)
+    }
 }

@@ -6,6 +6,8 @@ import io.circe._
 import io.circe.generic.semiauto._
 import shapeless.Lazy
 
+import java.util
+
 sealed trait FeatureValue {
   def key: Key
   def ts: Timestamp
@@ -16,8 +18,17 @@ object FeatureValue {
   case class CounterValue(key: Key, ts: Timestamp, value: Long)  extends FeatureValue
   case class NumStatsValue(key: Key, ts: Timestamp, min: Double, max: Double, quantiles: Map[Int, Double])
       extends FeatureValue
-  case class MapValue(key: Key, ts: Timestamp, values: Map[String, Scalar])             extends FeatureValue
-  case class PeriodicCounterValue(key: Key, ts: Timestamp, values: List[PeriodicValue]) extends FeatureValue
+  case class MapValue(key: Key, ts: Timestamp, values: Map[String, Scalar]) extends FeatureValue
+  case class PeriodicCounterValue(key: Key, ts: Timestamp, values: Array[PeriodicValue]) extends FeatureValue {
+    override def equals(obj: Any): Boolean = obj match {
+      case PeriodicCounterValue(xkey, xts, xvalues) =>
+        (key == xkey) && (ts == xts) && (util.Arrays.deepEquals(
+          values.asInstanceOf[Array[Object]],
+          xvalues.asInstanceOf[Array[Object]]
+        ))
+      case _ => false
+    }
+  }
   object PeriodicCounterValue {
     case class PeriodicValue(start: Timestamp, end: Timestamp, periods: Int, value: Long)
   }

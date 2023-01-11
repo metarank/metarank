@@ -71,6 +71,6 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       feature.schema,
       TestRankingEvent(List("p1"))
     )
-    values shouldBe List(List(VectorValue(FeatureName("ctr"), Array(0.11458333333333333, 0.11458333333333333), 2)))
+    values shouldBe List(List(VectorValue(FeatureName("ctr"), Array(0.11827956989247312, 0.11827956989247312), 2)))
   }
 }

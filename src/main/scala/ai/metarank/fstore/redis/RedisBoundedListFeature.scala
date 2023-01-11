@@ -3,11 +3,14 @@ package ai.metarank.fstore.redis
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.codec.{KCodec, StoreFormat, VCodec}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.transfer.StateSink
+import ai.metarank.fstore.transfer.StateSink.TransferResult
 import ai.metarank.model.Feature.BoundedListFeature
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Scalar.{SDouble, SString}
+import ai.metarank.model.State.BoundedListState
 import ai.metarank.model.{Key, Scalar, Timestamp}
 import ai.metarank.model.Write.Append
 import ai.metarank.util.Logging
@@ -52,5 +55,20 @@ case class RedisBoundedListFeature(
       }
     }
   }
+}
 
+object RedisBoundedListFeature {
+  implicit val listStateSink: StateSink[BoundedListState, RedisBoundedListFeature] =
+    new StateSink[BoundedListState, RedisBoundedListFeature] {
+      override def sink(f: RedisBoundedListFeature, state: fs2.Stream[IO, BoundedListState]): IO[TransferResult] =
+        state
+          .evalMap(s => {
+            val key    = f.format.key.encode(f.prefix, s.key)
+            val values = s.values.map(f.format.timeValue.encode)
+            f.client.lpush(key, values).map(_ => 1)
+          })
+          .compile
+          .fold(0)(_ + _)
+          .map(TransferResult.apply)
+    }
 }

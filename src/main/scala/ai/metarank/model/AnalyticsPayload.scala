@@ -2,6 +2,7 @@ package ai.metarank.model
 
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
+import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.{Config, ModelConfig, StateStoreConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
@@ -105,6 +106,7 @@ object AnalyticsPayload {
       state = config.state match {
         case _: RedisStateConfig  => "redis"
         case _: MemoryStateConfig => "memory"
+        case _: FileStateConfig   => "file"
       },
       modelTypes = config.models.values.map {
         case LambdaMARTConfig(_: LightGBMConfig, _, _, _, _) => "lambdamart-lightgbm"

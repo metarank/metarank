@@ -2,15 +2,16 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore, CachedModelStore}
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemModelStore, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
+import ai.metarank.fstore.memory.MemModelStore
+
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.ml.Model
 import ai.metarank.model.{FeatureValue, Key, Schema}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
@@ -48,10 +49,10 @@ case class RedisPersistence(
             val keyString = keyRaw.substring(2)
             val keyType   = keyRaw.substring(0, 1)
             invalidate(keyType, keyString)
-            logger.debug(s"cache invalidation message: key=$keyString type=$keyType")
+            // logger.debug(s"cache invalidation message: key=$keyString type=$keyType")
           })
         } else {
-          logger.debug("empty invalidation message")
+          // logger.debug("empty invalidation message")
         }
       }
 
@@ -70,6 +71,7 @@ case class RedisPersistence(
   lazy val stateCache = Scaffeine()
     .ticker(ticker)
     .maximumSize(cache.maxSize)
+    .softValues()
     .expireAfterAccess(cache.ttl)
     .build[Key, AnyRef]()
 
@@ -79,52 +81,31 @@ case class RedisPersistence(
     .expireAfterAccess(1.hour)
     .build[ModelName, Model[_]]()
 
-  override lazy val lists = schema.lists.map { case (name, conf) =>
-    name -> CachedBoundedListFeature(
-      fast = MemBoundedList(conf, stateCache),
-      slow = RedisBoundedListFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val lists: Map[FeatureKey, RedisBoundedListFeature] = schema.lists.map { case (name, conf) =>
+    name -> RedisBoundedListFeature(conf, stateClient, Prefix.STATE, format)
   }
 
-  override lazy val counters = schema.counters.map { case (name, conf) =>
-    name -> CachedCounterFeature(
-      fast = MemCounter(conf, stateCache),
-      slow = RedisCounterFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val counters: Map[FeatureKey, RedisCounterFeature] = schema.counters.map { case (name, conf) =>
+    name -> RedisCounterFeature(conf, stateClient, Prefix.STATE, format)
   }
-  override lazy val periodicCounters =
+  override lazy val periodicCounters: Map[FeatureKey, RedisPeriodicCounterFeature] =
     schema.periodicCounters.map { case (name, conf) =>
-      name -> CachedPeriodicCounterFeature(
-        fast = MemPeriodicCounter(conf, stateCache),
-        slow = RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE, format)
-      )
+      name -> RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE, format)
     }
 
-  override lazy val freqs = schema.freqs.map { case (name, conf) =>
-    name -> CachedFreqEstimatorFeature(
-      fast = MemFreqEstimator(conf, stateCache),
-      slow = RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val freqs: Map[FeatureKey, RedisFreqEstimatorFeature] = schema.freqs.map { case (name, conf) =>
+    name -> RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE, format)
   }
 
-  override lazy val scalars = schema.scalars.map { case (name, conf) =>
-    name -> CachedScalarFeature(
-      fast = MemScalarFeature(conf, stateCache),
-      slow = RedisScalarFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val scalars: Map[FeatureKey, RedisScalarFeature] = schema.scalars.map { case (name, conf) =>
+    name -> RedisScalarFeature(conf, stateClient, Prefix.STATE, format)
   }
-  override lazy val stats = schema.stats.map { case (name, conf) =>
-    name -> CachedStatsEstimatorFeature(
-      fast = MemStatsEstimator(conf, stateCache),
-      slow = RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val stats: Map[FeatureKey, RedisStatsEstimatorFeature] = schema.stats.map { case (name, conf) =>
+    name -> RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE, format)
   }
 
-  override lazy val maps = schema.maps.map { case (name, conf) =>
-    name -> CachedMapFeature(
-      fast = MemMapFeature(conf, stateCache),
-      slow = RedisMapFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val maps: Map[FeatureKey, RedisMapFeature] = schema.maps.map { case (name, conf) =>
+    name -> RedisMapFeature(conf, stateClient, Prefix.STATE, format)
   }
 
   override lazy val models: ModelStore = CachedModelStore(
@@ -132,7 +113,7 @@ case class RedisPersistence(
     slow = RedisModelStore(modelClient, Prefix.MODELS)(format.modelName, format.model)
   )
 
-  override lazy val values: Persistence.KVStore[Key, FeatureValue] =
+  override lazy val values: RedisKVStore[Key, FeatureValue] =
     RedisKVStore(valuesClient, Prefix.VALUES)(format.key, format.featureValue)
 
 //  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
@@ -174,18 +155,20 @@ object RedisPersistence {
     models <- RedisClient.create(host, port, db.models, pipeline, auth, tls, timeout)
     values <- RedisClient.create(host, port, db.values, pipeline, auth, tls, timeout)
     _ <- Resource.liftK(
-      IO.fromCompletableFuture(
-        IO(
-          state.reader
-            .clientTracking(
-              TrackingArgs.Builder
-                .enabled()
-                .bcast()
-                .noloop()
-                .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
-            )
-            .toCompletableFuture
-        )
+      IO.whenA(cache.maxSize > 0)(
+        IO.fromCompletableFuture(
+          IO(
+            state.reader
+              .clientTracking(
+                TrackingArgs.Builder
+                  .enabled()
+                  .bcast()
+                  .noloop()
+                  .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
+              )
+              .toCompletableFuture
+          )
+        ).void
       )
     )
   } yield {

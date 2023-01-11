@@ -1,5 +1,6 @@
 package ai.metarank.config
 
+import ai.metarank.config.StateStoreConfig.FileStateConfig.{FileBackend, RocksDBBackend}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
@@ -104,6 +105,31 @@ object StateStoreConfig extends Logging {
   )
 
   case class MemoryStateConfig() extends StateStoreConfig
+  case class FileStateConfig(
+      path: String,
+      format: StoreFormat = BinaryStoreFormat,
+      backend: FileBackend = RocksDBBackend
+  ) extends StateStoreConfig
+  object FileStateConfig {
+    sealed trait FileBackend
+    case object RocksDBBackend extends FileBackend
+    case object MapDBBackend   extends FileBackend
+
+    implicit val fileBackendDecoder: Decoder[FileBackend] = Decoder.decodeString.emapTry {
+      case "rocksdb" => Success(RocksDBBackend)
+      case "mapdb"   => Success(MapDBBackend)
+      case other     => Failure(new Exception(s"file backend $other not supported"))
+    }
+    implicit val fileStateDecoder: Decoder[FileStateConfig] = Decoder.instance(c =>
+      for {
+        path   <- c.downField("path").as[String]
+        format <- c.downField("format").as[Option[StoreFormat]]
+        back   <- c.downField("backend").as[Option[FileBackend]]
+      } yield {
+        FileStateConfig(path, format.getOrElse(BinaryStoreFormat), back.getOrElse(RocksDBBackend))
+      }
+    )
+  }
 
   implicit val redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
     for {
@@ -137,6 +163,7 @@ object StateStoreConfig extends Logging {
     c.downField("type").as[String].flatMap {
       case "redis"  => redisConfigDecoder(c)
       case "memory" => memConfigDecoder(c)
+      case "file"   => FileStateConfig.fileStateDecoder(c)
       case other    => Left(DecodingFailure(s"state store type '$other' is not supported", c.history))
     }
   )

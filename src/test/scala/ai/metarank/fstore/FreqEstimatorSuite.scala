@@ -1,5 +1,6 @@
 package ai.metarank.fstore
 
+import ai.metarank.model.Feature.FreqEstimatorFeature
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.FeatureValue.FrequencyValue
 import ai.metarank.model.Key.FeatureName
@@ -10,7 +11,7 @@ import ai.metarank.util.TestKey
 
 import scala.util.Random
 
-trait FreqEstimatorSuite extends FeatureSuite[PutFreqSample] {
+trait FreqEstimatorSuite extends FeatureSuite[PutFreqSample, FreqEstimatorConfig, FreqEstimatorFeature] {
   val config: FreqEstimatorConfig =
     FreqEstimatorConfig(scope = ItemScopeType, name = FeatureName("f1"), 100, 1)
 

@@ -17,6 +17,7 @@ import ai.metarank.util.DelimitedPair.SlashDelimitedPair
 import io.circe.{Codec, Decoder, Encoder, Json}
 import org.apache.commons.codec.binary.Base64
 
+import java.io.{DataInput, DataOutput}
 import scala.util.{Failure, Success}
 
 sealed trait StoreFormat {
@@ -54,10 +55,10 @@ object StoreFormat {
   }
 
   val keyEncoder: KCodec[Key] = new KCodec[Key] {
-    override def encode(prefix: String, value: Key): String = s"$prefix/${value.scope.asString}/${value.feature.value}"
+    override def encode(prefix: String, value: Key): String = s"$prefix/${value.feature.value}/${value.scope.asString}"
     override def decode(str: String): Either[Throwable, Key] = {
       str.split('/').toList match {
-        case _ :: scope :: value :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(value)))
+        case _ :: value :: scope :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(value)))
         case other                      => Left(new Exception(s"cannot parse key $other"))
       }
     }

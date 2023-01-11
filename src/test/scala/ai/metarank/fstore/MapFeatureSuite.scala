@@ -1,5 +1,6 @@
 package ai.metarank.fstore
 
+import ai.metarank.model.Feature.MapFeature
 import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.FeatureValue.MapValue
 import ai.metarank.model.Key.FeatureName
@@ -10,7 +11,7 @@ import ai.metarank.util.TestKey
 
 import scala.concurrent.duration._
 
-trait MapFeatureSuite extends FeatureSuite[PutTuple] {
+trait MapFeatureSuite extends FeatureSuite[PutTuple, MapConfig, MapFeature] {
   val config = MapConfig(scope = ItemScopeType, FeatureName("counter"), 1.day)
   val k      = TestKey(config, id = "p11")
 

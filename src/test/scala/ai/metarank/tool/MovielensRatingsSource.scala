@@ -30,7 +30,7 @@ object MovielensRatingsSource {
             )
           )
         } else {
-          Stream.raiseError(new Exception("wrong item encoding format"))
+          Stream.raiseError[IO](new Exception("wrong item encoding format"))
         }
       })
   }

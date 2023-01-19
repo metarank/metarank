@@ -12,6 +12,8 @@ image:
 
 # Can be used to pass auth secrets as env variables
 env: []
+#  - name: JVM_OPTS
+#    value: "-Xmx1g -verbose:gc"
 #  - name: METARANK_REDIS_PASSWORD
 #    valueFrom:
 #      secretKeyRef:

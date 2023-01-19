@@ -89,7 +89,7 @@ The Metarank docker container accepts a `JVM_OPTS` environment variable to contr
 * Enable verbose GC logging. You may notice the following lines in the log, they are normal:
 
 ```
-[282.621s][info][gc] GC(27) Pause Young (Allocation Failure) 55M->36M(67M) 2.718ms 
+[282.621s][info][gc] GC(26) Pause Young (Allocation Failure) 55M->36M(67M) 2.718ms 
 ```
 
 ## Installing the chart

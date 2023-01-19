@@ -2,9 +2,9 @@ name: Integration tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 0.5.x ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, 0.5.x ]
 env:
   AWS_ACCESS_KEY_ID: foo
   AWS_SECRET_ACCESS_KEY: bar

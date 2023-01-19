@@ -1,5 +1,7 @@
 #!/bin/bash
 
 set -euxo pipefail
-exec /usr/bin/java -jar /app/metarank.jar "$@"
+OPTS=${JAVA_OPTS:-"-Xmx1g -verbose:gc"}
+
+exec /usr/bin/java $OPTS -jar /app/metarank.jar "$@"
 

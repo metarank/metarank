@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 0.5.x ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, 0.5.x ]
 
 env:
   METARANK_TRACKING: false

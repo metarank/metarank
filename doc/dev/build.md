@@ -59,12 +59,12 @@ $ sbt docker
 [info]  ---> e1caa262b1f1
 [info] Successfully built e1caa262b1f1
 [info] Tagging image e1caa262b1f1 with name: metarank/metarank:latest
-[info] Tagging image e1caa262b1f1 with name: metarank/metarank:0.5.15
+[info] Tagging image e1caa262b1f1 with name: metarank/metarank:0.5.16
 [success] Total time: 26 s, completed Aug 30, 2022, 3:41:27 PM
 
 $ docker images
 
 REPOSITORY                        TAG                           IMAGE ID       CREATED          SIZE
-metarank/metarank                 0.5.15                         e1caa262b1f1   45 seconds ago   632MB
+metarank/metarank                 0.5.16                         e1caa262b1f1   45 seconds ago   632MB
 
 ```

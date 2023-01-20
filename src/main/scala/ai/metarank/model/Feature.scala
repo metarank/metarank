@@ -12,6 +12,15 @@ import ai.metarank.model.Write._
 import ai.metarank.model.FeatureValue._
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.State.{
+  BoundedListState,
+  CounterState,
+  FreqEstimatorState,
+  MapState,
+  PeriodicCounterState,
+  ScalarState,
+  StatsEstimatorState
+}
 import cats.effect.IO
 import com.google.common.math.Quantiles
 

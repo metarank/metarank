@@ -2,9 +2,12 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.codec.{KCodec, StoreFormat}
 import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.transfer.StateSink
+import ai.metarank.fstore.transfer.StateSink.TransferResult
 import ai.metarank.model.Feature.PeriodicCounterFeature
 import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
+import ai.metarank.model.State.PeriodicCounterState
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PeriodicIncrement
 import cats.effect.IO
@@ -36,4 +39,25 @@ case class RedisPeriodicCounterFeature(
   } yield {
     Timestamp(ts) -> cnt
   }
+}
+
+object RedisPeriodicCounterFeature {
+  implicit val periodicSink: StateSink[PeriodicCounterState, RedisPeriodicCounterFeature] =
+    new StateSink[PeriodicCounterState, RedisPeriodicCounterFeature] {
+      override def sink(
+          f: RedisPeriodicCounterFeature,
+          state: fs2.Stream[IO, PeriodicCounterState]
+      ): IO[TransferResult] =
+        state
+          .evalMap(s =>
+            s.values.toList
+              .map(kv => f.client.hincrby(f.format.key.encode(f.prefix, s.key), kv._1.ts.toString, kv._2.toInt))
+              .sequence
+              .map(_ => 1)
+          )
+          .compile
+          .fold(0)(_ + _)
+          .map(TransferResult.apply)
+
+    }
 }

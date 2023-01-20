@@ -3,6 +3,7 @@ package ai.metarank.fstore.codec.values
 import ai.metarank.fstore.codec.VCodec
 import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
+import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream}
 
 import java.io.{
   BufferedInputStream,
@@ -34,7 +35,7 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
   override def encode(value: T): Array[Byte] = {
     val bytes = new ByteArrayOutputStream()
     val stream = if (compress) {
-      new DataOutputStream(new BufferedOutputStream(new ZstdOutputStream(bytes, 3), 1024 * 16))
+      new DataOutputStream(new BufferedOutputStream(new ZstdOutputStream(bytes, 1), 1024 * 16))
     } else {
       new DataOutputStream(bytes)
     }

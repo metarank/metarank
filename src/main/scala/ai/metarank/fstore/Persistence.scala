@@ -1,7 +1,11 @@
 package ai.metarank.fstore
 
 import ai.metarank.config.StateStoreConfig
+import ai.metarank.config.StateStoreConfig.FileStateConfig
+import ai.metarank.config.StateStoreConfig.FileStateConfig.{MapDBBackend, RocksDBBackend}
 import ai.metarank.fstore.Persistence.{KVStore, ModelName}
+import ai.metarank.fstore.file.FilePersistence
+import ai.metarank.fstore.file.client.{MapDBClient, RocksDBClient}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.model.Feature.{
@@ -19,6 +23,8 @@ import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec
+
+import java.nio.file.Path
 
 trait Persistence {
   lazy val ticker = new EventTicker
@@ -94,6 +100,8 @@ object Persistence extends Logging {
   def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
     case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth, tls, timeout) =>
       RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth, tls, timeout)
+    case f: FileStateConfig =>
+      FilePersistence.create(f, schema)
     case StateStoreConfig.MemoryStateConfig() =>
       Resource.make(
         info("using in-memory persistence")

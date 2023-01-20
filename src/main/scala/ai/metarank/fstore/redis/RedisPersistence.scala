@@ -2,31 +2,14 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.fstore.cache.CachedFeature.{
-  CachedBoundedListFeature,
-  CachedCounterFeature,
-  CachedFreqEstimatorFeature,
-  CachedMapFeature,
-  CachedPeriodicCounterFeature,
-  CachedScalarFeature,
-  CachedStatsEstimatorFeature
-}
+import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.memory.{
-  MemBoundedList,
-  MemCounter,
-  MemFreqEstimator,
-  MemKVStore,
-  MemMapFeature,
-  MemPeriodicCounter,
-  MemScalarFeature,
-  MemStatsEstimator
-}
+import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.model.{FeatureValue, Key, Schema}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -97,52 +80,31 @@ case class RedisPersistence(
     .expireAfterAccess(1.hour)
     .build[ModelName, Scorer]()
 
-  override lazy val lists = schema.lists.map { case (name, conf) =>
-    name -> CachedBoundedListFeature(
-      fast = MemBoundedList(conf, stateCache),
-      slow = RedisBoundedListFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val lists: Map[FeatureKey, RedisBoundedListFeature] = schema.lists.map { case (name, conf) =>
+    name -> RedisBoundedListFeature(conf, stateClient, Prefix.STATE, format)
   }
 
-  override lazy val counters = schema.counters.map { case (name, conf) =>
-    name -> CachedCounterFeature(
-      fast = MemCounter(conf, stateCache),
-      slow = RedisCounterFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val counters: Map[FeatureKey, RedisCounterFeature] = schema.counters.map { case (name, conf) =>
+    name -> RedisCounterFeature(conf, stateClient, Prefix.STATE, format)
   }
-  override lazy val periodicCounters =
+  override lazy val periodicCounters: Map[FeatureKey, RedisPeriodicCounterFeature] =
     schema.periodicCounters.map { case (name, conf) =>
-      name -> CachedPeriodicCounterFeature(
-        fast = MemPeriodicCounter(conf, stateCache),
-        slow = RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE, format)
-      )
+      name -> RedisPeriodicCounterFeature(conf, stateClient, Prefix.STATE, format)
     }
 
-  override lazy val freqs = schema.freqs.map { case (name, conf) =>
-    name -> CachedFreqEstimatorFeature(
-      fast = MemFreqEstimator(conf, stateCache),
-      slow = RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val freqs: Map[FeatureKey, RedisFreqEstimatorFeature] = schema.freqs.map { case (name, conf) =>
+    name -> RedisFreqEstimatorFeature(conf, stateClient, Prefix.STATE, format)
   }
 
-  override lazy val scalars = schema.scalars.map { case (name, conf) =>
-    name -> CachedScalarFeature(
-      fast = MemScalarFeature(conf, stateCache),
-      slow = RedisScalarFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val scalars: Map[FeatureKey, RedisScalarFeature] = schema.scalars.map { case (name, conf) =>
+    name -> RedisScalarFeature(conf, stateClient, Prefix.STATE, format)
   }
-  override lazy val stats = schema.stats.map { case (name, conf) =>
-    name -> CachedStatsEstimatorFeature(
-      fast = MemStatsEstimator(conf, stateCache),
-      slow = RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val stats: Map[FeatureKey, RedisStatsEstimatorFeature] = schema.stats.map { case (name, conf) =>
+    name -> RedisStatsEstimatorFeature(conf, stateClient, Prefix.STATE, format)
   }
 
-  override lazy val maps = schema.maps.map { case (name, conf) =>
-    name -> CachedMapFeature(
-      fast = MemMapFeature(conf, stateCache),
-      slow = RedisMapFeature(conf, stateClient, Prefix.STATE, format)
-    )
+  override lazy val maps: Map[FeatureKey, RedisMapFeature] = schema.maps.map { case (name, conf) =>
+    name -> RedisMapFeature(conf, stateClient, Prefix.STATE, format)
   }
 
   import ai.metarank.rank.Model._
@@ -151,7 +113,7 @@ case class RedisPersistence(
     slow = RedisKVStore(modelClient, Prefix.MODELS)(format.model, format.scorer)
   )
 
-  override lazy val values: Persistence.KVStore[Key, FeatureValue] =
+  override lazy val values: RedisKVStore[Key, FeatureValue] =
     RedisKVStore(valuesClient, Prefix.VALUES)(format.key, format.featureValue)
 
 //  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)

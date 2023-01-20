@@ -146,6 +146,7 @@ object TrainConfig {
   )
 
   def fromState(conf: StateStoreConfig) = conf match {
+    case StateStoreConfig.FileStateConfig(path, format, backend) => FileTrainConfig(path, format)
     case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, format, auth, tls, timeout) =>
       RedisTrainConfig(host, port, db.rankings, cache, pipeline, format, auth, tls, timeout)
     case StateStoreConfig.MemoryStateConfig() =>

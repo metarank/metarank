@@ -2,12 +2,29 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.fstore.cache.CachedFeature.{CachedBoundedListFeature, CachedCounterFeature, CachedFreqEstimatorFeature, CachedMapFeature, CachedPeriodicCounterFeature, CachedScalarFeature, CachedStatsEstimatorFeature}
+import ai.metarank.fstore.cache.CachedFeature.{
+  CachedBoundedListFeature,
+  CachedCounterFeature,
+  CachedFreqEstimatorFeature,
+  CachedMapFeature,
+  CachedPeriodicCounterFeature,
+  CachedScalarFeature,
+  CachedStatsEstimatorFeature
+}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
 import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore}
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.memory.{MemBoundedList, MemCounter, MemFreqEstimator, MemKVStore, MemMapFeature, MemPeriodicCounter, MemScalarFeature, MemStatsEstimator}
+import ai.metarank.fstore.memory.{
+  MemBoundedList,
+  MemCounter,
+  MemFreqEstimator,
+  MemKVStore,
+  MemMapFeature,
+  MemPeriodicCounter,
+  MemScalarFeature,
+  MemStatsEstimator
+}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.rank.Model.Scorer

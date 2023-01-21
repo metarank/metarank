@@ -61,7 +61,6 @@ trait BoundedListSuite extends FeatureSuite[Append, BoundedListConfig, BoundedLi
     }
   }
 
-
 //  it should "accept state" in {
 //    feature()
 //      .to(fs2.Stream(BoundedListState(TestKey(config, id = "p14"), List(TimeValue(now, SString("z"))))))

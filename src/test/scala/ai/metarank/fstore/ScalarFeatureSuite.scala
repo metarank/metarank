@@ -33,7 +33,6 @@ trait ScalarFeatureSuite extends FeatureSuite[Put, ScalarConfig, ScalarFeature] 
     result shouldBe Some(ScalarValue(key, now, put2.value))
   }
 
-
 //  it should "accept bulk upload" in {
 //    val state = ScalarState(Key(ItemScope(ItemId("p13")), FeatureName("counter")), SString("bar"))
 //    feature().to(fs2.Stream(state)).unsafeRunSync()

@@ -90,8 +90,8 @@ object Train extends Logging {
       backend: ModelBackend,
       splitter: SplitStrategy
   ): IO[TrainResult] = for {
-    data        <- loadDataset(cts, model)
-    split <- splitDataset(splitter, model, data)
+    data         <- loadDataset(cts, model)
+    split        <- splitDataset(splitter, model, data)
     _            <- info(s"training model for train=${split.train.groups.size} test=${split.test.groups.size}")
     trainedModel <- IO(model.train(split.train, split.test))
     scorer       <- IO(LambdaMARTScorer(backend, trainedModel.bytes))

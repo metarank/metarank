@@ -10,7 +10,7 @@ import org.scalatest.BeforeAndAfterAll
 import java.nio.file.{Files, Path, Paths}
 import cats.implicits._
 
-trait FileTest  {
+trait FileTest {
   lazy val db: FileClient = RocksDBClient.createUnsafe(Files.createTempDirectory("boop"))
 
 }

@@ -33,5 +33,4 @@ trait CounterSuite extends FeatureSuite[Increment, CounterConfig, CounterFeature
     result shouldBe Some(CounterValue(key, increments.map(_.ts).maxBy(_.ts), increments.map(_.inc).sum))
   }
 
-
 }

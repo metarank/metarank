@@ -21,11 +21,11 @@ import java.io.{DataInput, DataOutput}
 object FeatureValueCodec extends BinaryCodec[FeatureValue] {
   import CodecOps._
 
-  val mapIntDoubleCodec      = new MapCodec(BinaryCodec.int, BinaryCodec.double)
-  val mapStringScalarCodec   = new MapCodec(BinaryCodec.string, ScalarCodec)
-  val mapStringDoubleCodec   = new MapCodec(BinaryCodec.string, BinaryCodec.double)
+  val mapIntDoubleCodec       = new MapCodec(BinaryCodec.int, BinaryCodec.double)
+  val mapStringScalarCodec    = new MapCodec(BinaryCodec.string, ScalarCodec)
+  val mapStringDoubleCodec    = new MapCodec(BinaryCodec.string, BinaryCodec.double)
   val arrayPeriodicValueCodec = new ArrayCodec(PeriodicValueCodec)
-  val listTimeValueCodec     = new ListCodec(TimeValueCodec)
+  val listTimeValueCodec      = new ListCodec(TimeValueCodec)
 
   override def read(in: DataInput): FeatureValue = in.readByte() match {
     case 0 =>

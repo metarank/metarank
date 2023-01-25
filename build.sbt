@@ -63,7 +63,7 @@ lazy val root = (project in file("."))
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
       "io.prometheus"          % "simpleclient_httpserver"  % prometheusVersion,
       "software.amazon.awssdk" % "s3"                       % awsVersion,
-      "org.rocksdb"            % "rocksdbjni"               % "7.8.3",
+      "org.rocksdb"            % "rocksdbjni"               % "7.9.2",
       "org.mapdb"              % "mapdb"                    % "3.0.9" exclude ("net.jpountz.lz4", "lz4")
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),

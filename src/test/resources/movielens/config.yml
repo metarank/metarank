@@ -6,7 +6,7 @@ models:
   similar:
     type: als
     interactions: [click]
-    factors: 30
+    factors: 100
     iterations: 30
 
   trending:

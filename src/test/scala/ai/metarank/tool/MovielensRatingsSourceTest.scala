@@ -9,7 +9,7 @@ import java.util.zip.GZIPInputStream
 
 class MovielensRatingsSourceTest extends AnyFlatSpec with Matchers {
   it should "pull things from a file" in {
-    val stream = new GZIPInputStream(Resource.my.getAsStream("/movielens/1m/ratings.dat.gz"))
+    val stream = new GZIPInputStream(Resource.my.getAsStream("/movielens/ratings.dat.gz"))
     val events =
       MovielensRatingsSource
         .fromInputStream(stream)

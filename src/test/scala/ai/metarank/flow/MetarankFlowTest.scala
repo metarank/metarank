@@ -132,7 +132,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
 //=======
     val q =
       ranker.makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
-    q.values shouldBe List(
+    q.values.toList shouldBe List(
       ItemValue(
         ItemId("p1"),
         List(
@@ -185,7 +185,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "generate updated query" in {
     val q =
       ranker.makeQuery(rankingEvent2, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
-    q.values shouldBe List(
+    q.values.toList shouldBe List(
       ItemValue(
         ItemId("p1"),
         List(

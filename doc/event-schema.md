@@ -33,7 +33,7 @@ You can provide some additional context, like a search query, selected filters o
 * string
 * number
 * list of strings
-* list of numbersr 
+* list of numbers 
 
 ## Item metadata event
 

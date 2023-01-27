@@ -6,7 +6,7 @@ import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.model.Event
-import ai.metarank.util.{TestFeatureMapping, TestRankingEvent}
+import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
 import cats.effect.IO
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
@@ -47,6 +47,12 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
         .apply(List(TestRankingEvent.event(List("p1")), TestRankingEvent.event(List("p1"))))
         .noSpaces
 
+    val response = send(event)
+    response.status.code shouldBe 200
+  }
+
+  it should "accept interactions without ranking" in {
+    val event = TestInteractionEvent("p1", "neno").copy(ranking = None).asInstanceOf[Event].asJson.noSpaces
     val response = send(event)
     response.status.code shouldBe 200
   }

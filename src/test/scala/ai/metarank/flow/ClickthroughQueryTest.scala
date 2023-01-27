@@ -1,13 +1,13 @@
 package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.FieldName.EventType.Item
@@ -43,7 +43,7 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
     )
   )
   lazy val model = LambdaMARTConfig(
-    backend = XGBoostBackend(),
+    backend = XGBoostConfig(),
     features = features.map(_.name),
     weights = Map("click" -> 1)
   )
@@ -94,7 +94,13 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
       )
     )
     val query =
-      ClickthroughQuery(ct.values, ct.ct.interactions, 1, model.weights, mapping.models("xgboost").datasetDescriptor)
+      ClickthroughQuery(
+        ct.values,
+        ct.ct.interactions,
+        1,
+        model.weights,
+        mapping.models("xgboost").asInstanceOf[LambdaMARTPredictor].desc
+      )
     query.labels.toList shouldBe List(0.0, 1.0, 0.0)
     query.columns shouldBe 5
     query.rows shouldBe 3

@@ -7,7 +7,6 @@ import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.file.client.{FileClient, MapDBClient, RocksDBClient}
 import ai.metarank.fstore.memory.MemModelStore
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
-import ai.metarank.rank.Model.Scorer
 import cats.effect.IO
 
 import java.nio.file.Path
@@ -28,8 +27,8 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat) 
   override lazy val maps: Map[FeatureKey, FileMapFeature] =
     schema.maps.view.mapValues(FileMapFeature(_, db, "m", format)).toMap
 
-  override lazy val models: Persistence.KVStore[ModelName, Scorer] = MemModelStore()
-  override lazy val values: FileKVStore                            = FileKVStore(db, "v", format)
+  override lazy val models              = MemModelStore()
+  override lazy val values: FileKVStore = FileKVStore(db, "v", format)
 
   override def healthcheck(): IO[Unit] = IO.unit
 

@@ -2,13 +2,13 @@ package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
 import ai.metarank.api.routes
-import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, TrainApi}
+import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, RecommendApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config, InputConfig}
 import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
-import ai.metarank.rank.Ranker
+import ai.metarank.ml.{Ranker, Recommender}
 import ai.metarank.source.EventSource
 import ai.metarank.util.Logging
 import ai.metarank.util.analytics.Metrics
@@ -56,8 +56,9 @@ object Serve extends Logging {
     rank       <- IO.pure(RankApi(Ranker(mapping, store)).routes)
     feedback   <- IO.pure(FeedbackApi(store, mapping, buffer).routes)
     train      <- IO.pure(TrainApi(mapping, store, cts).routes)
-    metricsApi <- IO(DefaultExports.initialize()) *> IO.pure(MetricsApi())
-    routes  = health <+> rank <+> feedback <+> train <+> metricsApi.routes
+    rec        <- IO.pure(RecommendApi(Recommender(mapping, store), store).routes)
+    metricsApi <- IO(DefaultExports.initialize()) *> IO.pure(MetricsApi().routes)
+    routes  = health <+> rank <+> feedback <+> train <+> metricsApi <+> rec
     httpApp = Router("/" -> routes).orNotFound
     api = BlazeServerBuilder[IO]
       .bindHttp(conf.port.value, conf.host.value)

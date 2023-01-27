@@ -1,14 +1,13 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName

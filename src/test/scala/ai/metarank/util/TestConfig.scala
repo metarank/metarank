@@ -2,10 +2,10 @@ package ai.metarank.util
 
 import ai.metarank.config.{ApiConfig, Config, CoreConfig, Hostname, Port}
 import ai.metarank.config.InputConfig._
-import ai.metarank.config.ModelConfig.ShuffleConfig
 import ai.metarank.config.StateStoreConfig.MemoryStateConfig
 import ai.metarank.config.TrainConfig.MemoryTrainConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName

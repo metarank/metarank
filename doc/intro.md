@@ -1,20 +1,43 @@
 # What is Metarank?
 
-Metarank is a personalization service that can be easily integrated into existing systems and used to personalize different types of content. 
+Metarank is a recommendation and personalization service - a self-hosted reranking API to improve CTR and conversion. 
 
-Like Instagram’s personalized feed that is based on the posts that you’ve seen and liked, Facebook’s new friends recommendation widget or Amazon’s personalized results, you can add personalization to your application. You can combine different features, both user-based like location or gender and item-based like tags with different actions: clicks, likes, purchases to create a personalized experience for your users.
+Main features:
+* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/trending.md) (MF ALS). 
+* Personalization: [secondary reranking](quickstart/quickstart.md) (LambdaMART)
+* A/B testing, [multiple model serving](configuration/overview.md#models)
+* [Bootstrapping](quickstart/quickstart.md#quickstart) on historical traffic data
 
-Thanks to Metarank’s simple API and YAML configuration, you don’t need any prio machine learning experience to start improving your key metrics and run experiments.
+## Common use-cases
+
+Metarank is an open-source service for:
+* Algorithmic feed like on FB/Twitter.
+* CTR-optimized category/search page ordering on Airbnb. 
+* Items similar to the one you're viewing on Amazon.
+* Popular items on any ecommerce store.
+
+Metarank's recommendations are based on interaction history (like clicks and purchases), and secondary reranking - on user & item metadata and a rich set of typical ranking feature generators:
+* [User-Agent](configuration/features/user-session.md#user-agent-field-extractor), [Referer](configuration/features/user-session.md#referer) field parsers
+* [Counters](configuration/features/counters.md#counters), [rolling window counters](configuration/features/counters.md#windowed-counter), [rates](configuration/features/counters.md#rate) (CTR & conversion)
+* [categorical](configuration/features/scalar.md#index-vs-one-hot-what-to-choose) (with one-hot, label and XGBoost/LightGBM native encodings)
+* [text matching](configuration/features/text.md#fieldmatch) (ngrams and Lucene-based)
+* and [many more](configuration/feature-extractors.md)!
+
+## Demo
+
+You can play with Metarank demo on [demo.metarank.ai](https://demo.metarank.ai):
 
 ![Demo](./img/demo.gif)
 
-Personalization is showing items that have unique order for each and every user. Personalization can be done based on user properties: location, gender, preferences and user actions: clicks, likes and other interactions. You can see personalized widgets everywhere: Facebook uses personalization to suggest you new friends and show posts that will most likely get your attention first; AirBnB uses personalization for their experiences offering, suggesting new experiences based on your location and previous actions. 
-
-With Metarank you implement similar systems thanks to flexible configuration and keep control of your user data.
+The demo itself and [the data used](https://github.com/metarank/msrd) are open-source and you can grab a copy of training events and config file [in the github repo](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens).
 
 ## Metarank in One Minute
 
-Let us show how you can start personalizing content in just under a minute (depends on your internet speed!). 
+Let us show how you can start personalizing content with LambdaMART-based reranking in just under a minute:
+
+1. Prepare the data: we will get the dataset and config file from the [demo.metarank.ai](https://demo.metarank.ai)
+2. Start Metarank in a standalone mode: it will import the data, train the ML model and start the API.
+3. Send a couple of requests to the API.
 
 ### Step 1: Prepare data
 
@@ -130,6 +153,6 @@ curl http://localhost:8080/rank/xgboost \
 
 ## What's next? 
 
-Check out a more in-depth [Quickstart](quickstart/quickstart.md) full [Reference](installation.md). 
+Check out a more in-depth [Quickstart](quickstart/quickstart.md) and full [Reference](installation.md). 
 
 If you have any questions, don't hesitate to join our [Slack](https://communityinviter.com/apps/metarank/metarank)!

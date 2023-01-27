@@ -1,7 +1,7 @@
 package ai.metarank.model
 
-import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
-import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
+import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
+import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.{Config, ModelConfig, StateStoreConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
@@ -31,6 +31,11 @@ import ai.metarank.main.CliArgs.{
   TrainArgs,
   ValidateArgs
 }
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
+import ai.metarank.ml.rank.NoopRanker.NoopConfig
+import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
+import ai.metarank.ml.recommend.TrendingRecommender.TrendingConfig
+import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import ai.metarank.model.AnalyticsPayload.{SystemParams, UsedFeature}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.Version
@@ -104,10 +109,12 @@ object AnalyticsPayload {
         case _: FileStateConfig   => "file"
       },
       modelTypes = config.models.values.map {
-        case LambdaMARTConfig(_: LightGBMBackend, _, _, _) => "lambdamart-lightgbm"
-        case LambdaMARTConfig(_: XGBoostBackend, _, _, _)  => "lambdamart-xgboost"
-        case ShuffleConfig(_, _)                           => "shuffle"
-        case NoopConfig(_)                                 => "noop"
+        case LambdaMARTConfig(_: LightGBMConfig, _, _, _, _) => "lambdamart-lightgbm"
+        case LambdaMARTConfig(_: XGBoostConfig, _, _, _, _)  => "lambdamart-xgboost"
+        case ShuffleConfig(_, _)                             => "shuffle"
+        case NoopConfig(_)                                   => "noop"
+        case TrendingConfig(_, _)                            => "trending"
+        case _: ALSConfig                                    => "als"
       }.toList,
       usedFeatures = config.features.toList.map {
         case f: RateFeatureSchema            => UsedFeature(f.name, "rate")

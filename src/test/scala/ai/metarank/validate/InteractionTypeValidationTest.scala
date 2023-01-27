@@ -1,7 +1,7 @@
 package ai.metarank.validate
 
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
+import ai.metarank.config.BoosterConfig.XGBoostConfig
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.{TestConfig, TestInteractionEvent}
 import ai.metarank.validate.checks.InteractionTypeValidation
@@ -11,7 +11,7 @@ import org.scalatest.matchers.should.Matchers
 
 class InteractionTypeValidationTest extends AnyFlatSpec with Matchers {
   val conf = TestConfig().copy(models =
-    Map("fo" -> LambdaMARTConfig(XGBoostBackend(), NonEmptyList.of(FeatureName("price")), Map("click" -> 1)))
+    Map("fo" -> LambdaMARTConfig(XGBoostConfig(), NonEmptyList.of(FeatureName("price")), Map("click" -> 1)))
   )
 
   it should "accept correct types" in {

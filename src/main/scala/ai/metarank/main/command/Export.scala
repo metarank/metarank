@@ -1,14 +1,14 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
+import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.Config
-import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.main.CliArgs.ExportArgs
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.util.StreamResource
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.model.BoosterConfigFile.{LightGBMConfigFile, XGBoostConfigFile}
-import ai.metarank.rank.{LambdaMARTModel, NoopModel, ShuffleModel}
 import ai.metarank.util.Logging
 import cats.effect.{ExitCode, IO}
 import cats.effect.kernel.Resource
@@ -33,23 +33,22 @@ object Export extends Logging {
       sample: Double,
       splitter: SplitStrategy
   ) = for {
-    modelConf <- IO
-      .fromOption(mapping.models.get(modelName))(new Exception(s"model $modelName is not defined in config"))
-    model <- modelConf match {
-      case lm: LambdaMARTModel => IO.pure(lm)
-      case _                   => IO.raiseError(new Exception(s"don't know how to export dataset for model $modelName"))
+    pred <- IO.fromOption(mapping.models.get(modelName))(new Exception(s"model $modelName is not defined in config"))
+    lmart <- pred match {
+      case lm: LambdaMARTPredictor => IO.pure(lm)
+      case _ => IO.raiseError(new Exception(s"don't know how to export dataset for model $modelName"))
     }
-    data    <- Train.loadDataset(cts, model, sample)
-    dataset <- Train.splitDataset(splitter, model, data)
-    _ <- model.conf.backend match {
-      case c: LightGBMBackend => exportLightgbm(out, dataset.train, dataset.test, c)
-      case c: XGBoostBackend  => exportXgboost(out, dataset.train, dataset.test, c)
+    data    <- lmart.loadDataset(cts.getall())
+    dataset <- lmart.splitDataset(splitter, lmart.desc, data)
+    _ <- lmart.config.backend match {
+      case c: LightGBMConfig => exportLightgbm(out, dataset.train, dataset.test, c)
+      case c: XGBoostConfig  => exportXgboost(out, dataset.train, dataset.test, c)
     }
   } yield {
     logger.info("export done")
   }
 
-  def exportXgboost(out: Path, train: Dataset, test: Dataset, model: XGBoostBackend) = for {
+  def exportXgboost(out: Path, train: Dataset, test: Dataset, model: XGBoostConfig) = for {
     _ <- info("using LibSVM format for XGBoost dataset export")
     _ <- StreamResource
       .of(Paths.get(out.toString + "/train.svm"))
@@ -62,7 +61,7 @@ object Export extends Logging {
       .use(s => IO(XGBoostConfigFile(model, "train.svm", "test.svm").write(s)))
   } yield {}
 
-  def exportLightgbm(out: Path, train: Dataset, test: Dataset, model: LightGBMBackend) = for {
+  def exportLightgbm(out: Path, train: Dataset, test: Dataset, model: LightGBMConfig) = for {
     _    <- info("using CSV format for LightGBM dataset export")
     cats <- IO(train.desc.features.collect { case Feature.CategoryFeature(name) => name })
     _ <- StreamResource

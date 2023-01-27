@@ -5,7 +5,7 @@ import ai.metarank.api.JsonChunk
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
 import ai.metarank.main.command.Train
 import ai.metarank.main.command.train.SplitStrategy
-import ai.metarank.rank.LambdaMARTModel
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk
@@ -16,14 +16,12 @@ import scodec.bits.ByteVector
 case class TrainApi(mapping: FeatureMapping, store: Persistence, cts: ClickthroughStore) extends Logging {
   def routes = HttpRoutes.of[IO] { case POST -> Root / "train" / modelName =>
     mapping.models.get(modelName) match {
-      case Some(model @ LambdaMARTModel(conf, _, _, _)) =>
+      case Some(pred) =>
         Train
-          .train(store, cts, model, modelName, conf.backend, SplitStrategy.default)
+          .train(store, cts, pred)
           .map(result => Response(entity = Entity.strict(JsonChunk(result))))
       case None =>
         error(Status.NotFound, s"Model $modelName is not defined in config")
-      case Some(other) =>
-        error(Status.BadRequest, s"Model $modelName ($other) cannot be trained")
     }
   }
 

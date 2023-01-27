@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.ShuffleConfig
+import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
 import ai.metarank.model.FeatureSchema
 import cats.data.{NonEmptyList, NonEmptyMap}
 

@@ -4,9 +4,10 @@ import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
 import io.circe.Codec
 import io.circe.generic.semiauto._
 
-case class TrainResult(iterations: List[IterationStatus], sizeBytes: Long, features: List[FeatureStatus])
+case class TrainResult(features: List[FeatureStatus])
 
 object TrainResult {
+  def empty = TrainResult(Nil)
   case class IterationStatus(id: Int, millis: Long, trainMetric: Double, testMetric: Double)
   case class FeatureStatus(
       name: String,

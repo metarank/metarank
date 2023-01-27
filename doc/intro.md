@@ -1,16 +1,34 @@
 # What is Metarank?
 
-Metarank is a personalization service that can be easily integrated into existing systems and used to personalize different types of content. 
+Metarank is a recommendation and personalization service - a self-hosted API to re-rank your content and maximize CTR and conversion. 
 
-Like Instagram’s personalized feed that is based on the posts that you’ve seen and liked, Facebook’s new friends recommendation widget or Amazon’s personalized results, you can add personalization to your application. You can combine different features, both user-based like location or gender and item-based like tags with different actions: clicks, likes, purchases to create a personalized experience for your users.
+Main features:
+* Recommendations: trending and similar-items (MF ALS). 
+* Personalization: secondary reranking (LambdaMART)
+* A/B testing, multiple model serving
+* Bootstrapping on historical traffic recordings
 
-Thanks to Metarank’s simple API and YAML configuration, you don’t need any prio machine learning experience to start improving your key metrics and run experiments.
+## Common use-cases
+
+Metarank is an open-source service for:
+* Algorithmic feed like on FB/Twitter.
+* CTR-optimized category/search page ordering on Airbnb. 
+* Items similar to the one you're viewing on Amazon.
+* Popular items on any ecommerce store.
+
+Metarank's recommendations are based on interaction history (like clicks and purchases), and secondary reranking - on user & item metadata and a rich set of typical ranking feature generators:
+* GeoIP, Referer field parsers
+* Counters, rolling window counters, rates (CTR & conversion)
+* categorical (with one-hot, label and xgboost/lightgbm native encodings)
+* text matching (ngrams and Lucene-based)
+
+## Demo
+
+You can play with Metarank demo on [demo.metarank.ai](https://demo.metarank.ai):
 
 ![Demo](./img/demo.gif)
 
-Personalization is showing items that have unique order for each and every user. Personalization can be done based on user properties: location, gender, preferences and user actions: clicks, likes and other interactions. You can see personalized widgets everywhere: Facebook uses personalization to suggest you new friends and show posts that will most likely get your attention first; AirBnB uses personalization for their experiences offering, suggesting new experiences based on your location and previous actions. 
-
-With Metarank you implement similar systems thanks to flexible configuration and keep control of your user data.
+The demo itself is open-source and you can grab a copy of training events and config file [in the github repo]().
 
 ## Metarank in One Minute
 

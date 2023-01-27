@@ -1,12 +1,12 @@
 # What is Metarank?
 
-Metarank is a recommendation and personalization service - a self-hosted API to re-rank your content and maximize CTR and conversion. 
+Metarank is a recommendation and personalization service - a self-hosted reranking API to improve CTR and conversion. 
 
 Main features:
-* Recommendations: trending and similar-items (MF ALS). 
-* Personalization: secondary reranking (LambdaMART)
-* A/B testing, multiple model serving
-* Bootstrapping on historical traffic recordings
+* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/trending.md) (MF ALS). 
+* Personalization: [secondary reranking](quickstart/quickstart.md) (LambdaMART)
+* A/B testing, [multiple model serving](configuration/overview.md#models)
+* [Bootstrapping](quickstart/quickstart.md#quickstart) on historical traffic data
 
 ## Common use-cases
 
@@ -17,10 +17,11 @@ Metarank is an open-source service for:
 * Popular items on any ecommerce store.
 
 Metarank's recommendations are based on interaction history (like clicks and purchases), and secondary reranking - on user & item metadata and a rich set of typical ranking feature generators:
-* GeoIP, Referer field parsers
-* Counters, rolling window counters, rates (CTR & conversion)
-* categorical (with one-hot, label and xgboost/lightgbm native encodings)
-* text matching (ngrams and Lucene-based)
+* [User-Agent](configuration/features/user-session.md#user-agent-field-extractor), [Referer](configuration/features/user-session.md#referer) field parsers
+* [Counters](configuration/features/counters.md#counters), [rolling window counters](configuration/features/counters.md#windowed-counter), [rates](configuration/features/counters.md#rate) (CTR & conversion)
+* [categorical](configuration/features/scalar.md#index-vs-one-hot-what-to-choose) (with one-hot, label and XGBoost/LightGBM native encodings)
+* [text matching](configuration/features/text.md#fieldmatch) (ngrams and Lucene-based)
+* and [many more](configuration/feature-extractors.md)!
 
 ## Demo
 
@@ -28,11 +29,15 @@ You can play with Metarank demo on [demo.metarank.ai](https://demo.metarank.ai):
 
 ![Demo](./img/demo.gif)
 
-The demo itself is open-source and you can grab a copy of training events and config file [in the github repo]().
+The demo itself and [the data used](https://github.com/metarank/msrd) are open-source and you can grab a copy of training events and config file [in the github repo](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens).
 
 ## Metarank in One Minute
 
-Let us show how you can start personalizing content in just under a minute (depends on your internet speed!). 
+Let us show how you can start personalizing content with LambdaMART-based reranking in just under a minute:
+
+1. Prepare the data: we will get the dataset and config file from the [demo.metarank.ai](https://demo.metarank.ai)
+2. Start Metarank in a standalone mode: it will import the data, train the ML model and start the API.
+3. Send a couple of requests to the API.
 
 ### Step 1: Prepare data
 
@@ -148,6 +153,6 @@ curl http://localhost:8080/rank/xgboost \
 
 ## What's next? 
 
-Check out a more in-depth [Quickstart](quickstart/quickstart.md) full [Reference](installation.md). 
+Check out a more in-depth [Quickstart](quickstart/quickstart.md) and full [Reference](installation.md). 
 
 If you have any questions, don't hesitate to join our [Slack](https://communityinviter.com/apps/metarank/metarank)!

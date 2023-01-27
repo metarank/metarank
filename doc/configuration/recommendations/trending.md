@@ -43,3 +43,5 @@ Such an unusual way of defining decay can allow a more granular control over the
 We recommend setting a decay:
 * within a range of 0.8-0.95 for 1-month periods.
 * within a range of 0.95-0.99 for larger periods.
+
+See request & response formats in the [API section](../../api.md).

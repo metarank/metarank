@@ -21,3 +21,5 @@ There are two important parameters in the configuration:
 * `iterations`: how many factor refinements attempts are made. The more - the better, but slower. Normal range - 50-300.
 
 Rule of thump - set these parameters low, and then increase slightly until training time becomes completely unreasonable.
+
+See request & response formats in the [API section](../../api.md).

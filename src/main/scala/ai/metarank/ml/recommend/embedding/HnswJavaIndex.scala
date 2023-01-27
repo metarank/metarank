@@ -15,7 +15,7 @@ case class HnswJavaIndex(index: HnswIndex[String, Array[Double], Embedding, java
   def lookup(items: List[ItemId], n: Int): List[ItemScore] = items match {
     case head :: Nil =>
       makeResponse(index.findNeighbors(head.value, n))
-    case head :: tail =>
+    case _ =>
       val embeddings = items.flatMap(item => index.get(item.value).toScala.map(_.vector)).toArray
       val center     = centroid(embeddings)
       makeResponse(index.findNearest(center, n))

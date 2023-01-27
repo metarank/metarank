@@ -1,7 +1,7 @@
 package ai.metarank.config
 
-import ai.metarank.config.ModelConfig.NoopConfig
 import ai.metarank.config.Selector.{AcceptSelector, AndSelector, FieldSelector, NotSelector, SampleSelector}
+import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse

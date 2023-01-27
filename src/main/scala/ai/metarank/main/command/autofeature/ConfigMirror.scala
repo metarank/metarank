@@ -1,10 +1,9 @@
 package ai.metarank.main.command.autofeature
 
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
-import ai.metarank.config.StateStoreConfig.MemoryStateConfig
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config._
 import ai.metarank.main.command.autofeature.rules.RuleSet
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.FeatureSchema
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -29,7 +28,7 @@ object ConfigMirror {
       features = featuresNel,
       models = Map(
         "default" -> LambdaMARTConfig(
-          backend = XGBoostBackend(
+          backend = XGBoostConfig(
             iterations = 50,
             seed = 0
           ),

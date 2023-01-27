@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
+import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 
 import java.io.OutputStream
 
@@ -9,7 +9,7 @@ sealed trait BoosterConfigFile {
 }
 
 object BoosterConfigFile {
-  case class XGBoostConfigFile(conf: XGBoostBackend, train: String, test: String) extends BoosterConfigFile {
+  case class XGBoostConfigFile(conf: XGBoostConfig, train: String, test: String) extends BoosterConfigFile {
     override def write(stream: OutputStream): Unit = {
       val out = s"""eta=${conf.learningRate}
                    |max_depth=${conf.maxDepth}
@@ -26,7 +26,7 @@ object BoosterConfigFile {
     }
   }
 
-  case class LightGBMConfigFile(conf: LightGBMBackend, train: String, test: String, cats: List[String])
+  case class LightGBMConfigFile(conf: LightGBMConfig, train: String, test: String, cats: List[String])
       extends BoosterConfigFile {
     override def write(stream: OutputStream): Unit = {
       val catRow = cats match {

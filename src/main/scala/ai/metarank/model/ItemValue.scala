@@ -3,6 +3,7 @@ package ai.metarank.model
 import ai.metarank.FeatureMapping
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature, ValueMode}
 import ai.metarank.model.Identifier.ItemId
+import cats.data.NonEmptyList
 import io.circe.Codec
 import io.circe.generic.semiauto._
 
@@ -16,7 +17,7 @@ object ItemValue {
       state: Map[Key, FeatureValue],
       mapping: FeatureMapping,
       mode: ValueMode
-  ): List[ItemValue] = {
+  ): Either[Throwable, NonEmptyList[ItemValue]] = {
 
     val itemFeatures: List[ItemFeature] = mapping.features.collect { case feature: ItemFeature =>
       feature
@@ -44,11 +45,13 @@ object ItemValue {
       })
       .transpose
 
-    val itemScores = for {
-      (item, itemValues) <- ranking.items.toList.zip(itemValuesMatrix)
-    } yield {
-      ItemValue(item.id, rankingValues ++ itemValues)
+    itemValuesMatrix match {
+      case head :: tail =>
+        val result = ranking.items.zip(NonEmptyList.of(head, tail: _*)).map { case (item, itemValues) =>
+          ItemValue(item.id, rankingValues ++ itemValues)
+        }
+        Right(result)
+      case _ => Left(new Exception("empty feature set"))
     }
-    itemScores
   }
 }

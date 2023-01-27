@@ -1,7 +1,6 @@
 package ai.metarank
 
 import ai.metarank.config.ModelConfig
-import ai.metarank.config.ModelConfig.{LambdaMARTConfig, NoopConfig, ShuffleConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
@@ -21,9 +20,15 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature._
-import ai.metarank.model.Event.RankingEvent
+import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.model.{Dimension, FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
-import ai.metarank.rank.{LambdaMARTModel, Model, NoopModel, ShuffleModel}
+import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
+import ai.metarank.ml.rank.NoopRanker.{NoopConfig, NoopModel, NoopPredictor}
+import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShuffleModel, ShufflePredictor}
+import ai.metarank.ml.recommend.MFRecommender.MFPredictor
+import ai.metarank.ml.recommend.TrendingRecommender.{TrendingConfig, TrendingPredictor}
+import ai.metarank.ml.recommend.mf.ALSRecImpl
+import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.github.metarank.ltrlib.model.DatasetDescriptor
@@ -32,14 +37,13 @@ import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature
 case class FeatureMapping(
     features: List[BaseFeature],
     schema: Schema,
-    models: Map[String, Model]
+    models: Map[String, Predictor[_ <: ModelConfig, _ <: Context, _ <: Model[_ <: Context]]]
 ) extends Logging {
 
   def optimize(): FeatureMapping = {
     val referencedNames = models.values.flatMap {
-      case LambdaMARTModel(conf, _, _, _) => conf.features.toList
-      case NoopModel(_)                   => Nil
-      case ShuffleModel(_)                => Nil
+      case LambdaMARTPredictor(_, conf, _) => conf.features.toList
+      case _                               => Nil
     }.toSet
     val usedFeatures = features.filter(f => referencedNames.contains(f.schema.name))
     val usedSchema   = Schema(usedFeatures.flatMap(_.states))
@@ -80,7 +84,7 @@ object FeatureMapping extends Logging {
       }
 
     val featurySchema = Schema(features.flatMap(_.states))
-    val m = models.toList.map {
+    val m: List[(String, Predictor[_ <: ModelConfig, _ <: Context, _ <: Model[_ <: Context]])] = models.toList.map {
       case (name, conf: LambdaMARTConfig) =>
         val modelFeatures = for {
           featureName <- conf.features.toList
@@ -88,15 +92,12 @@ object FeatureMapping extends Logging {
         } yield {
           feature
         }
-        name -> LambdaMARTModel(
-          conf = conf,
-          features = modelFeatures,
-          datasetDescriptor = makeDatasetDescriptor(modelFeatures),
-          weights = conf.weights
-        )
+        name -> LambdaMARTPredictor(name, conf, makeDatasetDescriptor(modelFeatures))
 
-      case (name, conf: NoopConfig)    => name -> NoopModel(conf)
-      case (name, conf: ShuffleConfig) => name -> ShuffleModel(conf)
+      case (name, conf: NoopConfig)     => name -> NoopPredictor(name, conf)
+      case (name, conf: ShuffleConfig)  => name -> ShufflePredictor(name, conf)
+      case (name, conf: TrendingConfig) => name -> TrendingPredictor(name, conf)
+      case (name, conf: ALSConfig)      => name -> MFPredictor(name, conf, ALSRecImpl(conf))
     }
 
     new FeatureMapping(

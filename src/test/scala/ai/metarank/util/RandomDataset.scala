@@ -1,10 +1,10 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.{LightGBMBackend, XGBoostBackend}
+import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
@@ -26,17 +26,17 @@ object RandomDataset {
 
     val models = Map(
       "xgboost" -> LambdaMARTConfig(
-        backend = XGBoostBackend(iterations = 10),
+        backend = XGBoostConfig(iterations = 10),
         features = features.map(_.name),
         weights = Map("click" -> 1)
       ),
       "xgboost1" -> LambdaMARTConfig(
-        backend = XGBoostBackend(iterations = 10),
+        backend = XGBoostConfig(iterations = 10),
         features = NonEmptyList.one(features.map(_.name).head),
         weights = Map("click" -> 1)
       ),
       "lightgbm" -> LambdaMARTConfig(
-        backend = LightGBMBackend(iterations = 10),
+        backend = LightGBMConfig(iterations = 10),
         features = features.map(_.name),
         weights = Map("click" -> 1)
       )

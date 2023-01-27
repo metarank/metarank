@@ -1,0 +1,23 @@
+core:
+  clickthrough:
+    maxSessionLength: 60s
+
+models:
+  similar:
+    type: als
+    interactions: [click]
+    factors: 100
+    iterations: 30
+
+  trending:
+    type: trending
+    weights:
+      - interaction: click
+        decay: 1.0
+        weight: 1.0
+
+features:
+  - name: position
+    type: position
+    position: 5
+

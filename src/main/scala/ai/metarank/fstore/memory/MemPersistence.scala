@@ -1,11 +1,10 @@
 package ai.metarank.fstore.memory
 
-import ai.metarank.config.StateStoreConfig.RedisStateConfig.CacheConfig
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.Persistence.{KVCodec, ModelName}
+import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
 import ai.metarank.fstore.memory.MemPersistence.FeatureStateExpiry
+import ai.metarank.ml.Model
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
-import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.github.benmanes.caffeine.cache.{Caffeine, Expiry}
@@ -23,8 +22,8 @@ case class MemPersistence(schema: Schema) extends Persistence {
   override lazy val stats            = schema.stats.view.mapValues(MemStatsEstimator(_, cache)).toMap
   override lazy val maps             = schema.maps.view.mapValues(MemMapFeature(_, cache)).toMap
 
-  override lazy val models: Persistence.KVStore[ModelName, Scorer] = MemModelStore()
-  override lazy val values: Persistence.KVStore[Key, FeatureValue] = MemKVStore()
+  override lazy val models: ModelStore = MemModelStore()
+  override lazy val values: Persistence.KVStore[Key, FeatureValue]   = MemKVStore()
 
   override def healthcheck(): IO[Unit] = IO.unit
   override def sync: IO[Unit]          = IO.unit

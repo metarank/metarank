@@ -1,10 +1,10 @@
 package ai.metarank.api.routes
 
 import ai.metarank.api.JsonChunk
-import ai.metarank.api.routes.RankApi.RankResponse.{ItemScore, StateValues}
+import ai.metarank.api.routes.RankApi.RankResponse.{ItemScoreValues, StateValues}
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.Field
-import ai.metarank.rank.Ranker
+import ai.metarank.ml.Ranker
 import ai.metarank.util.Logging
 import cats.effect._
 import io.circe.parser._
@@ -54,7 +54,7 @@ object RankApi {
   object ExplainParamDecoder         extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
   case class ModelError(msg: String) extends Exception(msg)
 
-  case class RankResponse(state: Option[StateValues], items: List[ItemScore])
+  case class RankResponse(state: Option[StateValues], items: List[ItemScoreValues])
 
   object RankResponse {
     case class StateValues(
@@ -75,9 +75,9 @@ object RankApi {
       }
     }
 
-    case class ItemScore(item: ItemId, score: Double, features: Option[List[MValue]])
+    case class ItemScoreValues(item: ItemId, score: Double, features: Option[List[MValue]])
 
-    implicit val itemScoreCodec: Codec[ItemScore]       = deriveCodec
+    implicit val itemScoreCodec: Codec[ItemScoreValues] = deriveCodec
     implicit val stateValuesCodec: Codec[StateValues]   = deriveCodec
     implicit val rankResponseCodec: Codec[RankResponse] = deriveCodec
   }

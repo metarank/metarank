@@ -1,11 +1,11 @@
 package ai.metarank.feature
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.ModelBackend.LightGBMBackend
-import ai.metarank.config.ModelConfig.{LambdaMARTConfig, ShuffleConfig}
+import ai.metarank.config.BoosterConfig.LightGBMConfig
 import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.flow.FeatureValueFlow
 import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{Event, FeatureSchema, MValue}
 import cats.data.{NonEmptyList, NonEmptyMap}
@@ -17,7 +17,7 @@ trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
     val mapping = FeatureMapping.fromFeatureSchema(
       schema = NonEmptyList.of(schema),
-      models = Map("random" -> LambdaMARTConfig(LightGBMBackend(), NonEmptyList.of(schema.name), Map("click" -> 1)))
+      models = Map("random" -> LambdaMARTConfig(LightGBMConfig(), NonEmptyList.of(schema.name), Map("click" -> 1)))
     )
 
     val flow =

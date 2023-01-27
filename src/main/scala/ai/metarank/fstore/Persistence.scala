@@ -1,13 +1,12 @@
 package ai.metarank.fstore
 
-import ai.metarank.config.StateStoreConfig
+import ai.metarank.config.{ModelConfig, StateStoreConfig}
+import ai.metarank.fstore.Persistence.{KVStore, ModelName, ModelStore}
 import ai.metarank.config.StateStoreConfig.FileStateConfig
-import ai.metarank.config.StateStoreConfig.FileStateConfig.{MapDBBackend, RocksDBBackend}
-import ai.metarank.fstore.Persistence.{KVStore, ModelName}
 import ai.metarank.fstore.file.FilePersistence
-import ai.metarank.fstore.file.client.{MapDBClient, RocksDBClient}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
+import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.model.Feature.{
   BoundedListFeature,
   CounterFeature,
@@ -19,7 +18,6 @@ import ai.metarank.model.Feature.{
 }
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
-import ai.metarank.rank.Model.Scorer
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec
@@ -39,13 +37,13 @@ trait Persistence {
   def maps: Map[FeatureKey, MapFeature]
 
   def values: KVStore[Key, FeatureValue]
-  def models: KVStore[ModelName, Scorer]
+  def models: ModelStore
   def healthcheck(): IO[Unit]
   def sync: IO[Unit]
 }
 
 object Persistence extends Logging {
-  case class ModelName(name: String) extends AnyVal
+  case class ModelName(name: String)
 
   trait KVCodec[T] {
     def encode(value: T): Array[Byte]
@@ -88,6 +86,11 @@ object Persistence extends Logging {
     def put(values: Map[K, V]): IO[Unit]
     def get(keys: List[K]): IO[Map[K, V]]
     def get(key: K): IO[Option[V]] = get(List(key)).map(_.get(key))
+  }
+
+  trait ModelStore {
+    def put(value: Model[_]): IO[Unit]
+    def get[C <: ModelConfig, T <: Context, M <: Model[T]](key: ModelName, pred: Predictor[C, T, M]): IO[Option[M]]
   }
 
   object KVStore {

@@ -154,8 +154,8 @@ used for [Metarank demo site](https://demo.metarank.ai).
 
 ## Models
 
-The "models" section describes ML models used for personalization. Check [Supported models](supported-ranking-models.md) 
-for more information.
+The "models" section describes ML models used for personalization. 
+Check [Supported ranking models](supported-ranking-models.md) for more information about ranking models. See also [recommendations models overview](recommendations/overview.md)
 ```yaml
 models:
   default: # name of the model, used in the inference process as a part of path, like /rank/default
@@ -179,6 +179,22 @@ models:
   # The noop model does nothing with the original ranking and returns results "as is"
   #noop:
   #  type: noop
+  
+  # A similar-items MF ALS model
+  similar:
+    type: als
+    interactions: [click] # which types of interactions to use
+    factors: 100 # how many implicit factors to compute
+    iterations: 30 # number of model training iterations
+
+  # A simple "popular items" model
+  trending:
+    type: trending
+    weights:
+      - interaction: click
+        decay: 1.0 # 0..1, 0.5 means yesterday is 50% less important than today
+        weight: 1.0 # in a case with multiple interaction types
+
 ```
 
 

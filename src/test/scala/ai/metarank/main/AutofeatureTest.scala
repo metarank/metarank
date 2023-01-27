@@ -1,12 +1,12 @@
 package ai.metarank.main
 
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.main.CliArgs.AutoFeatureArgs
 import ai.metarank.main.command.AutoFeature
 import ai.metarank.main.command.autofeature.ConfigMirror
 import ai.metarank.main.command.autofeature.rules.RuleSet
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.{Event, FeatureSchema, FieldName}
 import ai.metarank.model.Key.FeatureName
@@ -18,6 +18,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import fs2.Stream
 import io.circe.syntax._
+
 import java.nio.file.Paths
 
 class AutofeatureTest extends AnyFlatSpec with Matchers {
@@ -42,7 +43,7 @@ class AutofeatureTest extends AnyFlatSpec with Matchers {
       features = features,
       models = Map(
         "default" -> LambdaMARTConfig(
-          backend = XGBoostBackend(iterations = 50),
+          backend = XGBoostConfig(iterations = 50),
           features = features.map(_.name),
           weights = Map("click" -> 1.0)
         )

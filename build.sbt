@@ -63,8 +63,19 @@ lazy val root = (project in file("."))
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
       "io.prometheus"          % "simpleclient_httpserver"  % prometheusVersion,
       "software.amazon.awssdk" % "s3"                       % awsVersion,
-      "org.rocksdb"            % "rocksdbjni"               % "7.9.2",
-      "org.mapdb"              % "mapdb"                    % "3.0.9" exclude ("net.jpountz.lz4", "lz4")
+      "org.apache.commons"     % "commons-rng-sampling"     % "1.5",
+      "org.apache.commons"     % "commons-rng-simple"       % "1.5",
+      "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (
+        ExclusionRule("org.nd4j", "guava"),
+        ExclusionRule("org.nd4j", "protobuf")
+      ),
+      "org.rocksdb"        % "rocksdbjni"     % "7.9.2",
+      "org.mapdb"          % "mapdb"          % "3.0.9" exclude ("net.jpountz.lz4", "lz4"),
+      "com.github.jelmerk" % "hnswlib-core"   % "1.0.1",
+      "org.slf4j"          % "jcl-over-slf4j" % "2.0.6" // librec uses commons-logging, which is JCL
+    ),
+    excludeDependencies ++= Seq(
+      "commons-logging" % "commons-logging"
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),
@@ -96,12 +107,14 @@ lazy val root = (project in file("."))
       pullBaseImage = BuildOptions.Pull.Always
     ),
     ThisBuild / assemblyMergeStrategy := {
-      case PathList("module-info.class")           => MergeStrategy.discard
-      case "META-INF/io.netty.versions.properties" => MergeStrategy.first
-      case "META-INF/MANIFEST.MF"                  => MergeStrategy.discard
-      case "findbugsExclude.xml"                   => MergeStrategy.discard
-      case "log4j2-test.properties"                => MergeStrategy.discard
-      case x if x.endsWith("/module-info.class")   => MergeStrategy.discard
+      case PathList("module-info.class")               => MergeStrategy.discard
+      case "META-INF/io.netty.versions.properties"     => MergeStrategy.first
+      case "META-INF/MANIFEST.MF"                      => MergeStrategy.discard
+      case "META-INF/native-image/reflect-config.json" => MergeStrategy.concat
+      case "META-INF/okio.kotlin_module"               => MergeStrategy.first
+      case "findbugsExclude.xml"                       => MergeStrategy.discard
+      case "log4j2-test.properties"                    => MergeStrategy.discard
+      case x if x.endsWith("/module-info.class")       => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)

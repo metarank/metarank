@@ -28,4 +28,17 @@ object BinaryCodec {
     override def read(in: DataInput): String                 = in.readUTF()
     override def write(value: String, out: DataOutput): Unit = out.writeUTF(value)
   }
+
+  val byteArray = new BinaryCodec[Array[Byte]] {
+    override def read(in: DataInput): Array[Byte] = {
+      val size = in.readVarInt()
+      val buf  = new Array[Byte](size)
+      in.readFully(buf)
+      buf
+    }
+    override def write(value: Array[Byte], out: DataOutput): Unit = {
+      out.writeVarInt(value.length)
+      out.write(value)
+    }
+  }
 }

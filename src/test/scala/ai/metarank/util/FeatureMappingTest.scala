@@ -1,13 +1,11 @@
 package ai.metarank.util
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
-import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
+import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
-import ai.metarank.rank.LambdaMARTModel
 import cats.data.NonEmptyList
 import io.github.metarank.ltrlib.model.Feature.VectorFeature
 import org.scalatest.flatspec.AnyFlatSpec
@@ -29,13 +27,15 @@ class FeatureMappingTest extends AnyFlatSpec with Matchers {
       ),
       models = Map(
         "xgboost" -> LambdaMARTConfig(
-          backend = XGBoostBackend(),
+          backend = XGBoostConfig(),
           features = NonEmptyList.one(FeatureName("clicks")),
           weights = Map("click" -> 1)
         )
       )
     )
-    val datasetFeatures = mapping.models.values.flatMap(_.datasetDescriptor.features).toList
-    datasetFeatures shouldBe List(VectorFeature("clicks", 1))
+    val datasetFeatures = mapping.models.values.toList.collect { case LambdaMARTPredictor(_, _, desc) =>
+      desc.features
+    }
+    datasetFeatures.flatten shouldBe List(VectorFeature("clicks", 1))
   }
 }

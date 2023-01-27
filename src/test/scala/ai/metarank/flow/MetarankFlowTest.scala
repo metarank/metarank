@@ -1,10 +1,8 @@
 package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.CoreConfig
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
-import ai.metarank.config.ModelConfig.LambdaMARTConfig
-import ai.metarank.config.ModelConfig.ModelBackend.XGBoostBackend
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
@@ -28,11 +26,11 @@ import ai.metarank.model.{
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.{CategoryValue, SingleValue}
 import ai.metarank.model.Scalar.{SDouble, SString, SStringList}
 import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
-import ai.metarank.rank.Ranker
+import ai.metarank.ml.Ranker
+import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
@@ -71,7 +69,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   )
   val models = Map(
     "random" -> LambdaMARTConfig(
-      backend = XGBoostBackend(),
+      backend = XGBoostConfig(),
       features = features.map(_.name),
       weights = Map("click" -> 1)
     )
@@ -124,8 +122,17 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate query for a ranking request" in {
-    val q = ranker.makeQuery(rankingEvent1, mapping.models("random").datasetDescriptor).unsafeRunSync()
-    q.values shouldBe List(
+//<<<<<<< HEAD
+//    val q =
+//      ranker.makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
+//    q.values.toList shouldBe List(
+//      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))),
+//      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(0.0)))),
+//      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0))))
+//=======
+    val q =
+      ranker.makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
+    q.values.toList shouldBe List(
       ItemValue(
         ItemId("p1"),
         List(
@@ -176,8 +183,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate updated query" in {
-    val q = ranker.makeQuery(rankingEvent2, mapping.models("random").datasetDescriptor).unsafeRunSync()
-    q.values shouldBe List(
+    val q =
+      ranker.makeQuery(rankingEvent2, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
+    q.values.toList shouldBe List(
       ItemValue(
         ItemId("p1"),
         List(

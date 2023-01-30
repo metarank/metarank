@@ -110,7 +110,6 @@ object RocksDBClient {
     opts.setCreateIfMissing(true)
     opts.setOptimizeFiltersForHits(true)
     opts.setTableFormatConfig(table)
-    opts.setUseDirectReads(true)
     val db = RocksDB.open(opts, path.toString)
     RocksDBClient(db)
   }

@@ -26,9 +26,13 @@ object FeatureOverMissingFieldValidation extends EventValidation {
 
     val fields = events
       .collect {
-        case e: ItemEvent        => e.fields.map(f => FieldName(Item, f.name))
-        case e: UserEvent        => e.fields.map(f => FieldName(User, f.name))
-        case e: RankingEvent     => e.fields.map(f => FieldName(Ranking, f.name))
+        case e: ItemEvent => e.fields.map(f => FieldName(Item, f.name))
+        case e: UserEvent => e.fields.map(f => FieldName(User, f.name))
+        case e: RankingEvent =>
+          List.concat(
+            e.fields.map(f => FieldName(Ranking, f.name)),
+            e.items.toList.flatMap(_.fields).map(f => FieldName(Item, f.name))
+          )
         case e: InteractionEvent => e.fields.map(f => FieldName(Interaction(e.`type`), f.name))
       }
       .flatten

@@ -1,22 +1,22 @@
 # What is Metarank?
 
-Metarank is a recommendation and personalization service - a self-hosted reranking API to improve CTR and conversion. 
+[Metarank](https://metarank.ai) is a recommendation and personalization service - a self-hosted reranking API to improve CTR and conversion. 
 
 Main features:
-* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/trending.md) (MF ALS). 
+* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/similar.md) (MF ALS). 
 * Personalization: [secondary reranking](quickstart/quickstart.md) (LambdaMART)
-* A/B testing, [multiple model serving](configuration/overview.md#models)
-* [Bootstrapping](quickstart/quickstart.md#quickstart) on historical traffic data
+* AutoML: [automatic feature generation](howto/autofeature.md) and [model re-training](howto/model-retraining.md)
+* A/B testing: [multiple model serving](configuration/overview.md#models)
 
 ## Common use-cases
 
 Metarank is an open-source service for:
-* Algorithmic feed like on FB/Twitter.
-* CTR-optimized category/search page ordering on Airbnb. 
-* Items similar to the one you're viewing on Amazon.
-* Popular items on any ecommerce store.
+* Algorithmic feed like on Faceook or Twitter.
+* CTR-optimized category/search page ordering like on Airbnb. 
+* Items similar to the one you're viewing like on Amazon.
+* Popular items like on any ecommerce store.
 
-Metarank's recommendations are based on interaction history (like clicks and purchases), and secondary reranking - on user & item metadata and a rich set of typical ranking feature generators:
+Metarank can generate recommendations based on the interaction history: clicks, likes or purchases. Personalized secondary reranking can use user and item metadata and a rich set of typical ranking feature generators to provide personalized results:
 * [User-Agent](configuration/features/user-session.md#user-agent-field-extractor), [Referer](configuration/features/user-session.md#referer) field parsers
 * [Counters](configuration/features/counters.md#counters), [rolling window counters](configuration/features/counters.md#windowed-counter), [rates](configuration/features/counters.md#rate) (CTR & conversion)
 * [categorical](configuration/features/scalar.md#index-vs-one-hot-what-to-choose) (with one-hot, label and XGBoost/LightGBM native encodings)
@@ -155,4 +155,4 @@ curl http://localhost:8080/rank/xgboost \
 
 Check out a more in-depth [Quickstart](quickstart/quickstart.md) and full [Reference](installation.md). 
 
-If you have any questions, don't hesitate to join our [Slack](https://communityinviter.com/apps/metarank/metarank)!
+If you have any questions, don't hesitate to join our [Slack](https://metarank.ai/slack)!

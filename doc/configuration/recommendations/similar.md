@@ -6,6 +6,25 @@ Common use-cases for such model are:
 * you-may-also-like recommendations on item page: the context of the recommendation is a single item you're viewing now.
 * also-purchased widget on the cart page: the context of the recommendation is the contents of your card.
 
+## Underlying model
+
+Metarank uses a variation of [Matrix Factorization](https://developers.google.com/machine-learning/recommendation/collaborative/matrix) collaborative filtering algorithm for recommendations based on a paper [Fast Matrix Factorization for Online Recommendation with Implicit Feedback](https://arxiv.org/abs/1708.05024) by X.He, H.Zhang, MY.Kan and TS.Chua.
+
+![matrix factorization](../../img/mf.svg)
+
+The ALS family of algorithms for recommendations decompose a sparse matrix of user-item interactions into a set of smaller dense vectors of implicit user and item features (or user and item embeddings). The cool things about these embeddings is that similar items will have similar embeddings!
+
+So Metarank does the following:
+* computes item embeddings
+* pre-builds a [HNSW](https://www.pinecone.io/learn/hnsw/) index for fast lookups for similar embeddings
+* on inference time (when you call the [/recommend/modelname](../../api.md) endpoint), it makes a k-NN index lookup of similar items.
+
+Main pros and cons of such apporach:
+* pros: fast even for giant inventories, simple to implement
+* cons: lower precision as neural networks based methods like [BERT4rec](https://arxiv.org/abs/1904.06690), recommendations are not personalized.
+
+There is an ongoing work in Metarank project to implement NN-based methods and make current ALS implementation personalized.
+
 ## Configuration
 
 ```yaml

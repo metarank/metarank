@@ -20,6 +20,10 @@ class ImpressionInjectTest extends AnyFlatSpec with Matchers {
     val result = ImpressionInject.process(ct)
     result.map(_.item) shouldBe List(ItemId("p1"), ItemId("p2"))
   }
+  it should "not fail on wrong product in ctk" in {
+    val result = ImpressionInject.process(ct.copy(interactions = List(TypedInteraction(ItemId("p5"), "click"))))
+    result.map(_.item) shouldBe Nil
+  }
 
   it should "inject impressions on two clicks" in {
     val result = ImpressionInject.process(
@@ -31,6 +35,5 @@ class ImpressionInjectTest extends AnyFlatSpec with Matchers {
       )
     )
     result.map(_.item) shouldBe List(ItemId("p1"), ItemId("p2"), ItemId("p3"))
-
   }
 }

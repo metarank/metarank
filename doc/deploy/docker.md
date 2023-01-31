@@ -12,7 +12,7 @@ Official docker images are multi-arch, and cross-built for the following platfor
 
 All metarank sub-commands are wrapped into a single command-line API. To see the [CLI](/doc/cli.md), run the docker container:
 ```shell
-$ docker run metarank/metarank:0.5.15 --help
+$ docker run metarank/metarank:0.5.16 --help
 
 + exec /opt/java/openjdk/bin/java -jar /app/metarank.jar --help
 
@@ -21,7 +21,7 @@ $ docker run metarank/metarank:0.5.15 --help
  /     \_/ __ \   __\__  \\_  __ \__  \  /    \|  |/ /
 |  Y Y  \  ___/|  |  / __ \|  | \// __ \|   |  \    < 
 |__|_|  /\___  >__| (____  /__|  (____  /___|  /__|_ \
-      \/     \/          \/           \/     \/     \/ ver:0.5.15
+      \/     \/          \/           \/     \/     \/ ver:0.5.16
 Usage: metarank <subcommand> <options>
 ```
 
@@ -32,6 +32,16 @@ For example, you can pass the input training dataset from your local host using 
 ```shell
 docker run -v /home/user/input:/data metarank/metarank:latest train <opts>
 ```
+
+#### Memory
+
+Metarank docker container uses 1Gb of JVM heap by default. In practice the actual RSS memory usage is a bit higher than the heap size due to JVM's extra overhead. 
+
+This can be configured with the `JVM_OPTS` environment variable:
+```shell
+docker run -e JVM_OPTS="-Xmx5g" metarank/metarank:latest train <opts>
+```
+
 
 ### Ports
 

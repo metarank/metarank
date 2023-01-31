@@ -78,14 +78,26 @@ features:
     source: metadata.popularity
 ```
 
-The `values.yaml` is a generic helm deployment configuration file. You can tune it, but default one requires no extra changes. 
+The `values.yaml` is a generic helm deployment configuration file. You can tune it, but default one **usually** requires no extra changes.
+
+### Resources
+
+The default helm chart sets no specific memory requests & limits, but it can be configured with `values.yaml`. 
+
+The Metarank docker container accepts a `JVM_OPTS` environment variable to control the JVM memory usage. It defaults to `JVM_OPTS="-Xmx1g -verbose:gc"` which means:
+* Use 1Gb for JVM heap. The actual RSS memory usage should be a bit higher due to JVM extra overhead.
+* Enable verbose GC logging. You may notice the following lines in the log, they are normal:
+
+```
+[282.621s][info][gc] GC(26) Pause Young (Allocation Failure) 55M->36M(67M) 2.718ms 
+```
 
 ## Installing the chart
 
-The chart itself is agnostic to the Metarank version, and has separate versioning. For the latest Metarank 0.5.15 release, use the following command to install the chart:
+The chart itself is agnostic to the Metarank version, and has separate versioning. For the latest Metarank `0.5.16` release, use the following command to install the chart:
 
 ```shell
-helm install metarank . --set-file config=metarank.conf --set image.tag=0.5.15
+helm install metarank . --set-file config=metarank.conf --set image.tag=0.5.16
 
 NAME: metarank
 LAST DEPLOYED: Tue Oct  4 15:32:47 2022

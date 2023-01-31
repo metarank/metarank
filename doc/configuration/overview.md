@@ -3,6 +3,7 @@
 Metarank YAML config file contains the following sections:
 * [Persistence](overview.md#persistence): how feature data is stored
 * [Models](overview.md#models): which models should be trained and used in inference
+  * [Recommendations](recommendations/overview.md): a special section on recommendations serving
 * [Features](overview.md#features): how features are computed from events
 * [API](overview.md#api): network options for API
 * [Data sources](overview.md#data-sources): where to read events from

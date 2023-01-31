@@ -94,10 +94,10 @@ The Metarank docker container accepts a `JVM_OPTS` environment variable to contr
 
 ## Installing the chart
 
-The chart itself is agnostic to the Metarank version, and has separate versioning. For the latest Metarank `0.5.16` release, use the following command to install the chart:
+The chart itself is agnostic to the Metarank version, and has separate versioning. For the latest Metarank `0.6.0` release, use the following command to install the chart:
 
 ```shell
-helm install metarank . --set-file config=metarank.conf --set image.tag=0.5.16
+helm install metarank . --set-file config=metarank.conf --set image.tag=0.6.0
 
 NAME: metarank
 LAST DEPLOYED: Tue Oct  4 15:32:47 2022

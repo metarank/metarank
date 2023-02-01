@@ -3,6 +3,10 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.6.1
+
+* fix for crash when using file-based clickthrough store
+
 ## 0.6.0
 
 Upgrading: note that redis state format has a non backwards compatible change, so you need to reimport the data when upgrading.

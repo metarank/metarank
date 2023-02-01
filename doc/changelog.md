@@ -7,7 +7,7 @@ Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
 Upgrading: note that redis state format has a non backwards compatible change, so you need to reimport the data when upgrading.
 
-* [recommendations](configuration/recommendations/overview.md) serving support for similar and trending items
+* [recommendations](configuration/recommendations.md) support for similar and trending items models.
 * Local caching for state, the import should be 2x-3x faster.
 
 ## 0.5.16

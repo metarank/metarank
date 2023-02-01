@@ -9,10 +9,12 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
 
+import java.nio.file.Files
+
 class TrainConfigTest extends AnyFlatSpec with Matchers {
   it should "load train config for redis state" in {
     val state = RedisStateConfig(Hostname("localhost"), Port(123))
-    val conf = TrainConfig.fromState(state)
+    val conf  = TrainConfig.fromState(state)
     conf shouldBe RedisTrainConfig(
       host = state.host,
       port = state.port,
@@ -27,22 +29,24 @@ class TrainConfigTest extends AnyFlatSpec with Matchers {
   }
 
   it should "load file config when file is a file" in {
+    val path = Files.createTempFile("metarank-cts", "tmp")
     val yaml =
-      """type: file
-        |path: /tmp/whatever.bin
-        |format: binary""".stripMargin
-    val confOpt = parse(yaml).flatMap(_.as[TrainConfig])
+      s"""type: file
+         |path: '$path'
+         |format: binary""".stripMargin
+    val confOpt     = parse(yaml).flatMap(_.as[TrainConfig])
     val (result, _) = ClickthroughStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()
     result should matchPattern {
-      case FileClickthroughStore(file, _, _, _) if file.toString == "/tmp/whatever.bin" => // yep
+      case FileClickthroughStore(file, _, _, _) if file.toString == path.toString => // yep
     }
   }
 
   it should "fail file config when file is a dir" in {
+    val path = Files.createTempDirectory("metarank")
     val yaml =
-      """type: file
-        |path: /
-        |format: binary""".stripMargin
+      s"""type: file
+         |path: '$path'
+         |format: binary""".stripMargin
     val confOpt = parse(yaml).flatMap(_.as[TrainConfig])
     confOpt shouldBe a[Left[_, _]]
   }

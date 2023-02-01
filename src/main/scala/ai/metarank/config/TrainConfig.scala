@@ -8,6 +8,7 @@ import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
+import java.nio.file.{Files, Path, Paths}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
@@ -88,7 +89,10 @@ object TrainConfig {
   )
 
   case class FileTrainConfig(path: String, format: StoreFormat = BinaryStoreFormat) extends TrainConfig
-  implicit val fileDecoder: Decoder[FileTrainConfig] = deriveDecoder[FileTrainConfig]
+  implicit val fileDecoder: Decoder[FileTrainConfig] = deriveDecoder[FileTrainConfig].ensure(
+    c => !Files.isDirectory(Paths.get(c.path)),
+    "path should be a file, not a directory"
+  )
 
   case class DiscardTrainConfig() extends TrainConfig
   implicit val discardDecoder: Decoder[DiscardTrainConfig] = Decoder.instance(_ => Right(DiscardTrainConfig()))

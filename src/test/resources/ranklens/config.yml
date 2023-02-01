@@ -8,7 +8,7 @@
 #  format: binary
 #train:
 #  type: file
-#  path: /tmp
+#  path: /tmp/nonexistent.dat
 #  format: binary
 
 core:

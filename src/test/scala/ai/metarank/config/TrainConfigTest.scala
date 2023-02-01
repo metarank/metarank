@@ -2,8 +2,14 @@ package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.config.TrainConfig.RedisTrainConfig
+import ai.metarank.fstore.ClickthroughStore
+import ai.metarank.fstore.clickthrough.FileClickthroughStore
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import io.circe.yaml.parser.parse
+
+import java.nio.file.Files
 
 class TrainConfigTest extends AnyFlatSpec with Matchers {
   it should "load train config for redis state" in {
@@ -20,5 +26,28 @@ class TrainConfigTest extends AnyFlatSpec with Matchers {
       tls = state.tls,
       timeout = state.timeout
     )
+  }
+
+  it should "load file config when file is a file" in {
+    val path = Files.createTempFile("metarank-cts", "tmp")
+    val yaml =
+      s"""type: file
+         |path: '$path'
+         |format: binary""".stripMargin
+    val confOpt     = parse(yaml).flatMap(_.as[TrainConfig])
+    val (result, _) = ClickthroughStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()
+    result should matchPattern {
+      case FileClickthroughStore(file, _, _, _) if file.toString == path.toString => // yep
+    }
+  }
+
+  it should "fail file config when file is a dir" in {
+    val path = Files.createTempDirectory("metarank")
+    val yaml =
+      s"""type: file
+         |path: '$path'
+         |format: binary""".stripMargin
+    val confOpt = parse(yaml).flatMap(_.as[TrainConfig])
+    confOpt shouldBe a[Left[_, _]]
   }
 }

@@ -8,7 +8,7 @@ import ai.metarank.main.command.Train.info
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.train.SplitStrategy.Split
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
-import ai.metarank.ml.Predictor.RankPredictor
+import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
 import ai.metarank.ml.{Model, Predictor}
 import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
 import ai.metarank.model.{ClickthroughValues, FeatureWeight, QueryMetadata}
@@ -122,6 +122,7 @@ object LambdaMARTRanker {
       clickthroughs <- data
         .filter(_.ct.interactions.nonEmpty)
         .filter(ct => config.selector.accept(ct.ct))
+        .filter(_.values.nonEmpty)
         .map(ct =>
           QueryMetadata(
             query = ClickthroughQuery(ct.values, ct.ct.interactions, ct, config.weights, desc),
@@ -135,12 +136,13 @@ object LambdaMARTRanker {
       _ <- info(s"loaded ${clickthroughs.size} clickthroughs")
       _ <- IO.whenA(clickthroughs.isEmpty)(
         IO.raiseError(
-          new Exception(
+          EmptyDatasetException(
             """
               |Cannot train model on an empty dataset. Maybe you forgot to do 'metarank import'?
               |Possible options:
-              |1. Dataset in-consistency. To check for consistency issues, run 'metarank validate --config conf.yml --data data.jsonl.gz',
-              |2. You've used an in-memory persistence for import, and after restart the data was lost. Maybe try setting 'state.type=redis'?
+              |1. You have only interaction or only ranking events. Re-ranking model needs a complete click-throught information. Try running `metarank validate` over your config file and dataset?
+              |2. Dataset inconsistency. To check for consistency issues, run 'metarank validate --config conf.yml --data data.jsonl.gz',
+              |3. You've used an in-memory persistence for import, and after restart the data was lost. Maybe try setting 'state.type=redis'?
               |""".stripMargin
           )
         )

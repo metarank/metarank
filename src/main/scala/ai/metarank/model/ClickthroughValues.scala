@@ -1,4 +1,5 @@
 package ai.metarank.model
+import cats.data.NonEmptyList
 import io.circe.Codec
 import io.circe.generic.semiauto._
 

@@ -61,7 +61,7 @@ object LatencyBenchmark extends IOApp with Logging {
     dataPath <- IO.fromOption(args.lift(1))(new Exception("need data"))
     confPath <- IO.fromOption(args.lift(0))(new Exception("need conf"))
     conf    <- Config.load(IOUtils.toString(new FileInputStream(new File(confPath)), StandardCharsets.UTF_8), Map.empty)
-    mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
+    mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
 
     results <- start(mapping, conf, confPath, dataPath).use(s =>
       for {

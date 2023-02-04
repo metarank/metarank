@@ -55,7 +55,7 @@ object Main extends IOApp with Logging {
               )
               conf    <- Config.load(confString, env)
               _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args))
-              mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
+              mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
               store = Persistence.fromConfig(mapping.schema, conf.state)
               cts   = ClickthroughStore.fromConfig(conf.train)
               _ <- confArgs match {

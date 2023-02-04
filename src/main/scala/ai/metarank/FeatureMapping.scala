@@ -38,23 +38,7 @@ case class FeatureMapping(
     features: List[BaseFeature],
     schema: Schema,
     models: Map[String, Predictor[_ <: ModelConfig, _ <: Context, _ <: Model[_ <: Context]]]
-) extends Logging {
-
-  def optimize(): FeatureMapping = {
-    val referencedNames = models.values.flatMap {
-      case LambdaMARTPredictor(_, conf, _) => conf.features.toList
-      case _                               => Nil
-    }.toSet
-    val usedFeatures = features.filter(f => referencedNames.contains(f.schema.name))
-    val usedSchema   = Schema(usedFeatures.flatMap(_.states))
-    logger.info(s"optimized schema: removed ${features.size - usedFeatures.size} unused features")
-    FeatureMapping(
-      usedFeatures,
-      usedSchema,
-      models
-    )
-  }
-}
+) extends Logging
 
 object FeatureMapping extends Logging {
 

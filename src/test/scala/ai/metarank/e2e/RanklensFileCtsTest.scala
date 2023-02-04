@@ -24,7 +24,7 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
   val config = Config
     .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8), Map.empty)
     .unsafeRunSync()
-  val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
+  val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store  = MemPersistence(mapping.schema)
   lazy val file   = Files.createTempFile("cts", ".dat")
   lazy val cts    = FileClickthroughStore.create(file.toString, JsonStoreFormat).allocated.unsafeRunSync()._1

@@ -17,4 +17,6 @@ sealed trait Predictor[C <: ModelConfig, T <: Context, M <: Model[T]] {
 object Predictor {
   trait RecommendPredictor[C <: ModelConfig, M <: RecommendModel] extends Predictor[C, RecommendRequest, M]
   trait RankPredictor[C <: ModelConfig, M <: RankModel]         extends Predictor[C, QueryRequest, M]
+
+  case class EmptyDatasetException(msg: String) extends Exception(msg)
 }

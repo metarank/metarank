@@ -14,7 +14,8 @@ sealed trait SplitStrategy extends Logging {
 }
 
 object SplitStrategy {
-  val default = TimeSplit(80)
+  val MIN_SPLIT = 1
+  val default   = TimeSplit(80)
   case class Split(train: Dataset, test: Dataset)
 
   case class RandomSplit(ratioPercent: Int) extends SplitStrategy {
@@ -32,7 +33,8 @@ object SplitStrategy {
       position <- queries.size match {
         case 0 | 1 => IO.raiseError(new Exception(s"dataset size ($size items) is too small to be split"))
         case 2     => warnSmallDataset(size) *> IO.pure(1)
-        case gt => IO.whenA(gt < 100)(warnSmallDataset(size)) *> IO(math.round(queries.size * (ratioPercent / 100.0f)))
+        case gt =>
+          IO.whenA(gt < MIN_SPLIT)(warnSmallDataset(size)) *> IO(math.round(queries.size * (ratioPercent / 100.0f)))
       }
     } yield {
       val (train, test) = queries.sortBy(_.ts.ts).splitAt(position)

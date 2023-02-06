@@ -42,6 +42,10 @@ jobs:
       run: "sudo sed -i -e 's/security.ubuntu.com/mirror.facebook.net/g' /etc/apt/sources.list"
       if: runner.os == 'Linux'
 
+    - name: cat sources.list
+      run: "sudo cat /etc/apt/sources.list"
+      if: runner.os == 'Linux'
+
     - name: Start Redis on Linux
       run: sudo apt-get install redis-server haveged
       if: runner.os == 'Linux'

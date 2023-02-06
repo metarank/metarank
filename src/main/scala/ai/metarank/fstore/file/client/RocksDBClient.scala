@@ -26,9 +26,12 @@ case class RocksDBClient(db: RocksDB) extends FileClient {
   }
 
   override def firstN(prefix: Array[Byte], n: Int): CloseableIterator[FileClient.KeyVal] = {
-    val it = db.newIterator()
-    it.seek(prefix)
     new CloseableIterator[KeyVal] {
+      lazy val it = {
+        val xit = db.newIterator()
+        xit.seek(prefix)
+        xit
+      }
       var cnt    = 0
       var closed = false
       override def nested: Iterator[KeyVal] = new Iterator[KeyVal] {

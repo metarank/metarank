@@ -14,7 +14,8 @@ sealed trait SplitStrategy extends Logging {
 }
 
 object SplitStrategy {
-  val default = TimeSplit(80)
+  val MIN_SPLIT = 1
+  val default   = TimeSplit(80)
   case class Split(train: Dataset, test: Dataset)
 
   case class RandomSplit(ratioPercent: Int) extends SplitStrategy {
@@ -26,11 +27,22 @@ object SplitStrategy {
   }
 
   case class TimeSplit(ratioPercent: Int) extends SplitStrategy {
-    override def split(desc: DatasetDescriptor, queries: List[QueryMetadata]): IO[Split] = IO {
-      logger.info(s"using time split strategy, ratio=$ratioPercent%")
-      val (train, test) = queries.sortBy(_.ts.ts).splitAt(math.round(queries.size * (ratioPercent / 100.0f)))
+    override def split(desc: DatasetDescriptor, queries: List[QueryMetadata]): IO[Split] = for {
+      _ <- info(s"using time split strategy, ratio=$ratioPercent%")
+      size = queries.size
+      position <- queries.size match {
+        case 0 | 1 => IO.raiseError(new Exception(s"dataset size ($size items) is too small to be split"))
+        case 2     => warnSmallDataset(size) *> IO.pure(1)
+        case gt =>
+          IO.whenA(gt < MIN_SPLIT)(warnSmallDataset(size)) *> IO(math.round(queries.size * (ratioPercent / 100.0f)))
+      }
+    } yield {
+      val (train, test) = queries.sortBy(_.ts.ts).splitAt(position)
       Split(Dataset(desc, train.map(_.query)), Dataset(desc, test.map(_.query)))
     }
+    private def warnSmallDataset(size: Int) = warn(
+      s" dataset size of $size items is too small - expect weird ranking results"
+    )
   }
 
   case class HoldLastStrategy(ratioPercent: Int) extends SplitStrategy {

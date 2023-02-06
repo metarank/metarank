@@ -105,10 +105,12 @@ object LambdaMARTRanker {
             IO.raiseError(
               new Exception(s"Test dataset is empty (with ${clickthroughs.size} total click-through events)")
             )
-          case Split(train, test) if (train.groups.size < 10) || (test.groups.size < 10) =>
+          case Split(train, test)
+              if (train.groups.size < SplitStrategy.MIN_SPLIT) || (test.groups.size < SplitStrategy.MIN_SPLIT) =>
             IO.raiseError(
               new Exception(s"""Train/test datasets are too small: train=${train.groups.size}, test=${test.groups.size}.
-                               |It is not possible to train the ML model on such a small dataset.""".stripMargin)
+                               |It is not possible to train the ML model on such a small dataset.
+                               |Minimal hard-coded threshold is ${SplitStrategy.MIN_SPLIT}""".stripMargin)
             )
           case Split(train, test) =>
             info(s"Train/Test split finished: ${train.groups.size}/${test.groups.size} click-through events")

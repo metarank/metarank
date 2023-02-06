@@ -87,6 +87,8 @@ lazy val root = (project in file("."))
         from(s"--platform=$PLATFORM ubuntu:jammy-20221020")
         runRaw(
           List(
+            "sed -i -e 's/archive\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
+            "sed -i -e 's/security\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "apt-get update",
             "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1",
             "rm -rf /var/lib/apt/lists/*"

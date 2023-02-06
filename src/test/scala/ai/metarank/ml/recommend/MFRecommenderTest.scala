@@ -8,11 +8,12 @@ import ai.metarank.ml.recommend.mf.MFRecImpl.MFModelConfig
 import ai.metarank.model.ClickthroughValues
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.util.TestClickthroughValues
+import cats.effect.unsafe.implicits.global
 
-import scala.util.Random
+import scala.util.{Random, Try}
 
 class MFRecommenderTest extends PredictorSuite[MFModelConfig, RecommendRequest, MFModel] {
-  val conf               = ALSConfig()
+  val conf = ALSConfig()
 
   override def predictor = MFPredictor("foo", conf, ALSRecImpl(conf))
 
@@ -30,4 +31,9 @@ class MFRecommenderTest extends PredictorSuite[MFModelConfig, RecommendRequest, 
     )
     .toList
 
+  it should "fail on empty context" in {
+    val rec = predictor.fit(fs2.Stream.apply(cts: _*)).unsafeRunSync()
+    val req = Try(rec.predict(request(10).copy(items = Nil)).unsafeRunSync())
+    req.isFailure shouldBe true
+  }
 }

@@ -43,7 +43,7 @@ jobs:
       if: runner.os == 'Linux'
 
     - name: Start Redis on Linux
-      run: sudo apt-get install redis-server haveged
+      run: sudo apt-get update && apt-get install redis-server haveged
       if: runner.os == 'Linux'
 
     - name: Start Redis on Mac

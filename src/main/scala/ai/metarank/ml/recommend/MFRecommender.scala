@@ -62,6 +62,10 @@ object MFRecommender {
 
   case class MFModel(name: String, index: HnswJavaIndex) extends RecommendModel {
     override def predict(request: RecommendRequest): IO[Model.Response] = for {
+      _ <- request.items match {
+        case Nil => IO.raiseError(new Exception("similar items recommender requires request.items to be non-empty"))
+        case _   => IO.unit
+      }
       response <- IO(index.lookup(request.items, request.count))
       items    <- IO.fromOption(NonEmptyList.fromList(response))(new Exception("empty response from the recommender"))
     } yield {

@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.4.5",
+      "org.typelevel"         %% "cats-effect"              % "3.4.6",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
@@ -87,6 +87,8 @@ lazy val root = (project in file("."))
         from(s"--platform=$PLATFORM ubuntu:jammy-20221020")
         runRaw(
           List(
+            "sed -i -e 's/archive\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
+            "sed -i -e 's/security\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "apt-get update",
             "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1",
             "rm -rf /var/lib/apt/lists/*"

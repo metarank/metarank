@@ -34,6 +34,14 @@ jobs:
       with:
         lfs: 'true'
 
+    - name: Set FBCDN ubuntu mirror for archive
+      run: "sed -i -e 's/archive\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list"
+      if: runner.os == 'Linux'
+
+    - name: Set FBCDN ubuntu mirror for sec
+      run: "sed -i -e 's/security\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list"
+      if: runner.os == 'Linux'
+
     - name: Start Redis on Linux
       run: sudo apt-get install redis-server haveged
       if: runner.os == 'Linux'

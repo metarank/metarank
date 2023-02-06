@@ -35,11 +35,7 @@ jobs:
         lfs: 'true'
 
     - name: Set FBCDN ubuntu mirror for archive
-      run: "sudo sed -i -e 's/archive.ubuntu.com/mirror.facebook.net/g' /etc/apt/sources.list"
-      if: runner.os == 'Linux'
-
-    - name: Set FBCDN ubuntu mirror for sec
-      run: "sudo sed -i -e 's/security.ubuntu.com/mirror.facebook.net/g' /etc/apt/sources.list"
+      run: "sudo sed -i -e 's/azure.archive.ubuntu.com/mirror.facebook.net/g' /etc/apt/sources.list"
       if: runner.os == 'Linux'
 
     - name: cat sources.list

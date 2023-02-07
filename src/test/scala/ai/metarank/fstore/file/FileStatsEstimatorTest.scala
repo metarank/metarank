@@ -10,6 +10,8 @@ import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 import org.scalatest.concurrent.{Eventually, IntegrationPatience}
 
+import scala.util.Random
+
 class FileStatsEstimatorTest extends StatsEstimatorSuite with FileTest with Eventually with IntegrationPatience {
   override def feature(config: StatsEstimatorConfig): FileStatsEstimatorFeature =
     FileStatsEstimatorFeature(config, db, "x", BinaryStoreFormat)
@@ -18,7 +20,7 @@ class FileStatsEstimatorTest extends StatsEstimatorSuite with FileTest with Even
     // may be probabilistic due to reservoir sampling in the FSE implementation
     eventually {
       val c = config.copy(name = FeatureName("sss"))
-      val f = feature(c)
+      val f = FileStatsEstimatorFeature(config, db, "x" + Random.nextInt(Int.MaxValue), BinaryStoreFormat)
       f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
       f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
       f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()

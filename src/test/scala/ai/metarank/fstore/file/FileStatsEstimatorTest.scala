@@ -8,18 +8,22 @@ import ai.metarank.model.State.StatsEstimatorState
 import ai.metarank.model.Write.PutStatSample
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
+import org.scalatest.concurrent.{Eventually, IntegrationPatience}
 
-class FileStatsEstimatorTest extends StatsEstimatorSuite with FileTest {
+class FileStatsEstimatorTest extends StatsEstimatorSuite with FileTest with Eventually with IntegrationPatience {
   override def feature(config: StatsEstimatorConfig): FileStatsEstimatorFeature =
     FileStatsEstimatorFeature(config, db, "x", BinaryStoreFormat)
 
   it should "pull state" in {
-    val c = config.copy(name = FeatureName("sss"))
-    val f = feature(c)
-    f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
-    f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
-    f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
-    val state = FileStatsEstimatorFeature.statsSource.source(f).compile.toList.unsafeRunSync()
-    state shouldBe List(StatsEstimatorState(TestKey(c, "a"), Array(1.0, 1.0, 1.0)))
+    // may be probabilistic due to reservoir sampling in the FSE implementation
+    eventually {
+      val c = config.copy(name = FeatureName("sss"))
+      val f = feature(c)
+      f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
+      f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
+      f.put(PutStatSample(TestKey(c, "a"), now, 1.0)).unsafeRunSync()
+      val state = FileStatsEstimatorFeature.statsSource.source(f).compile.toList.unsafeRunSync()
+      state shouldBe List(StatsEstimatorState(TestKey(c, "a"), Array(1.0, 1.0, 1.0)))
+    }
   }
 }

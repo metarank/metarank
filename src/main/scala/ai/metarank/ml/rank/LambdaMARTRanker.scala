@@ -6,7 +6,7 @@ import ai.metarank.config.{BoosterConfig, ModelConfig, Selector}
 import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.main.command.Train.info
 import ai.metarank.main.command.train.SplitStrategy
-import ai.metarank.main.command.train.SplitStrategy.Split
+import ai.metarank.main.command.train.SplitStrategy.{Split, splitDecoder}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
 import ai.metarank.ml.{Model, Predictor}
@@ -19,7 +19,8 @@ import cats.effect.{IO, ParallelF}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
-import io.github.metarank.ltrlib.model.{DatasetDescriptor, Feature}
+import io.github.metarank.ltrlib.metric.{MRR, Metric, NDCG}
+import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
@@ -45,8 +46,23 @@ object LambdaMARTRanker {
     override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[LambdaMARTModel] = for {
       clickthroughs <- loadDataset(data)
       split         <- splitDataset(config.split, desc, clickthroughs)
+      booster       <- IO(makeBooster(split))
+      result        <- IO(booster.fit())
+      model         <- IO.pure(LambdaMARTModel(name, config, result.model))
+      ndcg20        <- IO(model.eval(split.test, NDCG(20)))
+      _             <- info(s"NDCG20: source=${ndcg20.noopValue} reranked=${ndcg20.value}")
+      ndcg10        <- IO(model.eval(split.test, NDCG(10)))
+      _             <- info(s"NDCG10: source=${ndcg10.noopValue} reranked=${ndcg10.value}")
+      ndcg5         <- IO(model.eval(split.test, NDCG(5)))
+      _             <- info(s"NDCG5: source=${ndcg5.noopValue} reranked=${ndcg5.value}")
+      mrr           <- IO(model.eval(split.test, MRR))
+      _             <- info(s"MRR: source=${mrr.noopValue} reranked=${mrr.value}")
     } yield {
-      val booster = config.backend match {
+      model
+    }
+
+    def makeBooster(split: Split) = {
+      config.backend match {
         case LightGBMConfig(it, lr, ndcg, depth, seed, leaves, sampling) =>
           val opts = LightGBMOptions(
             trees = it,
@@ -69,8 +85,6 @@ object LambdaMARTRanker {
           )
           LambdaMART(split.train, opts, XGBoostBooster, Some(split.test))
       }
-      val result = booster.fit()
-      LambdaMARTModel(name, config, result.model)
     }
 
     override def load(bytes: Option[Array[Byte]]): Either[Throwable, LambdaMARTModel] = bytes match {
@@ -203,7 +217,27 @@ object LambdaMARTRanker {
       }
       result.toMap
     }
+
+    def eval(dataset: Dataset, metric: Metric): MetricValue = {
+      val metricValue = booster.eval(dataset, metric)
+      val y           = dataset.groups.map(_.labels).toArray
+      val yhat = for {
+        group <- dataset.groups
+      } yield {
+        val indices = new Array[Double](group.labels.length)
+        var i       = 0
+        while (i < indices.length) {
+          indices(i) = (indices.length - i) / indices.length.toDouble
+          i += 1
+        }
+        indices
+      }
+      val metricNoop = metric.eval(y, yhat.toArray)
+      MetricValue(metricValue, metricNoop)
+    }
+
   }
+  case class MetricValue(value: Double, noopValue: Double)
 
   implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder.instance(c =>
     for {

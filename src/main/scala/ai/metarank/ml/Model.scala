@@ -20,5 +20,4 @@ object Model {
 
   trait RecommendModel extends Model[RecommendRequest]
   trait RankModel      extends Model[QueryRequest]
-
 }

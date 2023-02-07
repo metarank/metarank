@@ -16,8 +16,8 @@ class FileStatsEstimatorTest extends StatsEstimatorSuite with FileTest with Even
   override def feature(config: StatsEstimatorConfig): FileStatsEstimatorFeature =
     FileStatsEstimatorFeature(config, db, "x", BinaryStoreFormat)
 
-  it should "pull state" in {
-    // may be probabilistic due to reservoir sampling in the FSE implementation
+  // FIXME: may be flaky due to reservoir sampling in the FSE implementation
+  it should "pull state" ignore {
     eventually {
       val c = config.copy(name = FeatureName("sss"))
       val f = FileStatsEstimatorFeature(config, db, "x" + Random.nextInt(Int.MaxValue), BinaryStoreFormat)

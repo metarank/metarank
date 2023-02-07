@@ -1,5 +1,6 @@
 package ai.metarank.fstore.file.client
 
+import ai.metarank.fstore.file.client.FileClient.PrefixSize
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.Suite
@@ -109,6 +110,15 @@ trait FileTestSuite extends AnyFlatSpec with Matchers { this: Suite =>
     val result = fs2.Stream.fromBlockingIterator[IO](db.firstN("foo".getBytes(), 3), 128).compile.toList.unsafeRunSync()
     result.map(kv => new String(kv.key)) shouldBe List("foo1", "foo2", "foo3")
     db.close()
+  }
+
+  it should "measure size" in {
+    val db = make()
+    db.put("foo1".getBytes(), "bar".getBytes())
+    db.put("foo2".getBytes(), "bar".getBytes())
+    db.put("foo3".getBytes(), "bar".getBytes())
+    val size = db.size(Array('f'))
+    size shouldBe PrefixSize(12, 9, 3)
   }
 
 }

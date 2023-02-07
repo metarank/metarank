@@ -1,6 +1,6 @@
 package ai.metarank.fstore.file.client
 
-import ai.metarank.fstore.file.client.FileClient.KeyVal
+import ai.metarank.fstore.file.client.FileClient.{KeyVal, PrefixSize}
 import cats.effect.{IO, Resource}
 import org.mapdb.serializer.GroupSerializer
 import org.mapdb.{BTreeMap, DB, DBMaker, HTreeMap, Serializer}
@@ -49,6 +49,7 @@ class MapDBClient(db: DB, tree: BTreeMap[Array[Byte], Array[Byte]]) extends File
   }
 
   def sync(): Unit = {}
+
 }
 
 object MapDBClient {

@@ -98,6 +98,7 @@ case class RocksDBClient(db: RocksDB) extends FileClient {
   override def sync(): Unit = {
     db.syncWal()
   }
+
 }
 
 object RocksDBClient {

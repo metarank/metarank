@@ -1,6 +1,6 @@
 package ai.metarank.fstore.file.client
 
-import ai.metarank.fstore.file.client.FileClient.{KeyVal, NumCodec}
+import ai.metarank.fstore.file.client.FileClient.{KeyVal, NumCodec, PrefixSize}
 
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util
@@ -16,6 +16,20 @@ trait FileClient {
   def lastN(prefix: Array[Byte], n: Int): Iterator[KeyVal]
   def close(): Unit
   def sync(): Unit
+
+  def size(prefix: Array[Byte]): FileClient.PrefixSize = {
+    val it         = firstN(prefix, Int.MaxValue)
+    var keyBytes   = 0L
+    var valueBytes = 0L
+    var count      = 0
+    while (it.hasNext) {
+      val entry = it.next()
+      count += 1
+      keyBytes += entry.key.length
+      valueBytes += entry.value.length
+    }
+    PrefixSize(keyBytes, valueBytes, count)
+  }
 
   def inc(key: Array[Byte], i: Int): Unit = {
     val value = get(key) match {
@@ -60,6 +74,7 @@ trait FileClient {
 }
 
 object FileClient {
+  case class PrefixSize(keyBytes: Long, valueBytes: Long, count: Int)
   object NumCodec {
     def writeInt(i: Int): Array[Byte] = {
       val buf = new Array[Byte](4)

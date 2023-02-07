@@ -20,7 +20,7 @@ import ai.metarank.validate.EventValidation.ValidationError
 import ai.metarank.validate.checks.EventOrderValidation.EventOrderError
 import cats.effect.IO
 import cats.effect.kernel.Resource
-
+import cats.implicits._
 import java.nio.file.Files
 
 object Import extends Logging {
@@ -91,11 +91,23 @@ object Import extends Logging {
             .create(FileStateConfig(dir.toString, backend = MapDBBackend), mapping.schema)
             .use(cache =>
               for {
-                buf2 <- IO(buffer.copy(values = cache.values))
-                r2   <- MetarankFlow.process(cache, source, mapping, buf2).flatTap(_ => cache.sync)
-                _    <- info("local import done, uploading data to redis")
-                _    <- FileRedisTransfer.copy(cache, redis)
-                _    <- store.sync
+                buf2  <- IO(buffer.copy(values = cache.values))
+                r2    <- MetarankFlow.process(cache, source, mapping, buf2).flatTap(_ => cache.sync)
+                _     <- info("estimating redis state size...")
+                sizes <- cache.estimateSize()
+                _ <- sizes
+                  .map(s =>
+                    info(
+                      s"${s.name}: count=${s.size.count} keyBytes=${s.size.keyBytes} valueBytes=${s.size.valueBytes}"
+                    )
+                  )
+                  .sequence
+                _ <- info(
+                  s"total: keyBytes=${sizes.map(_.size.keyBytes).sum} valueBytes=${sizes.map(_.size.valueBytes).sum}"
+                )
+                _ <- info("local import done, uploading data to redis")
+                _ <- FileRedisTransfer.copy(cache, redis)
+                _ <- store.sync
               } yield {
                 r2
               }

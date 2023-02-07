@@ -32,9 +32,14 @@ case class RedisModelStore(client: RedisClient, prefix: String)(implicit kc: KCo
           case Right(value) => IO(Some(value))
         }
       case Some(bytes) =>
-        pred.load(Some(bytes)) match {
-          case Left(error)  => IO.raiseError(error)
-          case Right(value) => IO(Some(value))
+        vc.decode(bytes) match {
+          case Left(err) => IO.raiseError(err)
+          case Right(decodedBytes) =>
+            pred.load(Some(decodedBytes)) match {
+              case Left(error)  => IO.raiseError(error)
+              case Right(value) => IO(Some(value))
+            }
+
         }
     }
   } yield {

@@ -102,7 +102,8 @@ object LambdaMARTRanker {
               case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf)))
               case other => Left(new Exception(s"unsupported booster tag $other"))
             }
-          case Success(other) => Left(new Exception(s"unsupported bitstream version $other, please re-run train"))
+          case Success(other) =>
+            Left(new Exception(s"unsupported bitstream version $other, please re-run train"))
           case Failure(ex)    => Left(ex)
         }
     }

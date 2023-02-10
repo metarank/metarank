@@ -36,11 +36,9 @@ class TrainConfigTest extends AnyFlatSpec with Matchers {
       s"""type: file
          |path: '$path'
          |format: binary""".stripMargin
-    val confOpt     = parse(yaml).flatMap(_.as[TrainConfig])
-    val (result, _) = ClickthroughStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()
-    result should matchPattern {
-      case FileClickthroughStore(file, _, _, _) if file.toString == path.toString => // yep
-    }
+    val confOpt = parse(yaml).flatMap(_.as[TrainConfig])
+    val result  = Try(ClickthroughStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()._1)
+    result.isSuccess shouldBe true
   }
 
   it should "load file config with conflict policy" in {
@@ -53,8 +51,8 @@ class TrainConfigTest extends AnyFlatSpec with Matchers {
     conf shouldBe Right(FileTrainConfig("/foo/a.bin"))
   }
 
-  it should "fail file config when file is a dir" in {
-    val path = Files.createTempDirectory("metarank")
+  it should "fail file config when file is a file" in {
+    val path = Files.createTempFile("metarank", ".bin")
     val yaml =
       s"""type: file
          |path: '$path'

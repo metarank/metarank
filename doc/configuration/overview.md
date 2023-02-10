@@ -87,13 +87,14 @@ train:
 train:
   type: discard
 ```
-* **Local file**: takes much less RAM (as ct's are not stored in redis), but you need to manage the file containing the click-throughs by yourself. 
+* **Local dir**: takes much less RAM (as ct's are not stored in redis), but you need to manage the directory containing the click-through files by yourself.  
 ```yaml
 train:
   type: file
-  path: /path/to/file   # path to a file which will be written during export/import
+  path: /path/to/dir   # path to a directory which will be used for persistence during export/import
   format: json          # options are: json, binary
 ```
+
 * **S3**: like local file, but offloads data to an external block storage, suits well for Kubernetes deployments.
 ```yaml
 train:

@@ -41,7 +41,7 @@ object RedisKVStore {
   implicit val valueSink: StateSink[FeatureValue, RedisKVStore[Key, FeatureValue]] =
     new StateSink[FeatureValue, RedisKVStore[Key, FeatureValue]] {
       override def sink(f: RedisKVStore[Key, FeatureValue], state: fs2.Stream[IO, FeatureValue]): IO[TransferResult] =
-        state
+        state // todo: make use of mset
           .evalMap(fv => f.put(Map(fv.key -> fv)).map(_ => 1))
           .compile
           .fold(0)(_ + _)

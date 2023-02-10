@@ -7,9 +7,7 @@ import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.clickthrough.FileClickthroughStore
 import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
-import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
-import ai.metarank.model.Timestamp
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.util.RanklensEvents
 import cats.effect.unsafe.implicits.global

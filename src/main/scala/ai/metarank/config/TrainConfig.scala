@@ -5,10 +5,8 @@ import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConf
 import ai.metarank.config.TrainConfig.CompressionType.{GzipCompressionType, NoCompressionType, ZstdCompressionType}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
-import io.circe.generic.semiauto.deriveDecoder
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
-import java.nio.file.{Files, Path, Paths}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
@@ -88,10 +86,17 @@ object TrainConfig {
     }
   )
 
-  case class FileTrainConfig(path: String, format: StoreFormat = BinaryStoreFormat) extends TrainConfig
-  implicit val fileDecoder: Decoder[FileTrainConfig] = deriveDecoder[FileTrainConfig].ensure(
-    c => !Files.isDirectory(Paths.get(c.path)),
-    "path should be a file, not a directory"
+  case class FileTrainConfig(
+      path: String,
+      format: StoreFormat = BinaryStoreFormat
+  ) extends TrainConfig
+  implicit val fileDecoder: Decoder[FileTrainConfig] = Decoder.instance(c =>
+    for {
+      path   <- c.downField("path").as[String]
+      format <- c.downField("format").as[StoreFormat]
+    } yield {
+      FileTrainConfig(path, format)
+    }
   )
 
   case class DiscardTrainConfig() extends TrainConfig

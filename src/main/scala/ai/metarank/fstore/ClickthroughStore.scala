@@ -1,6 +1,12 @@
 package ai.metarank.fstore
 
-import ai.metarank.config.TrainConfig.{DiscardTrainConfig, FileTrainConfig, MemoryTrainConfig, RedisTrainConfig, S3TrainConfig}
+import ai.metarank.config.TrainConfig.{
+  DiscardTrainConfig,
+  FileTrainConfig,
+  MemoryTrainConfig,
+  RedisTrainConfig,
+  S3TrainConfig
+}
 import ai.metarank.config.{StateStoreConfig, TrainConfig}
 import ai.metarank.fstore.clickthrough.{DiscardClickthroughStore, FileClickthroughStore, S3ClickthroughStore}
 import ai.metarank.fstore.memory.MemClickthroughStore

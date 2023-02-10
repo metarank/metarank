@@ -24,7 +24,7 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
     .unsafeRunSync()
   val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store  = MemPersistence(mapping.schema)
-  lazy val file   = Files.createTempFile("cts", ".dat")
+  lazy val file   = Files.createTempDirectory("cts")
   lazy val cts    = FileClickthroughStore.create(file.toString, JsonStoreFormat).allocated.unsafeRunSync()._1
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTPredictor]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]

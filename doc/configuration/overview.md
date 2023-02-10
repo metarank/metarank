@@ -41,6 +41,7 @@ state: # a place to store the feature values for the ML inference and the traine
     #pipeline:         # optional
     #  maxSize: 128    # batch write buffer size, optional, default=128
     #  flushPeriod: 1s # buffer flush interval, optional, default=1s
+    #  enabled: true   # toggle pipelining, optional, default=true
 
     # can be also overridden from environment variables, see the
     # https://docs.metarank.ai/reference/overview/persistence#redis-persistence for details

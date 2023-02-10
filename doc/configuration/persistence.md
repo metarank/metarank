@@ -40,6 +40,7 @@ state:
   pipeline:         # optional
     maxSize: 128    # batch write buffer size, optional, default=128
     flushPeriod: 1s # buffer flush interval, optional, default=1s
+    enabled: true   # toggle pipelining, optional, default=true
 
   auth:                  # optional
     user: <username>     # optional when Redis ACL is disabled

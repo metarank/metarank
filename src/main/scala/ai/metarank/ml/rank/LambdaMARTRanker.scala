@@ -46,9 +46,8 @@ object LambdaMARTRanker {
     override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[LambdaMARTModel] = for {
       clickthroughs <- loadDataset(data)
       split         <- splitDataset(config.split, desc, clickthroughs)
-      booster       <- IO(makeBooster(split))
-      result        <- IO(booster.fit())
-      model         <- IO.pure(LambdaMARTModel(name, config, result.model))
+      result        <- IO(makeBooster(split))
+      model         <- IO.pure(LambdaMARTModel(name, config, result))
       ndcg20        <- IO(model.eval(split.test, NDCG(20)))
       _             <- info(s"NDCG20: source=${ndcg20.noopValue} reranked=${ndcg20.value}")
       ndcg10        <- IO(model.eval(split.test, NDCG(10)))
@@ -73,7 +72,7 @@ object LambdaMARTRanker {
             maxDepth = depth,
             featureFraction = sampling
           )
-          LambdaMART(split.train, opts, LightGBMBooster, Some(split.test))
+          LambdaMART(split.train, LightGBMBooster, Some(split.test)).fit(opts)
         case XGBoostConfig(it, lr, ndcg, depth, seed, sampling) =>
           val opts = XGBoostOptions(
             trees = it,
@@ -83,7 +82,7 @@ object LambdaMARTRanker {
             maxDepth = depth,
             subsample = sampling
           )
-          LambdaMART(split.train, opts, XGBoostBooster, Some(split.test))
+          LambdaMART(split.train, XGBoostBooster, Some(split.test)).fit(opts)
       }
     }
 
@@ -104,7 +103,7 @@ object LambdaMARTRanker {
             }
           case Success(other) =>
             Left(new Exception(s"unsupported bitstream version $other, please re-run train"))
-          case Failure(ex)    => Left(ex)
+          case Failure(ex) => Left(ex)
         }
     }
 

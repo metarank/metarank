@@ -152,7 +152,7 @@ object RedisPersistence {
       timeout: RedisTimeouts
   ): Resource[IO, RedisPersistence] = for {
     state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls, timeout)
-    models <- RedisClient.create(host, port, db.models, pipeline, auth, tls, timeout)
+    models <- RedisClient.create(host, port, db.models, pipeline.copy(enabled = false), auth, tls, timeout)
     values <- RedisClient.create(host, port, db.values, pipeline, auth, tls, timeout)
     _ <- Resource.liftK(
       IO.whenA(cache.maxSize > 0)(

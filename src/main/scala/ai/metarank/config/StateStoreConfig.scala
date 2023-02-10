@@ -34,13 +34,15 @@ object StateStoreConfig extends Logging {
     case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, models: Int = 3)
     implicit val dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
 
-    case class PipelineConfig(maxSize: Int = 128, flushPeriod: FiniteDuration = 1.second)
+    case class PipelineConfig(maxSize: Int = 128, flushPeriod: FiniteDuration = 1.second, enabled: Boolean = true)
     implicit val pipelineConfigDecoder: Decoder[PipelineConfig] = Decoder.instance(c =>
       for {
+        enabled     <- c.downField("enabled").as[Option[Boolean]]
         maxSize     <- c.downField("maxSize").as[Option[Int]]
         flushPeriod <- c.downField("flushPeriod").as[Option[FiniteDuration]]
       } yield {
         PipelineConfig(
+          enabled = enabled.getOrElse(true),
           maxSize = maxSize.getOrElse(PipelineConfig().maxSize),
           flushPeriod = flushPeriod.getOrElse(PipelineConfig().flushPeriod)
         )

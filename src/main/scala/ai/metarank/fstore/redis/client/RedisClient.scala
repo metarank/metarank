@@ -111,11 +111,12 @@ case class RedisClient(
   def append(key: String, value: Array[Byte]): IO[Unit] =
     IO(writer.append(key, value).toCompletableFuture).flatMap(maybeFlush)
 
-  def maybeFlush[T](lastWrite: CompletableFuture[T]): IO[Unit] = bufferSize.updateAndGet(_ + 1).flatMap {
-    case cnt if cnt >= conf.maxSize =>
-      debug(s"overflow pipeline flush of $cnt writes") *> doFlush(lastWrite)
-    case _ => IO.unit
-  }
+  def maybeFlush[T](lastWrite: CompletableFuture[T]): IO[Unit] =
+    IO.whenA(conf.enabled)(bufferSize.updateAndGet(_ + 1).flatMap {
+      case cnt if cnt >= conf.maxSize =>
+        debug(s"overflow pipeline flush of $cnt writes") *> doFlush(lastWrite)
+      case _ => IO.unit
+    })
 
   def doFlush[T](last: CompletableFuture[T]): IO[Unit] = for {
     _ <- bufferSize.set(0)
@@ -156,14 +157,14 @@ object RedisClient extends Logging {
         buffer <- Ref.of[IO, Int](0)
         client <- createIO(host, port, db, cache, buffer, auth, tls, timeout)
         tickCancel <-
-          if (cache.flushPeriod != 0.millis) {
+          if ((cache.flushPeriod != 0.millis) && cache.enabled) {
             info(s"started flush timer every ${cache.flushPeriod}") *> client.tick().background.allocated.map(_._2)
           } else {
             info("periodic flushing disabled") *> IO.pure(IO.unit)
           }
       } yield {
         client -> tickCancel
-      })(client => info("closing redis connection") *> IO(client._1.lettuce.close()) *> client._2)
+      })(client => info("closing redis connection") *> client._2 *> IO(client._1.lettuce.close()))
       .map(_._1)
   }
 
@@ -196,7 +197,7 @@ object RedisClient extends Logging {
     _     <- IO(read.sync().select(db))
     write <- IO(lettuce.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec())))
     _     <- IO(write.sync().select(db))
-    _     <- IO(write.setAutoFlushCommands(false))
+    _     <- IO.whenA(conf.enabled)(info("Enabled redis pipelining") *> IO(write.setAutoFlushCommands(false)))
     _ <- info(
       s"opened read+write connection redis://$host:$port, db=$db (pipeline size: ${conf.maxSize} period: ${conf.flushPeriod})"
     )

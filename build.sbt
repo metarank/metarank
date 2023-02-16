@@ -72,6 +72,7 @@ lazy val root = (project in file("."))
       "org.rocksdb"        % "rocksdbjni"     % "7.9.2",
       "org.mapdb"          % "mapdb"          % "3.0.9" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk" % "hnswlib-core"   % "1.1.0",
+      "net.openhft"        % "chronicle-map"  % "3.24ea2",
       "org.slf4j"          % "jcl-over-slf4j" % "2.0.6" // librec uses commons-logging, which is JCL
     ),
     excludeDependencies ++= Seq(

@@ -13,7 +13,7 @@ import ai.metarank.fstore.file.{
   FileScalarFeature,
   FileStatsEstimatorFeature
 }
-import ai.metarank.fstore.file.client.FileClient.{KeyVal, NumCodec}
+import ai.metarank.fstore.file.client.FileClient.NumCodec
 import ai.metarank.fstore.redis.{
   RedisBoundedListFeature,
   RedisCounterFeature,
@@ -65,7 +65,10 @@ object FileRedisTransfer extends Logging {
       dest.stats
     )
     _ <- copyGroup[MapState, FileMapFeature, RedisMapFeature](source.maps, dest.maps)
-    _ <- copyOne[FeatureValue, FileKVStore, RedisKVStore[Key, FeatureValue]](source.values, dest.values)
+    _ <- copyOne[FeatureValue, FileKVStore, RedisKVStore[Key, FeatureValue]](
+      source.values.slow.asInstanceOf[FileKVStore],
+      dest.values
+    )
   } yield {
     logger.info("import done")
   }

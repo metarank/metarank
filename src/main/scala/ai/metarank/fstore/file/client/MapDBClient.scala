@@ -1,54 +1,48 @@
 package ai.metarank.fstore.file.client
 
-import ai.metarank.fstore.file.client.FileClient.{KeyVal, PrefixSize}
+import ai.metarank.fstore.file.client.mapdb.{MapdbHashDB, MapdbSortedDB, ScalaFloatSerializer, ScalaIntSerializer}
 import cats.effect.{IO, Resource}
-import org.mapdb.serializer.GroupSerializer
 import org.mapdb.{BTreeMap, DB, DBMaker, HTreeMap, Serializer}
 
 import java.nio.file.{Files, Path, Paths}
-import scala.jdk.CollectionConverters._
 
-class MapDBClient(db: DB, tree: BTreeMap[Array[Byte], Array[Byte]]) extends FileClient {
-  def put(key: Array[Byte], value: Array[Byte]): Unit = {
-    tree.put(key, value)
+class MapDBClient(db: DB) extends FileClient {
+  override def hashDB(name: String): HashDB = {
+    val hash = db.hashMap(name, Serializer.STRING, Serializer.BYTE_ARRAY).create()
+    MapdbHashDB(hash)
   }
 
-  def put(keys: Array[Array[Byte]], values: Array[Array[Byte]]) = {
-    keys.zip(values).map { case (k, v) =>
-      tree.put(k, v)
-    }
+  override def sortedStringDB(name: String): SortedDB[String] = {
+    val tree = db.treeMap(name, Serializer.STRING, Serializer.STRING).maxNodeSize(16).create()
+    MapdbSortedDB(tree, _.length)
   }
 
-  def get(key: Array[Byte]): Option[Array[Byte]] = {
-    Option(tree.get(key))
+  override def sortedDB(name: String): SortedDB[Array[Byte]] = {
+    val tree = db
+      .treeMap(name, Serializer.STRING, Serializer.BYTE_ARRAY)
+      .maxNodeSize(16)
+      .valuesOutsideNodesEnable()
+      .create()
+    MapdbSortedDB(tree, _.length)
   }
 
-  def get(keys: Array[Array[Byte]]): Array[Array[Byte]] = {
-    keys.map(k => tree.get(k))
+  override def sortedFloatDB(name: String): SortedDB[Float] = {
+    val tree = db
+      .treeMap(name, Serializer.STRING, ScalaFloatSerializer)
+      .maxNodeSize(16)
+      .valuesOutsideNodesEnable()
+      .create()
+    MapdbSortedDB(tree, _ => 4)
   }
 
-  def del(key: Array[Byte]): Unit = {
-    tree.remove(key)
+  override def sortedIntDB(name: String): SortedDB[Int] = {
+    val tree =
+      db.treeMap(name, Serializer.STRING, ScalaIntSerializer).maxNodeSize(16).create()
+    MapdbSortedDB(tree, _ => 4)
   }
 
-  def firstN(prefix: Array[Byte], n: Int): Iterator[KeyVal] = {
-    tree.entryIterator(prefix, true, nextKey(prefix), false).asScala.map(e => KeyVal(e.getKey, e.getValue)).take(n)
-  }
-
-  def lastN(prefix: Array[Byte], n: Int): Iterator[KeyVal] = {
-    tree
-      .descendingEntryIterator(prefix, true, nextKey(prefix), false)
-      .asScala
-      .map(e => KeyVal(e.getKey, e.getValue))
-      .take(n)
-  }
-
-  def close(): Unit = {
-    tree.close()
+  def close() =
     db.close()
-  }
-
-  def sync(): Unit = {}
 
 }
 
@@ -57,11 +51,6 @@ object MapDBClient {
 
   def createUnsafe(path: Path) = {
     val db = DBMaker.fileDB(path.toString + "/state.db").fileMmapEnable().closeOnJvmShutdown().make()
-    val tree =
-      db.treeMap("tree", Serializer.BYTE_ARRAY, Serializer.BYTE_ARRAY)
-        .valuesOutsideNodesEnable
-        .maxNodeSize(16)
-        .create()
-    new MapDBClient(db, tree)
+    new MapDBClient(db)
   }
 }

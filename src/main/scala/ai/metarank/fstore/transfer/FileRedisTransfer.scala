@@ -13,7 +13,6 @@ import ai.metarank.fstore.file.{
   FileScalarFeature,
   FileStatsEstimatorFeature
 }
-import ai.metarank.fstore.file.client.FileClient.NumCodec
 import ai.metarank.fstore.redis.{
   RedisBoundedListFeature,
   RedisCounterFeature,
@@ -26,8 +25,7 @@ import ai.metarank.fstore.redis.{
   RedisStatsEstimatorFeature
 }
 import ai.metarank.fstore.transfer.StateSink.TransferResult
-import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key}
 import ai.metarank.model.State.{
   BoundedListState,
   CounterState,

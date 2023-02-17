@@ -1,14 +1,13 @@
 package ai.metarank.fstore.file
 
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.{FileClient, SortedDB}
-import ai.metarank.fstore.file.client.FileClient.NumCodec
+import ai.metarank.fstore.file.client.SortedDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.CounterFeature
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
 import ai.metarank.model.State.CounterState
-import ai.metarank.model.{FeatureValue, Key, State, Timestamp, Write}
+import ai.metarank.model.{FeatureValue, Key, Timestamp, Write}
 import cats.effect.IO
 import fs2.Stream
 

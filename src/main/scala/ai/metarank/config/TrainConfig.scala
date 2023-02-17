@@ -107,7 +107,7 @@ object TrainConfig {
       port: Port,
       db: Int = 2,
       cache: CacheConfig = CacheConfig(),
-      pipeline: PipelineConfig = PipelineConfig(enabled = false),
+      pipeline: PipelineConfig = PipelineConfig(),
       format: StoreFormat = BinaryStoreFormat,
       auth: Option[RedisCredentials] = None,
       tls: Option[RedisTLS] = None,

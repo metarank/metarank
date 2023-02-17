@@ -4,13 +4,13 @@ import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.cache.CachedKVStore
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.FilePersistence.{FeatureSize}
+import ai.metarank.fstore.file.FilePersistence.FeatureSize
 import ai.metarank.fstore.file.client.FileClient.PrefixSize
 import ai.metarank.fstore.file.client.{FileClient, MapDBClient}
 import ai.metarank.fstore.memory.{MemKVStore, MemModelStore, MemPeriodicCounter}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Feature, FeatureKey, FeatureValue, Key, Schema}
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import com.github.blemale.scaffeine.Scaffeine
 
 import java.nio.file.Path
@@ -61,19 +61,9 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat) 
 
 object FilePersistence {
   case class FeatureSize(name: FeatureName, size: PrefixSize)
-//  object Prefix {
-//    val COUNTER  = "c"
-//    val PCOUNTER = "pc"
-//    val LIST     = "l"
-//    val FREQ     = "f"
-//    val SCALAR   = "s"
-//    val STATS    = "ss"
-//    val MAP      = "m"
-//    val VALUE    = "v"
-//  }
-  def create(conf: FileStateConfig, schema: Schema) = conf.backend match {
+  def create(conf: FileStateConfig, schema: Schema): Resource[IO, FilePersistence] = conf.backend match {
     case FileStateConfig.RocksDBBackend =>
-      ???//RocksDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format))
+      Resource.raiseError[IO, FilePersistence, Throwable](new Exception("not yet implemented"))
     case FileStateConfig.MapDBBackend =>
       MapDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format))
   }

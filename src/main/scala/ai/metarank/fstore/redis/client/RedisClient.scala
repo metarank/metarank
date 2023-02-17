@@ -78,53 +78,58 @@ case class RedisClient(
 
   def mset(values: Map[String, Array[Byte]]): IO[Unit] = {
     if (values.nonEmpty) {
-      IO(writer.mset(values.asJava).toCompletableFuture).flatMap(maybeFlush)
+      IO(writer.mset(values.asJava).toCompletableFuture).flatMap(x => maybeFlush(() => x))
     } else {
       IO.unit
     }
   }
 
   def set(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.set(key, value).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.set(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hset(key: String, values: Map[String, Array[Byte]]): IO[Unit] =
-    IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hdel(key: String, keys: List[String]): IO[Unit] =
-    IO(writer.hdel(key, keys: _*).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.hdel(key, keys: _*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hincrby(key: String, subkey: String, by: Int): IO[Unit] =
-    IO(writer.hincrby(key, subkey, by).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.hincrby(key, subkey, by).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def incrBy(key: String, by: Int): IO[Unit] =
-    IO(writer.incrby(key, by).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.incrby(key, by).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def lpush(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.lpush(key, value).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.lpush(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def lpush(key: String, values: List[Array[Byte]]): IO[Unit] =
-    IO(writer.lpush(key, values: _*).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.lpush(key, values: _*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def ltrim(key: String, start: Int, end: Int): IO[Unit] =
-    IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def append(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.append(key, value).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.append(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
-  def maybeFlush[T](lastWrite: CompletableFuture[T]): IO[Unit] =
-    IO.whenA(conf.enabled)(bufferSize.updateAndGet(_ + 1).flatMap {
+  def maybeFlush[T](lastWrite: () => CompletableFuture[T]): IO[Unit] =
+    bufferSize.updateAndGet(_ + 1).flatMap {
       case cnt if cnt >= conf.maxSize =>
-        debug(s"overflow pipeline flush of $cnt writes") *> doFlush(lastWrite)
+        IO.whenA(conf.enabled)(debug(s"overflow pipeline flush of $cnt writes")) *> doFlush(lastWrite)
       case _ => IO.unit
-    })
+    }
 
-  def doFlush[T](last: CompletableFuture[T]): IO[Unit] = for {
-    _ <- bufferSize.set(0)
-    _ <- IO.fromCompletableFuture(IO {
-      writerConn.flushCommands()
-      last
-    })
-  } yield {}
+  def doFlush[T](last: () => CompletableFuture[T]): IO[Unit] = {
+    for {
+      _ <- bufferSize.set(0)
+      _ <- IO.whenA(conf.enabled)(
+        IO.fromCompletableFuture(IO {
+          writerConn.flushCommands()
+          last()
+        }).void
+      )
+    } yield {}
+
+  }
 
   private def tick(): IO[Unit] = for {
     _ <- IO.sleep(conf.flushPeriod)

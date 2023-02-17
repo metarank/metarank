@@ -39,8 +39,8 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat, 
   override lazy val models = MemModelStore()
   lazy val fileValues      = FileKVStore(db.hashDB("values"), format)
   override lazy val values: KVStore[Key, FeatureValue] = if (cache.enabled) {
-    NegCachedKVStore(
-      cache = Scaffeine().maximumSize(cache.size).recordStats().softValues().build[Key, Option[FeatureValue]](),
+    CachedKVStore(
+      fast = MemKVStore(Scaffeine().maximumSize(cache.size).recordStats().softValues().build[Key, FeatureValue]()),
       slow = fileValues
     )
   } else {

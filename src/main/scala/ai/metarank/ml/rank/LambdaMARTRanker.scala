@@ -24,7 +24,7 @@ import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Random, Success, Try}
 
 object LambdaMARTRanker {
 
@@ -49,13 +49,13 @@ object LambdaMARTRanker {
       result        <- IO(makeBooster(split))
       model         <- IO.pure(LambdaMARTModel(name, config, result))
       ndcg20        <- IO(model.eval(split.test, NDCG(20)))
-      _             <- info(s"NDCG20: source=${ndcg20.noopValue} reranked=${ndcg20.value}")
+      _             <- info(s"NDCG20: source=${ndcg20.noopValue} reranked=${ndcg20.value} random=${ndcg20.randomValue}")
       ndcg10        <- IO(model.eval(split.test, NDCG(10)))
-      _             <- info(s"NDCG10: source=${ndcg10.noopValue} reranked=${ndcg10.value}")
+      _             <- info(s"NDCG10: source=${ndcg10.noopValue} reranked=${ndcg10.value} random=${ndcg10.randomValue}")
       ndcg5         <- IO(model.eval(split.test, NDCG(5)))
-      _             <- info(s"NDCG5: source=${ndcg5.noopValue} reranked=${ndcg5.value}")
+      _             <- info(s"NDCG5: source=${ndcg5.noopValue} reranked=${ndcg5.value} random=${ndcg5.randomValue}")
       mrr           <- IO(model.eval(split.test, MRR))
-      _             <- info(s"MRR: source=${mrr.noopValue} reranked=${mrr.value}")
+      _             <- info(s"MRR: source=${mrr.noopValue} reranked=${mrr.value} random=${mrr.randomValue}")
     } yield {
       model
     }
@@ -221,6 +221,18 @@ object LambdaMARTRanker {
     def eval(dataset: Dataset, metric: Metric): MetricValue = {
       val metricValue = booster.eval(dataset, metric)
       val y           = dataset.groups.map(_.labels).toArray
+      val yrand = for {
+        group <- dataset.groups
+      } yield {
+        val indices = new Array[Double](group.labels.length)
+        var i       = 0
+        while (i < indices.length) {
+          indices(i) = Random.nextDouble()
+          i += 1
+        }
+        indices
+      }
+      val metricRandom = metric.eval(y, yrand.toArray)
       val yhat = for {
         group <- dataset.groups
       } yield {
@@ -233,11 +245,12 @@ object LambdaMARTRanker {
         indices
       }
       val metricNoop = metric.eval(y, yhat.toArray)
-      MetricValue(metricValue, metricNoop)
+
+      MetricValue(metricValue, metricNoop, metricRandom)
     }
 
   }
-  case class MetricValue(value: Double, noopValue: Double)
+  case class MetricValue(value: Double, noopValue: Double, randomValue: Double)
 
   implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder.instance(c =>
     for {

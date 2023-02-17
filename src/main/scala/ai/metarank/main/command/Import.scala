@@ -57,7 +57,7 @@ object Import extends Logging {
     for {
       errors       <- validated(conf, stream, args.validation)
       sortedStream <- sorted(stream, errors)
-      result       <- slurp(sortedStream, store, mapping, buffer)
+      result       <- slurp(sortedStream, store, mapping, buffer, conf)
     } yield {
       result
     }
@@ -80,10 +80,11 @@ object Import extends Logging {
       source: fs2.Stream[IO, Event],
       store: Persistence,
       mapping: FeatureMapping,
-      buffer: ClickthroughJoinBuffer
+      buffer: ClickthroughJoinBuffer,
+      conf: Config
   ): IO[ProcessResult] = {
     store match {
-      case redis: RedisPersistence =>
+      case redis: RedisPersistence if conf.core.`import`.cache.enabled =>
         for {
           dir <- IO(Files.createTempDirectory("metarank-rocksdb-temp"))
           _   <- info(s"using local disk cache for redis persistence: $dir")

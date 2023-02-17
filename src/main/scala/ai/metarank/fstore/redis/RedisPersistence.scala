@@ -123,10 +123,9 @@ case class RedisPersistence(
 
   override def sync: IO[Unit] = for {
     start <- IO(System.currentTimeMillis())
-    _     <- stateClient.doFlush(stateClient.writer.ping().toCompletableFuture)
-    _     <- valuesClient.doFlush(valuesClient.writer.ping().toCompletableFuture)
-//    _     <- rankingsClient.doFlush(rankingsClient.writer.ping().toCompletableFuture)
-    _ <- modelClient.doFlush(modelClient.writer.ping().toCompletableFuture)
+    _     <- stateClient.doFlush { stateClient.writer.ping().toCompletableFuture }
+    _     <- valuesClient.doFlush { valuesClient.writer.ping().toCompletableFuture }
+    _     <- modelClient.doFlush { modelClient.writer.ping().toCompletableFuture }
   } yield {
     logger.info(s"redis pipeline flushed, took ${System.currentTimeMillis() - start}ms")
   }

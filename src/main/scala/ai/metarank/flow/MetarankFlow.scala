@@ -27,7 +27,7 @@ object MetarankFlow {
         .evalTapChunk(e => IO(store.ticker.tick(e)))
         .evalTapChunk(_ => eventCounter.update(_ + 1))
         .evalTapChunk(e => IO(Metrics.events.inc()))
-        .through(ai.metarank.flow.PrintProgress.tap)
+        .through(ai.metarank.flow.PrintProgress.tap(Some(store), "events"))
         .flatMap(event =>
           Stream.evalSeq[IO, List, Event](
             clickthrough

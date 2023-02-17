@@ -6,7 +6,7 @@ import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Export, Import}
 import ai.metarank.model.Timestamp
-import ai.metarank.util.RandomDataset
+import ai.metarank.util.{RandomDataset, TestConfig}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -21,7 +21,7 @@ class ExportTest extends AnyFlatSpec with Matchers {
   lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, dataset.mapping)
 
   it should "generate test data" in {
-    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer, TestConfig()).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
   }
 

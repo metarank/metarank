@@ -56,7 +56,7 @@ object Main extends IOApp with Logging {
               conf    <- Config.load(confString, env)
               _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args))
               mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
-              store = Persistence.fromConfig(mapping.schema, conf.state)
+              store = Persistence.fromConfig(mapping.schema, conf.state, conf.core.`import`.cache)
               cts   = ClickthroughStore.fromConfig(conf.train)
               _ <- confArgs match {
                 case a: ServeArgs      => Serve.run(conf, store, cts, mapping, a)

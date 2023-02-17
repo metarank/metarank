@@ -2,7 +2,7 @@ package ai.metarank.fstore.transfer
 
 import ai.metarank.FeatureMapping
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.cache.CachedKVStore
+import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
 import ai.metarank.fstore.file.{
   FileBoundedListFeature,
   FileCounterFeature,
@@ -67,9 +67,10 @@ object FileRedisTransfer extends Logging {
     _ <- copyGroup[MapState, FileMapFeature, RedisMapFeature](source.maps, dest.maps)
     _ <- copyOne[FeatureValue, FileKVStore, RedisKVStore[Key, FeatureValue]](
       source.values match {
-        case CachedKVStore(_, slow) => slow.asInstanceOf[FileKVStore]
-        case f: FileKVStore         => f
-        case _                      => ???
+        case CachedKVStore(_, slow)    => slow.asInstanceOf[FileKVStore]
+        case NegCachedKVStore(slow, _) => slow.asInstanceOf[FileKVStore]
+        case f: FileKVStore            => f
+        case _                         => ???
       },
       dest.values
     )

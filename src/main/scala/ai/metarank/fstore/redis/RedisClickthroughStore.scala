@@ -1,5 +1,6 @@
 package ai.metarank.fstore.redis
 
+import ai.metarank.flow.PrintProgress
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.fstore.Persistence.KVCodec
 import ai.metarank.fstore.codec.{KCodec, StoreFormat, VCodec}
@@ -38,7 +39,6 @@ case class RedisClickthroughStore(rankings: RedisClient, prefix: String, format:
       for {
         scanned <- rankings.scan(cursor, BATCH_SIZE, s"$prefix/*")
         cts     <- rankings.mget(scanned.keys).flatMap(decodeValues)
-        _       <- info(s"fetched next page of ${cts.size} clickthroughs")
       } yield {
         scanned.cursor match {
           case "0"  => cts -> None
@@ -47,6 +47,7 @@ case class RedisClickthroughStore(rankings: RedisClient, prefix: String, format:
       }
     )
     .flatMap(batch => Stream.emits(batch))
+    .through(PrintProgress.tap(None, "click-throughs"))
 
   private def decodeValues(map: Map[String, Array[Byte]]): IO[List[ClickthroughValues]] = {
     map.toList.map { case (_, value) => IO.fromEither(format.ctv.decode(value)) }.sequence

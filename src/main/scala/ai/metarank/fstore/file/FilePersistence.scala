@@ -4,7 +4,7 @@ import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.KVStore
-import ai.metarank.fstore.cache.CachedKVStore
+import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.file.FilePersistence.FeatureSize
 import ai.metarank.fstore.file.client.FileClient.PrefixSize
@@ -40,7 +40,7 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat, 
   lazy val fileValues      = FileKVStore(db.hashDB("values"), format)
   override lazy val values: KVStore[Key, FeatureValue] = if (cache.enabled) {
     CachedKVStore(
-      fast = MemKVStore(Scaffeine().maximumSize(cache.size).build[Key, FeatureValue]()),
+      fast = MemKVStore(Scaffeine().maximumSize(cache.size).recordStats().softValues().build[Key, FeatureValue]()),
       slow = fileValues
     )
   } else {

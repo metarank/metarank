@@ -23,7 +23,7 @@ object CoreConfig {
 
   case class ImportConfig(cache: ImportCacheConfig = ImportCacheConfig())
 
-  case class ImportCacheConfig(enabled: Boolean = true, size: Int = 100000)
+  case class ImportCacheConfig(enabled: Boolean = true, size: Int = 64 * 1024)
 
   implicit val importCacheDecoder: Decoder[ImportCacheConfig] = Decoder.instance(c =>
     for {

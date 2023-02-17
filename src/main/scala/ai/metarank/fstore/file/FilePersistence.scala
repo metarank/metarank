@@ -40,7 +40,7 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat, 
   lazy val fileValues      = FileKVStore(db.hashDB("values"), format)
   override lazy val values: KVStore[Key, FeatureValue] = if (cache.enabled) {
     CachedKVStore(
-      fast = MemKVStore(Scaffeine().maximumSize(1000000).build[Key, FeatureValue]()),
+      fast = MemKVStore(Scaffeine().maximumSize(cache.size).build[Key, FeatureValue]()),
       slow = fileValues
     )
   } else {
@@ -68,11 +68,12 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat, 
 
 object FilePersistence {
   case class FeatureSize(name: FeatureName, size: PrefixSize)
-  def create(conf: FileStateConfig, schema: Schema, imp: ImportCacheConfig): Resource[IO, FilePersistence] = conf.backend match {
-    case FileStateConfig.RocksDBBackend =>
-      Resource.raiseError[IO, FilePersistence, Throwable](new Exception("not yet implemented"))
-    case FileStateConfig.MapDBBackend =>
-      MapDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format, imp))
-  }
+  def create(conf: FileStateConfig, schema: Schema, imp: ImportCacheConfig): Resource[IO, FilePersistence] =
+    conf.backend match {
+      case FileStateConfig.RocksDBBackend =>
+        Resource.raiseError[IO, FilePersistence, Throwable](new Exception("not yet implemented"))
+      case FileStateConfig.MapDBBackend =>
+        MapDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format, imp))
+    }
 
 }

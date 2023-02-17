@@ -40,7 +40,7 @@ object PrintProgress extends Logging {
           val (evict, hits, reqs, cache) = store match {
             case Some(f: FilePersistence) =>
               f.values match {
-                case NegCachedKVStore(slow, cache) =>
+                case CachedKVStore(MemKVStore(cache), _) =>
                   val stat         = cache.stats()
                   val hitsNow      = stat.hitCount()
                   val reqsNow      = stat.requestCount()

@@ -56,6 +56,14 @@ object StoreFormat {
 
   val keyEncoder: KCodec[Key] = new KCodec[Key] {
     override def encode(prefix: String, value: Key): String = s"$prefix/${value.feature.value}/${value.scope.asString}"
+
+    override def decodeNoPrefix(str: String): Either[Throwable, Key] = str.split('/').toList match {
+      case value :: scope :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(value)))
+      case other                 => Left(new Exception(s"cannot parse key $other"))
+    }
+
+    override def encodeNoPrefix(value: Key): String = s"${value.feature.value}/${value.scope.asString}"
+
     override def decode(str: String): Either[Throwable, Key] = {
       str.split('/').toList match {
         case _ :: value :: scope :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(value)))
@@ -67,6 +75,9 @@ object StoreFormat {
   val idEncoder: KCodec[EventId] = new KCodec[EventId] {
     override def encode(prefix: String, value: EventId): String = s"$prefix/${value.value}"
 
+    override def decodeNoPrefix(str: String): Either[Throwable, EventId] =  Right(EventId(str))
+
+    override def encodeNoPrefix(value: EventId): String = value.value
     override def decode(str: String): Either[Throwable, EventId] = str match {
       case SlashDelimitedPair(_, id) => Right(EventId(id))
       case other                     => Left(new Exception(s"cannot parse id $other"))

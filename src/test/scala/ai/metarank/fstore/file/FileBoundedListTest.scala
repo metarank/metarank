@@ -12,9 +12,11 @@ import ai.metarank.model.Write.Append
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
+import scala.util.Random
+
 class FileBoundedListTest extends BoundedListSuite with FileTest {
   override def feature(config: BoundedListConfig): FileBoundedListFeature =
-    FileBoundedListFeature(config, db, "x", BinaryStoreFormat)
+    FileBoundedListFeature(config, db.sortedDB(config.name.value + Random.nextInt()), BinaryStoreFormat)
 
   it should "emit state" in {
     val f = feature(config.copy(name = FeatureName("fbl")))

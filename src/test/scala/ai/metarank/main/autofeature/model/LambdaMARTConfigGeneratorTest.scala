@@ -19,16 +19,16 @@ class LambdaMARTConfigGeneratorTest extends AnyFlatSpec with Matchers {
   }
 
   it should "complain when there are no rankings" in {
-    val em = EventModel(eventCount = EventCountStat(rankings = 0, ints = 100, intsWithRanking = 100))
+    val em       = EventModel(eventCount = EventCountStat(rankings = 0, ints = 100, intsWithRanking = 100))
     val features = List(NumberFeatureSchema(FeatureName("foo"), FieldName(Item, "foo"), ItemScopeType))
-    val conf = LambdaMARTConfigGenerator.maybeGenerate(em, features)
+    val conf     = LambdaMARTConfigGenerator.maybeGenerate(em, features)
     conf should be(empty)
   }
 
   it should "complain when there are no interactions with ranking ref" in {
-    val em = EventModel(eventCount = EventCountStat(rankings = 100, ints = 100, intsWithRanking = 0))
+    val em       = EventModel(eventCount = EventCountStat(rankings = 100, ints = 100, intsWithRanking = 0))
     val features = List(NumberFeatureSchema(FeatureName("foo"), FieldName(Item, "foo"), ItemScopeType))
-    val conf = LambdaMARTConfigGenerator.maybeGenerate(em, features)
+    val conf     = LambdaMARTConfigGenerator.maybeGenerate(em, features)
     conf should be(empty)
   }
 }

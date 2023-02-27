@@ -2,10 +2,12 @@ package ai.metarank.main.command
 
 import ai.metarank.config.Config
 import ai.metarank.config.InputConfig.FileInputConfig
+import ai.metarank.flow.PrintProgress
 import ai.metarank.main.CliArgs.ValidateArgs
 import ai.metarank.model.Event
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
+import ai.metarank.validate.checks.StringValuesValidation.{ItemStringValuesValidation, UserStringValuesValidation}
 import ai.metarank.validate.checks.{
   EventOrderValidation,
   EventTypesValidation,
@@ -25,6 +27,7 @@ object Validate extends Logging {
     _ <- validate(
       conf,
       FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format, args.sort)).stream
+        .through(PrintProgress.tap(None, "events"))
     )
   } yield {}
 
@@ -36,7 +39,9 @@ object Validate extends Logging {
       InteractionKeyValidation,
       InteractionMetadataValidation,
       InteractionPositionValidation,
-      InteractionTypeValidation
+      InteractionTypeValidation,
+      UserStringValuesValidation,
+      ItemStringValuesValidation
     )
     for {
       _      <- info("Dataset validation is enabled")

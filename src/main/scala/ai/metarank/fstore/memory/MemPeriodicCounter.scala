@@ -1,7 +1,7 @@
 package ai.metarank.fstore.memory
 
 import ai.metarank.model.Feature.PeriodicCounterFeature
-import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodicCounterConfig, TimestampLongMap}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.model.{Key, Timestamp}
@@ -32,7 +32,7 @@ case class MemPeriodicCounter(
       cache
         .getIfPresent(key)
         .flatMap(_.cast[Map[Timestamp, Long]])
-        .map(values => PeriodicCounterValue(key, ts, fromMap(values)))
+        .map(values => PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(values.toList.sortBy(_._1.ts)))))
     )
 
 }

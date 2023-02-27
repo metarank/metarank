@@ -4,7 +4,7 @@ import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.Feature.MapFeature.MapConfig
-import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodicCounterConfig, TimestampLongMap}
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
@@ -131,24 +131,43 @@ object Feature {
 
   trait PeriodicCounterFeature extends Feature[PeriodicIncrement, PeriodicCounterValue] {
     def config: PeriodicCounterConfig
-    def fromMap(map: Map[Timestamp, Long]): Array[PeriodicValue] = {
+    def fromMap(map: TimestampLongMap): Array[PeriodicValue] = {
       for {
-        range         <- config.sumPeriodRanges.toArray
-        lastTimestamp <- map.keys.toList.sortBy(_.ts).lastOption
+        range         <- config.sumPeriodRangesArray
+        lastTimestamp <- map.ts.lastOption.map(Timestamp.apply)
       } yield {
         val start = lastTimestamp.minus(config.period * range.startOffset)
         val end   = lastTimestamp.minus(config.period * range.endOffset).plus(config.period)
-        val sum =
-          map.filter(ts => ts._1.isBeforeOrEquals(end) && ts._1.isAfterOrEquals(start)).values.toList match {
-            case Nil      => 0L
-            case nonEmpty => nonEmpty.sum
+        var sum   = 0L
+        var i     = 0
+        while (i < map.ts.length) {
+          val item = Timestamp(map.ts(i))
+          if (item.isBeforeOrEquals(end) && item.isAfterOrEquals(start)) {
+            sum += map.counters(i)
           }
+          i += 1
+        }
         PeriodicValue(start, end, range.startOffset - range.endOffset + 1, sum)
       }
     }
   }
 
   object PeriodicCounterFeature {
+    case class TimestampLongMap(ts: Array[Long], counters: Array[Long])
+    object TimestampLongMap {
+      def apply(items: List[(Timestamp, Long)]): TimestampLongMap = {
+        val size    = items.size
+        val ts      = new Array[Long](size)
+        val counter = new Array[Long](size)
+        var i       = 0
+        items.foreach(x => {
+          ts(i) = x._1.ts
+          counter(i) = x._2
+          i += 1
+        })
+        TimestampLongMap(ts, counter)
+      }
+    }
     case class PeriodRange(startOffset: Int, endOffset: Int)
 
     case class PeriodicCounterConfig(
@@ -160,8 +179,7 @@ object Feature {
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig {
       val periods: List[Int]   = (sumPeriodRanges.map(_.startOffset) ++ sumPeriodRanges.map(_.endOffset)).sorted
-      val latestPeriodOffset   = periods.head
-      val earliestPeriodOffset = periods.last
+      val sumPeriodRangesArray = sumPeriodRanges.toArray
     }
 
   }

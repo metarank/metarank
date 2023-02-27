@@ -1,5 +1,6 @@
 package ai.metarank.fstore.memory
 
+import ai.metarank.flow.PrintProgress
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.model.ClickthroughValues
 import cats.effect.IO
@@ -16,6 +17,12 @@ case class MemClickthroughStore(
 
   override def flush(): IO[Unit] = IO.unit
 
-  override def getall(): fs2.Stream[IO, ClickthroughValues] =
-    fs2.Stream.emits(cache.asMap().values.toList.flatMap(_.cast[ClickthroughValues]))
+  override def getall(): fs2.Stream[IO, ClickthroughValues] = {
+    fs2.Stream
+      .fromBlockingIterator[IO](
+        cache.asMap().iterator.map(_._2).flatMap(_.cast[ClickthroughValues]),
+        1000
+      )
+      .through(PrintProgress.tap(None, "click-throughs"))
+  }
 }

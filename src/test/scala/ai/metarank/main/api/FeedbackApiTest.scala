@@ -52,7 +52,7 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
   }
 
   it should "accept interactions without ranking" in {
-    val event = TestInteractionEvent("p1", "neno").copy(ranking = None).asInstanceOf[Event].asJson.noSpaces
+    val event    = TestInteractionEvent("p1", "neno").copy(ranking = None).asInstanceOf[Event].asJson.noSpaces
     val response = send(event)
     response.status.code shouldBe 200
   }

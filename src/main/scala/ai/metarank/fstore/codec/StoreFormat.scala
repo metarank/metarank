@@ -75,7 +75,7 @@ object StoreFormat {
   val idEncoder: KCodec[EventId] = new KCodec[EventId] {
     override def encode(prefix: String, value: EventId): String = s"$prefix/${value.value}"
 
-    override def decodeNoPrefix(str: String): Either[Throwable, EventId] =  Right(EventId(str))
+    override def decodeNoPrefix(str: String): Either[Throwable, EventId] = Right(EventId(str))
 
     override def encodeNoPrefix(value: EventId): String = value.value
     override def decode(str: String): Either[Throwable, EventId] = str match {

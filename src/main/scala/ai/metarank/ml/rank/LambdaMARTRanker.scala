@@ -137,6 +137,7 @@ object LambdaMARTRanker {
 
     def loadDataset(data: fs2.Stream[IO, ClickthroughValues]) = for {
       clickthroughs <- data
+        .filter(ctv => config.selector.accept(ctv.ct))
         .filter(_.ct.interactions.nonEmpty)
         .filter(_.values.nonEmpty)
         .map(ct =>

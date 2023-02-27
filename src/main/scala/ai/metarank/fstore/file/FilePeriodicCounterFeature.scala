@@ -4,7 +4,7 @@ import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.file.client.SortedDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.PeriodicCounterFeature
-import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodicCounterConfig, TimestampLongMap}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.State.PeriodicCounterState
 import ai.metarank.model.{FeatureValue, Key, Timestamp, Write}
@@ -28,14 +28,14 @@ case class FilePeriodicCounterFeature(
     values  <- IO(db.lastN(format.key.encodeNoPrefix(key), config.periods.max + 1))
     decoded <- IO.fromEither(decode(values.toList))
   } yield {
-    if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(decoded)))
+    if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(decoded))))
   }
 
   @tailrec private def decode(
       list: List[(String, Int)],
       acc: List[(Timestamp, Long)] = Nil
-  ): Either[Throwable, Map[Timestamp, Long]] = list match {
-    case Nil => Right(acc.toMap)
+  ): Either[Throwable, List[(Timestamp, Long)]] = list match {
+    case Nil => Right(acc)
     case head :: tail =>
       decodeTime(head._1) match {
         case Left(err) => Left(err)

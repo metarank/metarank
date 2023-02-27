@@ -1,6 +1,13 @@
 package ai.metarank.config
 
-import ai.metarank.config.Selector.{AcceptSelector, AndSelector, FieldSelector, NotSelector, SampleSelector}
+import ai.metarank.config.Selector.{
+  AcceptSelector,
+  AndSelector,
+  FieldSelector,
+  MaxInteractionPositionSelector,
+  NotSelector,
+  SampleSelector
+}
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -61,6 +68,15 @@ class SelectorYamlTest extends AnyFlatSpec with Matchers {
         |      value: bar""".stripMargin
     val result = parse(yaml).flatMap(_.as[ModelConfig])
     result shouldBe Right(NoopConfig(selector = AndSelector(List(SampleSelector(0.5), FieldSelector("foo", "bar")))))
+  }
+
+  it should "load max-position selector" in {
+    val yaml =
+      """type: noop
+        |selector:
+        |  maxInteractionPosition: 10""".stripMargin
+    val result = parse(yaml).flatMap(_.as[ModelConfig])
+    result shouldBe Right(NoopConfig(selector = MaxInteractionPositionSelector(10)))
   }
 
 }

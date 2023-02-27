@@ -32,6 +32,18 @@ object Selector {
       case _                                                     => false
     }
   }
+  case class MaxInteractionPositionSelector(maxInteractionPosition: Int) extends Selector {
+    override def accept(event: Clickthrough): Boolean = {
+      val positionMap = event.items.zipWithIndex.toMap
+      val positions = for {
+        item     <- event.interactions
+        position <- positionMap.get(item.item)
+      } yield {
+        position
+      }
+      positions.forall(_ < maxInteractionPosition)
+    }
+  }
 
   case class AcceptSelector(accept: Boolean = true) extends Selector {
     override def accept(event: Clickthrough): Boolean = accept
@@ -46,6 +58,15 @@ object Selector {
   )
   implicit val sampleSelectorCodec: Codec[SampleSelector] = Codec.from(sampleSelectorDecoder, sampleSelectorEncoder)
 
+  implicit val maxPositionEncoder: Encoder[MaxInteractionPositionSelector] = deriveEncoder
+  implicit val maxPositionDecoder: Decoder[MaxInteractionPositionSelector] =
+    deriveDecoder[MaxInteractionPositionSelector].ensure(
+      pred = s => s.maxInteractionPosition >= 0,
+      message = "max interaction position should be > 0"
+    )
+  implicit val maxPositionCodec: Codec[MaxInteractionPositionSelector] =
+    Codec.from(maxPositionDecoder, maxPositionEncoder)
+
   implicit val andSelectorCodec: Codec[AndSelector]       = deriveCodec
   implicit val orSelectorCodec: Codec[OrSelector]         = deriveCodec
   implicit val notSelectorCodec: Codec[NotSelector]       = deriveCodec
@@ -55,6 +76,7 @@ object Selector {
     decodeChain[Selector](
       c,
       NonEmptyList.of(
+        maxPositionCodec,
         fieldSelectorCodec,
         sampleSelectorCodec,
         andSelectorCodec,
@@ -77,12 +99,13 @@ object Selector {
   }
 
   implicit val selectorEncoder: Encoder[Selector] = Encoder.instance {
-    case f: FieldSelector  => fieldSelectorCodec(f)
-    case s: SampleSelector => sampleSelectorEncoder(s)
-    case a: AndSelector    => andSelectorCodec(a)
-    case o: OrSelector     => orSelectorCodec(o)
-    case n: NotSelector    => notSelectorCodec(n)
-    case a: AcceptSelector => acceptSelectorCodec(a)
+    case f: FieldSelector                  => fieldSelectorCodec(f)
+    case s: SampleSelector                 => sampleSelectorEncoder(s)
+    case a: AndSelector                    => andSelectorCodec(a)
+    case o: OrSelector                     => orSelectorCodec(o)
+    case n: NotSelector                    => notSelectorCodec(n)
+    case a: AcceptSelector                 => acceptSelectorCodec(a)
+    case m: MaxInteractionPositionSelector => maxPositionCodec(m)
   }
   implicit val selectorCodec: Codec[Selector] = Codec.from(selectorDecoder, selectorEncoder)
 }

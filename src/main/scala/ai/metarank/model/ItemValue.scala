@@ -7,7 +7,16 @@ import cats.data.NonEmptyList
 import io.circe.Codec
 import io.circe.generic.semiauto._
 
-case class ItemValue(id: ItemId, values: List[MValue])
+case class ItemValue(id: ItemId, values: List[MValue]) {
+  // as an optimization
+  override def hashCode(): Int = {
+    var valuesHashCode = 0
+    values.foreach(mv => {
+      valuesHashCode = valuesHashCode ^ mv.hashCode()
+    })
+    valuesHashCode ^ id.value.hashCode
+  }
+}
 
 object ItemValue {
   implicit val ivCodec: Codec[ItemValue] = deriveCodec[ItemValue]

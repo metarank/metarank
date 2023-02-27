@@ -2,6 +2,7 @@ package ai.metarank.fstore.transfer
 
 import ai.metarank.FeatureMapping
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
 import ai.metarank.fstore.file.{
   FileBoundedListFeature,
   FileCounterFeature,
@@ -13,7 +14,7 @@ import ai.metarank.fstore.file.{
   FileScalarFeature,
   FileStatsEstimatorFeature
 }
-import ai.metarank.fstore.file.client.FileClient.{KeyVal, NumCodec}
+import ai.metarank.fstore.memory.MemKVStore
 import ai.metarank.fstore.redis.{
   RedisBoundedListFeature,
   RedisCounterFeature,
@@ -26,8 +27,7 @@ import ai.metarank.fstore.redis.{
   RedisStatsEstimatorFeature
 }
 import ai.metarank.fstore.transfer.StateSink.TransferResult
-import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key}
 import ai.metarank.model.State.{
   BoundedListState,
   CounterState,
@@ -65,7 +65,15 @@ object FileRedisTransfer extends Logging {
       dest.stats
     )
     _ <- copyGroup[MapState, FileMapFeature, RedisMapFeature](source.maps, dest.maps)
-    _ <- copyOne[FeatureValue, FileKVStore, RedisKVStore[Key, FeatureValue]](source.values, dest.values)
+    _ <- copyOne[FeatureValue, FileKVStore, RedisKVStore[Key, FeatureValue]](
+      source.values match {
+        case CachedKVStore(_, slow)    => slow.asInstanceOf[FileKVStore]
+        case NegCachedKVStore(slow, _) => slow.asInstanceOf[FileKVStore]
+        case f: FileKVStore            => f
+        case _                         => ???
+      },
+      dest.values
+    )
   } yield {
     logger.info("import done")
   }

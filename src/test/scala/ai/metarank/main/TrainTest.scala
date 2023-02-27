@@ -9,7 +9,7 @@ import ai.metarank.main.command.{Import, Train}
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{EventId, Timestamp}
-import ai.metarank.util.{RandomDataset, TestClickthroughValues}
+import ai.metarank.util.{RandomDataset, TestClickthroughValues, TestConfig}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -21,7 +21,7 @@ class TrainTest extends AnyFlatSpec with Matchers {
   lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, dataset.mapping)
 
   it should "generate test data" in {
-    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer, TestConfig()).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
   }
 

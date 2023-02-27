@@ -35,7 +35,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
 
   it should "import events" in {
-    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer, config).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
   }
 
@@ -91,7 +91,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val ranker = Ranker(mapping, store)
     val resp1  = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
 
-    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping, buffer).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping, buffer, config).unsafeRunSync()
     val resp2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
     resp1 shouldNot be(resp2)
     resp1.items.map(_.item.value) shouldNot be(resp2.items.map(_.item.value))

@@ -8,7 +8,7 @@
 #  format: binary
 #train:
 #  type: file
-#  path: /tmp/ctv.dat
+#  path: /tmp/ctv
 #  format: binary
 
 core:

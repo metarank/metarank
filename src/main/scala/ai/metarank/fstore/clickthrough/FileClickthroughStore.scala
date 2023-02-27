@@ -1,5 +1,6 @@
 package ai.metarank.fstore.clickthrough
 
+import ai.metarank.flow.PrintProgress
 import ai.metarank.fstore.ClickthroughStore
 import ai.metarank.fstore.clickthrough.FileClickthroughStore.FILE_BUFFER_SIZE
 import ai.metarank.fstore.codec.StoreFormat
@@ -36,24 +37,26 @@ case class FileClickthroughStore(file: File, output: DataOutput, stream: OutputS
   override def flush(): IO[Unit] = IO(stream.flush())
 
   override def getall(): fs2.Stream[IO, ClickthroughValues] = {
-    Stream(dir.listFiles().toList.sortBy(_.getName): _*).flatMap(f =>
-      Stream
-        .bracket[IO, InputStream](IO {
-          logger.info(s"reading file $f")
-          new BufferedInputStream(new FileInputStream(f), FILE_BUFFER_SIZE)
-        })(f => IO(f.close()))
-        .flatMap(stream => {
-          val input = new DataInputStream(stream)
-          Stream
-            .fromBlockingIterator[IO](
-              iterator = Iterator.continually(fmt.ctv.decodeDelimited(input)),
-              chunkSize = 32
-            )
-            .evalMap(x => IO.fromEither(x))
-            .takeWhile(_.isDefined)
-            .flatMap(x => Stream.fromOption(x))
-        })
-    )
+    Stream(dir.listFiles().toList.sortBy(_.getName): _*)
+      .flatMap(f =>
+        Stream
+          .bracket[IO, InputStream](IO {
+            logger.info(s"reading file $f")
+            new BufferedInputStream(new FileInputStream(f), FILE_BUFFER_SIZE)
+          })(f => IO(f.close()))
+          .flatMap(stream => {
+            val input = new DataInputStream(stream)
+            Stream
+              .fromBlockingIterator[IO](
+                iterator = Iterator.continually(fmt.ctv.decodeDelimited(input)),
+                chunkSize = 32
+              )
+              .evalMap(x => IO.fromEither(x))
+              .takeWhile(_.isDefined)
+              .flatMap(x => Stream.fromOption(x))
+          })
+      )
+      .through(PrintProgress.tap(None, "click-throughs"))
   }
 }
 

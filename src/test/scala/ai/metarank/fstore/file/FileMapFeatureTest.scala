@@ -10,8 +10,11 @@ import ai.metarank.model.Write.{Put, PutTuple}
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
+import scala.util.Random
+
 class FileMapFeatureTest extends MapFeatureSuite with FileTest {
-  override def feature(config: MapConfig): FileMapFeature = FileMapFeature(config, db, "x", BinaryStoreFormat)
+  override def feature(config: MapConfig): FileMapFeature =
+    FileMapFeature(config, db.sortedDB(config.name.value + Random.nextInt()), BinaryStoreFormat)
 
   it should "pull state" in {
     val c = config.copy(name = FeatureName("ms"))

@@ -1,5 +1,6 @@
 package ai.metarank.fstore
 
+import ai.metarank.config.CoreConfig.{ImportCacheConfig, ImportConfig}
 import ai.metarank.config.{ModelConfig, StateStoreConfig}
 import ai.metarank.fstore.Persistence.{KVStore, ModelName, ModelStore}
 import ai.metarank.config.StateStoreConfig.FileStateConfig
@@ -100,16 +101,17 @@ object Persistence extends Logging {
     }
   }
 
-  def fromConfig(schema: Schema, conf: StateStoreConfig): Resource[IO, Persistence] = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth, tls, timeout) =>
-      RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth, tls, timeout)
-    case f: FileStateConfig =>
-      FilePersistence.create(f, schema)
-    case StateStoreConfig.MemoryStateConfig() =>
-      Resource.make(
-        info("using in-memory persistence")
-          .flatMap(_ => warn("in-memory persistence IS NOT FOR PRODUCTION, you will lose all the state upon restart"))
-          .flatMap(_ => IO(MemPersistence(schema)))
-      )(_ => IO.unit)
-  }
+  def fromConfig(schema: Schema, conf: StateStoreConfig, imp: ImportCacheConfig): Resource[IO, Persistence] =
+    conf match {
+      case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth, tls, timeout) =>
+        RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth, tls, timeout)
+      case f: FileStateConfig =>
+        FilePersistence.create(f, schema, imp)
+      case StateStoreConfig.MemoryStateConfig() =>
+        Resource.make(
+          info("using in-memory persistence")
+            .flatMap(_ => warn("in-memory persistence IS NOT FOR PRODUCTION, you will lose all the state upon restart"))
+            .flatMap(_ => IO(MemPersistence(schema)))
+        )(_ => IO.unit)
+    }
 }

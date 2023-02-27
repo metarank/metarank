@@ -1,6 +1,5 @@
 package ai.metarank.fstore.file.client
 
-import ai.metarank.fstore.file.client.FileClient.KeyVal
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import org.rocksdb.{BlockBasedTableConfig, CompressionType, Filter, LRUCache, Options, ReadOptions, RocksDB}
@@ -8,6 +7,7 @@ import org.rocksdb.{BlockBasedTableConfig, CompressionType, Filter, LRUCache, Op
 import java.nio.file.Path
 import java.util
 import scala.collection.mutable.ArrayBuffer
+/*
 
 case class RocksDBClient(db: RocksDB) extends FileClient {
   override def put(key: Array[Byte], value: Array[Byte]): Unit = {
@@ -118,3 +118,4 @@ object RocksDBClient {
     RocksDBClient(db)
   }
 }
+ */

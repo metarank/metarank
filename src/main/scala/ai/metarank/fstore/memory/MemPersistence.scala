@@ -22,8 +22,8 @@ case class MemPersistence(schema: Schema) extends Persistence {
   override lazy val stats            = schema.stats.view.mapValues(MemStatsEstimator(_, cache)).toMap
   override lazy val maps             = schema.maps.view.mapValues(MemMapFeature(_, cache)).toMap
 
-  override lazy val models: ModelStore = MemModelStore()
-  override lazy val values: Persistence.KVStore[Key, FeatureValue]   = MemKVStore()
+  override lazy val models: ModelStore                             = MemModelStore()
+  override lazy val values: Persistence.KVStore[Key, FeatureValue] = MemKVStore()
 
   override def healthcheck(): IO[Unit] = IO.unit
   override def sync: IO[Unit]          = IO.unit

@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.4.6",
+      "org.typelevel"         %% "cats-effect"              % "3.4.7",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
@@ -45,7 +45,7 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-blaze-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
       "io.github.metarank"    %% "ltrlib"                   % "0.2.0",
-      "com.github.ua-parser"   % "uap-java"                 % "1.5.3",
+      "com.github.ua-parser"   % "uap-java"                 % "1.5.4",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-common"   % luceneVersion,
@@ -57,7 +57,7 @@ lazy val root = (project in file("."))
       "io.lettuce"             % "lettuce-core"             % "6.2.3.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.13.1",
+      "io.sentry"              % "sentry-logback"           % "6.14.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,

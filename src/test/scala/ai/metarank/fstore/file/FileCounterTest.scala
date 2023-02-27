@@ -13,9 +13,11 @@ import ai.metarank.model.Write.Increment
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
+import scala.util.Random
+
 class FileCounterTest extends CounterSuite with FileTest {
   override def feature(config: CounterConfig): FileCounterFeature =
-    FileCounterFeature(config, db, "x", BinaryStoreFormat)
+    FileCounterFeature(config, db.sortedIntDB(config.name.value + Random.nextInt()), BinaryStoreFormat)
 
   it should "pull state" in {
     val c = CounterConfig(ItemScopeType, FeatureName("c2"))

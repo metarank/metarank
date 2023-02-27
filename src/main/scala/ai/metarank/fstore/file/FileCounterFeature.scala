@@ -1,29 +1,25 @@
 package ai.metarank.fstore.file
 
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.FileClient
-import ai.metarank.fstore.file.client.FileClient.{KeyVal, NumCodec}
-import ai.metarank.fstore.redis.client.RedisClient
+import ai.metarank.fstore.file.client.SortedDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.CounterFeature
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
 import ai.metarank.model.State.CounterState
-import ai.metarank.model.{FeatureValue, Key, State, Timestamp, Write}
+import ai.metarank.model.{FeatureValue, Key, Timestamp, Write}
 import cats.effect.IO
 import fs2.Stream
 
-import scala.annotation.tailrec
-
-case class FileCounterFeature(config: CounterConfig, db: FileClient, prefix: String, format: StoreFormat)
-    extends CounterFeature {
+case class FileCounterFeature(config: CounterConfig, db: SortedDB[Int], format: StoreFormat) extends CounterFeature {
   override def put(action: Write.Increment): IO[Unit] = for {
-    kbytes <- IO(format.key.encode(prefix, action.key).getBytes)
-    _      <- IO(db.inc(kbytes, action.inc))
+    key   <- IO(format.key.encodeNoPrefix(action.key))
+    value <- IO(db.get(key))
+    _     <- IO(db.put(key, value.getOrElse(0) + action.inc))
   } yield {}
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[FeatureValue.CounterValue]] = for {
-    valueOption <- IO(db.getInt(format.key.encode(prefix, key).getBytes))
+    valueOption <- IO(db.get(format.key.encodeNoPrefix(key)))
   } yield {
     valueOption.map(value => CounterValue(key, ts, value))
   }
@@ -32,11 +28,10 @@ case class FileCounterFeature(config: CounterConfig, db: FileClient, prefix: Str
 object FileCounterFeature {
   implicit val counterSource: StateSource[CounterState, FileCounterFeature] =
     new StateSource[CounterState, FileCounterFeature] {
-      override def source(f: FileCounterFeature): Stream[IO, CounterState] =
+      override def source(f: FileCounterFeature): Stream[IO, CounterState] = {
         Stream
-          .fromBlockingIterator[IO](f.db.firstN(s"${f.prefix}/${f.config.name.value}".getBytes(), Int.MaxValue), 128)
-          .evalMap(kv =>
-            IO.fromEither(f.format.key.decode(new String(kv.key))).map(k => CounterState(k, NumCodec.readInt(kv.value)))
-          )
+          .fromBlockingIterator[IO](f.db.all(), 128)
+          .evalMap(kv => IO.fromEither(f.format.key.decodeNoPrefix(kv._1)).map(k => CounterState(k, kv._2)))
+      }
     }
 }

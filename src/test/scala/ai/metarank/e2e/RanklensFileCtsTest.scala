@@ -31,7 +31,7 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
   lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
 
   it should "import events" in {
-    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer, config).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
     cts.flush().unsafeRunSync()
   }

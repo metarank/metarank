@@ -22,6 +22,7 @@ import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOpti
 import io.github.metarank.ltrlib.metric.{MRR, Metric, NDCG}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
+import org.apache.commons.io.FileUtils
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import scala.util.{Failure, Random, Success, Try}
@@ -46,6 +47,7 @@ object LambdaMARTRanker {
     override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[LambdaMARTModel] = for {
       clickthroughs <- loadDataset(data)
       split         <- splitDataset(config.split, desc, clickthroughs)
+      _             <- checkDatasetSize(split.train)
       result        <- IO(makeBooster(split))
       model         <- IO.pure(LambdaMARTModel(name, config, result))
       ndcg20        <- IO(model.eval(split.test, NDCG(20)))
@@ -165,6 +167,45 @@ object LambdaMARTRanker {
       )
     } yield {
       clickthroughs
+    }
+
+  }
+
+  def checkDatasetSize(ds: Dataset): IO[Unit] =
+    checkDatasetSize(ds.itemCount, ds.desc.dim, ds.groups.size, ds.desc.features)
+
+  def checkDatasetSize(itemCount: Int, dim: Int, groupsCount: Int, features: List[Feature]): IO[Unit] = {
+    val size = itemCount.toLong * dim.toLong
+    if (size >= Int.MaxValue) {
+      val featureSizes = features.map {
+        case Feature.SingularFeature(name)     => name -> itemCount.toLong * 4L
+        case Feature.VectorFeature(name, size) => name -> itemCount.toLong * size * 4L
+        case Feature.CategoryFeature(name)     => name -> itemCount.toLong * 4L
+      }
+      val largestFeatures = featureSizes
+        .sortBy(-_._2)
+        .map { case (name, bytes) =>
+          s"- $name: ${FileUtils.byteCountToDisplaySize(bytes)} RAM used"
+        }
+        .mkString("\n")
+      IO.raiseError(
+        new Exception(s"""Training dataset is too big! There are $groupsCount queries with total ${itemCount} rows.
+                         |Considering that feature dimension is $dim, it requires more space than a single
+                         |float[${Int.MaxValue}] array can fit in JVM. Feature dominators:
+                         |$largestFeatures
+                         |
+                         |Possible solutions:
+                         |* Reduce the dimensionality of the dataset: remove a couple of large features from the list
+                         |  above.
+                         |* Add sampling: only use N% of all the click-through events for training. Check docs for
+                         |  models.<name>.accept option.
+                         |  
+                         |""".stripMargin)
+      )
+    } else {
+      IO(
+        info(s"${itemCount}x$dim dataset uses ~${FileUtils.byteCountToDisplaySize(itemCount * dim * 4L)} of JVM heap")
+      )
     }
   }
 

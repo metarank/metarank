@@ -23,7 +23,11 @@ import ai.metarank.model.State.{
 }
 import cats.effect.IO
 import com.google.common.math.Quantiles
+import it.unimi.dsi.fastutil.{Arrays, Swapper}
+import it.unimi.dsi.fastutil.ints.IntComparator
 
+import java.util
+import java.util.Comparator
 import scala.concurrent.duration._
 import scala.util.Random
 
@@ -132,6 +136,7 @@ object Feature {
   trait PeriodicCounterFeature extends Feature[PeriodicIncrement, PeriodicCounterValue] {
     def config: PeriodicCounterConfig
     def fromMap(map: TimestampLongMap): Array[PeriodicValue] = {
+      val b = 1
       for {
         range         <- config.sumPeriodRangesArray
         lastTimestamp <- map.ts.lastOption.map(Timestamp.apply)
@@ -165,6 +170,23 @@ object Feature {
           counter(i) = x._2
           i += 1
         })
+        Arrays.quickSort(
+          0,
+          size,
+          new IntComparator {
+            override def compare(k1: Int, k2: Int): Int = java.lang.Long.compare(ts(k1), ts(k2))
+          },
+          new Swapper {
+            override def swap(a: Int, b: Int): Unit = {
+              val tmp1 = ts(a)
+              ts(a) = ts(b)
+              ts(b) = tmp1
+              val tmp2 = counter(a)
+              counter(a) = counter(b)
+              counter(b) = tmp2
+            }
+          }
+        )
         TimestampLongMap(ts, counter)
       }
     }

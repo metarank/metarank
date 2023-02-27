@@ -3,7 +3,8 @@ package ai.metarank.ml.rank
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{BoosterConfig, ModelConfig, Selector}
-import ai.metarank.flow.ClickthroughQuery
+import ai.metarank.flow.{ClickthroughQuery, PrintProgress}
+import ai.metarank.flow.PrintProgress.ProgressPeriod
 import ai.metarank.main.command.Train.info
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.train.SplitStrategy.{Split, splitDecoder}
@@ -138,8 +139,8 @@ object LambdaMARTRanker {
 
     def loadDataset(data: fs2.Stream[IO, ClickthroughValues]) = for {
       clickthroughs <- data
+        .filter(ctv => config.selector.accept(ctv.ct))
         .filter(_.ct.interactions.nonEmpty)
-        .filter(ct => config.selector.accept(ct.ct))
         .filter(_.values.nonEmpty)
         .map(ct =>
           QueryMetadata(

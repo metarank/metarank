@@ -33,5 +33,3 @@ trait PredictorSuite[C <: ModelConfig, T <: Context, M <: Model[T]] extends AnyF
   }
 
 }
-
-

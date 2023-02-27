@@ -8,7 +8,15 @@ import ai.metarank.fstore.file.FilePersistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.ml.{Context, Model, Predictor}
-import ai.metarank.model.Feature.{BoundedListFeature, CounterFeature, FreqEstimatorFeature, MapFeature, PeriodicCounterFeature, ScalarFeature, StatsEstimatorFeature}
+import ai.metarank.model.Feature.{
+  BoundedListFeature,
+  CounterFeature,
+  FreqEstimatorFeature,
+  MapFeature,
+  PeriodicCounterFeature,
+  ScalarFeature,
+  StatsEstimatorFeature
+}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
 import ai.metarank.util.Logging
@@ -93,16 +101,17 @@ object Persistence extends Logging {
     }
   }
 
-  def fromConfig(schema: Schema, conf: StateStoreConfig, imp: ImportCacheConfig): Resource[IO, Persistence] = conf match {
-    case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth, tls, timeout) =>
-      RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth, tls, timeout)
-    case f: FileStateConfig =>
-      FilePersistence.create(f, schema, imp)
-    case StateStoreConfig.MemoryStateConfig() =>
-      Resource.make(
-        info("using in-memory persistence")
-          .flatMap(_ => warn("in-memory persistence IS NOT FOR PRODUCTION, you will lose all the state upon restart"))
-          .flatMap(_ => IO(MemPersistence(schema)))
-      )(_ => IO.unit)
-  }
+  def fromConfig(schema: Schema, conf: StateStoreConfig, imp: ImportCacheConfig): Resource[IO, Persistence] =
+    conf match {
+      case StateStoreConfig.RedisStateConfig(host, port, db, cache, pipeline, fmt, auth, tls, timeout) =>
+        RedisPersistence.create(schema, host.value, port.value, db, cache, pipeline, fmt, auth, tls, timeout)
+      case f: FileStateConfig =>
+        FilePersistence.create(f, schema, imp)
+      case StateStoreConfig.MemoryStateConfig() =>
+        Resource.make(
+          info("using in-memory persistence")
+            .flatMap(_ => warn("in-memory persistence IS NOT FOR PRODUCTION, you will lose all the state upon restart"))
+            .flatMap(_ => IO(MemPersistence(schema)))
+        )(_ => IO.unit)
+    }
 }

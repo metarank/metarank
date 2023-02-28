@@ -73,7 +73,8 @@ object LambdaMARTRanker {
             learningRate = lr,
             ndcgCutoff = ndcg,
             maxDepth = depth,
-            featureFraction = sampling
+            featureFraction = sampling,
+            earlyStopping = Some(20)
           )
           LambdaMART(split.train, LightGBMBooster, Some(split.test)).fit(opts)
         case XGBoostConfig(it, lr, ndcg, depth, seed, sampling) =>
@@ -83,7 +84,8 @@ object LambdaMARTRanker {
             learningRate = lr,
             ndcgCutoff = ndcg,
             maxDepth = depth,
-            subsample = sampling
+            subsample = sampling,
+            earlyStopping = Some(20)
           )
           LambdaMART(split.train, XGBoostBooster, Some(split.test)).fit(opts)
       }

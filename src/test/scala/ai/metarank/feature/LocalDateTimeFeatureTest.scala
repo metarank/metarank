@@ -10,7 +10,7 @@ import ai.metarank.feature.LocalDateTimeFeature.{
   Year
 }
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{FieldName, MValue}
+import ai.metarank.model.{FieldName, MValue, Timestamp}
 import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
@@ -67,6 +67,17 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "parse second" in {
     value(now, Second) shouldBe 1648461600.0
+  }
+
+  it should "use native timestamps" in {
+    lazy val feature = LocalDateTimeFeature(
+      LocalDateTimeSchema(FeatureName("x"), FieldName(Ranking, "timestamp"), Year)
+    )
+    val result = feature.value(
+      TestRankingEvent(List("p1")).copy(timestamp = Timestamp(now.toInstant.toEpochMilli)),
+      Map.empty
+    )
+    result shouldBe SingleValue(FeatureName("x"), 2022.0)
   }
 
   def value(ts: ZonedDateTime, mapper: DateTimeMapper): Double = {

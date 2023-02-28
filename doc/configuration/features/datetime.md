@@ -74,3 +74,4 @@ The `source` field should have any of the following types:
 * `string`, ISO8601 date+time+timezone, example: "2021-12-03T10:15:30+01:00"
 * `number`, unixtime (number of seconds from epoch start), example `1648483661`
 * `string`, unixtime as a string (so there will be no json number rounding), example: `"1648483661"`
+* you can reference the event timestamp (not the free-form field, but the native top-level event timestamp) with a `item.timestamp`

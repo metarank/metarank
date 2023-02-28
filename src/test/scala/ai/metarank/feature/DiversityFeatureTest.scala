@@ -27,11 +27,11 @@ class DiversityFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
     val result = process(events, conf, TestRankingEvent(List("p1", "p2", "p3", "p4", "p5"))).flatten
     result shouldBe List(
-      SingleValue(conf.name, 0.125),
-      SingleValue(conf.name, 0.125),
-      SingleValue(conf.name, 0.625),
+      SingleValue(conf.name, -5.0),
+      SingleValue(conf.name, 5.0),
+      SingleValue(conf.name, 25.0),
       SingleValue(conf.name, 0.0),
-      SingleValue(conf.name, 0.25)
+      SingleValue(conf.name, -10.0)
     )
   }
 

@@ -57,6 +57,20 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
   }
+  it should "make puts from event timestamp" in {
+    lazy val feature   = ItemAgeFeature(ItemAgeSchema(FeatureName("itemage"), FieldName(Item, "timestamp")))
+
+    val event = TestItemEvent("p1").copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
+
+    val puts = feature.writes(event).unsafeRunSync().toList
+    puts shouldBe List(
+      Put(
+        Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
+        Timestamp(updatedAt.toInstant.toEpochMilli),
+        SDouble(updatedAt.toEpochSecond.toDouble)
+      )
+    )
+  }
 
   it should "make puts from unixtime string" in {
     val event = TestItemEvent(

@@ -4,8 +4,9 @@ import ai.metarank.config.Selector.{
   AcceptSelector,
   AndSelector,
   FieldSelector,
-  MaxInteractionPositionSelector,
+  InteractionPositionSelector,
   NotSelector,
+  RankingLengthSelector,
   SampleSelector
 }
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
@@ -76,7 +77,22 @@ class SelectorYamlTest extends AnyFlatSpec with Matchers {
         |selector:
         |  maxInteractionPosition: 10""".stripMargin
     val result = parse(yaml).flatMap(_.as[ModelConfig])
-    result shouldBe Right(NoopConfig(selector = MaxInteractionPositionSelector(10)))
+    result shouldBe Right(
+      NoopConfig(selector =
+        InteractionPositionSelector(maxInteractionPosition = Some(10), minInteractionPosition = None)
+      )
+    )
+  }
+
+  it should "load ranking-length selector" in {
+    val yaml =
+      """type: noop
+        |selector:
+        |  minItems: 10""".stripMargin
+    val result = parse(yaml).flatMap(_.as[ModelConfig])
+    result shouldBe Right(
+      NoopConfig(selector = RankingLengthSelector(minItems = Some(10), maxItems = None))
+    )
   }
 
 }

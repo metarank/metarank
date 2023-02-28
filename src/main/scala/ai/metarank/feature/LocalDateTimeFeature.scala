@@ -7,6 +7,7 @@ import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.ScopeType.SessionScopeType
@@ -18,7 +19,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.time.format.DateTimeFormatter
-import java.time.{Duration, ZonedDateTime}
+import java.time.{Duration, Instant, ZoneId, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
 case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeature with Logging {
@@ -31,18 +32,25 @@ case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeat
       request: Event.RankingEvent,
       features: Map[Key, FeatureValue]
   ): MValue = {
-
-    request.fieldsMap.get(schema.source.field) match {
-      case Some(StringField(_, value)) =>
-        Try(ZonedDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME)) match {
-          case Success(datetime) =>
-            SingleValue(schema.name, schema.parse.map(datetime))
-          case Failure(ex) =>
-            logger.warn(s"cannot parse field '$value' as an ISO DateTime", ex)
+    schema.source match {
+      case FieldName(Ranking, "timestamp") =>
+        val instant = Instant.ofEpochMilli(request.timestamp.ts)
+        val dt      = ZonedDateTime.ofInstant(instant, ZoneId.of("UTC"))
+        SingleValue(schema.name, schema.parse.map(dt))
+      case _ =>
+        request.fieldsMap.get(schema.source.field) match {
+          case Some(StringField(_, value)) =>
+            Try(ZonedDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME)) match {
+              case Success(datetime) =>
+                SingleValue(schema.name, schema.parse.map(datetime))
+              case Failure(ex) =>
+                logger.warn(s"cannot parse field '$value' as an ISO DateTime", ex)
+                SingleValue.missing(schema.name)
+            }
+          case _ =>
             SingleValue.missing(schema.name)
         }
-      case _ =>
-        SingleValue.missing(schema.name)
+
     }
   }
 }

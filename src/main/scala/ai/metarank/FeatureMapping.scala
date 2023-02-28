@@ -2,6 +2,7 @@ package ai.metarank
 
 import ai.metarank.config.ModelConfig
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
@@ -65,6 +66,7 @@ object FeatureMapping extends Logging {
         case c: PositionFeatureSchema        => PositionFeature(c)
         case c: VectorFeatureSchema          => NumVectorFeature(c)
         case c: RandomFeatureSchema          => RandomFeature(c)
+        case c: DiversitySchema              => DiversityFeature(c)
       }
 
     val featurySchema = Schema(features.flatMap(_.states))

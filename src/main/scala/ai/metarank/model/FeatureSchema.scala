@@ -1,6 +1,7 @@
 package ai.metarank.model
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
@@ -53,6 +54,7 @@ object FeatureSchema {
         case "position"          => implicitly[Decoder[PositionFeatureSchema]].apply(c)
         case "vector"            => implicitly[Decoder[VectorFeatureSchema]].apply(c)
         case "random"            => implicitly[Decoder[RandomFeatureSchema]].apply(c)
+        case "diversity"         => implicitly[Decoder[DiversitySchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {

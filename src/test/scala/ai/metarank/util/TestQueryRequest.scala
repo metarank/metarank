@@ -23,7 +23,7 @@ object TestQueryRequest {
       user = None,
       session = None,
       ts = Timestamp.now,
-      query = Query(0, labels, values, 1, n)
+      query = Query(0, labels, values)
     )
   }
 }

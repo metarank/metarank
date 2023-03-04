@@ -10,6 +10,7 @@ import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.Scalar.SStringList
@@ -82,16 +83,27 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
       features: Map[Key, FeatureValue],
       mode: BaseFeature.ValueMode
   ): List[MValue] = {
-    request.items.toList.map(item => {
-      val fieldOverride = item.fields.collectFirst {
-        case StringField(name, value) if name == schema.source.field      => List(value)
-        case StringListField(name, values) if name == schema.source.field => values
-      }
-      fieldOverride match {
-        case Some(over) => encoder.encode(over)
-        case None       => value(request, features, item)
-      }
-    })
+    schema.source match {
+      case FieldName(Ranking, field) =>
+        val const = request.fields.find(_.name == field) match {
+          case Some(StringField(_, value))      => encoder.encode(List(value))
+          case Some(StringListField(_, values)) => encoder.encode(values)
+          case _                                => encoder.encode(Nil)
+        }
+        request.items.toList.map(_ => const)
+      case _ =>
+        request.items.toList.map(item => {
+          val fieldOverride = item.fields.collectFirst {
+            case StringField(name, value) if name == schema.source.field      => List(value)
+            case StringListField(name, values) if name == schema.source.field => values
+          }
+          fieldOverride match {
+            case Some(over) => encoder.encode(over)
+            case None       => value(request, features, item)
+          }
+        })
+
+    }
   }
 
 }

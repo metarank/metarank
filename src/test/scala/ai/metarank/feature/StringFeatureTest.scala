@@ -4,7 +4,7 @@ import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEn
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.RankItem
-import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking, User}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
@@ -69,6 +69,23 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       TestRankingEvent(List("p1"))
     )
     values shouldBe List(List(VectorValue(FeatureName("color"), Array(0.0, 1.0, 0.0), 3)))
+  }
+
+  it should "compute value for ranking" in {
+    val feature = StringFeature(
+      StringFeatureSchema(
+        name = FeatureName("color"),
+        source = FieldName(Ranking, "color"),
+        scope = ItemScopeType,
+        values = NonEmptyList.of("red", "green", "blue")
+      )
+    )
+    val values = process(
+      List(),
+      feature.schema,
+      TestRankingEvent(List("p1")).copy(fields = List(StringField("color", "red")))
+    )
+    values shouldBe List(List(VectorValue(FeatureName("color"), Array(1.0, 0.0, 0.0), 3)))
   }
 
   it should "scope value to user" in {

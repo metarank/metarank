@@ -47,4 +47,18 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     )
     result shouldBe a[Failure[_]]
   }
+
+  it should "fail roundtrip the model on feature mismatch" in {
+    val conf = LambdaMARTConfig(
+      backend = XGBoostConfig(),
+      features = NonEmptyList.of(FeatureName("bar")),
+      weights = Map("click" -> 1.0)
+    )
+    val desc   = DatasetDescriptor(List(SingularFeature("bar")))
+    val pred2  = LambdaMARTPredictor("foo", conf, desc)
+    val model  = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val blob   = model.save()
+    val result = pred2.load(blob)
+    result.isLeft shouldBe true
+  }
 }

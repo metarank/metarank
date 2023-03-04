@@ -40,7 +40,7 @@ object LambdaMARTRanker {
       split: SplitStrategy = SplitStrategy.default
   ) extends ModelConfig
 
-  val BITSTREAM_VERSION = 1
+  val BITSTREAM_VERSION = 2
 
   case class LambdaMARTPredictor(name: String, config: LambdaMARTConfig, desc: DatasetDescriptor)
       extends RankPredictor[LambdaMARTConfig, LambdaMARTModel]
@@ -97,17 +97,28 @@ object LambdaMARTRanker {
         val stream = new DataInputStream(new ByteArrayInputStream(blob))
         Try(stream.readByte()) match {
           case Success(BITSTREAM_VERSION) =>
-            val boosterType = stream.readByte()
-            val size        = stream.readInt()
-            val buf         = new Array[Byte](size)
-            stream.read(buf)
-            boosterType match {
-              case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf)))
-              case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf)))
-              case other => Left(new Exception(s"unsupported booster tag $other"))
+            val featuresSize = stream.readInt()
+            val features     = (0 until featuresSize).map(_ => FeatureName(stream.readUTF())).toList
+            if (features != config.features.toList) {
+              val expected = features.map(_.value)
+              val actual   = config.features.map(_.value).toList
+              Left(new Exception(s"""booster trained with $expected features, but config defines $actual
+                                    |You may need to retrain the model with the newer config""".stripMargin))
+            } else {
+              val boosterType = stream.readByte()
+              val size        = stream.readInt()
+              val buf         = new Array[Byte](size)
+              stream.read(buf)
+              boosterType match {
+                case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf)))
+                case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf)))
+                case other => Left(new Exception(s"unsupported booster tag $other"))
+              }
             }
           case Success(other) =>
-            Left(new Exception(s"unsupported bitstream version $other, please re-run train"))
+            Left(
+              new Exception(s"unsupported bitstream version $other (expected $BITSTREAM_VERSION), please re-run train")
+            )
           case Failure(ex) => Left(ex)
         }
     }
@@ -230,6 +241,8 @@ object LambdaMARTRanker {
       val buf    = new ByteArrayOutputStream()
       val stream = new DataOutputStream(buf)
       stream.writeByte(BITSTREAM_VERSION)
+      stream.writeInt(conf.features.size)
+      conf.features.toList.foreach(f => stream.writeUTF(f.value))
       val bytes = booster.save()
       booster match {
         case _: LightGBMBooster =>

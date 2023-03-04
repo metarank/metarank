@@ -32,7 +32,7 @@ object Selector {
       case _                                                     => false
     }
   }
-  case class InteractionPositionSelector(maxInteractionPosition: Option[Int], minInteractionPosition: Option[Int])
+  case class InteractionPositionSelector(minInteractionPosition: Option[Int], maxInteractionPosition: Option[Int])
       extends Selector {
     override def accept(event: Clickthrough): Boolean = {
       val positionMap = event.items.zipWithIndex.toMap

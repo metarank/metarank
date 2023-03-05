@@ -7,6 +7,7 @@ import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Event.{InteractionEvent, RankItem}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
+import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
@@ -30,7 +31,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
     name = FeatureName(s"${schema.name.value}_${schema.top}_norm"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
-    refresh = schema.refresh.getOrElse(0.seconds),
+    refresh = schema.refresh.getOrElse(1.hour),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
@@ -39,51 +40,57 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
     name = FeatureName(s"${schema.name.value}_${schema.bottom}_norm"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
-    refresh = schema.refresh.getOrElse(0.seconds),
+    refresh = schema.refresh.getOrElse(1.hour),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  val topItem = PeriodicCounterConfig(
+  val topTarget = PeriodicCounterConfig(
     scope = schema.scope,
     name = FeatureName(s"${schema.name.value}_${schema.top}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
-    refresh = schema.refresh.getOrElse(0.seconds),
+    refresh = schema.refresh.getOrElse(1.hour),
     ttl = schema.ttl.getOrElse(90.days)
   )
-  val bottomItem = PeriodicCounterConfig(
+  val bottomTarget = PeriodicCounterConfig(
     scope = schema.scope,
     name = FeatureName(s"${schema.name.value}_${schema.bottom}"),
     period = schema.bucket,
     sumPeriodRanges = schema.periods.map(p => PeriodRange(p, 0)),
-    refresh = schema.refresh.getOrElse(0.seconds),
+    refresh = schema.refresh.getOrElse(1.hour),
+    ttl = schema.ttl.getOrElse(90.days)
+  )
+  val scope = ScalarConfig(
+    scope = ItemScopeType,
+    name = FeatureName(s"${schema.name.value}_field"),
+    refresh = schema.refresh.getOrElse(1.hour),
     ttl = schema.ttl.getOrElse(90.days)
   )
 
-  override def states: List[FeatureConfig] = List(topItem, bottomItem, topGlobal, bottomGlobal)
+  override def states: List[FeatureConfig] = List(topTarget, bottomTarget, topGlobal, bottomGlobal, scope)
 
-  override def writes(event: Event): IO[Iterable[Write]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Write]] = IO {
     event match {
       case e: InteractionEvent if e.`type` == schema.top =>
         schema.normalize match {
           case Some(_) =>
             List(
-              PeriodicIncrement(Key(ItemScope(e.item), topItem.name), event.timestamp, 1),
+              PeriodicIncrement(Key(ItemScope(e.item), topTarget.name), event.timestamp, 1),
               PeriodicIncrement(Key(GlobalScope, topGlobal.name), event.timestamp, 1)
             )
           case None =>
-            List(PeriodicIncrement(Key(ItemScope(e.item), topItem.name), event.timestamp, 1))
+            List(PeriodicIncrement(Key(ItemScope(e.item), topTarget.name), event.timestamp, 1))
         }
 
       case e: InteractionEvent if e.`type` == schema.bottom =>
         schema.normalize match {
           case Some(_) =>
             List(
-              PeriodicIncrement(Key(ItemScope(e.item), bottomItem.name), event.timestamp, 1),
+              PeriodicIncrement(Key(ItemScope(e.item), bottomTarget.name), event.timestamp, 1),
               PeriodicIncrement(Key(GlobalScope, bottomGlobal.name), event.timestamp, 1)
             )
           case None =>
-            List(PeriodicIncrement(Key(ItemScope(e.item), bottomItem.name), event.timestamp, 1))
+            List(PeriodicIncrement(Key(ItemScope(e.item), bottomTarget.name), event.timestamp, 1))
         }
 
       case _ => None
@@ -91,7 +98,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
   }
 
   override def valueKeys(event: Event.RankingEvent): Iterable[Key] = {
-    topItem.readKeys(event) ++ bottomItem.readKeys(event) ++ topGlobal.readKeys(event) ++ bottomGlobal.readKeys(event)
+    topTarget.readKeys(event) ++ bottomTarget.readKeys(event) ++ topGlobal.readKeys(event) ++ bottomGlobal.readKeys(event)
   }
 
   override def value(
@@ -102,8 +109,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
     schema.normalize match {
       case None =>
         val result = for {
-          topValue    <- features.get(Key(ItemScope(id.id), topItem.name))
-          bottomValue <- features.get(Key(ItemScope(id.id), bottomItem.name))
+          topValue    <- features.get(Key(ItemScope(id.id), topTarget.name))
+          bottomValue <- features.get(Key(ItemScope(id.id), bottomTarget.name))
           topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.length == dim.dim
           bottomNum   <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.length == dim.dim
         } yield {
@@ -118,8 +125,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature {
         result.getOrElse(VectorValue.missing(schema.name, dim))
       case Some(norm) =>
         val result = for {
-          topValue          <- features.get(Key(ItemScope(id.id), topItem.name))
-          bottomValue       <- features.get(Key(ItemScope(id.id), bottomItem.name))
+          topValue          <- features.get(Key(ItemScope(id.id), topTarget.name))
+          bottomValue       <- features.get(Key(ItemScope(id.id), bottomTarget.name))
           topGlobalValue    <- features.get(Key(GlobalScope, topGlobal.name))
           bottomGlobalValue <- features.get(Key(GlobalScope, bottomGlobal.name))
           topNum            <- topValue.cast[PeriodicCounterValue] if topNum.values.length == dim.dim

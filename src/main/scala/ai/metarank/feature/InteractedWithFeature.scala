@@ -65,7 +65,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     .toMap
   override val states: List[FeatureConfig] = List(interactions) ++ fields.values.toList
 
-  override def writes(event: Event): IO[Iterable[Write]] =
+  override def writes(event: Event, store: Persistence): IO[Iterable[Write]] =
     event match {
       case item: ItemEvent =>
         IO {

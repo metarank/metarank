@@ -1,10 +1,11 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.AutoFeature
 import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{FieldName, Key}
+import ai.metarank.model.{FieldName, Key, Schema}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName
@@ -39,7 +40,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
     TestInteractionEvent("p1", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
   val interactionEvent2 =
     TestInteractionEvent("p2", "i1", Nil).copy(session = Some(SessionId("s1")), `type` = "impression")
-
+  val store = MemPersistence(Schema(feature.states))
   it should "decode config with single field" in {
     val yaml =
       """name: seen
@@ -79,7 +80,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   }
 
   it should "emit writes on meta field" in {
-    val writes = feature.writes(itemEvent1).unsafeRunSync().toList
+    val writes = feature.writes(itemEvent1,store).unsafeRunSync().toList
     writes shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("seen_color")),
@@ -91,7 +92,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
   it should "emit writes on meta list field" in {
     val event  = TestItemEvent("p1", List(StringListField("color", List("red"))))
-    val writes = feature.writes(event).unsafeRunSync().toList
+    val writes = feature.writes(event,store).unsafeRunSync().toList
     writes shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("seen_color")),

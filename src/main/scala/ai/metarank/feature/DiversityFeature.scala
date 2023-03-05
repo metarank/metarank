@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.DiversityFeature.DiversitySchema
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
@@ -36,7 +37,7 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): IO[Iterable[Put]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     event match {
       case e: ItemEvent =>
         val key = Key(ItemScope(e.item), conf.name)

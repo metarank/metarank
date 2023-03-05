@@ -2,10 +2,11 @@ package ai.metarank.feature
 
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField}
-import ai.metarank.model.{FieldName, Key, Timestamp}
+import ai.metarank.model.{FieldName, Key, Schema, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -25,6 +26,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   lazy val feature   = ItemAgeFeature(ItemAgeSchema(FeatureName("itemage"), FieldName(Item, "updated_at")))
   lazy val updatedAt = ZonedDateTime.of(2022, 3, 1, 0, 0, 0, 0, ZoneId.of("UTC+2"))
   lazy val now       = ZonedDateTime.of(2022, 3, 28, 0, 0, 0, 0, ZoneId.of("UTC+2"))
+  val store          = MemPersistence(Schema(feature.states))
 
   it should "make puts from iso timestamps" in {
     val event = TestItemEvent(
@@ -32,7 +34,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(StringField("updated_at", updatedAt.format(DateTimeFormatter.ISO_DATE_TIME)))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event).unsafeRunSync().toList
+    val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
@@ -48,7 +50,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(NumberField("updated_at", updatedAt.toEpochSecond.toDouble))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event).unsafeRunSync().toList
+    val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
@@ -58,11 +60,11 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
   }
   it should "make puts from event timestamp" in {
-    lazy val feature   = ItemAgeFeature(ItemAgeSchema(FeatureName("itemage"), FieldName(Item, "timestamp")))
+    lazy val feature = ItemAgeFeature(ItemAgeSchema(FeatureName("itemage"), FieldName(Item, "timestamp")))
 
     val event = TestItemEvent("p1").copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event).unsafeRunSync().toList
+    val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),
@@ -78,7 +80,7 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(StringField("updated_at", updatedAt.toEpochSecond.toString))
     ).copy(timestamp = Timestamp(updatedAt.toInstant.toEpochMilli))
 
-    val puts = feature.writes(event).unsafeRunSync().toList
+    val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("itemage")),

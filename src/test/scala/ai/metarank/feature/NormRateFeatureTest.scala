@@ -2,12 +2,13 @@ package ai.metarank.feature
 
 import ai.metarank.feature.RateFeature.{NormalizeSchema, RateFeatureSchema}
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scope.{GlobalScope, ItemScope}
 import ai.metarank.model.Write.PeriodicIncrement
-import ai.metarank.model.{FeatureSchema, Key}
+import ai.metarank.model.{FeatureSchema, Key, Schema}
 import ai.metarank.util.{TestInteractionEvent, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import io.circe.yaml.parser.parse
@@ -26,6 +27,7 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     normalize = Some(NormalizeSchema(10))
   )
   val feature = RateFeature(conf)
+  val store = MemPersistence(Schema(feature.states))
 
   it should "decode schema" in {
     val in =
@@ -42,17 +44,17 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract writes" in {
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
-    feature.writes(click).unsafeRunSync().toList shouldBe List(
+    feature.writes(click,store).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("ctr_click")), click.timestamp, 1),
       PeriodicIncrement(Key(GlobalScope, FeatureName("ctr_click_norm")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
-    feature.writes(impression).unsafeRunSync().toList shouldBe List(
+    feature.writes(impression,store).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("ctr_impression")), impression.timestamp, 1),
       PeriodicIncrement(Key(GlobalScope, FeatureName("ctr_impression_norm")), impression.timestamp, 1)
     )
     val dummy = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "dummy")
-    feature.writes(dummy).unsafeRunSync().toList shouldBe empty
+    feature.writes(dummy,store).unsafeRunSync().toList shouldBe empty
   }
 
   it should "compute value" in {

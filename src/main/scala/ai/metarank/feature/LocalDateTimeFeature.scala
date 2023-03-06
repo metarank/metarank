@@ -25,7 +25,7 @@ import scala.util.{Failure, Success, Try}
 case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeature with Logging {
   override def dim                                     = SingleDim
   override def states: List[FeatureConfig]             = Nil
-  override def writes(event: Event): IO[Iterable[Put]] = IO.pure(Nil)
+  override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
 
   override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
   override def value(

@@ -49,7 +49,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): IO[Iterable[Put]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.source.field)
@@ -122,12 +122,15 @@ object StringFeature {
       VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim.dim), dim)
   }
   case class IndexCategoricalEncoder(name: FeatureName, possibleValues: List[String]) extends CategoricalEncoder {
-    override val dim = SingleDim
+    private val valueIndex = possibleValues.zipWithIndex.toMap
+    override val dim       = SingleDim
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {
         case Some(first) =>
-          val index = possibleValues.indexOf(first)
-          CategoryValue(name, first, index + 1) // zero is
+          valueIndex.get(first) match {
+            case None        => CategoryValue(name, "nil", 0)
+            case Some(index) => CategoryValue(name, first, index + 1) // zero is empty
+          }
         case None =>
           CategoryValue(name, "nil", 0)
       }

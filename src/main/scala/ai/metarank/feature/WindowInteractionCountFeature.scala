@@ -33,7 +33,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
 
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): IO[Iterable[Write]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Write]] = IO {
     for {
       key <- writeKey(event, conf)
       inc <- event match {

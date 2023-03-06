@@ -2,8 +2,9 @@ package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
-import ai.metarank.model.{FeatureSchema, FieldName, Key}
+import ai.metarank.model.{FeatureSchema, FieldName, Key, Schema}
 import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
 import ai.metarank.model.Field.{NumberField, StringField}
@@ -30,6 +31,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       scope = ItemScopeType
     )
   )
+  val store = MemPersistence(Schema(feature.states))
 
   it should "decode schema" in {
     parse("name: price\ntype: number\nscope: item\nsource: metadata.price\nrefresh: 1m").flatMap(
@@ -41,7 +43,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract field from metadata" in {
     val event  = TestItemEvent("p1", List(NumberField("popularity", 100)))
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event, store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
@@ -57,7 +59,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event,store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
@@ -73,7 +75,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
 
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event,store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(UserScope(UserId("u1")), FeatureName("user_age")), event.timestamp, SDouble(33))
     )

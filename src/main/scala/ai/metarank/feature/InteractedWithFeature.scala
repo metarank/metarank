@@ -65,7 +65,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     .toMap
   override val states: List[FeatureConfig] = List(interactions) ++ fields.values.toList
 
-  override def writes(event: Event): IO[Iterable[Write]] =
+  override def writes(event: Event, store: Persistence): IO[Iterable[Write]] =
     event match {
       case item: ItemEvent =>
         IO {
@@ -210,9 +210,10 @@ object InteractedWithFeature {
   )
 
   def onlyUserSession(schema: InteractedWithSchema) = schema.scope match {
-    case ScopeType.GlobalScopeType  => false
-    case ScopeType.ItemScopeType    => false
-    case ScopeType.UserScopeType    => true
-    case ScopeType.SessionScopeType => true
+    case ScopeType.GlobalScopeType       => false
+    case ScopeType.ItemScopeType         => false
+    case ScopeType.UserScopeType         => true
+    case ScopeType.SessionScopeType      => true
+    case ScopeType.FieldScopeType(_) => false
   }
 }

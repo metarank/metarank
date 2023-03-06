@@ -210,9 +210,10 @@ object InteractedWithFeature {
   )
 
   def onlyUserSession(schema: InteractedWithSchema) = schema.scope match {
-    case ScopeType.GlobalScopeType  => false
-    case ScopeType.ItemScopeType    => false
-    case ScopeType.UserScopeType    => true
-    case ScopeType.SessionScopeType => true
+    case ScopeType.GlobalScopeType       => false
+    case ScopeType.ItemScopeType         => false
+    case ScopeType.UserScopeType         => true
+    case ScopeType.SessionScopeType      => true
+    case ScopeType.ItemFieldScopeType(_) => false
   }
 }

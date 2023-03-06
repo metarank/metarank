@@ -30,6 +30,7 @@ sealed trait BaseFeature {
     case ScopeType.ItemScopeType    => Some(Key(ItemScope(id), conf.name))
     case ScopeType.UserScopeType    => event.user.map(u => Key(UserScope(u), conf.name))
     case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(s), conf.name))
+    case ScopeType.ItemFieldScopeType(_) => None
   }
 
   def valueKeys(event: RankingEvent): Iterable[Key]

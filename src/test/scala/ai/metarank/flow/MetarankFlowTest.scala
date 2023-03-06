@@ -63,6 +63,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       FeatureName("ctr"),
       top = "click",
       bottom = "impression",
+      scope = ItemScopeType,
       bucket = 1.hour,
       periods = List(1)
     )

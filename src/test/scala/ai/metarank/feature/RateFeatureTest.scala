@@ -1,9 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.model.Event.RankItem
 import ai.metarank.model.{FeatureSchema, Key, Schema}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -20,13 +18,18 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val conf    = RateFeatureSchema(FeatureName("ctr"), "click", "impression", 24.hours, List(7, 14))
+  val conf    = RateFeatureSchema(FeatureName("ctr"), "click", "impression", ItemScopeType, 24.hours, List(7, 14))
   val feature = RateFeature(conf)
   val store   = MemPersistence(Schema(feature.states))
 
   it should "decode schema" in {
     val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]"
     parse(in).flatMap(_.as[FeatureSchema]) shouldBe Right(conf)
+  }
+
+  it should "fail decoding schema with user scope" in {
+    val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nscope: user"
+    parse(in).flatMap(_.as[FeatureSchema]) shouldBe a[Left[_, _]]
   }
 
   it should "extract writes" in {

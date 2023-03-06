@@ -25,6 +25,12 @@ object Scope {
     override val getType: ScopeType = ItemScopeType
   }
 
+  case class ItemFieldScope(item: ItemId, fieldName: String, fieldValue: String) extends Scope {
+    override val hashCode: Int      = item.value.hashCode ^ fieldName.hashCode ^ fieldValue.hashCode
+    override val asString: String   = s"item.$fieldName=${item.value}.$fieldValue"
+    override val getType: ScopeType = ItemScopeType
+  }
+
   case object GlobalScope extends Scope {
     override val hashCode: Int      = 20221223
     override val asString: String   = "global"
@@ -37,6 +43,7 @@ object Scope {
     override val getType: ScopeType = SessionScopeType
   }
 
+  val itemFieldPattern = "item\\.([a-zA-Z0-9\\-_]+)".r
   def fromString(str: String): Either[Throwable, Scope] = {
     str match {
       case "global" => Right(GlobalScope)
@@ -45,11 +52,18 @@ object Scope {
         if (firstEq > 0) {
           val left  = other.substring(0, firstEq)
           val right = other.substring(firstEq + 1)
-          (left: @switch) match {
+          left match {
             case "item"    => Right(ItemScope(ItemId(right)))
             case "session" => Right(SessionScope(SessionId(right)))
             case "user"    => Right(UserScope(UserId(right)))
-            case _         => Left(new IllegalArgumentException(s"cannot parse scope $other"))
+            case itemFieldPattern(fieldName) =>
+              val tokens = right.split('.')
+              if (tokens.length == 2) {
+                Right(ItemFieldScope(ItemId(tokens(0)), fieldName, tokens(1)))
+              } else {
+                Left(new IllegalArgumentException(s"cannot parse itemfield value '$right'"))
+              }
+            case _ => Left(new IllegalArgumentException(s"cannot parse scope $other"))
           }
         } else {
           Left(new IllegalArgumentException(s"cannot parse scope $other"))

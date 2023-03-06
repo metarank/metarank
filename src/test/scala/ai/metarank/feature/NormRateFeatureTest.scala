@@ -7,6 +7,7 @@ import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scope.{GlobalScope, ItemScope}
+import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.model.{FeatureSchema, Key, Schema}
 import ai.metarank.util.{TestInteractionEvent, TestRankingEvent}
@@ -22,12 +23,13 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     FeatureName("ctr"),
     "click",
     "impression",
+    ItemScopeType,
     24.hours,
     List(7, 14),
     normalize = Some(NormalizeSchema(10))
   )
   val feature = RateFeature(conf)
-  val store = MemPersistence(Schema(feature.states))
+  val store   = MemPersistence(Schema(feature.states))
 
   it should "decode schema" in {
     val in =
@@ -44,17 +46,17 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract writes" in {
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
-    feature.writes(click,store).unsafeRunSync().toList shouldBe List(
+    feature.writes(click, store).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("ctr_click")), click.timestamp, 1),
       PeriodicIncrement(Key(GlobalScope, FeatureName("ctr_click_norm")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
-    feature.writes(impression,store).unsafeRunSync().toList shouldBe List(
+    feature.writes(impression, store).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(Key(ItemScope(ItemId("p1")), FeatureName("ctr_impression")), impression.timestamp, 1),
       PeriodicIncrement(Key(GlobalScope, FeatureName("ctr_impression_norm")), impression.timestamp, 1)
     )
     val dummy = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "dummy")
-    feature.writes(dummy,store).unsafeRunSync().toList shouldBe empty
+    feature.writes(dummy, store).unsafeRunSync().toList shouldBe empty
   }
 
   it should "compute value" in {

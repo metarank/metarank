@@ -47,7 +47,7 @@ object Feature {
       case ScopeType.UserScopeType         => event.user.map(u => Key(UserScope(u), name))
       case ScopeType.SessionScopeType      => event.session.map(s => Key(SessionScope(s), name))
       case ScopeType.GlobalScopeType       => Some(Key(GlobalScope, name))
-      case ScopeType.ItemFieldScopeType(_) => None
+      case ScopeType.FieldScopeType(_) => None
     }
   }
 

@@ -9,13 +9,13 @@ import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{PeriodicCounterValue, ScalarValue}
-import ai.metarank.model.Field.StringField
+import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.Scalar.SString
-import ai.metarank.model.Scope.{GlobalScope, ItemFieldScope, ItemScope}
-import ai.metarank.model.ScopeType.{GlobalScopeType, ItemFieldScopeType, ItemScopeType}
+import ai.metarank.model.Scalar.{SString, SStringList}
+import ai.metarank.model.Scope.{FieldScope, GlobalScope, ItemScope}
+import ai.metarank.model.ScopeType.{FieldScopeType, GlobalScopeType, ItemScopeType}
 import ai.metarank.model.Write.{PeriodicIncrement, Put}
 import ai.metarank.model.{
   Event,
@@ -89,9 +89,11 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
       case e: ItemEvent =>
         schema.scope match {
           case ItemScopeType => IO.pure(None)
-          case ItemFieldScopeType(field) =>
+          case FieldScopeType(field) =>
             IO {
               e.fieldsMap.get(field) match {
+                case Some(StringListField(_, value :: _)) =>
+                  List(Put(Key(ItemScope(e.item), fieldScope.name), e.timestamp, SString(value)))
                 case Some(StringField(_, value)) =>
                   List(Put(Key(ItemScope(e.item), fieldScope.name), e.timestamp, SString(value)))
                 case _ => Nil
@@ -105,18 +107,27 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
             makeWrite(ItemScope(e.item), e, topTarget, topGlobal)
           case ScopeType.ItemScopeType if e.`type` == schema.bottom =>
             makeWrite(ItemScope(e.item), e, bottomTarget, bottomGlobal)
-          case ScopeType.ItemFieldScopeType(fieldName) =>
+          case ScopeType.FieldScopeType(fieldName) =>
             for {
               fieldFeature <- IO.fromOption(store.scalars.get(FeatureKey(ItemScopeType, fieldScope.name)))(
                 new Exception(s"feature ${fieldScope.name} not found")
               )
               fieldValueOption <- fieldFeature.computeValue(Key(ItemScope(e.item), fieldScope.name), e.timestamp)
               writes <- fieldValueOption match {
-                case Some(ScalarValue(_, _, SString(fieldValue))) =>
+                case Some(ScalarValue(_, _, fieldScalar)) =>
                   e.`type` match {
-                    case schema.top => makeWrite(ItemFieldScope(e.item, fieldName, fieldValue), e, topTarget, topGlobal)
+                    case schema.top =>
+                      fieldScalar match {
+                        case SString(value) => makeWrite(FieldScope(fieldName, value), e, topTarget, topGlobal)
+                        case _              => IO.pure(Nil)
+                      }
+
                     case schema.bottom =>
-                      makeWrite(ItemFieldScope(e.item, fieldName, fieldValue), e, bottomTarget, bottomGlobal)
+                      fieldScalar match {
+                        case SString(value) => makeWrite(FieldScope(fieldName, value), e, bottomTarget, bottomGlobal)
+                        case _              => IO.pure(Nil)
+                      }
+
                     case _ => IO.pure(Nil)
                   }
                 case Some(other) =>
@@ -152,10 +163,42 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
     }
   }
 
-  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = {
-    topTarget.readKeys(event) ++ bottomTarget.readKeys(event) ++ topGlobal.readKeys(event) ++ bottomGlobal.readKeys(
-      event
-    )
+  override def valueKeys(event: Event.RankingEvent): Iterable[Key] = schema.scope match {
+    case FieldScopeType(_) => fieldScope.readKeys(event)
+    case _                 => Nil
+  }
+
+  override def valueKeys2(event: Event.RankingEvent, features: Map[Key, FeatureValue]): Iterable[Key] = {
+    schema.scope match {
+      case FieldScopeType(field) =>
+        for {
+          item       <- event.items.toList
+          fieldValue <- features.get(Key(ItemScope(item.id), fieldScope.name)).toList
+          fieldString <- fieldValue match {
+            case ScalarValue(_, _, SString(value)) => List(value)
+            case _                                 => Nil
+          }
+          keys <- List(
+            Key(FieldScope(field, fieldString), topTarget.name),
+            Key(FieldScope(field, fieldString), bottomTarget.name),
+            Key(GlobalScope, topGlobal.name),
+            Key(GlobalScope, bottomGlobal.name)
+          )
+        } yield {
+          keys
+        }
+
+      case ItemScopeType =>
+        event.items.toList.flatMap(item =>
+          List(
+            Key(ItemScope(item.id), topTarget.name),
+            Key(ItemScope(item.id), bottomTarget.name),
+            Key(GlobalScope, topGlobal.name),
+            Key(GlobalScope, bottomGlobal.name)
+          )
+        )
+      case _ => Nil
+    }
   }
 
   override def value(
@@ -163,11 +206,21 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
       features: Map[Key, FeatureValue],
       id: RankItem
   ): MValue = {
+    val targetScopeOption = schema.scope match {
+      case ItemScopeType => Some(ItemScope(id.id))
+      case FieldScopeType(field) =>
+        features.get(Key(ItemScope(id.id), fieldScope.name)) match {
+          case Some(ScalarValue(_, _, SString(value))) => Some(FieldScope(field, value))
+          case _                                       => None
+        }
+      case _ => None
+    }
     schema.normalize match {
       case None =>
         val result = for {
-          topValue    <- features.get(Key(ItemScope(id.id), topTarget.name))
-          bottomValue <- features.get(Key(ItemScope(id.id), bottomTarget.name))
+          targetScope <- targetScopeOption
+          topValue    <- features.get(Key(targetScope, topTarget.name))
+          bottomValue <- features.get(Key(targetScope, bottomTarget.name))
           topNum      <- topValue.cast[PeriodicCounterValue] if topNum.values.length == dim.dim
           bottomNum   <- bottomValue.cast[PeriodicCounterValue] if bottomNum.values.length == dim.dim
         } yield {
@@ -182,8 +235,9 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
         result.getOrElse(VectorValue.missing(schema.name, dim))
       case Some(norm) =>
         val result = for {
-          topValue          <- features.get(Key(ItemScope(id.id), topTarget.name))
-          bottomValue       <- features.get(Key(ItemScope(id.id), bottomTarget.name))
+          targetScope       <- targetScopeOption
+          topValue          <- features.get(Key(targetScope, topTarget.name))
+          bottomValue       <- features.get(Key(targetScope, bottomTarget.name))
           topGlobalValue    <- features.get(Key(GlobalScope, topGlobal.name))
           bottomGlobalValue <- features.get(Key(GlobalScope, bottomGlobal.name))
           topNum            <- topValue.cast[PeriodicCounterValue] if topNum.values.length == dim.dim
@@ -232,9 +286,9 @@ object RateFeature {
         top    <- c.downField("top").as[String]
         bottom <- c.downField("bottom").as[String]
         scope <- c.downField("scope").as[Option[ScopeType]] match {
-          case Right(Some(ItemScopeType))             => Right(ItemScopeType)
-          case Right(Some(ItemFieldScopeType(field))) => Right(ItemFieldScopeType(field))
-          case Right(None)                            => Right(ItemScopeType)
+          case Right(Some(ItemScopeType))         => Right(ItemScopeType)
+          case Right(Some(FieldScopeType(field))) => Right(FieldScopeType(field))
+          case Right(None)                        => Right(ItemScopeType)
           case Right(other) => Left(DecodingFailure(s"scope $other is not supported for rate feature $name", c.history))
           case Left(error)  => Left(error)
         }
@@ -262,8 +316,8 @@ object RateFeature {
   implicit val rateSchemaEncoder: Encoder[RateFeatureSchema] = deriveEncoder
 
   def isItemScope(schema: RateFeatureSchema): Boolean = schema.scope match {
-    case ScopeType.ItemScopeType             => true
-    case ScopeType.ItemFieldScopeType(field) => true
-    case _                                   => false
+    case ScopeType.ItemScopeType         => true
+    case ScopeType.FieldScopeType(field) => true
+    case _                               => false
   }
 }

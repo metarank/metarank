@@ -122,12 +122,15 @@ object StringFeature {
       VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim.dim), dim)
   }
   case class IndexCategoricalEncoder(name: FeatureName, possibleValues: List[String]) extends CategoricalEncoder {
-    override val dim = SingleDim
+    private val valueIndex = possibleValues.zipWithIndex.toMap
+    override val dim       = SingleDim
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {
         case Some(first) =>
-          val index = possibleValues.indexOf(first)
-          CategoryValue(name, first, index + 1) // zero is
+          valueIndex.get(first) match {
+            case None        => CategoryValue(name, "nil", 0)
+            case Some(index) => CategoryValue(name, first, index + 1) // zero is empty
+          }
         case None =>
           CategoryValue(name, "nil", 0)
       }

@@ -12,7 +12,7 @@ object TestKey {
       case ScopeType.ItemScopeType             => Key(ItemScope(ItemId(id)), c.name)
       case ScopeType.UserScopeType             => Key(UserScope(UserId(id)), c.name)
       case ScopeType.SessionScopeType          => Key(SessionScope(SessionId(id)), c.name)
-      case ScopeType.ItemFieldScopeType(field) => ???
+      case ScopeType.FieldScopeType(field) => ???
     }
   }
 }

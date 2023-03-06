@@ -214,6 +214,6 @@ object InteractedWithFeature {
     case ScopeType.ItemScopeType         => false
     case ScopeType.UserScopeType         => true
     case ScopeType.SessionScopeType      => true
-    case ScopeType.ItemFieldScopeType(_) => false
+    case ScopeType.FieldScopeType(_) => false
   }
 }

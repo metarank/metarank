@@ -13,7 +13,7 @@ import ai.metarank.model.FeatureValue.{
 }
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.{GlobalScope, ItemFieldScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.Scope.{GlobalScope, FieldScope, ItemScope, SessionScope, UserScope}
 import ai.metarank.model.{FeatureValue, Key, Scope, Timestamp}
 
 import java.io.{DataInput, DataOutput}
@@ -134,7 +134,7 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
       case 1     => ItemScope(ItemId(in.readUTF()))
       case 2     => GlobalScope
       case 3     => SessionScope(SessionId(in.readUTF()))
-      case 4     => ItemFieldScope(ItemId(in.readUTF()), in.readUTF(), in.readUTF())
+      case 4     => FieldScope(in.readUTF(), in.readUTF())
       case other => throw new Exception(s"cannot parse scope with index $other")
     }
     override def write(value: Scope, out: DataOutput): Unit = value match {
@@ -149,9 +149,8 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
       case Scope.SessionScope(session) =>
         out.writeByte(3)
         out.writeUTF(session.value)
-      case Scope.ItemFieldScope(item, fieldName, fieldValue) =>
+      case Scope.FieldScope(fieldName, fieldValue) =>
         out.writeByte(4)
-        out.writeUTF(item.value)
         out.writeUTF(fieldName)
         out.writeUTF(fieldValue)
     }

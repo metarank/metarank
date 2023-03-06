@@ -2,7 +2,7 @@ package ai.metarank.model
 
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
-import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
+import ai.metarank.model.ScopeType.{FieldScopeType, GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
 import io.circe.{Codec, Decoder, Encoder}
 
 import scala.annotation.switch
@@ -25,10 +25,10 @@ object Scope {
     override val getType: ScopeType = ItemScopeType
   }
 
-  case class ItemFieldScope(item: ItemId, fieldName: String, fieldValue: String) extends Scope {
-    override val hashCode: Int      = item.value.hashCode ^ fieldName.hashCode ^ fieldValue.hashCode
-    override val asString: String   = s"item.$fieldName=${item.value}.$fieldValue"
-    override val getType: ScopeType = ItemScopeType
+  case class FieldScope(fieldName: String, fieldValue: String) extends Scope {
+    override val hashCode: Int      = fieldName.hashCode ^ fieldValue.hashCode
+    override val asString: String   = s"field=$fieldName:$fieldValue"
+    override val getType: ScopeType = FieldScopeType(fieldName)
   }
 
   case object GlobalScope extends Scope {
@@ -43,7 +43,6 @@ object Scope {
     override val getType: ScopeType = SessionScopeType
   }
 
-  val itemFieldPattern = "item\\.([a-zA-Z0-9\\-_]+)".r
   def fromString(str: String): Either[Throwable, Scope] = {
     str match {
       case "global" => Right(GlobalScope)
@@ -52,14 +51,14 @@ object Scope {
         if (firstEq > 0) {
           val left  = other.substring(0, firstEq)
           val right = other.substring(firstEq + 1)
-          left match {
+          (left: @switch) match {
             case "item"    => Right(ItemScope(ItemId(right)))
             case "session" => Right(SessionScope(SessionId(right)))
             case "user"    => Right(UserScope(UserId(right)))
-            case itemFieldPattern(fieldName) =>
-              val tokens = right.split('.')
+            case "field" =>
+              val tokens = right.split(':')
               if (tokens.length == 2) {
-                Right(ItemFieldScope(ItemId(tokens(0)), fieldName, tokens(1)))
+                Right(FieldScope(tokens(0), tokens(1)))
               } else {
                 Left(new IllegalArgumentException(s"cannot parse itemfield value '$right'"))
               }

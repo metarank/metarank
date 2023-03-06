@@ -21,13 +21,22 @@ import scala.concurrent.duration._
 
 class ScopedRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf =
-    RateFeatureSchema(FeatureName("ctr"), "click", "impression", FieldScopeType("color"), 24.hours, List(7, 14))
+    RateFeatureSchema(
+      FeatureName("ctr"),
+      "click",
+      "impression",
+      FieldScopeType("color"),
+      24.hours,
+      List(7, 14),
+      refresh = Some(0.seconds)
+    )
   val feature = RateFeature(conf)
   val store   = MemPersistence(Schema(feature.states))
   val item    = TestItemEvent("p1", List(StringField("color", "red")))
 
   it should "decode schema" in {
-    val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nscope: item.color"
+    val in =
+      "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nscope: item.color\nrefresh: 0s"
     parse(in).flatMap(_.as[FeatureSchema]) shouldBe Right(conf)
   }
 

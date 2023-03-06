@@ -18,17 +18,26 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val conf    = RateFeatureSchema(FeatureName("ctr"), "click", "impression", ItemScopeType, 24.hours, List(7, 14))
+  val conf = RateFeatureSchema(
+    FeatureName("ctr"),
+    "click",
+    "impression",
+    ItemScopeType,
+    24.hours,
+    List(7, 14),
+    refresh = Some(0.seconds)
+  )
   val feature = RateFeature(conf)
   val store   = MemPersistence(Schema(feature.states))
 
   it should "decode schema" in {
-    val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]"
+    val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nrefresh: 0s"
     parse(in).flatMap(_.as[FeatureSchema]) shouldBe Right(conf)
   }
 
   it should "fail decoding schema with user scope" in {
-    val in = "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nscope: user"
+    val in =
+      "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nscope: user\nrefresh: 0s"
     parse(in).flatMap(_.as[FeatureSchema]) shouldBe a[Left[_, _]]
   }
 

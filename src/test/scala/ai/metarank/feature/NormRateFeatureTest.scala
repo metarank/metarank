@@ -26,7 +26,8 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     ItemScopeType,
     24.hours,
     List(7, 14),
-    normalize = Some(NormalizeSchema(10))
+    normalize = Some(NormalizeSchema(10)),
+    refresh = Some(0.seconds)
   )
   val feature = RateFeature(conf)
   val store   = MemPersistence(Schema(feature.states))
@@ -39,6 +40,7 @@ class NormRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
         |bottom: impression
         |bucket: 24h
         |periods: [7,14]
+        |refresh: 0s
         |normalize:
         |  weight: 10""".stripMargin
     parse(in).flatMap(_.as[FeatureSchema]) shouldBe Right(conf)

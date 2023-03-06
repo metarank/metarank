@@ -86,7 +86,7 @@ object LambdaMARTRanker {
             maxDepth = depth,
             subsample = sampling,
             earlyStopping = Some(20),
-            treeMethod = "hist"
+            treeMethod = "exact" // hist/approx do not work with categories
           )
           LambdaMART(split.train, XGBoostBooster, Some(split.test)).fit(opts)
       }

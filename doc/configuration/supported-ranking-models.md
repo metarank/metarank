@@ -104,6 +104,21 @@ selector:
   ratio: 0.5
 ```
 The sampling selector above will accept only half of events randomly.
+* **Max interaction position selector**: only accept click-through events when interaction position is not too high/low. Can be useful to exclude visitor sessions with discovery-style browsing behavior, or too short rankings.
+```yaml
+selector:
+  maxInteractionPosition: 10
+  minInteractionPosition: 3 # both fields are optional
+```
+
+* **Ranking length selector**: only accept click-through events with number of items within a defined range.
+
+```yaml
+selector:
+  minItems: 10 # so there should be at least 10 items in the ranking
+  maxItems: 20 # both min and max are optional
+```
+
 * **AND/OR/NOT selector**: combine multiple selectors within a single boolean combination:
 ```yaml
 selector:

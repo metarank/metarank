@@ -7,9 +7,7 @@ import ai.metarank.flow.ClickthroughJoinBuffer
 import ai.metarank.fstore.clickthrough.FileClickthroughStore
 import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
-import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
-import ai.metarank.model.Timestamp
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.util.RanklensEvents
 import cats.effect.unsafe.implicits.global
@@ -24,16 +22,16 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
   val config = Config
     .load(IOUtils.resourceToString("/ranklens/config.yml", StandardCharsets.UTF_8), Map.empty)
     .unsafeRunSync()
-  val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
+  val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store  = MemPersistence(mapping.schema)
-  lazy val file   = Files.createTempFile("cts", ".dat")
+  lazy val file   = Files.createTempDirectory("cts")
   lazy val cts    = FileClickthroughStore.create(file.toString, JsonStoreFormat).allocated.unsafeRunSync()._1
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTPredictor]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
   lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
 
   it should "import events" in {
-    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer).unsafeRunSync()
+    Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer, config).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
     cts.flush().unsafeRunSync()
   }

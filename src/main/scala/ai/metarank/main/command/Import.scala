@@ -20,7 +20,7 @@ import ai.metarank.validate.EventValidation.ValidationError
 import ai.metarank.validate.checks.EventOrderValidation.EventOrderError
 import cats.effect.IO
 import cats.effect.kernel.Resource
-
+import cats.implicits._
 import java.nio.file.Files
 
 object Import extends Logging {
@@ -57,7 +57,7 @@ object Import extends Logging {
     for {
       errors       <- validated(conf, stream, args.validation)
       sortedStream <- sorted(stream, errors)
-      result       <- slurp(sortedStream, store, mapping, buffer)
+      result       <- slurp(sortedStream, store, mapping, buffer, conf)
     } yield {
       result
     }
@@ -80,22 +80,35 @@ object Import extends Logging {
       source: fs2.Stream[IO, Event],
       store: Persistence,
       mapping: FeatureMapping,
-      buffer: ClickthroughJoinBuffer
+      buffer: ClickthroughJoinBuffer,
+      conf: Config
   ): IO[ProcessResult] = {
     store match {
-      case redis: RedisPersistence =>
+      case redis: RedisPersistence if conf.core.`import`.cache.enabled =>
         for {
           dir <- IO(Files.createTempDirectory("metarank-rocksdb-temp"))
           _   <- info(s"using local disk cache for redis persistence: $dir")
           result <- FilePersistence
-            .create(FileStateConfig(dir.toString, backend = MapDBBackend), mapping.schema)
+            .create(FileStateConfig(dir.toString, backend = MapDBBackend), mapping.schema, conf.core.`import`.cache)
             .use(cache =>
               for {
-                buf2 <- IO(buffer.copy(values = cache.values))
-                r2   <- MetarankFlow.process(cache, source, mapping, buf2).flatTap(_ => cache.sync)
-                _    <- info("local import done, uploading data to redis")
-                _    <- FileRedisTransfer.copy(cache, redis)
-                _    <- store.sync
+                buf2  <- IO(buffer.copy(values = cache.values))
+                r2    <- MetarankFlow.process(cache, source, mapping, buf2).flatTap(_ => cache.sync)
+                _     <- info("estimating redis state size...")
+                sizes <- cache.estimateSize()
+                _ <- sizes
+                  .map(s =>
+                    info(
+                      s"${s.name}: count=${s.size.count} keyBytes=${s.size.keyBytes} valueBytes=${s.size.valueBytes}"
+                    )
+                  )
+                  .sequence
+                _ <- info(
+                  s"total: keyBytes=${sizes.map(_.size.keyBytes).sum} valueBytes=${sizes.map(_.size.valueBytes).sum}"
+                )
+                _ <- info("local import done, uploading data to redis")
+                _ <- FileRedisTransfer.copy(cache, redis)
+                _ <- store.sync
               } yield {
                 r2
               }

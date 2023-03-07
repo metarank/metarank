@@ -9,9 +9,11 @@ import ai.metarank.model.Write.PutFreqSample
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
+import scala.util.Random
+
 class FileFreqEstimatorTest extends FreqEstimatorSuite with FileTest {
   override def feature(config: FreqEstimatorConfig): FileFreqEstimatorFeature =
-    FileFreqEstimatorFeature(config, db, "x", BinaryStoreFormat)
+    FileFreqEstimatorFeature(config, db.sortedStringDB(config.name.value + Random.nextInt()), BinaryStoreFormat)
 
   it should "pull state" in {
     val c = config.copy(name = FeatureName("ffe"))

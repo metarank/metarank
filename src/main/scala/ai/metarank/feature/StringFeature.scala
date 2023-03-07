@@ -10,6 +10,7 @@ import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.Scalar.SStringList
@@ -48,7 +49,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): IO[Iterable[Put]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.source.field)
@@ -82,16 +83,27 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
       features: Map[Key, FeatureValue],
       mode: BaseFeature.ValueMode
   ): List[MValue] = {
-    request.items.toList.map(item => {
-      val fieldOverride = item.fields.collectFirst {
-        case StringField(name, value) if name == schema.source.field      => List(value)
-        case StringListField(name, values) if name == schema.source.field => values
-      }
-      fieldOverride match {
-        case Some(over) => encoder.encode(over)
-        case None       => value(request, features, item)
-      }
-    })
+    schema.source match {
+      case FieldName(Ranking, field) =>
+        val const = request.fields.find(_.name == field) match {
+          case Some(StringField(_, value))      => encoder.encode(List(value))
+          case Some(StringListField(_, values)) => encoder.encode(values)
+          case _                                => encoder.encode(Nil)
+        }
+        request.items.toList.map(_ => const)
+      case _ =>
+        request.items.toList.map(item => {
+          val fieldOverride = item.fields.collectFirst {
+            case StringField(name, value) if name == schema.source.field      => List(value)
+            case StringListField(name, values) if name == schema.source.field => values
+          }
+          fieldOverride match {
+            case Some(over) => encoder.encode(over)
+            case None       => value(request, features, item)
+          }
+        })
+
+    }
   }
 
 }
@@ -110,12 +122,15 @@ object StringFeature {
       VectorValue(name, OneHotEncoder.fromValues(values, possibleValues, dim.dim), dim)
   }
   case class IndexCategoricalEncoder(name: FeatureName, possibleValues: List[String]) extends CategoricalEncoder {
-    override val dim = SingleDim
+    private val valueIndex = possibleValues.zipWithIndex.toMap
+    override val dim       = SingleDim
     override def encode(values: Seq[String]): CategoryValue = {
       values.headOption match {
         case Some(first) =>
-          val index = possibleValues.indexOf(first)
-          CategoryValue(name, first, index + 1) // zero is
+          valueIndex.get(first) match {
+            case None        => CategoryValue(name, "nil", 0)
+            case Some(index) => CategoryValue(name, first, index + 1) // zero is empty
+          }
         case None =>
           CategoryValue(name, "nil", 0)
       }

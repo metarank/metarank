@@ -66,7 +66,7 @@ case class RefererFeature(schema: RefererSchema) extends RankingFeature with Log
 
   override val states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): IO[Iterable[Write]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Write]] = IO {
     event match {
       case event: RankingEvent if schema.source.event == Ranking => writeField(event, event.user, event.session)
       case event: InteractionEvent if schema.source.event == Interaction(event.`type`) =>

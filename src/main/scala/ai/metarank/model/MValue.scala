@@ -6,6 +6,7 @@ import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import cats.implicits._
 
 import java.util
+import scala.util.hashing.{Hashing, MurmurHash3}
 
 sealed trait MValue {
   def name: FeatureName
@@ -29,6 +30,8 @@ object MValue {
         }
       case _ => false
     }
+
+    override def hashCode(): Int = name.value.hashCode ^ value.hashCode()
   }
 
   object SingleValue {
@@ -41,6 +44,10 @@ object MValue {
       case VectorValue(xname, xvalues, xdim) =>
         name.equals(xname) && (util.Arrays.compare(values, xvalues) == 0) && (xdim == dim)
       case _ => false
+    }
+
+    override def hashCode(): Int = {
+      name.value.hashCode ^ util.Arrays.hashCode(values) ^ dim.dim.hashCode()
     }
   }
   object VectorValue {
@@ -56,6 +63,8 @@ object MValue {
 
   case class CategoryValue(name: FeatureName, cat: String, index: Int) extends MValue {
     override val dim = SingleDim
+
+    override def hashCode(): Int = name.value.hashCode ^ cat.hashCode ^ index.hashCode()
   }
 
   implicit val mvalueListEncoder: Encoder[List[MValue]] = Encoder.instance(values =>

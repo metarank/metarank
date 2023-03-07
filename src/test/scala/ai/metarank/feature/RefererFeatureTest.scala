@@ -2,9 +2,10 @@ package ai.metarank.feature
 
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.ScopeType._
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{FieldName, Key, Timestamp}
+import ai.metarank.model.{FieldName, Key, Schema, Timestamp}
 import ai.metarank.model.FieldName.EventType.{Ranking, User}
 import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.Key.FeatureName
@@ -25,12 +26,14 @@ class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       scope = UserScopeType
     )
   )
+  val store = MemPersistence(Schema(feature.states))
+
   val event =
     TestRankingEvent(List("p1"))
       .copy(user = Some(UserId("u1")), fields = List(StringField("ref", "http://www.google.com")))
 
   it should "extract referer field" in {
-    val write = feature.writes(event).unsafeRunSync().toList
+    val write = feature.writes(event, store).unsafeRunSync().toList
     write shouldBe List(
       Put(Key(UserScope(UserId("u1")), FeatureName("ref_medium")), event.timestamp, SString("search"))
     )

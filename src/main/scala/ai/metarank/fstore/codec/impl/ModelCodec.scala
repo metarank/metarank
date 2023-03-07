@@ -15,10 +15,10 @@ object ModelCodec extends BinaryCodec[Model[_]] {
     out.writeByte(BITSTREAM_VERSION)
     value match {
       case LambdaMARTRanker.LambdaMARTModel(name, conf, booster) => ???
-      case NoopRanker.NoopModel(name, config) => ???
-      case RandomRecommender.RandomModel(name, items) => ???
-      case ShuffleRanker.ShuffleModel(name, config) => ???
-      case _ => ???
+      case NoopRanker.NoopModel(name, config)                    => ???
+      case RandomRecommender.RandomModel(name, items)            => ???
+      case ShuffleRanker.ShuffleModel(name, config)              => ???
+      case _                                                     => ???
     }
   }
 }

@@ -5,6 +5,7 @@ import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.{Config, ModelConfig, StateStoreConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
+import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
@@ -133,6 +134,7 @@ object AnalyticsPayload {
         case f: WordCountSchema              => UsedFeature(f.name, "word_count")
         case f: PositionFeatureSchema        => UsedFeature(f.name, "position")
         case f: RandomFeatureSchema          => UsedFeature(f.name, "random")
+        case f: DiversitySchema              => UsedFeature(f.name, "diversity")
       },
       system = SystemParams(),
       ts = System.currentTimeMillis()

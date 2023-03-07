@@ -44,7 +44,7 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   }
 
   it should "generate puts" in {
-    val puts = feature.writes(event).unsafeRunSync().toList
+    val puts = feature.writes(event, store).unsafeRunSync().toList
     puts shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("title_match_title")),

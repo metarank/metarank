@@ -9,6 +9,7 @@ import ai.metarank.model.{FeatureValue, Key}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.implicits._
+import scala.concurrent.duration._
 
 case class RedisKVStore[K, V](client: RedisClient, prefix: String)(implicit
     kc: KCodec[K],
@@ -42,7 +43,8 @@ object RedisKVStore {
     new StateSink[FeatureValue, RedisKVStore[Key, FeatureValue]] {
       override def sink(f: RedisKVStore[Key, FeatureValue], state: fs2.Stream[IO, FeatureValue]): IO[TransferResult] =
         state
-          .evalMap(fv => f.put(Map(fv.key -> fv)).map(_ => 1))
+          .groupWithin(128, 1.second)
+          .evalMap(fvs => f.put(fvs.toList.map(fv => fv.key -> fv).toMap).map(_ => fvs.size))
           .compile
           .fold(0)(_ + _)
           .map(TransferResult.apply)

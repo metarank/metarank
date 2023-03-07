@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
+import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
@@ -22,7 +23,7 @@ case class RandomFeature(schema: RandomFeatureSchema) extends ItemFeature {
 
   override def states: List[FeatureConfig] = Nil
 
-  override def writes(event: Event): IO[Iterable[Put]] = IO.pure(Nil)
+  override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
 
   override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
 

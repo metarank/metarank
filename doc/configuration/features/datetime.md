@@ -33,8 +33,7 @@ and the following feature config:
 This extractor will pull the `10:15:30+01:00`, and map it into a `0..23.99` range, so one second before midnight will be
 0.99, and midday will be 0.5.
 
-This extractor requires a separate field and cannot use a global `timestamp` one as global is in UTC and has no information
-about timezone.
+This extractor can use both a separate field or an event-level `ranking.timestamp` one.
 
 Supported `parse` field values:
 * `day_of_week`: day number in 1..7 range, where Monday is 1
@@ -74,3 +73,4 @@ The `source` field should have any of the following types:
 * `string`, ISO8601 date+time+timezone, example: "2021-12-03T10:15:30+01:00"
 * `number`, unixtime (number of seconds from epoch start), example `1648483661`
 * `string`, unixtime as a string (so there will be no json number rounding), example: `"1648483661"`
+* you can reference the event timestamp (not the free-form field, but the native top-level event timestamp) with a `item.timestamp`

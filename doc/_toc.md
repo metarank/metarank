@@ -21,6 +21,7 @@
     * [Scalars](configuration/features/scalar.md)
     * [Text](configuration/features/text.md)
     * [User Profile](configuration/features/user-session.md)
+    * [Diversification](configuration/features/diversity.md)
   * [Recommendations](configuration/recommendations.md)
     * [Trending items](configuration/recommendations/trending.md)
     * [Similar items](configuration/recommendations/similar.md)
@@ -45,5 +46,5 @@
 * [Building from source](dev/build.md)
 
 ### Doc versions
-* [0.6.1 (stable)](https://docs.metarank.ai)
+* [0.6.3 (stable)](https://docs.metarank.ai)
 * [master (unstable)](https://metarank.gitbook.io/metarank-docs-unstable/)

@@ -40,7 +40,7 @@ class AutofeatureTest extends AnyFlatSpec with Matchers {
       )
     )
     val conf = ConfigMirror(
-      features = features,
+      features = features.toList,
       models = Map(
         "default" -> LambdaMARTConfig(
           backend = XGBoostConfig(iterations = 50),

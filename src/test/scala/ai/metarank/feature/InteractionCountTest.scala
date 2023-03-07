@@ -2,9 +2,10 @@ package ai.metarank.feature
 
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Key
+import ai.metarank.model.{Key, Schema}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scope.{ItemScope, SessionScope}
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
@@ -22,25 +23,26 @@ class InteractionCountTest extends AnyFlatSpec with Matchers with FeatureTest {
       scope = ItemScopeType
     )
   )
+  val store = MemPersistence(Schema(feature.states))
 
   it should "emit item increments on type match" in {
     val event = TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"))
-    val write = feature.writes(event).unsafeRunSync().toList
+    val write = feature.writes(event, store).unsafeRunSync().toList
     write shouldBe List(
       Increment(Key(ItemScope(ItemId("p1")), FeatureName("cnt")), event.timestamp, 1)
     )
   }
 
   it should "ignore non-interaction events" in {
-    feature.writes(TestItemEvent("p1")).unsafeRunSync() shouldBe Nil
-    feature.writes(TestRankingEvent(List("p1"))).unsafeRunSync() shouldBe Nil
+    feature.writes(TestItemEvent("p1"), store).unsafeRunSync() shouldBe Nil
+    feature.writes(TestRankingEvent(List("p1")), store).unsafeRunSync() shouldBe Nil
   }
 
   it should "also increment on session key" in {
     val sf = InteractionCountFeature(feature.schema.copy(scope = SessionScopeType))
     val event =
       TestInteractionEvent("e1", "e0").copy(`type` = "click", item = ItemId("p1"), session = Some(SessionId("s1")))
-    val write = sf.writes(event).unsafeRunSync().toList
+    val write = sf.writes(event, store).unsafeRunSync().toList
     write shouldBe List(
       Increment(Key(SessionScope(SessionId("s1")), FeatureName("cnt")), event.timestamp, 1)
     )

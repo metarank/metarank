@@ -3,6 +3,17 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.6.3
+
+* [diversity](configuration/features/diversity.md) feature extractor
+* [scoped rate](configuration/features/counters.md#field-scoped-rates) feature
+* fixed an important bug with dataset preparation (symptom: NDCG reported by the booster was higher than NDCG computed after the training) - prediction quality should go up a lot.
+
+## 0.6.2
+
+* print NDCG before and after reranking
+* print statistics for mem usage after training
+
 ## 0.6.1
 
 * fix for crash when using file-based clickthrough store

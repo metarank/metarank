@@ -78,52 +78,58 @@ case class RedisClient(
 
   def mset(values: Map[String, Array[Byte]]): IO[Unit] = {
     if (values.nonEmpty) {
-      IO(writer.mset(values.asJava).toCompletableFuture).flatMap(maybeFlush)
+      IO(writer.mset(values.asJava).toCompletableFuture).flatMap(x => maybeFlush(() => x))
     } else {
       IO.unit
     }
   }
 
   def set(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.set(key, value).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.set(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hset(key: String, values: Map[String, Array[Byte]]): IO[Unit] =
-    IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hdel(key: String, keys: List[String]): IO[Unit] =
-    IO(writer.hdel(key, keys: _*).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.hdel(key, keys: _*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hincrby(key: String, subkey: String, by: Int): IO[Unit] =
-    IO(writer.hincrby(key, subkey, by).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.hincrby(key, subkey, by).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def incrBy(key: String, by: Int): IO[Unit] =
-    IO(writer.incrby(key, by).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.incrby(key, by).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def lpush(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.lpush(key, value).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.lpush(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def lpush(key: String, values: List[Array[Byte]]): IO[Unit] =
-    IO(writer.lpush(key, values: _*).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.lpush(key, values: _*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def ltrim(key: String, start: Int, end: Int): IO[Unit] =
-    IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def append(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.append(key, value).toCompletableFuture).flatMap(maybeFlush)
+    IO(writer.append(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
-  def maybeFlush[T](lastWrite: CompletableFuture[T]): IO[Unit] = bufferSize.updateAndGet(_ + 1).flatMap {
-    case cnt if cnt >= conf.maxSize =>
-      debug(s"overflow pipeline flush of $cnt writes") *> doFlush(lastWrite)
-    case _ => IO.unit
+  def maybeFlush[T](lastWrite: () => CompletableFuture[T]): IO[Unit] =
+    bufferSize.updateAndGet(_ + 1).flatMap {
+      case cnt if cnt >= conf.maxSize =>
+        IO.whenA(conf.enabled)(debug(s"overflow pipeline flush of $cnt writes")) *> doFlush(lastWrite)
+      case _ => IO.unit
+    }
+
+  def doFlush[T](last: () => CompletableFuture[T]): IO[Unit] = {
+    for {
+      _ <- bufferSize.set(0)
+      _ <- IO.whenA(conf.enabled)(
+        IO.fromCompletableFuture(IO {
+          writerConn.flushCommands()
+          last()
+        }).void
+      )
+    } yield {}
+
   }
-
-  def doFlush[T](last: CompletableFuture[T]): IO[Unit] = for {
-    _ <- bufferSize.set(0)
-    _ <- IO.fromCompletableFuture(IO {
-      writerConn.flushCommands()
-      last
-    })
-  } yield {}
 
   private def tick(): IO[Unit] = for {
     _ <- IO.sleep(conf.flushPeriod)
@@ -156,14 +162,14 @@ object RedisClient extends Logging {
         buffer <- Ref.of[IO, Int](0)
         client <- createIO(host, port, db, cache, buffer, auth, tls, timeout)
         tickCancel <-
-          if (cache.flushPeriod != 0.millis) {
+          if ((cache.flushPeriod != 0.millis) && cache.enabled) {
             info(s"started flush timer every ${cache.flushPeriod}") *> client.tick().background.allocated.map(_._2)
           } else {
             info("periodic flushing disabled") *> IO.pure(IO.unit)
           }
       } yield {
         client -> tickCancel
-      })(client => info("closing redis connection") *> IO(client._1.lettuce.close()) *> client._2)
+      })(client => info("closing redis connection") *> client._2 *> IO(client._1.lettuce.close()))
       .map(_._1)
   }
 
@@ -196,7 +202,7 @@ object RedisClient extends Logging {
     _     <- IO(read.sync().select(db))
     write <- IO(lettuce.connect[String, Array[Byte]](RedisCodec.of(new StringCodec(), new ByteArrayCodec())))
     _     <- IO(write.sync().select(db))
-    _     <- IO(write.setAutoFlushCommands(false))
+    _     <- IO.whenA(conf.enabled)(info("Enabled redis pipelining") *> IO(write.setAutoFlushCommands(false)))
     _ <- info(
       s"opened read+write connection redis://$host:$port, db=$db (pipeline size: ${conf.maxSize} period: ${conf.flushPeriod})"
     )

@@ -33,7 +33,7 @@ class MovielensRecTest extends AnyFlatSpec with Matchers {
   val config = Config
     .load(IOUtils.resourceToString("/movielens/config.yml", StandardCharsets.UTF_8), Map.empty)
     .unsafeRunSync()
-  val mapping    = FeatureMapping.fromFeatureSchema(config.features, config.models).optimize()
+  val mapping    = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store = MemPersistence(mapping.schema)
   lazy val cts   = MemClickthroughStore()
 
@@ -45,8 +45,9 @@ class MovielensRecTest extends AnyFlatSpec with Matchers {
   lazy val rec    = Recommender(mapping, store)
 
   it should "import events" in {
-    val blob = MovielensRatingsSource.fromInputStream(stream).take(100000).compile.toList.unsafeRunSync().sortBy(_.timestamp.ts)
-    Import.slurp(fs2.Stream[IO, Event](blob: _*), store, mapping, buffer).unsafeRunSync()
+    val blob =
+      MovielensRatingsSource.fromInputStream(stream).take(100000).compile.toList.unsafeRunSync().sortBy(_.timestamp.ts)
+    Import.slurp(fs2.Stream[IO, Event](blob: _*), store, mapping, buffer, config).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
   }
 

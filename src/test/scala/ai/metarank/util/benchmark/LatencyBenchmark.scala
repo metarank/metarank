@@ -2,6 +2,7 @@ package ai.metarank.util.benchmark
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
+import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.fstore.{ClickthroughStore, Persistence}
@@ -61,7 +62,7 @@ object LatencyBenchmark extends IOApp with Logging {
     dataPath <- IO.fromOption(args.lift(1))(new Exception("need data"))
     confPath <- IO.fromOption(args.lift(0))(new Exception("need conf"))
     conf    <- Config.load(IOUtils.toString(new FileInputStream(new File(confPath)), StandardCharsets.UTF_8), Map.empty)
-    mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models).optimize())
+    mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
 
     results <- start(mapping, conf, confPath, dataPath).use(s =>
       for {
@@ -86,7 +87,7 @@ object LatencyBenchmark extends IOApp with Logging {
   }
 
   def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = for {
-    store <- Persistence.fromConfig(mapping.schema, conf.state)
+    store <- Persistence.fromConfig(mapping.schema, conf.state, ImportCacheConfig())
     cts   <- ClickthroughStore.fromConfig(conf.train)
     buffer <- Resource.liftK(
       Standalone

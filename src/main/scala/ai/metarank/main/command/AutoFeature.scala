@@ -46,8 +46,8 @@ object AutoFeature extends Logging {
   def run(source: Stream[IO, Event], rules: RuleSet): IO[ConfigMirror] = for {
     start <- IO(System.currentTimeMillis())
     model <- source.compile.fold(EventModel())((model, event) => {
-      if (model.eventCount % 12345 == 1) {
-        val rate = math.round(model.eventCount / ((System.currentTimeMillis() - start) / 1000.0))
+      if (model.eventCount.total % 12345 == 1) {
+        val rate = math.round(model.eventCount.total / ((System.currentTimeMillis() - start) / 1000.0))
         logger.info(s"processed ${model.eventCount} events, $rate events/s")
       }
       model.refresh(event)

@@ -129,7 +129,6 @@ object ClickthroughJoinBuffer extends Logging {
       .expireAfterWrite(conf.maxSessionLength)
       .ticker(ticker)
       .evictionListener(evictionListener(queue))
-//      .removalListener(evictionListener(queue))
       .executor(MoreExecutors.directExecutor())
       .build[String, ClickthroughValues]()
     new ClickthroughJoinBuffer(
@@ -148,9 +147,7 @@ object ClickthroughJoinBuffer extends Logging {
   )(key: String, ctv: ClickthroughValues, reason: RemovalCause): Unit = {
     reason match {
       case RemovalCause.REPLACED => //
-      case _                     => queue.add(ctv)
+      case _                     => if (ctv.ct.interactions.nonEmpty) queue.add(ctv)
     }
-    // println(s"evicted $key due to $reason")
-
   }
 }

@@ -2,8 +2,9 @@ package ai.metarank.feature
 
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
-import ai.metarank.model.{FeatureSchema, FieldName, Key}
+import ai.metarank.model.{FeatureSchema, FieldName, Key, Schema}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
@@ -27,6 +28,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       source = FieldName(Item, "title")
     )
   )
+  val store = MemPersistence(Schema(feature.states))
 
   it should "decode schema" in {
     val conf    = "name: title_words\ntype: word_count\nscope: item\nsource: metadata.title"
@@ -36,7 +38,7 @@ class WordCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract field" in {
     val event  = TestItemEvent("p1", List(StringField("title", "foo, bar, baz!")))
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event,store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("title_words")), event.timestamp, SDouble(3))
     )

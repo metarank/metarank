@@ -14,8 +14,11 @@ import ai.metarank.model.Write.Put
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
+import scala.util.Random
+
 class FileScalarFeatureTest extends ScalarFeatureSuite with FileTest {
-  override def feature(config: ScalarConfig): FileScalarFeature = FileScalarFeature(config, db, "x", BinaryStoreFormat)
+  override def feature(config: ScalarConfig): FileScalarFeature =
+    FileScalarFeature(config, db.hashDB(config.name.value + Random.nextInt()), BinaryStoreFormat)
 
   it should "pull state" in {
     val c = config.copy(name = FeatureName("ss"))

@@ -41,6 +41,7 @@ state: # a place to store the feature values for the ML inference and the traine
     #pipeline:         # optional
     #  maxSize: 128    # batch write buffer size, optional, default=128
     #  flushPeriod: 1s # buffer flush interval, optional, default=1s
+    #  enabled: true   # toggle pipelining, optional, default=true
 
     # can be also overridden from environment variables, see the
     # https://docs.metarank.ai/reference/overview/persistence#redis-persistence for details
@@ -87,13 +88,14 @@ train:
 train:
   type: discard
 ```
-* **Local file**: takes much less RAM (as ct's are not stored in redis), but you need to manage the file containing the click-throughs by yourself. 
+* **Local dir**: takes much less RAM (as ct's are not stored in redis), but you need to manage the directory containing the click-through files by yourself.  
 ```yaml
 train:
   type: file
-  path: /path/to/file   # path to a file which will be written during export/import
+  path: /path/to/dir   # path to a directory which will be used for persistence during export/import
   format: json          # options are: json, binary
 ```
+
 * **S3**: like local file, but offloads data to an external block storage, suits well for Kubernetes deployments.
 ```yaml
 train:

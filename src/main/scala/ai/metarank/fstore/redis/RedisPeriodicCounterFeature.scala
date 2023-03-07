@@ -5,7 +5,7 @@ import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
 import ai.metarank.model.Feature.PeriodicCounterFeature
-import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
+import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodicCounterConfig, TimestampLongMap}
 import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.State.PeriodicCounterState
 import ai.metarank.model.{Key, Timestamp}
@@ -29,7 +29,7 @@ case class RedisPeriodicCounterFeature(
       map     <- client.hgetAll(format.key.encode(prefix, key))
       decoded <- map.toList.map { case (k, v) => decode(new String(k), new String(v)) }.sequence
     } yield {
-      if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(decoded.toMap)))
+      if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(decoded))))
     }
   }
 

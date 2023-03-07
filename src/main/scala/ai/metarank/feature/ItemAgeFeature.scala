@@ -8,6 +8,7 @@ import ai.metarank.model.Event.{RankItem, eventCodec}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
+import ai.metarank.model.Field.NumberField
 import ai.metarank.model.FieldName.EventType._
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Timestamp}
@@ -37,10 +38,14 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
   )
   override def states: List[FeatureConfig] = List(conf)
 
-  override def writes(event: Event): IO[Iterable[Put]] = IO {
+  override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
-      key   <- writeKey(event, conf)
-      field <- event.fields.find(_.name == schema.source.field)
+      key <- writeKey(event, conf)
+      field <- schema.source.field match {
+        case "timestamp" => Some(NumberField("timestamp", event.timestamp.ts / 1000.0))
+        case _           => event.fields.find(_.name == schema.source.field)
+      }
+
       fieldValue <- field match {
         case Field.NumberField(_, value) => Some(value) // unix time
         case Field.StringField(_, value) =>

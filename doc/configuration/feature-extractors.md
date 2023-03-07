@@ -87,6 +87,7 @@ The `scope: item` means that the extracted popularity field from item metadata s
 ### Ranking feature extractors
 * [relevancy](features/relevancy.md#ranking): use a supplied per-product relevancy from the rerank request.
 * [position](features/relevancy.md#position): Item position in ranking.
+* [diversity](features/diversity.md): Search results diversification.
 
 ### Interaction feature extractors
 * [interaction_count](features/counters.md#interaction-counter): number of interaction made within this session.

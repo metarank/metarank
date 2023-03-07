@@ -69,7 +69,7 @@ class FeatureSchemaTest extends AnyFlatSpec with Matchers {
 
   it should "decode broken feature source with normal error message" in {
     decodeYaml("type: boolean\nscope: item\nsource: interaction:click.foo").left.map(_.getMessage) shouldBe Left(
-      "cannot parse a feature definition of type 'boolean': DownField(name)"
+      "DecodingFailure at .name: cannot parse a feature definition of type 'boolean'"
     )
   }
 

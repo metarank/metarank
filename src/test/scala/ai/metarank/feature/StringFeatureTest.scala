@@ -3,12 +3,13 @@ package ai.metarank.feature
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
-import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking, User}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{FieldName, Key, MValue}
+import ai.metarank.model.{FieldName, Key, MValue, Schema}
 import ai.metarank.model.MValue.{CategoryValue, VectorValue}
 import ai.metarank.model.Scalar.SStringList
 import ai.metarank.model.Scope.{ItemScope, UserScope}
@@ -29,10 +30,11 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       values = NonEmptyList.of("red", "green", "blue")
     )
   )
+  val store = MemPersistence(Schema(feature.states))
 
   it should "extract item field" in {
     val event  = TestItemEvent("p1", List(StringField("color", "green")))
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event,store).unsafeRunSync().toList
     result shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("color")),
@@ -52,7 +54,7 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       )
     )
     val event  = TestUserEvent("u1", List(StringField("gender", "male")))
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event,store).unsafeRunSync().toList
     result shouldBe List(
       Put(
         Key(UserScope(UserId("u1")), FeatureName("user_gender")),
@@ -69,6 +71,23 @@ class StringFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       TestRankingEvent(List("p1"))
     )
     values shouldBe List(List(VectorValue(FeatureName("color"), Array(0.0, 1.0, 0.0), 3)))
+  }
+
+  it should "compute value for ranking" in {
+    val feature = StringFeature(
+      StringFeatureSchema(
+        name = FeatureName("color"),
+        source = FieldName(Ranking, "color"),
+        scope = ItemScopeType,
+        values = NonEmptyList.of("red", "green", "blue")
+      )
+    )
+    val values = process(
+      List(),
+      feature.schema,
+      TestRankingEvent(List("p1")).copy(fields = List(StringField("color", "red")))
+    )
+    values shouldBe List(List(VectorValue(FeatureName("color"), Array(1.0, 0.0, 0.0), 3)))
   }
 
   it should "scope value to user" in {

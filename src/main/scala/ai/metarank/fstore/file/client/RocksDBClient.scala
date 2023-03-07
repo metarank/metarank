@@ -1,6 +1,5 @@
 package ai.metarank.fstore.file.client
 
-import ai.metarank.fstore.file.client.FileClient.KeyVal
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import org.rocksdb.{BlockBasedTableConfig, CompressionType, Filter, LRUCache, Options, ReadOptions, RocksDB}
@@ -8,6 +7,7 @@ import org.rocksdb.{BlockBasedTableConfig, CompressionType, Filter, LRUCache, Op
 import java.nio.file.Path
 import java.util
 import scala.collection.mutable.ArrayBuffer
+/*
 
 case class RocksDBClient(db: RocksDB) extends FileClient {
   override def put(key: Array[Byte], value: Array[Byte]): Unit = {
@@ -26,9 +26,12 @@ case class RocksDBClient(db: RocksDB) extends FileClient {
   }
 
   override def firstN(prefix: Array[Byte], n: Int): CloseableIterator[FileClient.KeyVal] = {
-    val it = db.newIterator()
-    it.seek(prefix)
     new CloseableIterator[KeyVal] {
+      lazy val it = {
+        val xit = db.newIterator()
+        xit.seek(prefix)
+        xit
+      }
       var cnt    = 0
       var closed = false
       override def nested: Iterator[KeyVal] = new Iterator[KeyVal] {
@@ -95,6 +98,7 @@ case class RocksDBClient(db: RocksDB) extends FileClient {
   override def sync(): Unit = {
     db.syncWal()
   }
+
 }
 
 object RocksDBClient {
@@ -114,3 +118,4 @@ object RocksDBClient {
     RocksDBClient(db)
   }
 }
+ */

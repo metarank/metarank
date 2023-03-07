@@ -3,8 +3,9 @@ package ai.metarank.feature
 import ai.metarank.feature.NumVectorFeature.Reducer._
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.NumberListField
-import ai.metarank.model.{FieldName, Key}
+import ai.metarank.model.{FieldName, Key, Schema}
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -27,6 +28,7 @@ class NumVectorFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       scope = ItemScopeType
     )
   )
+  val store = MemPersistence(Schema(feature.states))
 
   it should "decode config with no reducers" in {
     val yaml =
@@ -60,7 +62,7 @@ class NumVectorFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract field from metadata with default reducers" in {
     val event  = TestItemEvent("p1", List(NumberListField("vec", List(1.0, 2.0, 3.0))))
-    val result = feature.writes(event).unsafeRunSync().toList
+    val result = feature.writes(event, store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("vec")), event.timestamp, SDoubleList(List(1.0, 3.0, 3.0, 2.0)))
     )

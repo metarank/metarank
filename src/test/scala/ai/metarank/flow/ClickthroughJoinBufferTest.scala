@@ -1,9 +1,15 @@
 package ai.metarank.flow
 
+import ai.metarank.FeatureMapping
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
+import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{EventId, Timestamp}
 import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
+import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -11,7 +17,15 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
-  lazy val mapping = TestFeatureMapping()
+  val models = Map(
+    "random" -> LambdaMARTConfig(
+      backend = XGBoostConfig(),
+      features = NonEmptyList.of(FeatureName("rand")),
+      weights = Map("click" -> 1)
+    )
+  )
+  val features     = List(RandomFeatureSchema(FeatureName("rand")))
+  lazy val mapping = FeatureMapping.fromFeatureSchema(features, models)
   lazy val state   = MemPersistence(mapping.schema)
   lazy val cs      = MemClickthroughStore()
 
@@ -37,11 +51,13 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
 
   it should "not fail when there are no ranking features" in {
     val mapping = TestFeatureMapping.empty()
+    val state   = MemPersistence(mapping.schema)
+    val cs      = MemClickthroughStore()
     val buffer  = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now     = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
     val cts = cs.getall().compile.toList.unsafeRunSync()
-    cts shouldNot be(empty)
+    cts should be(empty)
   }
 }

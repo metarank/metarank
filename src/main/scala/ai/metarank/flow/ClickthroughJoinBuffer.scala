@@ -42,22 +42,25 @@ case class ClickthroughJoinBuffer(
     }
   }
 
-  def handleRanking(event: RankingEvent): IO[Unit] = for {
-    values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
-    mvalues <- IO.fromEither(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
-    ctv = ClickthroughValues(
-      Clickthrough(
-        id = event.id,
-        ts = event.timestamp,
-        user = event.user,
-        session = event.session,
-        items = event.items.toList.map(_.id),
-        rankingFields = event.fields
-      ),
-      mvalues.toList
-    )
-    _ <- IO(cache.put(ctv.ct.id.value, ctv))
-  } yield {}
+  def handleRanking(event: RankingEvent): IO[Unit] = {
+    val b = 1
+    for {
+      values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
+      mvalues <- IO.fromEither(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
+      ctv = ClickthroughValues(
+        Clickthrough(
+          id = event.id,
+          ts = event.timestamp,
+          user = event.user,
+          session = event.session,
+          items = event.items.toList.map(_.id),
+          rankingFields = event.fields
+        ),
+        mvalues.toList
+      )
+      _ <- IO(cache.put(ctv.ct.id.value, ctv))
+    } yield {}
+  }
 
   def handleInteraction(event: InteractionEvent): IO[Unit] = {
 

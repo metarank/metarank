@@ -21,7 +21,7 @@ class StringValuesValidationTest extends AnyFlatSpec with Matchers {
       NonEmptyList.of(
         StringFeatureSchema(
           name = FeatureName("fpp"),
-          source = FieldName(Item, "foo"),
+          field = FieldName(Item, "foo"),
           scope = ItemScopeType,
           values = NonEmptyList.of("bar", "baz", "quz", "zpp")
         )

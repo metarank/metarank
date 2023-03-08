@@ -20,7 +20,7 @@ class FeatureOverMissingFieldValidationTest extends AnyFlatSpec with Matchers {
     NonEmptyList.of(
       StringFeatureSchema(
         name = FeatureName("size"),
-        source = FieldName(Item, "size"),
+        field = FieldName(Item, "size"),
         scope = ItemScopeType,
         values = NonEmptyList.of("small", " big")
       )
@@ -49,7 +49,7 @@ class FeatureOverMissingFieldValidationTest extends AnyFlatSpec with Matchers {
         NonEmptyList.of(
           NumberFeatureSchema(
             name = FeatureName("size"),
-            source = FieldName(Item, "relevancy"),
+            field = FieldName(Item, "relevancy"),
             scope = ItemScopeType
           )
         )
@@ -68,7 +68,7 @@ class FeatureOverMissingFieldValidationTest extends AnyFlatSpec with Matchers {
         NonEmptyList.of(
           NumberFeatureSchema(
             name = FeatureName("size"),
-            source = FieldName(Ranking, "relevancy"),
+            field = FieldName(Ranking, "relevancy"),
             scope = ItemScopeType
           )
         )

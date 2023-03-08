@@ -36,7 +36,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
   override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)
-      field <- event.fields.find(_.name == schema.source.field)
+      field <- event.fields.find(_.name == schema.field.field)
       fieldValue <- field match {
         case b: BooleanField => Some(b)
         case other =>
@@ -71,14 +71,28 @@ object BooleanFeature {
   import ai.metarank.util.DurationJson._
   case class BooleanFeatureSchema(
       name: FeatureName,
-      source: FieldName,
+      field: FieldName,
       scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] =
-    deriveDecoder[BooleanFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'boolean'")
+  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = Decoder
+    .instance(c =>
+      for {
+        name <- c.downField("name").as[FeatureName]
+        field <- c.downField("field").as[FieldName] match {
+          case Left(_)      => c.downField("source").as[FieldName]
+          case Right(value) => Right(value)
+        }
+        scope   <- c.downField("scope").as[ScopeType]
+        refresh <- c.downField("refresh").as[Option[FiniteDuration]]
+        ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
+      } yield {
+        BooleanFeatureSchema(name, field, scope, refresh, ttl)
+      }
+    )
+    .withErrorMessage("cannot parse a feature definition of type 'boolean'")
 
   implicit val boolSchemaEncoder: Encoder[BooleanFeatureSchema] = deriveEncoder[BooleanFeatureSchema]
 }

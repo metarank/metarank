@@ -77,22 +77,22 @@ object BooleanFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = Decoder.instance(c =>
-    for {
-      name <- c.downField("name").as[FeatureName]
-      field <- c.downField("field").as[FieldName] match {
-        case Left(_)      => c.downField("source").as[FieldName]
-        case Right(value) => Right(value)
+  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = Decoder
+    .instance(c =>
+      for {
+        name <- c.downField("name").as[FeatureName]
+        field <- c.downField("field").as[FieldName] match {
+          case Left(_)      => c.downField("source").as[FieldName]
+          case Right(value) => Right(value)
+        }
+        scope   <- c.downField("scope").as[ScopeType]
+        refresh <- c.downField("refresh").as[Option[FiniteDuration]]
+        ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
+      } yield {
+        BooleanFeatureSchema(name, field, scope, refresh, ttl)
       }
-      scope   <- c.downField("scope").as[ScopeType]
-      refresh <- c.downField("refresh").as[Option[FiniteDuration]]
-      ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
-    } yield {
-      BooleanFeatureSchema(name, field, scope, refresh, ttl)
-    }
-  )
-
-  deriveDecoder[BooleanFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'boolean'")
+    )
+    .withErrorMessage("cannot parse a feature definition of type 'boolean'")
 
   implicit val boolSchemaEncoder: Encoder[BooleanFeatureSchema] = deriveEncoder[BooleanFeatureSchema]
 }

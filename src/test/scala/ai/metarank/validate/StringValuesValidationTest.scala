@@ -18,7 +18,7 @@ class StringValuesValidationTest extends AnyFlatSpec with Matchers {
       TestItemEvent("p1", List(StringField("foo", "bar")))
     )
     val conf = TestConfig().copy(features =
-      NonEmptyList.of(
+      List(
         StringFeatureSchema(
           name = FeatureName("fpp"),
           field = FieldName(Item, "foo"),

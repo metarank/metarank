@@ -23,7 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
-  lazy val features = NonEmptyList.of(
+  lazy val features = List(
     NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType),
     StringFeatureSchema(
       FeatureName("category"),
@@ -44,7 +44,7 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
   )
   lazy val model = LambdaMARTConfig(
     backend = XGBoostConfig(),
-    features = features.map(_.name),
+    features = NonEmptyList.fromListUnsafe(features.map(_.name)),
     weights = Map("click" -> 1)
   )
   lazy val mapping = FeatureMapping.fromFeatureSchema(

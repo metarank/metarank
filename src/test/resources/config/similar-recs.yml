@@ -1,0 +1,10 @@
+core:
+  clickthrough:
+    maxSessionLength: 60s
+
+models:
+  similar:
+    type: als
+    interactions: [click]
+    factors: 100
+    iterations: 100

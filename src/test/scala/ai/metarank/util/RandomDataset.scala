@@ -19,7 +19,7 @@ case class RandomDataset(mapping: FeatureMapping, events: List[Event])
 
 object RandomDataset {
   def generate(size: Int) = {
-    val features = NonEmptyList.of(
+    val features = List(
       NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, refresh = Some(1.minute)),
       WordCountSchema(FeatureName("title_length"), FieldName(Item, "title"), ItemScopeType)
     )
@@ -27,7 +27,7 @@ object RandomDataset {
     val models = Map(
       "xgboost" -> LambdaMARTConfig(
         backend = XGBoostConfig(iterations = 10),
-        features = features.map(_.name),
+        features = NonEmptyList.fromListUnsafe(features.map(_.name)),
         weights = Map("click" -> 1)
       ),
       "xgboost1" -> LambdaMARTConfig(
@@ -37,7 +37,7 @@ object RandomDataset {
       ),
       "lightgbm" -> LambdaMARTConfig(
         backend = LightGBMConfig(iterations = 10),
-        features = features.map(_.name),
+        features = NonEmptyList.fromListUnsafe(features.map(_.name)),
         weights = Map("click" -> 1)
       )
     )

@@ -34,4 +34,14 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
     val cts = buffer.flushQueue().unsafeRunSync()
     cts shouldBe empty
   }
+
+  it should "not fail when there are no ranking features" in {
+    val mapping = TestFeatureMapping.empty()
+    val buffer  = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val now     = Timestamp.now
+    buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
+    buffer.flushAll().unsafeRunSync()
+    val cts = cs.getall().compile.toList.unsafeRunSync()
+    cts shouldNot be(empty)
+  }
 }

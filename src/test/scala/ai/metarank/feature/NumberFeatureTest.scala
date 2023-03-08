@@ -27,7 +27,7 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = NumberFeature(
     NumberFeatureSchema(
       name = FeatureName("popularity"),
-      source = FieldName(Item, "popularity"),
+      field = FieldName(Item, "popularity"),
       scope = ItemScopeType
     )
   )
@@ -35,6 +35,14 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "decode schema" in {
     parse("name: price\ntype: number\nscope: item\nsource: metadata.price\nrefresh: 1m").flatMap(
+      _.as[FeatureSchema]
+    ) shouldBe Right(
+      NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, Some(1.minute))
+    )
+  }
+
+  it should "decode schema with field instead of source" in {
+    parse("name: price\ntype: number\nscope: item\nfield: metadata.price\nrefresh: 1m").flatMap(
       _.as[FeatureSchema]
     ) shouldBe Right(
       NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, Some(1.minute))
@@ -53,13 +61,13 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val feature = NumberFeature(
       NumberFeatureSchema(
         name = FeatureName("popularity"),
-        source = FieldName(Interaction("click"), "popularity"),
+        field = FieldName(Interaction("click"), "popularity"),
         scope = ItemScopeType
       )
     )
 
     val event  = TestInteractionEvent("p1", "k1", List(NumberField("popularity", 100))).copy(`type` = "click")
-    val result = feature.writes(event,store).unsafeRunSync().toList
+    val result = feature.writes(event, store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(ItemScope(ItemId("p1")), FeatureName("popularity")), event.timestamp, SDouble(100))
     )
@@ -69,13 +77,13 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val feature = NumberFeature(
       NumberFeatureSchema(
         name = FeatureName("user_age"),
-        source = FieldName(User, "age"),
+        field = FieldName(User, "age"),
         scope = UserScopeType
       )
     )
 
     val event  = TestUserEvent("u1", List(NumberField("age", 33)))
-    val result = feature.writes(event,store).unsafeRunSync().toList
+    val result = feature.writes(event, store).unsafeRunSync().toList
     result shouldBe List(
       Put(Key(UserScope(UserId("u1")), FeatureName("user_age")), event.timestamp, SDouble(33))
     )

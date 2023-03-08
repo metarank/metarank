@@ -51,7 +51,7 @@ case class StringFeatureRule(
         Some(
           StringFeatureSchema(
             name = FeatureName(field),
-            source = FieldName(Item, field),
+            field = FieldName(Item, field),
             scope = ItemScopeType,
             encode = Some(OnehotEncoderName),
             values = NonEmptyList(head, tail).sorted
@@ -64,7 +64,7 @@ case class StringFeatureRule(
         Some(
           StringFeatureSchema(
             name = FeatureName(field),
-            source = FieldName(Item, field),
+            field = FieldName(Item, field),
             scope = ItemScopeType,
             encode = Some(IndexEncoderName),
             values = NonEmptyList(head, tail).sorted

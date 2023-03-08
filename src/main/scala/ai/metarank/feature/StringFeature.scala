@@ -52,7 +52,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)
-      field <- event.fields.find(_.name == schema.source.field)
+      field <- event.fields.find(_.name == schema.field.field)
       fieldValue <- field match {
         case StringField(_, value)     => Some(SStringList(List(value)))
         case StringListField(_, value) => Some(SStringList(value))
@@ -83,7 +83,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
       features: Map[Key, FeatureValue],
       mode: BaseFeature.ValueMode
   ): List[MValue] = {
-    schema.source match {
+    schema.field match {
       case FieldName(Ranking, field) =>
         val const = request.fields.find(_.name == field) match {
           case Some(StringField(_, value))      => encoder.encode(List(value))
@@ -94,8 +94,8 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
       case _ =>
         request.items.toList.map(item => {
           val fieldOverride = item.fields.collectFirst {
-            case StringField(name, value) if name == schema.source.field      => List(value)
-            case StringListField(name, values) if name == schema.source.field => values
+            case StringField(name, value) if name == schema.field.field      => List(value)
+            case StringListField(name, values) if name == schema.field.field => values
           }
           fieldOverride match {
             case Some(over) => encoder.encode(over)
@@ -157,7 +157,7 @@ object StringFeature {
 
   case class StringFeatureSchema(
       name: FeatureName,
-      source: FieldName,
+      field: FieldName,
       scope: ScopeType,
       encode: Option[EncoderName] = None,
       values: NonEmptyList[String],
@@ -165,7 +165,24 @@ object StringFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] =
-    deriveDecoder[StringFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'string'")
+  implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = Decoder
+    .instance(c =>
+      for {
+        name <- c.downField("name").as[FeatureName]
+        source <- c.downField("source").as[FieldName] match {
+          case Left(_)      => c.downField("field").as[FieldName]
+          case Right(value) => Right(value)
+        }
+        scope   <- c.downField("scope").as[ScopeType]
+        encode  <- c.downField("encode").as[Option[EncoderName]]
+        values  <- c.downField("values").as[NonEmptyList[String]]
+        refresh <- c.downField("refresh").as[Option[FiniteDuration]]
+        ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
+      } yield {
+        StringFeatureSchema(name, source, scope, encode, values, refresh, ttl)
+      }
+    )
+    .withErrorMessage("cannot parse a feature definition of type 'string'")
+
   implicit val stringSchemaEncoder: Encoder[StringFeatureSchema] = deriveEncoder[StringFeatureSchema]
 }

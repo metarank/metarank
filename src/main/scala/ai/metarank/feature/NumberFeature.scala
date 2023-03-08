@@ -36,7 +36,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
   override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO {
     for {
       key   <- writeKey(event, conf)
-      field <- event.fields.find(_.name == schema.source.field)
+      field <- event.fields.find(_.name == schema.field.field)
       numberField <- field match {
         case n: NumberField => Some(n)
         case other =>
@@ -75,7 +75,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
     request.items.toList.map { item =>
       {
         val fromField = item.fields.collectFirst {
-          case NumberField(name, value) if name == schema.source.field => value
+          case NumberField(name, value) if name == schema.field.field => value
         }
         fromField match {
           case Some(fieldOverride) => SingleValue(schema.name, fieldOverride)
@@ -90,15 +90,29 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
 object NumberFeature {
   import ai.metarank.util.DurationJson._
   case class NumberFeatureSchema(
-      name: FeatureName,
-      source: FieldName,
-      scope: ScopeType,
-      refresh: Option[FiniteDuration] = None,
-      ttl: Option[FiniteDuration] = None
+                                  name: FeatureName,
+                                  field: FieldName,
+                                  scope: ScopeType,
+                                  refresh: Option[FiniteDuration] = None,
+                                  ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
 
-  implicit val nfDecoder: Decoder[NumberFeatureSchema] =
-    deriveDecoder[NumberFeatureSchema].withErrorMessage("cannot parse a feature definition of type 'number'")
+  implicit val nfDecoder: Decoder[NumberFeatureSchema] = Decoder
+    .instance(c =>
+      for {
+        name <- c.downField("name").as[FeatureName]
+        field <- c.downField("source").as[FieldName] match {
+          case Left(_)      => c.downField("field").as[FieldName]
+          case Right(value) => Right(value)
+        }
+        scope   <- c.downField("scope").as[ScopeType]
+        refresh <- c.downField("refresh").as[Option[FiniteDuration]]
+        ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
+      } yield {
+        NumberFeatureSchema(name, field, scope, refresh, ttl)
+      }
+    )
+    .withErrorMessage("cannot parse a feature definition of type 'number'")
 
   implicit val nfEncoder: Encoder[NumberFeatureSchema] = deriveEncoder
 }

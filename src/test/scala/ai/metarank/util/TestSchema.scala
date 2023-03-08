@@ -7,6 +7,6 @@ import cats.data.{NonEmptyList, NonEmptyMap}
 
 object TestSchema {
   def apply(schema: FeatureSchema) = {
-    FeatureMapping.fromFeatureSchema(NonEmptyList.one(schema), Map("random" -> ShuffleConfig(1))).schema
+    FeatureMapping.fromFeatureSchema(List(schema), Map("random" -> ShuffleConfig(1))).schema
   }
 }

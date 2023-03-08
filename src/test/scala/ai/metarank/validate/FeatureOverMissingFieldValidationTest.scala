@@ -17,7 +17,7 @@ import org.scalatest.matchers.should.Matchers
 
 class FeatureOverMissingFieldValidationTest extends AnyFlatSpec with Matchers {
   val conf = TestConfig().copy(features =
-    NonEmptyList.of(
+    List(
       StringFeatureSchema(
         name = FeatureName("size"),
         source = FieldName(Item, "size"),
@@ -46,7 +46,7 @@ class FeatureOverMissingFieldValidationTest extends AnyFlatSpec with Matchers {
   it should "handle relevancy fields from ranking" in {
     val result = FeatureOverMissingFieldValidation.validate(
       config = TestConfig().copy(features =
-        NonEmptyList.of(
+        List(
           NumberFeatureSchema(
             name = FeatureName("size"),
             source = FieldName(Item, "relevancy"),
@@ -65,7 +65,7 @@ class FeatureOverMissingFieldValidationTest extends AnyFlatSpec with Matchers {
   it should "fail on ranking.relevancy" in {
     val result = FeatureOverMissingFieldValidation.validate(
       config = TestConfig().copy(features =
-        NonEmptyList.of(
+        List(
           NumberFeatureSchema(
             name = FeatureName("size"),
             source = FieldName(Ranking, "relevancy"),

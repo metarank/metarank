@@ -16,7 +16,7 @@ import scala.concurrent.duration._
 class FeatureMappingTest extends AnyFlatSpec with Matchers {
   it should "use vector features for single-bucket counters" in {
     val mapping = FeatureMapping.fromFeatureSchema(
-      schema = NonEmptyList.one(
+      schema = List(
         WindowInteractionCountSchema(
           name = FeatureName("clicks"),
           interaction = "click",

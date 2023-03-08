@@ -44,7 +44,7 @@ case class FeatureMapping(
 object FeatureMapping extends Logging {
 
   def fromFeatureSchema(
-      schema: NonEmptyList[FeatureSchema],
+      schema: List[FeatureSchema],
       models: Map[String, ModelConfig]
   ) = {
     val features: List[BaseFeature] = schema

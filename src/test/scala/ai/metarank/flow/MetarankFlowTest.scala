@@ -42,7 +42,7 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 class MetarankFlowTest extends AnyFlatSpec with Matchers {
-  val features = NonEmptyList.of(
+  val features = List(
     NumberFeatureSchema(FeatureName("pop"), FieldName(Item, "pop"), ItemScopeType),
     StringFeatureSchema(
       FeatureName("genre"),
@@ -71,7 +71,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   val models = Map(
     "random" -> LambdaMARTConfig(
       backend = XGBoostConfig(),
-      features = features.map(_.name),
+      features = NonEmptyList.fromListUnsafe(features.map(_.name)),
       weights = Map("click" -> 1)
     )
   )

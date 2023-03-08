@@ -14,7 +14,7 @@ case class Config(
     state: StateStoreConfig,
     train: TrainConfig,
     input: Option[InputConfig],
-    features: NonEmptyList[FeatureSchema],
+    features: List[FeatureSchema],
     models: Map[String, ModelConfig]
 )
 
@@ -28,14 +28,14 @@ object Config extends Logging {
         stateOption <- c.downField("state").as[Option[StateStoreConfig]]
         trainOption <- c.downField("train").as[Option[TrainConfig]]
         inputOption <- c.downField("input").as[Option[InputConfig]]
-        features    <- c.downField("features").as[NonEmptyList[FeatureSchema]]
+        features    <- c.downField("features").as[Option[List[FeatureSchema]]]
         models      <- c.downField("models").as[Map[String, ModelConfig]]
       } yield {
         val api   = get(apiOption, ApiConfig(), "api")
         val state = get(stateOption, MemoryStateConfig(), "state")
         val train = get(trainOption, TrainConfig.fromState(state), "train")
         val core  = coreOption.getOrElse(CoreConfig())
-        Config(core, api, state, train, inputOption, features, models)
+        Config(core, api, state, train, inputOption, features.getOrElse(Nil), models)
       }
     )
     .ensure(ConfigValidations.checkFeatureModelReferences)
@@ -64,7 +64,7 @@ object Config extends Logging {
       case MemoryStateConfig()                                           => "memory"
       case StateStoreConfig.FileStateConfig(path, format, backend)       => s"file://$path"
     }
-    val features = conf.features.map(_.name.value).toList.mkString("[", ",", "]")
+    val features = conf.features.map(_.name.value).mkString("[", ",", "]")
     val models   = conf.models.keys.mkString("[", ",", "]")
     logger.info(s"Loaded config file, state=$stateType, features=$features, models=$models")
   }

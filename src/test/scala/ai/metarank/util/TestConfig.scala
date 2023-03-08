@@ -15,7 +15,7 @@ import cats.data.{NonEmptyList, NonEmptyMap}
 object TestConfig {
   def apply() = new Config(
     core = CoreConfig(),
-    features = NonEmptyList.of(NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType)),
+    features = List(NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType)),
     models = Map("shuffle" -> ShuffleConfig(10)),
     api = ApiConfig(Hostname("localhost"), Port(8080)),
     state = MemoryStateConfig(),

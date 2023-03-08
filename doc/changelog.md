@@ -3,6 +3,10 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.6.4
+
+* a minor bugfix release
+
 ## 0.6.3
 
 * [diversity](configuration/features/diversity.md) feature extractor

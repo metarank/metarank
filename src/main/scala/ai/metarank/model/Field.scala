@@ -8,11 +8,11 @@ sealed trait Field {
 }
 
 object Field {
-  case class StringField(name: String, value: String)           extends Field
-  case class BooleanField(name: String, value: Boolean)         extends Field
-  case class NumberField(name: String, value: Double)           extends Field
-  case class StringListField(name: String, value: List[String]) extends Field
-  case class NumberListField(name: String, value: List[Double]) extends Field
+  case class StringField(name: String, value: String)            extends Field
+  case class BooleanField(name: String, value: Boolean)          extends Field
+  case class NumberField(name: String, value: Double)            extends Field
+  case class StringListField(name: String, value: List[String])  extends Field
+  case class NumberListField(name: String, value: Array[Double]) extends Field
 
   def toString(fields: List[Field]) = fields
     .map {
@@ -39,7 +39,7 @@ object Field {
         jsonArray = {
           case values if values.forall(_.isString) => Right(StringListField(name, values.flatMap(_.asString).toList))
           case values if values.forall(_.isNumber) =>
-            Right(NumberListField(name, values.flatMap(_.asNumber.map(_.toDouble)).toList))
+            Right(NumberListField(name, values.flatMap(_.asNumber.map(_.toDouble)).toArray))
           case other =>
             Left(DecodingFailure(s"cannot decode field $name: got list of $other", c.history))
         },

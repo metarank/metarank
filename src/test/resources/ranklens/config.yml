@@ -16,24 +16,24 @@ core:
     maxSessionLength: 60s
 
 models:
-  similar:
-    type: als
-    interactions: [click]
-    factors: 100
-    iterations: 100
-
-  trending:
-    type: trending
-    weights:
-      - interaction: click
-        decay: 1.0
-        weight: 1.0
+#  similar:
+#    type: als
+#    interactions: [click]
+#    factors: 100
+#    iterations: 100
+#
+#  trending:
+#    type: trending
+#    weights:
+#      - interaction: click
+#        decay: 1.0
+#        weight: 1.0
 
   xgboost:
     type: lambdamart
     backend:
-      type: xgboost
-      iterations: 50
+      type: lightgbm
+      iterations: 500
       ndcgCutoff: 10
       seed: 0
     weights:
@@ -50,9 +50,32 @@ models:
       - ctr
       - profile
       - position
+      - divers_genres
+      - divers_actors
+      - divers_tags
+      - divers_year
+      - divers_popularity
+      - ctr_tag
+      - ctr_genre
 
 
 features:
+  - name: ctr_tag
+    type: rate
+    top: click
+    bottom: impression
+    bucket: 24h
+    periods: [7,30]
+    scope: item.tag
+
+  - name: ctr_genre
+    type: rate
+    top: click
+    bottom: impression
+    bucket: 24h
+    periods: [7,30]
+    scope: item.genre
+
   - name: position
     type: position
     position: 5
@@ -130,6 +153,26 @@ features:
     scope: session
     count: 100
     duration: 24h
+
+  - name: divers_genres
+    type: diversity
+    source: item.genres
+
+  - name: divers_actors
+    type: diversity
+    source: item.actors
+
+  - name: divers_tags
+    type: diversity
+    source: item.tags
+
+  - name: divers_year
+    type: diversity
+    source: item.release_date
+
+  - name: divers_popularity
+    type: diversity
+    source: item.popularity
 
   - name: visitor_click_count
     type: interaction_count

@@ -77,7 +77,7 @@ object NumVectorFeature {
   sealed trait Reducer {
     def name: String
     def dim: Int
-    def reduce(values: List[Double]): List[Double]
+    def reduce(values: Array[Double]): Array[Double]
   }
   object Reducer {
     object First extends Reducer {

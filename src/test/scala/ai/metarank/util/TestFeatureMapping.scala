@@ -39,9 +39,12 @@ object TestFeatureMapping {
       )
     )
 
-    val models = Map(
-      "random" -> NoopConfig()
-    )
+    val models = Map("random" -> NoopConfig())
     FeatureMapping.fromFeatureSchema(features, models)
+  }
+
+  def empty() = {
+    val models = Map("random" -> NoopConfig())
+    FeatureMapping.fromFeatureSchema(Nil, models)
   }
 }

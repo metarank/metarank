@@ -39,12 +39,19 @@ case class FeatureMapping(
     features: List[BaseFeature],
     schema: Schema,
     models: Map[String, Predictor[_ <: ModelConfig, _ <: Context, _ <: Model[_ <: Context]]]
-) extends Logging
+) extends Logging {
+  def hasRankingModel = {
+    models.values.exists {
+      case predictor: LambdaMARTPredictor => true
+      case _                              => false
+    }
+  }
+}
 
 object FeatureMapping extends Logging {
 
   def fromFeatureSchema(
-      schema: NonEmptyList[FeatureSchema],
+      schema: List[FeatureSchema],
       models: Map[String, ModelConfig]
   ) = {
     val features: List[BaseFeature] = schema

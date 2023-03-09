@@ -16,7 +16,7 @@ class NumericalFeatureRuleTest extends AnyFlatSpec with Matchers {
     feature shouldBe Some(
       NumberFeatureSchema(
         name = FeatureName("price"),
-        source = FieldName(Item, "price"),
+        field = FieldName(Item, "price"),
         scope = ItemScopeType
       )
     )

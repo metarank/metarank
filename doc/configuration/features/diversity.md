@@ -2,7 +2,7 @@
 
 ## diversity
 
-Computes how different your current ranking item compared to other items within the same ranking. Numeric and string fields are supported.
+Computes how different your current ranking item is compared to other items within the same ranking. Numeric and string fields are supported.
 
 ### Diversification over numeric fields
 
@@ -55,7 +55,7 @@ So for a ranking `[p1, p2, p3, p4, p5]` we compute a median value of 220, and th
 
 ### Diversification over string fields
 
-This type of diversification can be useful to see how different your items over low-cardinality fields like tags, colors, sizes and categories. Both string and string[] field types are supported.
+This type of diversification can be useful to see how different your items over low-cardinality fields like tags, colors, sizes and categories. Both `string` and `string[]` field types are supported.
 
 When all your inventory items have a field `color` like in an example below:
 ```json
@@ -82,15 +82,16 @@ Then for a ranking below:
   ]
 }
 ```
-we can compute how different each item price compared to the median price across the whole ranking with the following configuration snippet:
+we can compute how frequently each color is presented in the result set with the following configuration snippet:
 ```yaml
-- name: price_diff
+- name: color_diff
   type: diversity
   source: item.color # only item.* fields are accepted
   ttl: 90d # optional, when to expire tracked fields
 ```
 
-The difference algorithm builds tag frequencies over the ranking (so `color -> count` in our example above), and then computes relative intersection between tags of item and tag frequencies. An example
+The difference algorithm builds tag frequencies over the ranking (so `color -> count` in our example above), and then computes relative intersection between tags of item and tag frequencies. 
+An example:
 * given a frequency of {red: 50%, green: 30%, blue: 20%}
 * for an item having only red color, the score will be 50%.
-* for an red-blue item, the score will be 50%+20%=70%
+* for a red-blue item, the score will be 50%+20%=70%

@@ -34,7 +34,7 @@ class AutofeatureTest extends AnyFlatSpec with Matchers {
       (0 until 100).toList.map(i =>
         NumberFeatureSchema(
           name = FeatureName(s"f$i"),
-          source = FieldName(Item, s"f$i"),
+          field = FieldName(Item, s"f$i"),
           scope = ItemScopeType
         )
       )

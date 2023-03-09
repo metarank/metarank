@@ -34,7 +34,7 @@ case class ClickthroughJoinBuffer(
   def process(event: Event): IO[List[Clickthrough]] = {
     event match {
       case e: RankingEvent =>
-        IO(ticker.tick(event)) *> handleRanking(e) *> flushQueue()
+        IO(ticker.tick(event)) *> IO.whenA(mapping.hasRankingModel)(handleRanking(e)) *> flushQueue()
       case e: InteractionEvent =>
         IO(ticker.tick(event)) *> handleInteraction(e) *> flushQueue()
       case _ =>

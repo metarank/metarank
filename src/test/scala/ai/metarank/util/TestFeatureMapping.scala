@@ -18,7 +18,7 @@ import scala.concurrent.duration._
 
 object TestFeatureMapping {
   def apply() = {
-    val features = NonEmptyList.of(
+    val features = List(
       NumberFeatureSchema(FeatureName("price"), FieldName(Item, "price"), ItemScopeType, refresh = Some(1.minute)),
       WordCountSchema(FeatureName("title_length"), FieldName(Item, "title"), ItemScopeType),
       StringFeatureSchema(
@@ -39,9 +39,12 @@ object TestFeatureMapping {
       )
     )
 
-    val models = Map(
-      "random" -> NoopConfig()
-    )
+    val models = Map("random" -> NoopConfig())
     FeatureMapping.fromFeatureSchema(features, models)
+  }
+
+  def empty() = {
+    val models = Map("random" -> NoopConfig())
+    FeatureMapping.fromFeatureSchema(Nil, models)
   }
 }

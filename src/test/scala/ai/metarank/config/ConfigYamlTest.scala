@@ -27,7 +27,7 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
     conf shouldBe Right(
       Config(
         core = CoreConfig(),
-        features = NonEmptyList.of(
+        features = List(
           NumberFeatureSchema(FeatureName("popularity"), FieldName(Item, "popularity"), ItemScopeType)
         ),
         models = Map(
@@ -47,6 +47,12 @@ class ConfigYamlTest extends AnyFlatSpec with Matchers {
 
   it should "parse ranklens config" in {
     val yaml = Resource.my.getAsString("/ranklens/config.yml")
+    val conf = parse(yaml).flatMap(_.as[Config])
+    conf.isRight shouldBe true
+  }
+
+  it should "parse similar-recs config" in {
+    val yaml = Resource.my.getAsString("/config/similar-recs.yml")
     val conf = parse(yaml).flatMap(_.as[Config])
     conf.isRight shouldBe true
   }

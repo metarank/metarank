@@ -22,7 +22,7 @@ object NumericalFeatureRule extends FeatureRule with Logging {
         Some(
           NumberFeatureSchema(
             name = FeatureName(field),
-            source = FieldName(Item, field),
+            field = FieldName(Item, field),
             scope = ItemScopeType
           )
         )

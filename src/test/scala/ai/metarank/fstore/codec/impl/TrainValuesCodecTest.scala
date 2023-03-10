@@ -8,6 +8,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model.{Clickthrough, EventId, ItemValue, Timestamp}
+import better.files.File
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -58,7 +59,7 @@ class TrainValuesCodecTest extends AnyFlatSpec with Matchers {
   it should "roundtrip ctv" in {
     val out = new ByteArrayOutputStream()
     TrainValuesCodec.write(ctv, new DataOutputStream(out))
-    // val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
+    val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
     val decoded = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(out.toByteArray)))
     decoded shouldBe ctv
   }

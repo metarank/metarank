@@ -14,17 +14,23 @@ import java.io.{DataInput, DataOutput}
 
 object TrainValuesCodec extends BinaryCodec[TrainValues] {
   import CodecOps._
-  val VERSION        = 1
+  val VERSION        = 2
   val listFieldCodec = new ListCodec(FieldCodec)
 
   override def read(in: DataInput): TrainValues = {
     val version = in.readByte()
-    val sub     = in.readByte()
-    sub.toInt match {
-      case 0     => ClickthroughValuesCodec.read(in)
-      case 1     => ItemValuesCodec.read(in)
-      case 2     => UserValuesCodec.read(in)
-      case other => throw new IllegalStateException(s"train sub-item index $other not expected")
+    version match {
+      case 1 =>
+        ClickthroughValuesCodec.read(in)
+      case 2 =>
+        val sub = in.readByte()
+        sub.toInt match {
+          case 0     => ClickthroughValuesCodec.read(in)
+          case 1     => ItemValuesCodec.read(in)
+          case 2     => UserValuesCodec.read(in)
+          case other => throw new IllegalStateException(s"train sub-item index $other not expected")
+        }
+
     }
   }
 

@@ -33,9 +33,9 @@ object MetarankFlow {
             clickthrough
               .process(event)
               .map(cts =>
-                cts.flatMap {
-                  case TrainValues.ClickthroughValues(ct, _) => event +: ImpressionInject.process(ct)
-                  case _                                          => List(event)
+                event +: cts.flatMap {
+                  case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
+                  case _                                     => Nil
                 }
               )
           )
@@ -47,7 +47,7 @@ object MetarankFlow {
               .map(cts =>
                 cts.flatMap {
                   case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
-                  case _                                          => Nil
+                  case _                                     => Nil
                 }
               )
           )

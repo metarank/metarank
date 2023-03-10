@@ -4,8 +4,9 @@ import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model.{ItemScore, RecommendModel, Response}
 import ai.metarank.ml.Predictor.RecommendPredictor
 import ai.metarank.ml.{Model, Predictor}
-import ai.metarank.model.ClickthroughValues
 import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.TrainValues
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyVector}
 import cats.effect.IO
@@ -76,8 +77,9 @@ object RandomRecommender {
 
     }
 
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[RandomModel] = {
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[RandomModel] = {
       data
+        .collect { case ct: ClickthroughValues => ct }
         .flatMap(ct => fs2.Stream(ct.ct.items: _*))
         .compile
         .fold(Set.empty[ItemId])((set, next) => set + next)

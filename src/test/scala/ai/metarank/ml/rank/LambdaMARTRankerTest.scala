@@ -4,7 +4,6 @@ import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.ml.Predictor.EmptyDatasetException
 import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
-import ai.metarank.model.ClickthroughValues
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.{TestClickthroughValues, TestQueryRequest}
 import cats.data.NonEmptyList

@@ -2,7 +2,7 @@ package ai.metarank.main
 
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Export, Import}
 import ai.metarank.model.Timestamp
@@ -17,7 +17,7 @@ import java.nio.file.Files
 class ExportTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)
   lazy val store   = MemPersistence(dataset.mapping.schema)
-  lazy val cs      = MemClickthroughStore()
+  lazy val cs      = MemTrainStore()
   lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, dataset.mapping)
 
   it should "generate test data" in {

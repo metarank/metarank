@@ -3,7 +3,7 @@ package ai.metarank.main.command
 import ai.metarank.FeatureMapping
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.Config
-import ai.metarank.fstore.ClickthroughStore
+import ai.metarank.fstore.TrainStore
 import ai.metarank.main.CliArgs.ExportArgs
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.util.StreamResource
@@ -19,19 +19,19 @@ import java.nio.file.{Path, Paths}
 
 object Export extends Logging {
   def run(
-      conf: Config,
-      ctsResource: Resource[IO, ClickthroughStore],
-      mapping: FeatureMapping,
-      args: ExportArgs
+           conf: Config,
+           ctsResource: Resource[IO, TrainStore],
+           mapping: FeatureMapping,
+           args: ExportArgs
   ): IO[Unit] = ctsResource.use(cts => doexport(cts, mapping, args.model, args.out, args.sample, args.split))
 
   def doexport(
-      cts: ClickthroughStore,
-      mapping: FeatureMapping,
-      modelName: String,
-      out: Path,
-      sample: Double,
-      splitter: SplitStrategy
+                cts: TrainStore,
+                mapping: FeatureMapping,
+                modelName: String,
+                out: Path,
+                sample: Double,
+                splitter: SplitStrategy
   ) = for {
     pred <- IO.fromOption(mapping.models.get(modelName))(new Exception(s"model $modelName is not defined in config"))
     lmart <- pred match {

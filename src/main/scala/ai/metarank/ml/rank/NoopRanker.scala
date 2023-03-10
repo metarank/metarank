@@ -5,7 +5,7 @@ import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.RankPredictor
 import ai.metarank.ml.{Model, Predictor}
-import ai.metarank.model.ClickthroughValues
+import ai.metarank.model.TrainValues
 import cats.effect.IO
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
@@ -15,7 +15,7 @@ object NoopRanker {
   case class NoopPredictor(name: String, config: NoopConfig) extends RankPredictor[NoopConfig, NoopModel] {
     override def load(bytes: Option[Array[Byte]]): Either[Throwable, NoopModel] = Right(NoopModel(name, config))
 
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[NoopModel] =
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[NoopModel] =
       IO.pure(NoopModel(name, config))
   }
 

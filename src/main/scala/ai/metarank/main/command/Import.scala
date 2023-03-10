@@ -11,7 +11,7 @@ import ai.metarank.fstore.file.FilePersistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.fstore.transfer.FileRedisTransfer
-import ai.metarank.fstore.{ClickthroughStore, Persistence}
+import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.ImportArgs
 import ai.metarank.model.{Event, Schema, Timestamp}
 import ai.metarank.source.FileEventSource
@@ -25,11 +25,11 @@ import java.nio.file.Files
 
 object Import extends Logging {
   def run(
-      conf: Config,
-      storeResource: Resource[IO, Persistence],
-      ctsResource: Resource[IO, ClickthroughStore],
-      mapping: FeatureMapping,
-      args: ImportArgs
+           conf: Config,
+           storeResource: Resource[IO, Persistence],
+           ctsResource: Resource[IO, TrainStore],
+           mapping: FeatureMapping,
+           args: ImportArgs
   ): IO[Unit] = {
     storeResource.use(store =>
       ctsResource.use(cts => {

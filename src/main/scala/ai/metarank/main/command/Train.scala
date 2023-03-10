@@ -2,7 +2,7 @@ package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{BoosterConfig, Config, ModelConfig}
-import ai.metarank.fstore.{ClickthroughStore, Persistence}
+import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.CliArgs.{ServeArgs, TrainArgs}
@@ -19,7 +19,7 @@ object Train extends Logging {
   def run(
       conf: Config,
       storeResource: Resource[IO, Persistence],
-      ctsResource: Resource[IO, ClickthroughStore],
+      ctsResource: Resource[IO, TrainStore],
       mapping: FeatureMapping,
       args: TrainArgs
   ): IO[Unit] = {
@@ -70,10 +70,10 @@ object Train extends Logging {
 
   def train(
       store: Persistence,
-      cts: ClickthroughStore,
+      cts: TrainStore,
       predictor: Predictor[_ <: ModelConfig, _, _ <: Model[_ <: Context]]
   ): IO[TrainResult] = for {
-    model <- predictor.fit(cts.getall().filter(c => predictor.config.selector.accept(c.ct)))
+    model <- predictor.fit(cts.getall().filter(c => predictor.config.selector.accept(c)))
     _     <- store.models.put(model)
     _     <- store.sync
     _     <- info(s"model uploaded to store")

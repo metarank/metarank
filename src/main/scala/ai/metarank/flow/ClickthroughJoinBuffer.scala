@@ -3,35 +3,32 @@ package ai.metarank.flow
 import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.BaseFeature.ValueMode
-import ai.metarank.flow.ClickthroughJoinBuffer.Node
 import ai.metarank.fstore.Persistence.KVStore
-import ai.metarank.fstore.{ClickthroughStore, EventTicker, FeatureValueLoader}
+import ai.metarank.fstore.{EventTicker, FeatureValueLoader, TrainStore}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.{Clickthrough, ClickthroughValues, Event, FeatureValue, ItemValue, Key, Timestamp}
+import ai.metarank.model.TrainValues.ClickthroughValues
+import ai.metarank.model.{Clickthrough, Event, FeatureValue, ItemValue, Key, TrainValues}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import com.github.benmanes.caffeine.cache.{RemovalCause, Ticker}
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 import com.google.common.collect.Queues
 import com.google.common.util.concurrent.MoreExecutors
 
 import java.util
-import java.util.concurrent.{BlockingQueue, ConcurrentHashMap, ConcurrentLinkedDeque, Executors}
-import scala.collection.mutable.ArrayBuffer
 
 case class ClickthroughJoinBuffer(
     cache: Cache[String, ClickthroughValues],
-    queue: util.Queue[ClickthroughValues],
+    queue: util.Queue[TrainValues],
     ticker: EventTicker,
     values: KVStore[Key, FeatureValue],
-    cts: ClickthroughStore,
+    cts: TrainStore,
     mapping: FeatureMapping,
     conf: ClickthroughJoinConfig
 ) extends Logging {
 
-  def process(event: Event): IO[List[Clickthrough]] = {
+  def process(event: Event): IO[List[TrainValues]] = {
     event match {
       case e: RankingEvent =>
         IO(ticker.tick(event)) *> IO.whenA(mapping.hasRankingModel)(handleRanking(e)) *> flushQueue()
@@ -93,18 +90,21 @@ case class ClickthroughJoinBuffer(
     }
   }
 
-  def flushQueue(): IO[List[Clickthrough]] = {
+  def flushQueue(): IO[List[TrainValues]] = {
     for {
-      expired   <- IO(Iterator.continually(queue.poll()).takeWhile(_ != null).toList)
-      flushable <- IO(expired.filter(_.ct.interactions.nonEmpty))
-      _         <- cts.put(expired)
+      expired <- IO(Iterator.continually(queue.poll()).takeWhile(_ != null).toList)
+      flushable <- IO(expired.filter {
+        case ClickthroughValues(ct, _) => ct.interactions.nonEmpty
+        case _                         => true
+      })
+      _ <- cts.put(expired)
     } yield {
       // logger.info(s"expired $expired")
-      flushable.map(_.ct)
+      flushable
     }
   }
 
-  def flushAll(): IO[List[Clickthrough]] = for {
+  def flushAll(): IO[List[TrainValues]] = for {
     items <- IO(cache.asMap().values)
     _     <- IO(items.foreach(ct => queue.add(ct)))
     cts   <- flushQueue()
@@ -119,10 +119,10 @@ object ClickthroughJoinBuffer extends Logging {
   def apply(
       conf: ClickthroughJoinConfig,
       values: KVStore[Key, FeatureValue],
-      cts: ClickthroughStore,
+      cts: TrainStore,
       mapping: FeatureMapping
   ) = {
-    val queue  = Queues.newConcurrentLinkedQueue[ClickthroughValues]()
+    val queue  = Queues.newConcurrentLinkedQueue[TrainValues]()
     val ticker = new EventTicker()
     val cache = Scaffeine()
       .maximumSize(conf.maxParallelSessions)
@@ -143,11 +143,15 @@ object ClickthroughJoinBuffer extends Logging {
   }
 
   def evictionListener(
-      queue: util.Queue[ClickthroughValues]
-  )(key: String, ctv: ClickthroughValues, reason: RemovalCause): Unit = {
+      queue: util.Queue[TrainValues]
+  )(key: String, tv: TrainValues, reason: RemovalCause): Unit = {
     reason match {
       case RemovalCause.REPLACED => //
-      case _                     => if (ctv.ct.interactions.nonEmpty) queue.add(ctv)
+      case _ =>
+        tv match {
+          case ClickthroughValues(ct, values) if ct.interactions.nonEmpty => queue.add(tv)
+          case _                                                          => //
+        }
     }
   }
 }

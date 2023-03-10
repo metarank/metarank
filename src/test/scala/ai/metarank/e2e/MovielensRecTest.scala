@@ -12,7 +12,7 @@ import cats.effect.unsafe.implicits.global
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -35,7 +35,7 @@ class MovielensRecTest extends AnyFlatSpec with Matchers {
     .unsafeRunSync()
   val mapping    = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store = MemPersistence(mapping.schema)
-  lazy val cts   = MemClickthroughStore()
+  lazy val cts   = MemTrainStore()
 
   val similar  = mapping.models("similar").asInstanceOf[MFPredictor]
   val trending = mapping.models("trending").asInstanceOf[TrendingPredictor]

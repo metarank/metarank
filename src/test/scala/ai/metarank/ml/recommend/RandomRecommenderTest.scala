@@ -2,6 +2,7 @@ package ai.metarank.ml.recommend
 
 import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.recommend.RandomRecommender.{RandomConfig, RandomModel, RandomPredictor}
+import ai.metarank.model.TrainValues.ClickthroughValues
 import cats.effect.unsafe.implicits.global
 
 class RandomRecommenderTest extends PredictorSuite[RandomConfig, RecommendRequest, RandomModel] {
@@ -10,7 +11,7 @@ class RandomRecommenderTest extends PredictorSuite[RandomConfig, RecommendReques
 
   it should "return all items for large N" in {
     val rec      = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
-    val items    = cts.flatMap(_.ct.items).distinct
+    val items    = cts.collect { case c: ClickthroughValues => c }.flatMap(_.ct.items).distinct
     val response = rec.predict(RecommendRequest(items.size * 2)).unsafeRunSync()
     response.items.size shouldBe items.size
   }

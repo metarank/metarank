@@ -4,7 +4,7 @@ import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTim
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
-import ai.metarank.fstore.cache.{CachedClickthroughStore, CachedKVStore, CachedModelStore}
+import ai.metarank.fstore.cache.{CachedTrainStore, CachedKVStore, CachedModelStore}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.memory.MemModelStore
 

@@ -3,7 +3,7 @@ package ai.metarank.main.command
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.{ClickthroughStore, Persistence}
+import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.{ImportArgs, StandaloneArgs}
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.model.{Event, Timestamp}
@@ -14,11 +14,11 @@ import cats.implicits._
 
 object Standalone extends Logging {
   def run(
-      conf: Config,
-      storeResource: Resource[IO, Persistence],
-      ctsResource: Resource[IO, ClickthroughStore],
-      mapping: FeatureMapping,
-      args: StandaloneArgs
+           conf: Config,
+           storeResource: Resource[IO, Persistence],
+           ctsResource: Resource[IO, TrainStore],
+           mapping: FeatureMapping,
+           args: StandaloneArgs
   ): IO[Unit] = {
     storeResource.use(store =>
       ctsResource.use(cts => {
@@ -31,7 +31,7 @@ object Standalone extends Logging {
     )
   }
 
-  def prepare(conf: Config, store: Persistence, cts: ClickthroughStore, mapping: FeatureMapping, args: StandaloneArgs) =
+  def prepare(conf: Config, store: Persistence, cts: TrainStore, mapping: FeatureMapping, args: StandaloneArgs) =
     for {
       buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping))
       result <- Import.slurp(

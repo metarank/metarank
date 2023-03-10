@@ -5,7 +5,7 @@ import ai.metarank.api.routes
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, RecommendApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config, InputConfig}
 import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
-import ai.metarank.fstore.{ClickthroughStore, Persistence}
+import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
 import ai.metarank.ml.{Ranker, Recommender}
@@ -22,11 +22,11 @@ import org.http4s.server.Router
 
 object Serve extends Logging {
   def run(
-      conf: Config,
-      storeResource: Resource[IO, Persistence],
-      ctsResource: Resource[IO, ClickthroughStore],
-      mapping: FeatureMapping,
-      args: ServeArgs
+           conf: Config,
+           storeResource: Resource[IO, Persistence],
+           ctsResource: Resource[IO, TrainStore],
+           mapping: FeatureMapping,
+           args: ServeArgs
   ): IO[Unit] = {
     storeResource.use(store => {
       ctsResource.use(cts => {
@@ -46,11 +46,11 @@ object Serve extends Logging {
   }
 
   def api(
-      store: Persistence,
-      cts: ClickthroughStore,
-      mapping: FeatureMapping,
-      conf: ApiConfig,
-      buffer: ClickthroughJoinBuffer
+           store: Persistence,
+           cts: TrainStore,
+           mapping: FeatureMapping,
+           conf: ApiConfig,
+           buffer: ClickthroughJoinBuffer
   ): IO[Unit] = for {
     health     <- IO.pure(HealthApi(store).routes)
     rank       <- IO.pure(RankApi(Ranker(mapping, store)).routes)

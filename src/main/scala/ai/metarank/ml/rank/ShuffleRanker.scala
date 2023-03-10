@@ -5,7 +5,7 @@ import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.RankPredictor
 import ai.metarank.ml.{Model, Predictor}
-import ai.metarank.model.ClickthroughValues
+import ai.metarank.model.TrainValues
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
@@ -18,7 +18,7 @@ object ShuffleRanker {
   case class ShufflePredictor(name: String, config: ShuffleConfig) extends RankPredictor[ShuffleConfig, ShuffleModel] {
     override def load(bytes: Option[Array[Byte]]): Either[Throwable, ShuffleModel] =
       Right(ShuffleModel(name, config))
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[ShuffleModel] =
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[ShuffleModel] =
       IO.pure(ShuffleModel(name, config))
   }
 

@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto._
 
 sealed trait Field {
@@ -63,4 +63,6 @@ object Field {
     case f: StringListField => stringListEncoder.apply(f)
     case f: NumberListField => numListEncoder.apply(f)
   }
+
+  implicit val fieldCodec: Codec[Field] = Codec.from(fieldDecoder, fieldEncoder)
 }

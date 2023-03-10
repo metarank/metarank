@@ -1,23 +1,16 @@
 package ai.metarank.fstore.clickthrough
 
 import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
-import ai.metarank.fstore.ClickthroughStore
-import ai.metarank.fstore.clickthrough.S3ClickthroughStore.{Buffer, format}
+import ai.metarank.fstore.TrainStore
+import ai.metarank.fstore.clickthrough.S3TrainStore.{Buffer, format}
 import ai.metarank.fstore.codec.VCodec
-import ai.metarank.fstore.codec.impl.ClickthroughValuesCodec
-import ai.metarank.fstore.codec.values.BinaryVCodec
-import ai.metarank.model.ClickthroughValues
+import ai.metarank.model.TrainValues
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import org.apache.commons.io.FileUtils
-import software.amazon.awssdk.auth.credentials.{
-  AwsBasicCredentials,
-  AwsCredentialsProvider,
-  DefaultCredentialsProvider,
-  StaticCredentialsProvider
-}
+import software.amazon.awssdk.auth.credentials.{AwsBasicCredentials, AwsCredentialsProvider, DefaultCredentialsProvider, StaticCredentialsProvider}
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model.{GetObjectRequest, ListObjectsRequest, PutObjectRequest}
@@ -32,24 +25,24 @@ import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 
-case class S3ClickthroughStore(
+case class S3TrainStore(
     conf: S3TrainConfig,
     client: S3AsyncClient,
     bufferRef: Ref[IO, Buffer],
     tickCancel: IO[Unit]
-) extends ClickthroughStore
+) extends TrainStore
     with Logging {
   val tmpdir = System.getProperty("java.io.tmpdir")
 
-  override def put(cts: List[ClickthroughValues]): IO[Unit] = for {
+  override def put(cts: List[TrainValues]): IO[Unit] = for {
     _ <- bufferRef.update(_.put(cts))
     _ <- maybeFlush()
   } yield {}
 
-  override def getall(): fs2.Stream[IO, ClickthroughValues] =
+  override def getall(): fs2.Stream[IO, TrainValues] =
     fs2.Stream.evalSeq(listKeys()).flatMap(key => getPart(key))
 
-  def getPart(key: String): fs2.Stream[IO, ClickthroughValues] = {
+  def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream
       .eval(for {
         file     <- IO(Path.of(tmpdir, key))
@@ -108,7 +101,7 @@ case class S3ClickthroughStore(
     } yield {})
   } yield {}
 
-  def read(stream: InputStream): fs2.Stream[IO, ClickthroughValues] = {
+  def read(stream: InputStream): fs2.Stream[IO, TrainValues] = {
     val raw = conf.compress match {
       case CompressionType.GzipCompressionType => new GZIPInputStream(stream)
       case CompressionType.ZstdCompressionType => new ZstdInputStream(stream)
@@ -132,7 +125,7 @@ case class S3ClickthroughStore(
 
 }
 
-object S3ClickthroughStore extends Logging {
+object S3TrainStore extends Logging {
 
   val format = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS").withZone(ZoneId.systemDefault())
 
@@ -142,18 +135,18 @@ object S3ClickthroughStore extends Logging {
       out: DataOutputStream,
       eventCount: Int,
       byteSize: Int,
-      codec: VCodec[ClickthroughValues],
+      codec: VCodec[TrainValues],
       start: Long
   ) {
     def isEmpty  = eventCount == 0
     def nonEmpty = !isEmpty
 
-    def put(event: ClickthroughValues): Buffer = {
+    def put(event: TrainValues): Buffer = {
       val extraBytes = codec.encodeDelimited(event, out)
       copy(eventCount = eventCount + 1, byteSize = byteSize + extraBytes)
     }
 
-    def put(events: List[ClickthroughValues]): Buffer = {
+    def put(events: List[TrainValues]): Buffer = {
       val extraBytes = events.foldLeft(0)((size, next) => size + codec.encodeDelimited(next, out))
       copy(eventCount = eventCount + events.size, byteSize = byteSize + extraBytes)
     }
@@ -166,7 +159,7 @@ object S3ClickthroughStore extends Logging {
   }
 
   object Buffer {
-    def apply(compress: CompressionType, codec: VCodec[ClickthroughValues]): Buffer = {
+    def apply(compress: CompressionType, codec: VCodec[TrainValues]): Buffer = {
       val stream = new ByteArrayOutputStream()
       val wrap = compress match {
         case CompressionType.GzipCompressionType => new GZIPOutputStream(stream)
@@ -177,7 +170,7 @@ object S3ClickthroughStore extends Logging {
     }
   }
 
-  def create(conf: S3TrainConfig): Resource[IO, S3ClickthroughStore] = {
+  def create(conf: S3TrainConfig): Resource[IO, S3TrainStore] = {
     Resource.make(for {
       creds <- makeCredentials(conf)
       clientBuilder <- IO(
@@ -192,7 +185,7 @@ object S3ClickthroughStore extends Logging {
         case None           => clientBuilder.build()
       }
       buffer <- Ref.of[IO, Buffer](Buffer(conf.compress, conf.format.ctv))
-      store = S3ClickthroughStore(
+      store = S3TrainStore(
         conf = conf,
         client = client,
         bufferRef = buffer,

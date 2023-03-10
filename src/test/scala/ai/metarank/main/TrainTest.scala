@@ -3,7 +3,7 @@ package ai.metarank.main
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.Selector.FieldSelector
 import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
@@ -17,7 +17,7 @@ import org.scalatest.matchers.should.Matchers
 class TrainTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)
   lazy val store   = MemPersistence(dataset.mapping.schema)
-  lazy val cs      = MemClickthroughStore()
+  lazy val cs      = MemTrainStore()
   lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, dataset.mapping)
 
   it should "generate test data" in {
@@ -42,7 +42,7 @@ class TrainTest extends AnyFlatSpec with Matchers {
   }
 
   it should "select events per model" in {
-    val store = MemClickthroughStore()
+    val store = MemTrainStore()
     val ct    = TestClickthroughValues()
     val ct1   = ct.copy(ct = ct.ct.copy(id = EventId("1"), rankingFields = List(StringField("source", "search"))))
     val ct2   = ct.copy(ct = ct.ct.copy(id = EventId("2"), rankingFields = List(StringField("source", "recs"))))

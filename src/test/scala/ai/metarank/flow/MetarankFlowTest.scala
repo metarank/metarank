@@ -71,7 +71,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   val ts          = Timestamp.now
   val ranker      = Ranker(mapping, store)
   lazy val cs     = MemTrainStore()
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
+  lazy val buffer = TrainBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
 
   val rankingEvent1 = TestRankingEvent(List("p1", "p2", "p3"))
   val rankingEvent2 = rankingEvent1.copy(id = EventId(UUID.randomUUID().toString))

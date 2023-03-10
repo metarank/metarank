@@ -1,7 +1,7 @@
 package ai.metarank.main
 
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
-import ai.metarank.flow.ClickthroughJoinBuffer
+import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Export, Import}
@@ -18,7 +18,7 @@ class ExportTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)
   lazy val store   = MemPersistence(dataset.mapping.schema)
   lazy val cs      = MemTrainStore()
-  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, dataset.mapping)
+  lazy val buffer  = TrainBuffer(ClickthroughJoinConfig(), store.values, cs, dataset.mapping)
 
   it should "generate test data" in {
     Import.slurp(fs2.Stream.emits(dataset.events), store, dataset.mapping, buffer, TestConfig()).unsafeRunSync()

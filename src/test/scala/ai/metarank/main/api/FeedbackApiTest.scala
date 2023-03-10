@@ -3,7 +3,7 @@ package ai.metarank.main.api
 import ai.metarank.api.routes.FeedbackApi
 import ai.metarank.config.CoreConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
-import ai.metarank.flow.ClickthroughJoinBuffer
+import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.model.Event
 import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
@@ -25,7 +25,7 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
   lazy val store   = MemPersistence(mapping.schema)
   lazy val cs      = MemTrainStore()
 
-  lazy val buffer  = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
+  lazy val buffer  = TrainBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
   lazy val service = FeedbackApi(store, mapping, buffer)
 
   it should "accept feedback events in json format" in {

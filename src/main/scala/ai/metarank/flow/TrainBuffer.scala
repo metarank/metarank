@@ -6,8 +6,8 @@ import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.fstore.Persistence.KVStore
 import ai.metarank.fstore.{EventTicker, FeatureValueLoader, TrainStore}
 import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.TrainValues.ClickthroughValues
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
+import ai.metarank.model.TrainValues.{ClickthroughValues, ItemValues, UserValues}
 import ai.metarank.model.{Clickthrough, Event, FeatureValue, ItemValue, Key, TrainValues}
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -18,7 +18,7 @@ import com.google.common.util.concurrent.MoreExecutors
 
 import java.util
 
-case class ClickthroughJoinBuffer(
+case class TrainBuffer(
     cache: Cache[String, ClickthroughValues],
     queue: util.Queue[TrainValues],
     ticker: EventTicker,
@@ -34,10 +34,17 @@ case class ClickthroughJoinBuffer(
         IO(ticker.tick(event)) *> IO.whenA(mapping.hasRankingModel)(handleRanking(e)) *> flushQueue()
       case e: InteractionEvent =>
         IO(ticker.tick(event)) *> handleInteraction(e) *> flushQueue()
+      case e: UserEvent =>
+        IO(ticker.tick(event)) *> handleUser(e) *> flushQueue()
+      case e: ItemEvent =>
+        IO(ticker.tick(event)) *> handleItem(e) *> flushQueue()
       case _ =>
         IO(ticker.tick(event)) *> flushQueue()
     }
   }
+
+  def handleItem(item: ItemEvent) = IO { queue.add(ItemValues(item)) }
+  def handleUser(user: UserEvent) = IO { queue.add(UserValues(user)) }
 
   def handleRanking(event: RankingEvent): IO[Unit] = for {
     values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
@@ -114,7 +121,7 @@ case class ClickthroughJoinBuffer(
 
 }
 
-object ClickthroughJoinBuffer extends Logging {
+object TrainBuffer extends Logging {
   class Node(var payload: ClickthroughValues)
   def apply(
       conf: ClickthroughJoinConfig,
@@ -131,7 +138,7 @@ object ClickthroughJoinBuffer extends Logging {
       .evictionListener(evictionListener(queue))
       .executor(MoreExecutors.directExecutor())
       .build[String, ClickthroughValues]()
-    new ClickthroughJoinBuffer(
+    new TrainBuffer(
       values = values,
       cts = cts,
       mapping = mapping,

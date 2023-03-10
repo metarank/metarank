@@ -13,7 +13,7 @@ import cats.effect.unsafe.implicits.global
 import scala.util.{Random, Try}
 
 class MFRecommenderTest extends PredictorSuite[MFModelConfig, RecommendRequest, EmbeddingSimilarityModel] {
-  val conf = ALSConfig()
+  val conf = ALSConfig(iterations = 30)
 
   override def predictor = MFPredictor("foo", conf, ALSRecImpl(conf))
 

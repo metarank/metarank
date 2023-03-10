@@ -14,7 +14,7 @@ object MetarankFlow {
       store: Persistence,
       source: Stream[IO, Event],
       mapping: FeatureMapping,
-      clickthrough: ClickthroughJoinBuffer
+      clickthrough: TrainBuffer
   ): IO[ProcessResult] = {
     val event = FeatureValueFlow(mapping, store)
     val sink  = FeatureValueSink(store)

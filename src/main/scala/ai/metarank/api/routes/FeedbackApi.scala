@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.api.JsonChunk
 import ai.metarank.api.routes.FeedbackApi.FeedbackResponse
 import ai.metarank.config.CoreConfig
-import ai.metarank.flow.{ClickthroughJoinBuffer, MetarankFlow}
+import ai.metarank.flow.{TrainBuffer, MetarankFlow}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
 import ai.metarank.model.{Event, Field}
@@ -19,7 +19,7 @@ import cats.implicits._
 import io.circe.Codec
 import io.circe.generic.semiauto._
 
-case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: ClickthroughJoinBuffer) extends Logging {
+case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: TrainBuffer) extends Logging {
   val routes = HttpRoutes.of[IO] {
     case post @ POST -> Root / "feedback" => {
       for {

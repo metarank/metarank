@@ -6,7 +6,7 @@ import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.config.StateStoreConfig.FileStateConfig.MapDBBackend
 import ai.metarank.flow.MetarankFlow.ProcessResult
-import ai.metarank.flow.{CheckOrderingPipe, ClickthroughJoinBuffer, MetarankFlow}
+import ai.metarank.flow.{CheckOrderingPipe, TrainBuffer, MetarankFlow}
 import ai.metarank.fstore.file.FilePersistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
@@ -34,7 +34,7 @@ object Import extends Logging {
     storeResource.use(store =>
       ctsResource.use(cts => {
         for {
-          buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping))
+          buffer <- IO(TrainBuffer(conf.core.clickthrough, store.values, cts, mapping))
           result <- slurp(store, mapping, args, conf, buffer)
           _      <- info(s"import done, flushing clickthrough queue of size=${buffer.queue.size()}")
           _      <- buffer.flushAll()
@@ -51,7 +51,7 @@ object Import extends Logging {
       mapping: FeatureMapping,
       args: ImportArgs,
       conf: Config,
-      buffer: ClickthroughJoinBuffer
+      buffer: TrainBuffer
   ): IO[ProcessResult] = {
     val stream = FileEventSource(FileInputConfig(args.data.toString, args.offset, args.format, args.sort)).stream
     for {
@@ -77,11 +77,11 @@ object Import extends Logging {
   }
 
   def slurp(
-      source: fs2.Stream[IO, Event],
-      store: Persistence,
-      mapping: FeatureMapping,
-      buffer: ClickthroughJoinBuffer,
-      conf: Config
+             source: fs2.Stream[IO, Event],
+             store: Persistence,
+             mapping: FeatureMapping,
+             buffer: TrainBuffer,
+             conf: Config
   ): IO[ProcessResult] = {
     store match {
       case redis: RedisPersistence if conf.core.`import`.cache.enabled =>

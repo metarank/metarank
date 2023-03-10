@@ -1,4 +1,5 @@
 package ai.metarank.model
+import ai.metarank.model.Event.{ItemEvent, UserEvent}
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import cats.data.NonEmptyList
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, FailedCursor, HCursor, Json, JsonObject}
@@ -13,7 +14,13 @@ object TrainValues {
     val id = ct.id
   }
   case class ItemValues(id: EventId, item: ItemId, timestamp: Timestamp, fields: List[Field] = Nil) extends TrainValues
+  object ItemValues {
+    def apply(e: ItemEvent) = new ItemValues(e.id, e.item, e.timestamp, e.fields)
+  }
   case class UserValues(id: EventId, user: UserId, timestamp: Timestamp, fields: List[Field] = Nil) extends TrainValues
+  object UserValues {
+    def apply(e: UserEvent) = new UserValues(e.id, e.user, e.timestamp, e.fields)
+  }
 
   implicit val ctvJsonCodec: Codec[ClickthroughValues] = deriveCodec[ClickthroughValues]
   implicit val itemJsonCodec: Codec[ItemValues]        = deriveCodec[ItemValues]

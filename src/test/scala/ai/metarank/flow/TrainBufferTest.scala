@@ -16,7 +16,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
+class TrainBufferTest extends AnyFlatSpec with Matchers {
   val models = Map(
     "random" -> LambdaMARTConfig(
       backend = XGBoostConfig(),
@@ -30,7 +30,7 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
   lazy val cs      = MemTrainStore()
 
   it should "join rankings and interactions" in {
-    val buffer = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val buffer = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now    = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.process(TestInteractionEvent("p1", "i1").copy(timestamp = now.plus(1.second))).unsafeRunSync()
@@ -40,7 +40,7 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
   }
 
   it should "not emit cts on no click" in {
-    val buffer = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val buffer = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now    = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.cache.invalidateAll()
@@ -53,7 +53,7 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
     val mapping = TestFeatureMapping.empty()
     val state   = MemPersistence(mapping.schema)
     val cs      = MemTrainStore()
-    val buffer  = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val buffer  = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now     = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()

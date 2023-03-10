@@ -2,7 +2,7 @@ package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
-import ai.metarank.flow.ClickthroughJoinBuffer
+import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.{ImportArgs, StandaloneArgs}
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
@@ -33,7 +33,7 @@ object Standalone extends Logging {
 
   def prepare(conf: Config, store: Persistence, cts: TrainStore, mapping: FeatureMapping, args: StandaloneArgs) =
     for {
-      buffer <- IO(ClickthroughJoinBuffer(conf.core.clickthrough, store.values, cts, mapping))
+      buffer <- IO(TrainBuffer(conf.core.clickthrough, store.values, cts, mapping))
       result <- Import.slurp(
         store,
         mapping,

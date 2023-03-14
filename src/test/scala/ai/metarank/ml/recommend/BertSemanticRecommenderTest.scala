@@ -13,8 +13,11 @@ import ai.metarank.model.TrainValues
 import ai.metarank.model.TrainValues.ItemValues
 import ai.metarank.util.RanklensEvents
 import cats.effect.unsafe.implicits.global
+import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import java.nio.charset.StandardCharsets
 
 class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
   it should "train the model" in {
@@ -50,6 +53,13 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
     )
     val encoder = CsvEncoder.create(fs2.Stream(lines: _*)).unsafeRunSync()
     encoder.encode(ItemId("1"), "foo").toList shouldBe List(1.0, 1.0, 1.0)
+  }
+
+  it should "load cohere embeddings" in {
+    val lines   = IOUtils.resourceToString("/embedding/cohere.csv", StandardCharsets.UTF_8).split('\n').toList
+    val encoder = CsvEncoder.create(fs2.Stream(lines: _*)).unsafeRunSync()
+    encoder.encode(ItemId("1"), "foo").length shouldBe 4096
+    encoder.dim shouldBe 4096
   }
 
 }

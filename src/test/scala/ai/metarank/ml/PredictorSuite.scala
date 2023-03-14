@@ -1,6 +1,7 @@
 package ai.metarank.ml
 
 import ai.metarank.config.ModelConfig
+import ai.metarank.model.TrainValues
 import ai.metarank.util.TestClickthroughValues
 import cats.effect.unsafe.implicits.global
 import org.scalatest.Suite
@@ -11,7 +12,7 @@ trait PredictorSuite[C <: ModelConfig, T <: Context, M <: Model[T]] extends AnyF
   this: Suite =>
   def predictor: Predictor[C, T, M]
   def request(n: Int): T
-  def cts = List(
+  def cts: List[TrainValues] = List(
     TestClickthroughValues(List("p1", "p2", "p3")),
     TestClickthroughValues(List("p2", "p4", "p5")),
     TestClickthroughValues(List("p1", "p2", "p3")),

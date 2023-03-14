@@ -12,8 +12,9 @@ import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
 import ai.metarank.ml.{Model, Predictor}
 import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
-import ai.metarank.model.{ClickthroughValues, FeatureWeight, QueryMetadata}
+import ai.metarank.model.{FeatureWeight, QueryMetadata, TrainValues}
 import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 import cats.effect.{IO, ParallelF}
@@ -45,7 +46,7 @@ object LambdaMARTRanker {
   case class LambdaMARTPredictor(name: String, config: LambdaMARTConfig, desc: DatasetDescriptor)
       extends RankPredictor[LambdaMARTConfig, LambdaMARTModel]
       with Logging {
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[LambdaMARTModel] = for {
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[LambdaMARTModel] = for {
       clickthroughs <- loadDataset(data)
       split         <- splitDataset(config.split, desc, clickthroughs)
       _             <- checkDatasetSize(split.train)
@@ -151,8 +152,9 @@ object LambdaMARTRanker {
         split
       }
 
-    def loadDataset(data: fs2.Stream[IO, ClickthroughValues]) = for {
+    def loadDataset(data: fs2.Stream[IO, TrainValues]) = for {
       clickthroughs <- data
+        .collect { case c: ClickthroughValues => c }
         .filter(ctv => config.selector.accept(ctv.ct))
         .filter(_.ct.interactions.nonEmpty)
         .filter(_.values.nonEmpty)

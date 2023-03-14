@@ -1,7 +1,7 @@
 package ai.metaranke2e.ct
 
 import ai.metarank.config.TrainConfig.S3TrainConfig
-import ai.metarank.fstore.clickthrough.S3ClickthroughStore
+import ai.metarank.fstore.clickthrough.S3TrainStore
 import ai.metarank.util.TestClickthroughValues
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
@@ -9,9 +9,9 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.util.Random
 
-class S3ClickthroughStoreTest extends AnyFlatSpec with Matchers {
+class S3TrainStoreTest extends AnyFlatSpec with Matchers {
   val ct = TestClickthroughValues()
-  lazy val store = S3ClickthroughStore
+  lazy val store = S3TrainStore
     .create(
       S3TrainConfig(
         bucket = "bucket",

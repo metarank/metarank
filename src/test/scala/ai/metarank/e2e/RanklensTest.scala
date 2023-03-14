@@ -3,8 +3,8 @@ package ai.metarank.e2e
 import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.{Config, CoreConfig}
-import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.flow.TrainBuffer
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.model.Event.{InteractionEvent, RankItem, RankingEvent}
@@ -29,10 +29,10 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val file   = Files.createTempFile("events", ".jsonl")
   lazy val store  = MemPersistence(mapping.schema)
-  lazy val cts    = MemClickthroughStore()
+  lazy val cts    = MemTrainStore()
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTPredictor]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
+  lazy val buffer = TrainBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
 
   it should "import events" in {
     Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer, config).unsafeRunSync()

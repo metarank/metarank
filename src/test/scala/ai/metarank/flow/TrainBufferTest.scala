@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{EventId, Timestamp}
@@ -16,7 +16,7 @@ import org.scalatest.matchers.should.Matchers
 
 import scala.concurrent.duration._
 
-class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
+class TrainBufferTest extends AnyFlatSpec with Matchers {
   val models = Map(
     "random" -> LambdaMARTConfig(
       backend = XGBoostConfig(),
@@ -27,10 +27,10 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
   val features     = List(RandomFeatureSchema(FeatureName("rand")))
   lazy val mapping = FeatureMapping.fromFeatureSchema(features, models)
   lazy val state   = MemPersistence(mapping.schema)
-  lazy val cs      = MemClickthroughStore()
+  lazy val cs      = MemTrainStore()
 
   it should "join rankings and interactions" in {
-    val buffer = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val buffer = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now    = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.process(TestInteractionEvent("p1", "i1").copy(timestamp = now.plus(1.second))).unsafeRunSync()
@@ -40,7 +40,7 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
   }
 
   it should "not emit cts on no click" in {
-    val buffer = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val buffer = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now    = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.cache.invalidateAll()
@@ -52,8 +52,8 @@ class ClickthroughJoinBufferTest extends AnyFlatSpec with Matchers {
   it should "not fail when there are no ranking features" in {
     val mapping = TestFeatureMapping.empty()
     val state   = MemPersistence(mapping.schema)
-    val cs      = MemClickthroughStore()
-    val buffer  = ClickthroughJoinBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val cs      = MemTrainStore()
+    val buffer  = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
     val now     = Timestamp.now
     buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()

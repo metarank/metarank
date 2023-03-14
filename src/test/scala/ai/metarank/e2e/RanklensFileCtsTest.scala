@@ -3,10 +3,10 @@ package ai.metarank.e2e
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
-import ai.metarank.flow.ClickthroughJoinBuffer
-import ai.metarank.fstore.clickthrough.FileClickthroughStore
+import ai.metarank.flow.TrainBuffer
+import ai.metarank.fstore.clickthrough.FileTrainStore
 import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.util.RanklensEvents
@@ -25,10 +25,10 @@ class RanklensFileCtsTest extends AnyFlatSpec with Matchers {
   val mapping     = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store  = MemPersistence(mapping.schema)
   lazy val file   = Files.createTempDirectory("cts")
-  lazy val cts    = FileClickthroughStore.create(file.toString, JsonStoreFormat).allocated.unsafeRunSync()._1
+  lazy val cts    = FileTrainStore.create(file.toString, JsonStoreFormat).allocated.unsafeRunSync()._1
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTPredictor]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
+  lazy val buffer = TrainBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
 
   it should "import events" in {
     Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer, config).unsafeRunSync()

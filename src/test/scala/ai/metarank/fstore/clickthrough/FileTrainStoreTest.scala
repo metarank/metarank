@@ -10,13 +10,13 @@ import java.io.File
 import java.nio.file.Files
 import scala.util.Try
 
-class FileClickthroughStoreTest extends AnyFlatSpec with Matchers {
+class FileTrainStoreTest extends AnyFlatSpec with Matchers {
   val ctv = TestClickthroughValues()
 
   val dir = Files.createTempDirectory("meta-cts")
 
   it should "write cts" in {
-    val (store, close) = FileClickthroughStore
+    val (store, close) = FileTrainStore
       .create(dir.toString, BinaryStoreFormat)
       .allocated
       .unsafeRunSync()
@@ -26,7 +26,7 @@ class FileClickthroughStoreTest extends AnyFlatSpec with Matchers {
   }
 
   it should "read cts" in {
-    val (store, close) = FileClickthroughStore
+    val (store, close) = FileTrainStore
       .create(dir.toString, BinaryStoreFormat)
       .allocated
       .unsafeRunSync()
@@ -36,7 +36,7 @@ class FileClickthroughStoreTest extends AnyFlatSpec with Matchers {
   }
 
   it should "write+read cts" in {
-    val (store, close) = FileClickthroughStore
+    val (store, close) = FileTrainStore
       .create(dir.toString, BinaryStoreFormat)
       .allocated
       .unsafeRunSync()
@@ -50,7 +50,7 @@ class FileClickthroughStoreTest extends AnyFlatSpec with Matchers {
   it should "fail when file exists" in {
     val path = Files.createTempFile("meta-cts", ".bin")
     val cts = Try(
-      FileClickthroughStore
+      FileTrainStore
         .create(path.toString, BinaryStoreFormat)
         .allocated
         .unsafeRunSync()

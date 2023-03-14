@@ -38,7 +38,8 @@ object RanklensDatasetGenerator {
       topActors: List[Cast],
       director: Option[Cast],
       writer: Option[Cast],
-      tags: List[String]
+      tags: List[String],
+      description: String
   )
   case class Cast(id: Int, name: String, gender: Int, popularity: Double)
   case class Genre(id: Int, name: String)
@@ -99,7 +100,8 @@ object RanklensDatasetGenerator {
             ),
             StringListField("genres", m.genres.map(_.name.toLowerCase())),
             StringListField("tags", m.tags),
-            StringListField("actors", m.topActors.map(_.name.toLowerCase))
+            StringListField("actors", m.topActors.map(_.name.toLowerCase)),
+            StringField("description", m.description)
           ),
           m.director.map(d => StringField("director", d.name.toLowerCase())),
           m.writer.map(w => StringField("writer", w.name.toLowerCase()))

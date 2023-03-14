@@ -15,6 +15,7 @@ import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.ScopeType._
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model._
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec

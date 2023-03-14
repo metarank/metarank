@@ -3,7 +3,7 @@ package ai.metarank.e2e
 import ai.metarank.FeatureMapping
 import ai.metarank.api.routes.RankApi.RankResponse
 import ai.metarank.config.Config
-import ai.metarank.flow.ClickthroughJoinBuffer
+import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
@@ -12,7 +12,7 @@ import cats.effect.unsafe.implicits.global
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -35,12 +35,12 @@ class MovielensRecTest extends AnyFlatSpec with Matchers {
     .unsafeRunSync()
   val mapping    = FeatureMapping.fromFeatureSchema(config.features, config.models)
   lazy val store = MemPersistence(mapping.schema)
-  lazy val cts   = MemClickthroughStore()
+  lazy val cts   = MemTrainStore()
 
   val similar  = mapping.models("similar").asInstanceOf[MFPredictor]
   val trending = mapping.models("trending").asInstanceOf[TrendingPredictor]
 
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
+  lazy val buffer = TrainBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
   lazy val stream = new GZIPInputStream(Resource.my.getAsStream("/movielens/ratings.dat.gz"))
   lazy val rec    = Recommender(mapping, store)
 

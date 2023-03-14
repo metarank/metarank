@@ -5,7 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
-import ai.metarank.fstore.{ClickthroughStore, Persistence}
+import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.StandaloneArgs
 import ai.metarank.main.command.{Serve, Standalone}
 import ai.metarank.model.Event.{RankItem, RankingEvent}
@@ -88,7 +88,7 @@ object LatencyBenchmark extends IOApp with Logging {
 
   def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = for {
     store <- Persistence.fromConfig(mapping.schema, conf.state, ImportCacheConfig())
-    cts   <- ClickthroughStore.fromConfig(conf.train)
+    cts   <- TrainStore.fromConfig(conf.train)
     buffer <- Resource.liftK(
       Standalone
         .prepare(

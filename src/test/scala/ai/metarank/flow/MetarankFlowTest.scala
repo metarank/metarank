@@ -8,21 +8,11 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.fstore.memory.{MemClickthroughStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemPersistence, MemTrainStore}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.{
-  Clickthrough,
-  ClickthroughValues,
-  EventId,
-  FeatureKey,
-  FieldName,
-  ItemValue,
-  Key,
-  MValue,
-  Timestamp
-}
+import ai.metarank.model.{Clickthrough, EventId, FeatureKey, FieldName, ItemValue, Key, MValue, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
@@ -31,6 +21,7 @@ import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
 import ai.metarank.ml.Ranker
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
@@ -79,8 +70,8 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   val store       = MemPersistence(mapping.schema)
   val ts          = Timestamp.now
   val ranker      = Ranker(mapping, store)
-  lazy val cs     = MemClickthroughStore()
-  lazy val buffer = ClickthroughJoinBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
+  lazy val cs     = MemTrainStore()
+  lazy val buffer = TrainBuffer(ClickthroughJoinConfig(), store.values, cs, mapping)
 
   val rankingEvent1 = TestRankingEvent(List("p1", "p2", "p3"))
   val rankingEvent2 = rankingEvent1.copy(id = EventId(UUID.randomUUID().toString))
@@ -235,7 +226,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "create updated clickthrough in store" in {
     MetarankFlow.process(store, Stream.emits(List(rankingEvent2, clickEvent2)), mapping, buffer).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
-    val ctv = cs.getall().compile.toList.unsafeRunSync()
+    val ctv = cs.getall().compile.toList.unsafeRunSync().collect { case c: ClickthroughValues => c }
     ctv.find(_.ct.id == rankingEvent2.id) shouldBe Some(
       ClickthroughValues(
         ct = Clickthrough(

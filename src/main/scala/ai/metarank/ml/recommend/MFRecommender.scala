@@ -7,7 +7,8 @@ import ai.metarank.ml.recommend.embedding.{EmbeddingMap, HnswJavaIndex}
 import ai.metarank.ml.recommend.mf.MFRecImpl
 import ai.metarank.ml.recommend.mf.MFRecImpl.MFModelConfig
 import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.ClickthroughValues
+import ai.metarank.model.TrainValues
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -19,9 +20,9 @@ import java.nio.ByteBuffer
 object MFRecommender {
 
   case class MFPredictor(name: String, config: MFModelConfig, mf: MFRecImpl)
-      extends RecommendPredictor[MFModelConfig, MFModel]
+      extends RecommendPredictor[MFModelConfig, EmbeddingSimilarityModel]
       with Logging {
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[MFModel] = {
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[EmbeddingSimilarityModel] = {
       Files[IO].tempFile.use(file =>
         for {
           _          <- info(s"writing training dataset to $file")
@@ -29,18 +30,19 @@ object MFRecommender {
           embeddings <- IO(mf.train(file))
           index      <- IO(HnswJavaIndex.create(embeddings, config.m, config.ef))
         } yield {
-          MFModel(name, index)
+          EmbeddingSimilarityModel(name, index)
         }
       )
     }
 
-    override def load(bytes: Option[Array[Byte]]): Either[Throwable, MFModel] = bytes match {
-      case Some(value) => Right(MFModel(name, HnswJavaIndex.load(value)))
+    override def load(bytes: Option[Array[Byte]]): Either[Throwable, EmbeddingSimilarityModel] = bytes match {
+      case Some(value) => Right(EmbeddingSimilarityModel(name, HnswJavaIndex.load(value)))
       case None        => Left(new Exception(s"cannot load index $name: not found"))
     }
 
-    def writeUIRT(source: fs2.Stream[IO, ClickthroughValues], dest: Path): IO[Unit] = {
+    def writeUIRT(source: fs2.Stream[IO, TrainValues], dest: Path): IO[Unit] = {
       source
+        .collect { case ct: ClickthroughValues => ct }
         .filter(_.ct.interactions.nonEmpty)
         .flatMap(ctv => fs2.Stream.chunk(Chunk.byteBuffer(ByteBuffer.wrap(uirt(ctv).mkString("").getBytes()))))
         .through(Files[IO].writeAll(dest))
@@ -60,7 +62,7 @@ object MFRecommender {
     }
   }
 
-  case class MFModel(name: String, index: HnswJavaIndex) extends RecommendModel {
+  case class EmbeddingSimilarityModel(name: String, index: HnswJavaIndex) extends RecommendModel {
     override def predict(request: RecommendRequest): IO[Model.Response] = for {
       _ <- request.items match {
         case Nil => IO.raiseError(new Exception("similar items recommender requires request.items to be non-empty"))

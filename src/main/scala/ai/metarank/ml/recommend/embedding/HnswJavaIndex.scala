@@ -64,8 +64,7 @@ object HnswJavaIndex extends Logging {
       .build[String, Embedding]()
 
     val embeddings = for {
-      (embedding, index) <- source.embeddings.zipWithIndex
-      id = source.ids(index)
+      (embedding, id) <- source.embeddings.zip(source.ids)
     } yield {
       Embedding(id, embedding)
     }

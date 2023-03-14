@@ -54,7 +54,8 @@ class TrainValuesCodecTest extends AnyFlatSpec with Matchers {
     )
   )
 
-  lazy val bytes = IOUtils.resourceToByteArray("/codec/ctv.bin")
+  lazy val bytes   = IOUtils.resourceToByteArray("/codec/ctv-v2.bin")
+  lazy val bytesV1 = IOUtils.resourceToByteArray("/codec/ctv-v1.bin")
 
   it should "roundtrip ctv" in {
     val out = new ByteArrayOutputStream()
@@ -71,8 +72,13 @@ class TrainValuesCodecTest extends AnyFlatSpec with Matchers {
     actual should contain theSameElementsInOrderAs (bytes)
   }
 
-  it should "decode reference bytes" in {
+  it should "decode reference bytes v2" in {
     val actual = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(bytes)))
+    actual shouldBe ctv
+  }
+
+  it should "decode reference bytes v1" in {
+    val actual = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(bytesV1)))
     actual shouldBe ctv
   }
 

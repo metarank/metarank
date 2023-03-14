@@ -1,11 +1,13 @@
 package ai.metarank.ml.recommend
 
+import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Predictor.RecommendPredictor
 import ai.metarank.ml.onnx.SBERT
 import ai.metarank.ml.recommend.MFRecommender.EmbeddingSimilarityModel
 import ai.metarank.ml.recommend.embedding.{EmbeddingMap, HnswJavaIndex}
 import ai.metarank.model.Field.{StringField, StringListField}
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{FieldName, TrainValues}
 import ai.metarank.model.TrainValues.ItemValues
 import ai.metarank.util.Logging
@@ -47,7 +49,7 @@ object BertSemanticRecommender {
           case _                                                       => Nil
         }
       } yield {
-        val floats  = encoder.encode(stringFields.mkString(" "))
+        val floats  = encoder.encode(item.item, stringFields.mkString(" "))
         val doubles = new Array[Double](floats.length)
         var i       = 0
         while (i < doubles.length) {
@@ -94,15 +96,33 @@ object BertSemanticRecommender {
     )
   }
 
+  implicit val bertModelConfigDecoder: Decoder[BertSemanticModelConfig] = Decoder.instance(c =>
+    for {
+      encoder    <- c.downField("encoder").as[EncoderType]
+      itemFields <- c.downField("itemFields").as[List[String]]
+      m          <- c.downField("m").as[Option[Int]]
+      ef         <- c.downField("ef").as[Option[Int]]
+      selector   <- c.downField("selector").as[Option[Selector]]
+    } yield {
+      BertSemanticModelConfig(
+        encoder = encoder,
+        itemFields = itemFields,
+        m = m.getOrElse(32),
+        ef = ef.getOrElse(200),
+        selector = selector.getOrElse(AcceptSelector())
+      )
+    }
+  )
+
   sealed trait Encoder {
-    def encode(str: String): Array[Float]
+    def encode(id: ItemId, str: String): Array[Float]
     def dim: Int
   }
 
   object Encoder {
     case class BertEncoder(sbert: SBERT) extends Encoder {
-      override def dim: Int                          = sbert.dim
-      override def encode(str: String): Array[Float] = sbert.embed(str)
+      override def dim: Int                                      = sbert.dim
+      override def encode(id: ItemId, str: String): Array[Float] = sbert.embed(str)
     }
 
     object BertEncoder {
@@ -114,18 +134,16 @@ object BertSemanticRecommender {
         BertEncoder(sbert)
       }
     }
-    case class CsvEncoder(dic: Map[String, Array[Float]], dim: Int) extends Encoder {
-      override def encode(str: String): Array[Float] = dic.get(str) match {
+    case class CsvEncoder(dic: Map[ItemId, Array[Float]], dim: Int) extends Encoder {
+      override def encode(id: ItemId, str: String): Array[Float] = dic.get(id) match {
         case Some(value) => value
         case None        => new Array[Float](dim)
       }
     }
 
     object CsvEncoder {
-      def create(path: String): IO[CsvEncoder] = for {
-        dic <- fs2.io.file
-          .Files[IO]
-          .readUtf8Lines(Path(path))
+      def create(lines: fs2.Stream[IO, String]) = for {
+        dic <- lines
           .evalMap(line => IO.fromEither(parseLine(line)))
           .compile
           .toList
@@ -137,6 +155,9 @@ object BertSemanticRecommender {
       } yield {
         CsvEncoder(dic.toMap, size)
       }
+      def create(path: String): IO[CsvEncoder] = {
+        create(fs2.io.file.Files[IO].readUtf8Lines(Path(path)))
+      }
     }
 
     def create(conf: EncoderType) = conf match {
@@ -145,10 +166,10 @@ object BertSemanticRecommender {
 
     }
 
-    def parseLine(line: String): Either[Throwable, (String, Array[Float])] = {
+    def parseLine(line: String): Either[Throwable, (ItemId, Array[Float])] = {
       val tokens = line.split(',')
       if (tokens.length > 1) {
-        val key    = tokens(1)
+        val key    = ItemId(tokens(0))
         val values = new Array[Float](tokens.length - 1)
         var i      = 1
         var failed = false

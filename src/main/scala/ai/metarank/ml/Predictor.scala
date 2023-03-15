@@ -11,7 +11,7 @@ sealed trait Predictor[C <: ModelConfig, T <: Context, M <: Model[T]] {
   def config: C
   def name: String
   def fit(data: fs2.Stream[IO, TrainValues]): IO[M]
-  def load(bytes: Option[Array[Byte]]): Either[Throwable, M]
+  def load(bytes: Option[Array[Byte]]): IO[M]
 }
 
 object Predictor {

@@ -6,8 +6,8 @@ V=$1
 
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-PLATFORM=amd64 VERSION=$V sbt -mem 3000 dockerBuildAndPush
-PLATFORM=arm64 VERSION=$V sbt -mem 3000 dockerBuildAndPush
+PLATFORM=amd64 VERSION=$V sbt -mem 5000 dockerBuildAndPush
+PLATFORM=arm64 VERSION=$V sbt -mem 5000 dockerBuildAndPush
 
 docker manifest create metarank/metarank:$V metarank/metarank:$V-arm64 metarank/metarank:$V-amd64
 docker manifest rm metarank/metarank:latest

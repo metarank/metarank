@@ -57,7 +57,7 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     val pred2  = LambdaMARTPredictor("foo", conf, desc)
     val model  = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
     val blob   = model.save()
-    val result = pred2.load(blob)
-    result.isLeft shouldBe true
+    val result = Try(pred2.load(blob).unsafeRunSync())
+    result.isSuccess shouldBe false
   }
 }

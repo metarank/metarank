@@ -26,6 +26,7 @@ import ai.metarank.model.{Dimension, FeatureSchema, FieldName, Key, MValue, Sche
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
 import ai.metarank.ml.rank.NoopRanker.{NoopConfig, NoopModel, NoopPredictor}
 import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShuffleModel, ShufflePredictor}
+import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
 import ai.metarank.ml.recommend.MFRecommender.MFPredictor
 import ai.metarank.ml.recommend.TrendingRecommender.{TrendingConfig, TrendingPredictor}
 import ai.metarank.ml.recommend.mf.ALSRecImpl
@@ -87,10 +88,11 @@ object FeatureMapping extends Logging {
         }
         name -> LambdaMARTPredictor(name, conf, makeDatasetDescriptor(modelFeatures))
 
-      case (name, conf: NoopConfig)     => name -> NoopPredictor(name, conf)
-      case (name, conf: ShuffleConfig)  => name -> ShufflePredictor(name, conf)
-      case (name, conf: TrendingConfig) => name -> TrendingPredictor(name, conf)
-      case (name, conf: ALSConfig)      => name -> MFPredictor(name, conf, ALSRecImpl(conf))
+      case (name, conf: NoopConfig)              => name -> NoopPredictor(name, conf)
+      case (name, conf: ShuffleConfig)           => name -> ShufflePredictor(name, conf)
+      case (name, conf: TrendingConfig)          => name -> TrendingPredictor(name, conf)
+      case (name, conf: ALSConfig)               => name -> MFPredictor(name, conf, ALSRecImpl(conf))
+      case (name, conf: BertSemanticModelConfig) => name -> BertSemanticPredictor(name, conf)
     }
 
     new FeatureMapping(

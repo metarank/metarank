@@ -13,7 +13,7 @@ import io.circe.{Decoder, Encoder}
 object NoopRanker {
   case class NoopConfig(selector: Selector = AcceptSelector()) extends ModelConfig
   case class NoopPredictor(name: String, config: NoopConfig) extends RankPredictor[NoopConfig, NoopModel] {
-    override def load(bytes: Option[Array[Byte]]): Either[Throwable, NoopModel] = Right(NoopModel(name, config))
+    override def load(bytes: Option[Array[Byte]]): IO[NoopModel] = IO.pure(NoopModel(name, config))
 
     override def fit(data: fs2.Stream[IO, TrainValues]): IO[NoopModel] =
       IO.pure(NoopModel(name, config))

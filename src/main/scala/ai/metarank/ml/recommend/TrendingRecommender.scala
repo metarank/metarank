@@ -86,7 +86,8 @@ object TrendingRecommender {
 
     }
 
-    override def load(bytesOption: Option[Array[Byte]]): Either[Throwable, TrendingModel] = {
+    override def load(bytes: Option[Array[Byte]]): IO[TrendingModel] = IO.fromEither(loadSync(bytes))
+    def loadSync(bytesOption: Option[Array[Byte]]): Either[Throwable, TrendingModel] = {
       bytesOption match {
         case None => Left(new Exception("cannot load trending model: not found"))
         case Some(bytes) =>

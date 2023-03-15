@@ -4,8 +4,10 @@ import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Predictor.RecommendPredictor
 import ai.metarank.ml.onnx.SBERT
+import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.ml.recommend.MFRecommender.EmbeddingSimilarityModel
-import ai.metarank.ml.recommend.embedding.{EmbeddingMap, HnswJavaIndex}
+import ai.metarank.ml.recommend.embedding.HnswJavaIndex.{HnswIndexReader, HnswIndexWriter, HnswOptions}
+import ai.metarank.ml.recommend.embedding.{EmbeddingMap, HnswJavaIndex, KnnIndex}
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{FieldName, TrainValues}
@@ -26,14 +28,15 @@ object BertSemanticRecommender {
       items      <- data.collect { case item: ItemValues => item }.compile.toList
       _          <- info(s"Loaded ${items.size} items")
       embeddings <- embed(items, fieldSet, encoder)
-      index      <- IO(HnswJavaIndex.create(embeddings, config.m, config.ef))
+      index      <- KnnIndex.write(embeddings, config.store)
     } yield {
       EmbeddingSimilarityModel(name, index)
     }
 
-    override def load(bytes: Option[Array[Byte]]): Either[Throwable, EmbeddingSimilarityModel] = bytes match {
-      case Some(value) => Right(EmbeddingSimilarityModel(name, HnswJavaIndex.load(value)))
-      case None        => Left(new Exception(s"cannot load index $name: not found"))
+    override def load(bytes: Option[Array[Byte]]): IO[EmbeddingSimilarityModel] = bytes match {
+      case Some(value) =>
+        KnnIndex.load(value, config.store).map(index => EmbeddingSimilarityModel(name, index))
+      case None => IO.raiseError(new Exception(s"cannot load index $name: not found"))
     }
 
     def embed(items: List[ItemValues], fieldSet: Set[String], encoder: Encoder): IO[EmbeddingMap] = IO {
@@ -74,8 +77,7 @@ object BertSemanticRecommender {
   case class BertSemanticModelConfig(
       encoder: EncoderType,
       itemFields: List[String],
-      m: Int = 32,
-      ef: Int = 200,
+      store: KnnConfig,
       selector: Selector = Selector.AcceptSelector()
   ) extends ModelConfig
 
@@ -100,15 +102,13 @@ object BertSemanticRecommender {
     for {
       encoder    <- c.downField("encoder").as[EncoderType]
       itemFields <- c.downField("itemFields").as[List[String]]
-      m          <- c.downField("m").as[Option[Int]]
-      ef         <- c.downField("ef").as[Option[Int]]
+      store      <- c.downField("store").as[Option[KnnConfig]]
       selector   <- c.downField("selector").as[Option[Selector]]
     } yield {
       BertSemanticModelConfig(
         encoder = encoder,
         itemFields = itemFields,
-        m = m.getOrElse(32),
-        ef = ef.getOrElse(200),
+        store = store.getOrElse(HnswConfig()),
         selector = selector.getOrElse(AcceptSelector())
       )
     }
@@ -141,12 +141,14 @@ object BertSemanticRecommender {
       }
     }
 
-    object CsvEncoder {
+    object CsvEncoder extends Logging {
       def create(lines: fs2.Stream[IO, String]) = for {
         dic <- lines
+          .filter(_.nonEmpty)
           .evalMap(line => IO.fromEither(parseLine(line)))
           .compile
           .toList
+        _ <- info(s"loaded ${dic.size} embeddings")
         size <- IO(dic.map(_._2.length).distinct).flatMap {
           case Nil        => IO.raiseError(new Exception("no embeddings found"))
           case one :: Nil => IO.pure(one)

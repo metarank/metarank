@@ -29,7 +29,7 @@ trait PredictorSuite[C <: ModelConfig, T <: Context, M <: Model[T]] extends AnyF
     val rec     = predictor.fit(fs2.Stream.apply(cts: _*)).unsafeRunSync()
     val bytes   = rec.save()
     val restore = predictor.load(bytes)
-    val req     = restore.map(_.predict(request(10)).unsafeRunSync()).toOption.get
+    val req     = restore.flatMap(_.predict(request(10))).unsafeRunSync()
     req.items.toList shouldNot be(empty)
   }
 

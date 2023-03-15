@@ -27,19 +27,11 @@ case class RedisModelStore(client: RedisClient, prefix: String)(implicit kc: KCo
     bytesOption <- client.get(kc.encode(prefix, key))
     model <- bytesOption match {
       case None =>
-        pred.load(None) match {
-          case Left(error)  => IO.raiseError(error)
-          case Right(value) => IO(Some(value))
-        }
+        pred.load(None).map(Some.apply)
       case Some(bytes) =>
         vc.decode(bytes) match {
-          case Left(err) => IO.raiseError(err)
-          case Right(decodedBytes) =>
-            pred.load(Some(decodedBytes)) match {
-              case Left(error)  => IO.raiseError(error)
-              case Right(value) => IO(Some(value))
-            }
-
+          case Left(err)           => IO.raiseError(err)
+          case Right(decodedBytes) => pred.load(Some(decodedBytes)).map(Some.apply)
         }
     }
   } yield {

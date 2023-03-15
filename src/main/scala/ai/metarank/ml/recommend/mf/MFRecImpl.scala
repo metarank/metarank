@@ -1,6 +1,7 @@
 package ai.metarank.ml.recommend.mf
 
 import ai.metarank.config.{ModelConfig, Selector}
+import ai.metarank.ml.recommend.KnnConfig
 import ai.metarank.ml.recommend.embedding.EmbeddingMap
 import fs2.io.file.Path
 
@@ -15,8 +16,7 @@ object MFRecImpl {
     def factors: Int
     def userReg: Float
     def itemReg: Float
-    def m: Int
-    def ef: Int
+    def store: KnnConfig
     def selector: Selector
   }
 }

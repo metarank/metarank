@@ -80,7 +80,7 @@ Train endpoint runs the training on persisted click-through data. You can run th
 A JSON response with the following fields:
 * `weights`: per-field model weights
 * `sizeBytes`: model size in bytes
-* `iterations`: test/train error loss while training.
+* `features`: test/train error loss while training.
 
 Example:
 ```json
@@ -180,6 +180,8 @@ define which model to invoke.
 **API Endpoint**: `/recommend/<model-name>`
 
 **Method**: `POST`
+
+Recommend endpoint returns recommended items that are produced by [recommendations model types](configuration/recommendations.md). 
 
 ### Payload format:
 

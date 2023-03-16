@@ -60,7 +60,8 @@ object RandomRecommender {
   case class RandomPredictor(name: String, config: RandomConfig)
       extends RecommendPredictor[RandomConfig, RandomModel]
       with Logging {
-    override def load(bytes: Option[Array[Byte]]): Either[Throwable, RandomModel] = bytes match {
+    override def load(bytes: Option[Array[Byte]]): IO[RandomModel] = IO.fromEither(loadSync(bytes))
+    def loadSync(bytes: Option[Array[Byte]]): Either[Throwable, RandomModel] = bytes match {
       case None => Left(new Exception("Cannot load model from store: not found. Did you train it before?"))
       case Some(bytes) =>
         val stream = new DataInputStream(new ByteArrayInputStream(bytes))

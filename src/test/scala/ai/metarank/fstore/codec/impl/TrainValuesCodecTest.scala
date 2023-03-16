@@ -60,7 +60,7 @@ class TrainValuesCodecTest extends AnyFlatSpec with Matchers {
   it should "roundtrip ctv" in {
     val out = new ByteArrayOutputStream()
     TrainValuesCodec.write(ctv, new DataOutputStream(out))
-    val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
+    // val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
     val decoded = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(out.toByteArray)))
     decoded shouldBe ctv
   }

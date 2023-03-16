@@ -93,7 +93,9 @@ object LambdaMARTRanker {
       }
     }
 
-    override def load(bytes: Option[Array[Byte]]): Either[Throwable, LambdaMARTModel] = bytes match {
+    override def load(bytes: Option[Array[Byte]]): IO[LambdaMARTModel] = IO.fromEither(loadSync(bytes))
+
+    def loadSync(bytes: Option[Array[Byte]]): Either[Throwable, LambdaMARTModel] = bytes match {
       case None => Left(new Exception(s"cannot load model: not found, maybe you forgot to run train?"))
       case Some(blob) =>
         val stream = new DataInputStream(new ByteArrayInputStream(blob))

@@ -1,8 +1,11 @@
 package ai.metarank.ml.recommend.embedding
 
+import ai.metarank.ml.recommend.embedding.HnswJavaIndex.{HnswIndexWriter, HnswOptions}
 import ai.metarank.model.Identifier.ItemId
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
 import scala.util.Random
 
 class HnswJavaIndexTest extends AnyFlatSpec with Matchers {
@@ -14,8 +17,8 @@ class HnswJavaIndexTest extends AnyFlatSpec with Matchers {
       rows = 1000,
       cols = 100
     )
-    val index   = HnswJavaIndex.create(map, 32, 200)
-    val similar = index.lookup(List(ItemId("75")), 10)
+    val index   = HnswIndexWriter.write(map, HnswOptions(32, 200)).unsafeRunSync()
+    val similar = index.lookup(List(ItemId("75")), 10).unsafeRunSync()
     similar.size shouldBe 10
   }
 

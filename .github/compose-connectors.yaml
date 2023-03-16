@@ -66,3 +66,8 @@ services:
     environment:
       PULSAR_MEM: " -Xms512m -Xmx512m -XX:MaxDirectMemorySize=1g"
     command: bin/pulsar standalone --wipe-data
+
+  qdrant:
+    image: qdrant/qdrant:v1.0.3
+    ports:
+      - 6333:6333

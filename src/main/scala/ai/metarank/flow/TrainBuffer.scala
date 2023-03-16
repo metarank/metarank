@@ -85,8 +85,22 @@ case class TrainBuffer(
       case Some(id) =>
         IO(cache.getIfPresent(id.value)).flatMap {
           case None =>
-            // ranking already gone, nothing to do
-            IO.unit
+            // ranking already gone, or it never was present
+            IO {
+              queue.add(
+                ClickthroughValues(
+                  Clickthrough(
+                    id = event.id,
+                    ts = event.timestamp,
+                    user = event.user,
+                    session = event.session,
+                    items = List(event.item),
+                    interactions = List(TypedInteraction(event.item, event.`type`))
+                  ),
+                  Nil
+                )
+              )
+            }
           // warn(s"ranking $id is present in interaction, but missing in cache")
           case Some(ctv) =>
             IO {

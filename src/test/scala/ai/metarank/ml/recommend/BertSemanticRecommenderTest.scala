@@ -6,6 +6,7 @@ import ai.metarank.ml.recommend.BertSemanticRecommender.Encoder.CsvEncoder
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
 import ai.metarank.ml.recommend.BertSemanticRecommender.EncoderType.BertEncoderType
 import ai.metarank.ml.recommend.BertSemanticRecommenderTest.Movie
+import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
@@ -23,7 +24,8 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
   it should "train the model" in {
     val conf = BertSemanticModelConfig(
       encoder = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2"),
-      itemFields = List("title", "description")
+      itemFields = List("title", "description"),
+      store = HnswConfig()
     )
     val model                    = BertSemanticPredictor("foo", conf)
     val events: List[ItemValues] = RanklensEvents.apply().collect { case e: ItemEvent => ItemValues(e) }
@@ -41,7 +43,8 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
     decoded shouldBe Right(
       BertSemanticModelConfig(
         encoder = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2"),
-        itemFields = List("title", "description")
+        itemFields = List("title", "description"),
+        store = HnswConfig()
       )
     )
   }

@@ -40,13 +40,13 @@ jobs:
         run: docker-compose -f .github/compose-connectors.yaml up -d
 
       - name: Run integration tests
-        run: sbt -mem 3000 IntegrationTest/test
+        run: sbt -mem 5000 IntegrationTest/test
 
       - name:  Stop docker-compose
         run: docker-compose -f .github/compose-connectors.yaml down
 
       - name: Make docker image
-        run: sbt -mem 3000 assembly docker
+        run: sbt -mem 5000 assembly docker
 
       - name: Run docker image tests
         run: .github/test_docker.sh

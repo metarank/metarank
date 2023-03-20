@@ -47,6 +47,8 @@ object PositionFeature {
     lazy val refresh: Option[FiniteDuration] = None
     lazy val ttl: Option[FiniteDuration]     = None
     lazy val scope: ScopeType                = ItemScopeType
+
+    override def create(): IO[BaseFeature] = IO.pure(PositionFeature(this))
   }
 
   implicit val positionSchemaCodec: Codec[PositionFeatureSchema] = deriveCodec

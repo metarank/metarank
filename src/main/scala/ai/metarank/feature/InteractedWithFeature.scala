@@ -176,7 +176,9 @@ object InteractedWithFeature {
       duration: Option[FiniteDuration],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(InteractedWithFeature(this))
+  }
 
   implicit val interWithDecoder: Decoder[InteractedWithSchema] = Decoder.instance(c =>
     for {
@@ -210,10 +212,10 @@ object InteractedWithFeature {
   )
 
   def onlyUserSession(schema: InteractedWithSchema) = schema.scope match {
-    case ScopeType.GlobalScopeType       => false
-    case ScopeType.ItemScopeType         => false
-    case ScopeType.UserScopeType         => true
-    case ScopeType.SessionScopeType      => true
+    case ScopeType.GlobalScopeType   => false
+    case ScopeType.ItemScopeType     => false
+    case ScopeType.UserScopeType     => true
+    case ScopeType.SessionScopeType  => true
     case ScopeType.FieldScopeType(_) => false
   }
 }

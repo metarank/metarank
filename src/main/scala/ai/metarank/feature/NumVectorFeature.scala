@@ -20,6 +20,7 @@ import cats.effect.IO
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.{Codec, Decoder, Encoder, Json}
 
+import java.util
 import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.util.{Failure, Success}
 
@@ -41,14 +42,14 @@ case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature wit
       key   <- writeKey(event, conf)
       field <- event.fields.find(_.name == schema.source.field)
       values <- field match {
-        case n: NumberField     => Some(List(n.value))
+        case n: NumberField     => Some(Array(n.value))
         case n: NumberListField => Some(n.value)
         case other =>
           logger.warn(s"field extractor ${schema.name} expects a numeric field, but got $other in event $event")
           None
       }
     } yield {
-      Put(key, event.timestamp, SDoubleList(reducers.flatMap(_.reduce(values))))
+      Put(key, event.timestamp, SDoubleList(reducers.flatMap(_.reduce(values)).toArray))
     }
   }
 
@@ -80,79 +81,111 @@ object NumVectorFeature {
     def reduce(values: Array[Double]): Array[Double]
   }
   object Reducer {
+    val empty = Array(0.0)
     object First extends Reducer {
-      val name                                  = "first"
-      val dim                                   = 1
-      override def reduce(values: List[Double]) = List(values.headOption.getOrElse(0.0))
+      val name                                   = "first"
+      val dim                                    = 1
+      override def reduce(values: Array[Double]) = if (values.isEmpty) empty else Array(values(0))
     }
 
     object Last extends Reducer {
-      val name                                  = "last"
-      val dim                                   = 1
-      override def reduce(values: List[Double]) = List(values.lastOption.getOrElse(0.0))
+      val name                                   = "last"
+      val dim                                    = 1
+      override def reduce(values: Array[Double]) = if (values.isEmpty) empty else Array(values(values.length - 1))
     }
 
     object Min extends Reducer {
-      val name                                  = "min"
-      val dim                                   = 1
-      override def reduce(values: List[Double]) = List(values.minOption.getOrElse(0.0))
+      val name = "min"
+      val dim  = 1
+      override def reduce(values: Array[Double]) = if (values.isEmpty) empty
+      else {
+        var min = Double.MaxValue
+        var i   = 0
+        while (i < values.length) {
+          if (values(i) < min) min = values(i)
+          i += 1
+        }
+        Array(min)
+      }
     }
 
     object Max extends Reducer {
-      val name                                  = "max"
-      val dim                                   = 1
-      override def reduce(values: List[Double]) = List(values.maxOption.getOrElse(0.0))
+      val name = "max"
+      val dim  = 1
+      override def reduce(values: Array[Double]) = if (values.isEmpty) empty
+      else {
+        var max = Double.MinValue
+        var i   = 0
+        while (i < values.length) {
+          if (values(i) > max) max = values(i)
+          i += 1
+        }
+        Array(max)
+      }
     }
 
     object Avg extends Reducer {
       val name = "avg"
       val dim  = 1
-      override def reduce(values: List[Double]) = {
-        val size = values.size
-        if (size > 0) List(values.sum / size) else List(0.0)
+      override def reduce(values: Array[Double]) = if (values.isEmpty) empty
+      else {
+        var sum = 0.0
+        var i   = 0
+        while (i < values.length) {
+          sum += values(i)
+          i += 1
+        }
+        Array(sum / values.length)
       }
     }
 
     object Random extends Reducer {
-      val dim                                   = 1
-      val name                                  = "random"
-      override def reduce(values: List[Double]) = List(scala.util.Random.shuffle(values).headOption.getOrElse(0.0))
+      val dim  = 1
+      val name = "random"
+      override def reduce(values: Array[Double]) = if (values.isEmpty) empty
+      else {
+        Array(values(scala.util.Random.nextInt(values.length)))
+      }
     }
 
     object Sum extends Reducer {
-      val dim                                   = 1
-      val name                                  = "sum"
-      override def reduce(values: List[Double]) = List(values.reduceLeftOption(_ + _).getOrElse(0.0))
+      val dim  = 1
+      val name = "sum"
+      override def reduce(values: Array[Double]) = {
+        var sum = 0.0
+        var i   = 0
+        while (i < values.length) {
+          sum += values(i)
+          i += 1
+        }
+        Array(sum)
+      }
     }
 
     object Size extends Reducer {
-      val dim                                   = 1
-      val name                                  = "size"
-      override def reduce(values: List[Double]) = List(values.length)
+      val dim                                    = 1
+      val name                                   = "size"
+      override def reduce(values: Array[Double]) = Array(values.length.toDouble)
     }
 
     object EuclideanDistance extends Reducer {
       val name = "euclidean_distance"
       val dim  = 1
-      override def reduce(values: List[Double]) =
-        values.reduceLeftOption((acc, next) => acc + next * next) match {
-          case None      => List(0.0)
-          case Some(sum) => List(math.sqrt(sum))
+      override def reduce(values: Array[Double]) = {
+        var sum = 0.0
+        var i   = 0
+        while (i < values.length) {
+          sum += values(i) * values(i)
+          i += 1
         }
+        Array(math.sqrt(sum))
+      }
     }
 
     case class VectorReducer(dim: Int) extends Reducer {
       val name = s"vector$dim"
 
-      override def reduce(values: List[Double]): List[Double] = {
-        val first = values.take(dim)
-        val size  = first.size
-        if (size < dim) {
-          first ++ List.fill(dim - size)(0)
-        } else {
-          first
-        }
-      }
+      override def reduce(values: Array[Double]): Array[Double] = util.Arrays.copyOfRange(values, 0, dim)
 
     }
 
@@ -182,7 +215,9 @@ object NumVectorFeature {
       scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(NumVectorFeature(this))
+  }
 
   implicit val vectorSchemaCodec: Codec[VectorFeatureSchema] = deriveCodec
 }

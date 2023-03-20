@@ -3,16 +3,25 @@ package ai.metarank.model
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto._
 
+import java.util
+
 sealed trait Field {
   def name: String
 }
 
 object Field {
-  case class StringField(name: String, value: String)            extends Field
-  case class BooleanField(name: String, value: Boolean)          extends Field
-  case class NumberField(name: String, value: Double)            extends Field
-  case class StringListField(name: String, value: List[String])  extends Field
-  case class NumberListField(name: String, value: Array[Double]) extends Field
+  case class StringField(name: String, value: String)           extends Field
+  case class BooleanField(name: String, value: Boolean)         extends Field
+  case class NumberField(name: String, value: Double)           extends Field
+  case class StringListField(name: String, value: List[String]) extends Field
+  case class NumberListField(name: String, value: Array[Double]) extends Field {
+    override def equals(obj: Any): Boolean = obj match {
+      case NumberListField(xname, xvalues) => (name == xname) && (util.Arrays.equals(value, xvalues))
+      case _                               => false
+    }
+  }
+
+  object NumberListField {}
 
   def toString(fields: List[Field]) = fields
     .map {

@@ -102,6 +102,8 @@ object FieldMatchFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
     override val scope = ItemScopeType
+
+    override def create(): IO[BaseFeature] = IO.pure(FieldMatchFeature(this))
   }
 
   implicit val matchDecoder: Decoder[FieldMatcher] = Decoder.instance[FieldMatcher](c =>

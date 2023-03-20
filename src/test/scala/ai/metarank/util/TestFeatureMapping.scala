@@ -13,6 +13,7 @@ import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
 import cats.data.{NonEmptyList, NonEmptyMap}
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 
@@ -40,11 +41,11 @@ object TestFeatureMapping {
     )
 
     val models = Map("random" -> NoopConfig())
-    FeatureMapping.fromFeatureSchema(features, models)
+    FeatureMapping.fromFeatureSchema(features, models).unsafeRunSync()
   }
 
   def empty() = {
     val models = Map("random" -> NoopConfig())
-    FeatureMapping.fromFeatureSchema(Nil, models)
+    FeatureMapping.fromFeatureSchema(Nil, models).unsafeRunSync()
   }
 }

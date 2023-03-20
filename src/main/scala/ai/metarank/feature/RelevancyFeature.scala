@@ -56,6 +56,8 @@ object RelevancyFeature {
     lazy val refresh: Option[FiniteDuration] = None
     lazy val ttl: Option[FiniteDuration]     = None
     lazy val scope: ScopeType                = ItemScopeType
+
+    override def create(): IO[BaseFeature] = IO.pure(RelevancyFeature(this))
   }
 
   implicit val relDecoder: Decoder[RelevancySchema] =

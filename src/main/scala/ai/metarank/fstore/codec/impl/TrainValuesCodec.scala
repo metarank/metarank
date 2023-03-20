@@ -221,7 +221,7 @@ object TrainValuesCodec extends BinaryCodec[TrainValues] {
         case 1     => BooleanField(in.readUTF(), in.readBoolean())
         case 2     => NumberField(in.readUTF(), in.readDouble())
         case 3     => StringListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readUTF()).toList)
-        case 4     => NumberListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readDouble()).toList)
+        case 4     => NumberListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readDouble()).toArray)
         case other => throw new Exception(s"cannot decode type index $other")
       }
 

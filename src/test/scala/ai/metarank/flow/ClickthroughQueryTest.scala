@@ -18,6 +18,7 @@ import ai.metarank.model.ScopeType._
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model._
 import cats.data.NonEmptyList
+import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -48,10 +49,12 @@ class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
     features = NonEmptyList.fromListUnsafe(features.map(_.name)),
     weights = Map("click" -> 1)
   )
-  lazy val mapping = FeatureMapping.fromFeatureSchema(
-    schema = features,
-    models = Map("xgboost" -> model)
-  )
+  lazy val mapping = FeatureMapping
+    .fromFeatureSchema(
+      schema = features,
+      models = Map("xgboost" -> model)
+    )
+    .unsafeRunSync()
 
   val now = Timestamp.now
   it should "convert ranking+impression to query" in {

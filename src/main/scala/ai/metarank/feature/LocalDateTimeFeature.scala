@@ -23,8 +23,8 @@ import java.time.{Duration, Instant, ZoneId, ZonedDateTime}
 import scala.util.{Failure, Success, Try}
 
 case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeature with Logging {
-  override def dim                                     = SingleDim
-  override def states: List[FeatureConfig]             = Nil
+  override def dim                                                         = SingleDim
+  override def states: List[FeatureConfig]                                 = Nil
   override def writes(event: Event, store: Persistence): IO[Iterable[Put]] = IO.pure(Nil)
 
   override def valueKeys(event: Event.RankingEvent): Iterable[Key] = Nil
@@ -100,6 +100,8 @@ object LocalDateTimeFeature {
     override val refresh = None
     override val ttl     = None
     override val scope   = SessionScopeType
+
+    override def create(): IO[BaseFeature] = IO.pure(LocalDateTimeFeature(this))
   }
 
   implicit val tdMapperDecoder: Decoder[DateTimeMapper] = Decoder.decodeString.emapTry {

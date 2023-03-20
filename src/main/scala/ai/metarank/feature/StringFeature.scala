@@ -163,7 +163,9 @@ object StringFeature {
       values: NonEmptyList[String],
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(StringFeature(this))
+  }
 
   implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = Decoder
     .instance(c =>

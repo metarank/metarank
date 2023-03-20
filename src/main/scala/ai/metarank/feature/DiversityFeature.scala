@@ -18,7 +18,7 @@ import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto._
 import cats.effect.IO
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
@@ -87,13 +87,13 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
         }
         stringValues match {
           case Nil => emptyResponse(request)
-          case nel => valuesString(request, nel.toMap)
+          case nel => valuesString(request, nel)
         }
       case Some(SDouble(_)) =>
         val doubleValues = fieldValues.collect { case (name, SDouble(value)) => name -> value }
         doubleValues match {
           case Nil => emptyResponse(request)
-          case nel => valuesDouble(request, nel.toMap)
+          case nel => valuesDouble(request, nel)
         }
       case None => Nil
       case Some(other) =>
@@ -102,25 +102,27 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
     }
   }
 
-  def valuesString(request: RankingEvent, features: Map[ItemId, List[String]]): List[MValue] = {
-    val stringCounts = features.flatMap(_._2).groupMapReduce(identity)(_ => 1)(_ + _)
+  def valuesString(request: RankingEvent, features: List[(ItemId, List[String])]): List[MValue] = {
+    val featureMap   = features.toMap
+    val stringCounts = features.take(schema.top).flatMap(_._2).groupMapReduce(identity)(_ => 1)(_ + _)
     val sum          = stringCounts.values.foldLeft(0.0)(_ + _)
     request.items.toList.map(item => {
-      features.get(item.id) match {
+      featureMap.get(item.id) match {
         case None => SingleValue.missing(conf.name)
         case Some(strings) =>
-          val weightsSum = strings.map(str => stringCounts.getOrElse(str, 0)).foldLeft(0)(_ + _) / sum
+          val weightsSum = strings.map(str => stringCounts.getOrElse(str, 0)).foldLeft(0.0)(_ + _) / sum
           SingleValue(conf.name, weightsSum)
       }
     })
   }
-  def valuesDouble(request: RankingEvent, features: Map[ItemId, Double]): List[MValue] = {
-    val perc = new Percentile()
-    val data = features.values.toArray
+  def valuesDouble(request: RankingEvent, features: List[(ItemId, Double)]): List[MValue] = {
+    val perc       = new Percentile()
+    val featureMap = features.toMap
+    val data       = features.map(_._2).take(schema.top).toArray
     perc.setData(data)
     val median = perc.evaluate(50.0)
     request.items.toList.map(item => {
-      features.get(item.id) match {
+      featureMap.get(item.id) match {
         case Some(value) => SingleValue(conf.name, value - median)
         case None        => SingleValue.missing(conf.name)
       }
@@ -133,16 +135,31 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
 object DiversityFeature {
   import ai.metarank.util.DurationJson._
 
-  case class DiversitySchema(name: FeatureName, source: FieldName, ttl: Option[FiniteDuration] = None)
-      extends FeatureSchema {
+  case class DiversitySchema(
+      name: FeatureName,
+      source: FieldName,
+      ttl: Option[FiniteDuration] = None,
+      top: Int = Int.MaxValue
+  ) extends FeatureSchema {
     val scope: ScopeType                = ItemScopeType
     val refresh: Option[FiniteDuration] = None
   }
 
   implicit val diversitySchemaEncoder: Encoder[DiversitySchema] = deriveEncoder
-  implicit val diversitySchemaDecoder: Decoder[DiversitySchema] = deriveDecoder[DiversitySchema].ensure {
-    case DiversitySchema(name, FieldName(eventType, _), _) if eventType != Item =>
-      List(s"feature $name supports only item.* fields, but got $eventType")
-    case _ => Nil
-  }
+  implicit val diversitySchemaDecoder: Decoder[DiversitySchema] = Decoder
+    .instance(c =>
+      for {
+        name   <- c.downField("name").as[FeatureName]
+        source <- c.downField("source").as[FieldName]
+        _ <- source match {
+          case FieldName(Item, _) => Right(())
+          case FieldName(other, _) =>
+            Left(DecodingFailure(s"diversity feature '$name' can only accept item fields, but got '$other'", c.history))
+        }
+        ttl <- c.downField("ttl").as[Option[FiniteDuration]]
+        top <- c.downField("top").as[Option[Int]]
+      } yield {
+        DiversitySchema(name, source, ttl, top.getOrElse(20))
+      }
+    )
 }

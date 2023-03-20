@@ -37,9 +37,14 @@ object ScalarCodec extends BinaryCodec[Scalar] {
       val items = (0 until size).map(_ => in.readUTF()).toList
       SStringList(items)
     case 4 =>
-      val size  = in.readVarInt()
-      val items = (0 until size).map(_ => in.readDouble()).toList
-      SDoubleList(items)
+      val size = in.readVarInt()
+      val buf  = new Array[Double](size)
+      var i    = 0
+      while (i < size) {
+        buf(i) = in.readDouble()
+        i += 1
+      }
+      SDoubleList(buf)
     case index => throw new Exception(s"cannot decode scalar $index")
   }
 

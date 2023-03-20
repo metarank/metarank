@@ -19,7 +19,7 @@ class ScalarCodecTest extends AnyFlatSpec with Matchers with BinCodecTest {
     roundtrip(ScalarCodec, SStringList(List("foo", "bar")))
   }
   it should "do double lists" in {
-    roundtrip(ScalarCodec, SDoubleList(List(1.0, 2.3)))
+    roundtrip(ScalarCodec, SDoubleList(Array(1.0, 2.3)))
   }
 
 }

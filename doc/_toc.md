@@ -22,6 +22,7 @@
     * [Text](configuration/features/text.md)
     * [User Profile](configuration/features/user-session.md)
     * [Diversification](configuration/features/diversity.md)
+    * [Neural](configuration/features/neural.md)
   * [Recommendations](configuration/recommendations.md)
     * [Trending items](configuration/recommendations/trending.md)
     * [Similar items](configuration/recommendations/similar.md)

@@ -24,7 +24,9 @@ class FieldTest extends AnyFlatSpec with Matchers {
     )
   }
   it should "decode num list fields" in {
-    decode[Field]("""{"name":"field", "value": [1,2,3]}""") shouldBe Right(NumberListField("field", List(1, 2, 3)))
+    decode[Field]("""{"name":"field", "value": [1,2,3]}""") shouldBe Right(
+      NumberListField("field", Array(1.0, 2.0, 3.0))
+    )
   }
   it should "decode num list fields with nans" in {
     decode[Field]("""{"name":"field", "value": [1,2,3,NaN]}""") shouldBe a[Left[_, _]]

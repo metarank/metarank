@@ -2,10 +2,9 @@ package ai.metarank.ml.recommend
 
 import ai.metarank.config.ModelConfig
 import ai.metarank.config.Selector.AcceptSelector
-import ai.metarank.ml.recommend.BertSemanticRecommender.Encoder.CsvEncoder
+import ai.metarank.ml.onnx.encoder.CsvEncoder
+import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
-import ai.metarank.ml.recommend.BertSemanticRecommender.EncoderType.BertEncoderType
-import ai.metarank.ml.recommend.BertSemanticRecommenderTest.Movie
 import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Field.StringField

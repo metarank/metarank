@@ -143,6 +143,8 @@ object DiversityFeature {
   ) extends FeatureSchema {
     val scope: ScopeType                = ItemScopeType
     val refresh: Option[FiniteDuration] = None
+
+    override def create(): IO[BaseFeature] = IO.pure(DiversityFeature(this))
   }
 
   implicit val diversitySchemaEncoder: Encoder[DiversitySchema] = deriveEncoder

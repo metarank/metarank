@@ -75,7 +75,9 @@ object BooleanFeature {
       scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(BooleanFeature(this))
+  }
 
   implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = Decoder
     .instance(c =>

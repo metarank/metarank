@@ -27,6 +27,7 @@ import com.snowplowanalytics.refererparser.{
   EmailMedium,
   InternalMedium,
   PaidMedium,
+  Parser,
   SearchMedium,
   SocialMedium,
   UnknownMedium
@@ -37,14 +38,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class RefererFeature(schema: RefererSchema) extends RankingFeature with Logging {
-  lazy val parser = {
-    val json = Resource.my.getAsString("/referers.json")
-    val file = File.newTemporaryFile("referers", ".json").deleteOnExit()
-    file.write(json)
-    logger.info("loaded referers.json from resources")
-    CreateParser[Id].create(file.toString()).toOption.get // YOLO
-  }
+case class RefererFeature(schema: RefererSchema, parser: Parser) extends RankingFeature with Logging {
 
   val conf = ScalarConfig(
     scope = schema.scope,
@@ -129,6 +123,21 @@ object RefererFeature {
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema
+      with Logging {
+    override def create(): IO[BaseFeature] = createParser().map(p => RefererFeature(this, p))
+
+    def createParser() = for {
+      json         <- IO(Resource.my.getAsString("/referers.json"))
+      file         <- IO(File.newTemporaryFile("referers", ".json").deleteOnExit())
+      _            <- IO(file.write(json))
+      _            <- info("loaded referers.json from resources")
+      parserEither <- CreateParser[IO].create(file.toString())
+      parser       <- IO.fromEither(parserEither)
+    } yield {
+      parser
+    }
+
+  }
 
   implicit val refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
     .ensure(validType, "source type can be only interaction or ranking")

@@ -46,7 +46,7 @@ case class ItemFieldStat(
   }
 
   def refresh(field: NumberListField): ItemFieldStat = {
-    val updated = numlists.getOrElse(field.name, NumericListFieldStat()).refresh(field.value)
+    val updated = numlists.getOrElse(field.name, NumericListFieldStat()).refresh(field.value.toList)
     copy(numlists = numlists + (field.name -> updated))
   }
 }

@@ -19,13 +19,12 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class RefererFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val feature = RefererFeature(
-    RefererSchema(
-      name = FeatureName("ref_medium"),
-      source = FieldName(Ranking, "ref"),
-      scope = UserScopeType
-    )
-  )
+  val feature = RefererSchema(
+    name = FeatureName("ref_medium"),
+    source = FieldName(Ranking, "ref"),
+    scope = UserScopeType
+  ).create().unsafeRunSync()
+
   val store = MemPersistence(Schema(feature.states))
 
   val event =

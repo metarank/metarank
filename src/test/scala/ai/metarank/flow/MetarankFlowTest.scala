@@ -66,7 +66,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
       weights = Map("click" -> 1)
     )
   )
-  val mapping     = FeatureMapping.fromFeatureSchema(features, models)
+  val mapping     = FeatureMapping.fromFeatureSchema(features, models).unsafeRunSync()
   val store       = MemPersistence(mapping.schema)
   val ts          = Timestamp.now
   val ranker      = Ranker(mapping, store)

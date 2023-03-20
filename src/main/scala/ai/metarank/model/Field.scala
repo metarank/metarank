@@ -3,6 +3,8 @@ package ai.metarank.model
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto._
 
+import java.util
+
 sealed trait Field {
   def name: String
 }
@@ -12,7 +14,14 @@ object Field {
   case class BooleanField(name: String, value: Boolean)         extends Field
   case class NumberField(name: String, value: Double)           extends Field
   case class StringListField(name: String, value: List[String]) extends Field
-  case class NumberListField(name: String, value: List[Double]) extends Field
+  case class NumberListField(name: String, value: Array[Double]) extends Field {
+    override def equals(obj: Any): Boolean = obj match {
+      case NumberListField(xname, xvalues) => (name == xname) && (util.Arrays.equals(value, xvalues))
+      case _                               => false
+    }
+  }
+
+  object NumberListField {}
 
   def toString(fields: List[Field]) = fields
     .map {
@@ -39,7 +48,7 @@ object Field {
         jsonArray = {
           case values if values.forall(_.isString) => Right(StringListField(name, values.flatMap(_.asString).toList))
           case values if values.forall(_.isNumber) =>
-            Right(NumberListField(name, values.flatMap(_.asNumber.map(_.toDouble)).toList))
+            Right(NumberListField(name, values.flatMap(_.asNumber.map(_.toDouble)).toArray))
           case other =>
             Left(DecodingFailure(s"cannot decode field $name: got list of $other", c.history))
         },

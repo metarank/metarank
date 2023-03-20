@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.feature.BiencoderFeature.BiencoderSchema
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
@@ -8,7 +9,7 @@ import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
-import ai.metarank.feature.{NumVectorFeature, NumberFeature}
+import ai.metarank.feature.{BaseFeature, NumVectorFeature, NumberFeature}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
@@ -20,6 +21,7 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Key.FeatureName
+import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
 import scala.concurrent.duration.FiniteDuration
@@ -29,6 +31,8 @@ trait FeatureSchema {
   def refresh: Option[FiniteDuration]
   def ttl: Option[FiniteDuration]
   def scope: ScopeType
+
+  def create(): IO[BaseFeature]
 }
 
 object FeatureSchema {
@@ -55,6 +59,7 @@ object FeatureSchema {
         case "vector"            => implicitly[Decoder[VectorFeatureSchema]].apply(c)
         case "random"            => implicitly[Decoder[RandomFeatureSchema]].apply(c)
         case "diversity"         => implicitly[Decoder[DiversitySchema]].apply(c)
+        case "biencoder"         => implicitly[Decoder[BiencoderSchema]].apply(c)
         case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {

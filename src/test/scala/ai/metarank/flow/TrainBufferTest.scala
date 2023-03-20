@@ -25,7 +25,7 @@ class TrainBufferTest extends AnyFlatSpec with Matchers {
     )
   )
   val features     = List(RandomFeatureSchema(FeatureName("rand")))
-  lazy val mapping = FeatureMapping.fromFeatureSchema(features, models)
+  lazy val mapping = FeatureMapping.fromFeatureSchema(features, models).unsafeRunSync()
   lazy val state   = MemPersistence(mapping.schema)
   lazy val cs      = MemTrainStore()
 

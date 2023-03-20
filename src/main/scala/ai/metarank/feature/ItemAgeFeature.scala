@@ -93,6 +93,8 @@ object ItemAgeFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
     override val scope = ItemScopeType
+
+    override def create(): IO[BaseFeature] = IO.pure(ItemAgeFeature(this))
   }
 
   implicit val itemAgeDecoder: Decoder[ItemAgeSchema] =

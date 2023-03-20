@@ -19,7 +19,7 @@ class ItemFieldStatTest extends AnyFlatSpec with Matchers {
   }
 
   it should "detect num list fields" in {
-    val stat = ItemFieldStat().refresh(TestItemEvent("p1", List(NumberListField("grades", List(1.0, 2.0, 3.0)))))
+    val stat = ItemFieldStat().refresh(TestItemEvent("p1", List(NumberListField("grades", Array(1.0, 2.0, 3.0)))))
     stat.nums.get("grades") shouldBe None
     stat.numlists.get("grades") shouldBe Some(NumericListFieldStat(List(1.0, 2.0, 3.0), Map(3 -> 1)))
   }

@@ -3,6 +3,7 @@ package ai.metarank.model
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import better.files.Resource
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -156,5 +157,18 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
     decode[Timestamp]("123") shouldBe Right(Timestamp(123L))
     decode[Timestamp]("\"123\"") shouldBe Right(Timestamp(123L))
     decode[Timestamp]("\"2022-06-22T11:21:39Z\"") shouldBe Right(Timestamp(1655896899000L))
+  }
+
+  it should "decode japanese in field values" in {
+    val json    = Resource.my.getAsString("/japanese.json")
+    val decoded = decode[Event](json)
+    decoded shouldBe Right(
+      ItemEvent(
+        id = EventId("beb21c70-b3ef-4fc8-9ded-e9e93707371a"),
+        timestamp = Timestamp(1679007381000L),
+        item = ItemId("a071m00000370MKAAY"),
+        fields = List(StringField("maker", "ﾒｲｽﾞ ｵﾘｼﾞﾅﾙ"))
+      )
+    )
   }
 }

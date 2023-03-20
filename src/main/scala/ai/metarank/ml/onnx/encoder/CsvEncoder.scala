@@ -6,6 +6,7 @@ import cats.effect.IO
 import fs2.io.file.Path
 
 case class CsvEncoder(dic: Map[ItemId, Array[Float]], dim: Int) extends Encoder {
+  override def encode(str: String): Array[Float] = ???
   override def encode(id: ItemId, str: String): Array[Float] = dic.get(id) match {
     case Some(value) => value
     case None        => new Array[Float](dim)
@@ -36,14 +37,14 @@ object CsvEncoder extends Logging {
   def parseLine(line: String): Either[Throwable, (ItemId, Array[Float])] = {
     val tokens = line.split(',')
     if (tokens.length > 1) {
-      val key = ItemId(tokens(0))
+      val key    = ItemId(tokens(0))
       val values = new Array[Float](tokens.length - 1)
-      var i = 1
+      var i      = 1
       var failed = false
       while ((i < tokens.length) && !failed) {
         tokens(i).toFloatOption match {
           case Some(float) => values(i - 1) = float
-          case None => failed = true
+          case None        => failed = true
         }
         i += 1
       }

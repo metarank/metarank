@@ -4,14 +4,15 @@ import ai.metarank.model.Identifier.ItemId
 import cats.effect.IO
 
 trait Encoder {
+  def encode(str: String): Array[Float]
   def encode(id: ItemId, str: String): Array[Float]
   def dim: Int
 }
 
 object Encoder {
-  def create(conf: EncoderType):IO[Encoder] = conf match {
+  def create(conf: EncoderType): IO[Encoder] = conf match {
     case EncoderType.BertEncoderType(model) => BertEncoder.create(model)
-    case EncoderType.CsvEncoderType(path) => CsvEncoder.create(path)
+    case EncoderType.CsvEncoderType(path)   => CsvEncoder.create(path)
 
   }
 

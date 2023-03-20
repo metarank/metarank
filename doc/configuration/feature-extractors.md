@@ -89,6 +89,9 @@ The `scope: item` means that the extracted popularity field from item metadata s
 * [position](features/relevancy.md#position): Item position in ranking.
 * [diversity](features/diversity.md): Search results diversification.
 
+### Neural LLM extractors
+* [biencoder](features/neural.md): run a bi-encoder LLM model to compute semantic similarity between ranking and item fields.
+
 ### Interaction feature extractors
 * [interaction_count](features/counters.md#interaction-counter): number of interaction made within this session.
 * [window_event_count](features/counters.md#windowed-counter): sliding window count of interaction events.

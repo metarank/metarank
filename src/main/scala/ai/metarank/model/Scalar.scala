@@ -20,6 +20,18 @@ object Scalar {
     }
   }
 
+  object SDoubleList {
+    def apply(values: Array[Float]) = {
+      val buf = new Array[Double](values.length)
+      var i   = 0
+      while (i < values.length) {
+        buf(i) = values(i).toDouble
+        i += 1
+      }
+      new SDoubleList(buf)
+    }
+  }
+
   implicit val stringCodec: Codec[SString] =
     Codec.from(Decoder.decodeString.map(SString.apply), Encoder.encodeString.contramap[SString](_.value))
 

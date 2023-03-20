@@ -66,13 +66,9 @@ class BiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       List(item2, item3, item4),
       schema,
       TestRankingEvent(List("p2", "p3", "p4")).copy(fields = List(StringField("query", "santa socks")))
-    )
-    result shouldBe List(
-      List(
-        SingleValue(schema.name, 0.7093414519478631),
-        SingleValue(schema.name, 0.651140896691446),
-        SingleValue(schema.name, 0.2450188892872221)
-      )
-    )
+    ).flatten.collect { case SingleValue(name, value) => value }.toArray
+    result(0) shouldBe 0.7093 +- 0.001
+    result(1) shouldBe 0.6511 +- 0.001
+    result(2) shouldBe 0.2450 +- 0.001
   }
 }

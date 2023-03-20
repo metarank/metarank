@@ -1,7 +1,9 @@
 package ai.metarank.main
 
 import ai.metarank.config.BoosterConfig.XGBoostConfig
+import ai.metarank.config.Config
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
+import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.CliArgs.AutoFeatureArgs
 import ai.metarank.main.command.AutoFeature
 import ai.metarank.main.command.autofeature.ConfigMirror
@@ -52,5 +54,29 @@ class AutofeatureTest extends AnyFlatSpec with Matchers {
     val x1 = AutoFeature.yamlFormat.pretty(conf.asJson)
     val x2 = AutoFeature.yamlFormat.pretty(conf.asJson)
     x1 shouldBe x2
+  }
+
+  it should "correctly export japanese" in {
+    val conf = ConfigMirror(
+      features = List(
+        StringFeatureSchema(
+          name = FeatureName("foo"),
+          field = FieldName(Item, "foo"),
+          scope = ItemScopeType,
+          values = NonEmptyList.of("ﾒｲｽﾞ", "ｵﾘｼﾞﾅﾙ")
+        )
+      ),
+      models = Map(
+        "default" -> LambdaMARTConfig(
+          backend = XGBoostConfig(iterations = 50),
+          features = NonEmptyList.of(FeatureName("foo")),
+          weights = Map("click" -> 1.0)
+        )
+      )
+    )
+    val generated = AutoFeature.yamlFormat.pretty(conf.asJson)
+    val parsed    = Config.load(generated, Map.empty).unsafeRunSync()
+    parsed.features shouldBe conf.features
+    parsed.models shouldBe conf.models
   }
 }

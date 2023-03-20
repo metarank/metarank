@@ -86,15 +86,23 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"--platform=$PLATFORM ubuntu:jammy-20221020")
+        from(s"--platform=$PLATFORM ubuntu:jammy-20230308")
         runRaw(
           List(
             "sed -i -e 's/archive\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "sed -i -e 's/security\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "apt-get update",
-            "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1",
+            "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1 locales",
+            "sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen",
             "rm -rf /var/lib/apt/lists/*"
           ).mkString(" && ")
+        )
+        env(
+          Map(
+            "LANG"     -> "en_US.UTF-8  ",
+            "LANGUAGE" -> "en_US:en ",
+            "LC_ALL"   -> "en_US.UTF-8  "
+          )
         )
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)

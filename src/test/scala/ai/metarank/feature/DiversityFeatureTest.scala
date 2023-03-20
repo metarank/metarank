@@ -35,6 +35,29 @@ class DiversityFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     )
   }
 
+  it should "compute diversity over topN numbers" in {
+    val conf = DiversitySchema(
+      name = FeatureName("divnum"),
+      source = FieldName(Item, "price"),
+      top = 3
+    )
+    val events = List(
+      TestItemEvent("p1", List(NumberField("price", 10.0))),
+      TestItemEvent("p2", List(NumberField("price", 20.0))),
+      TestItemEvent("p3", List(NumberField("price", 30.0))),
+      TestItemEvent("p4", List(NumberField("price", 5.0))),
+      TestItemEvent("p5", List(NumberField("price", 1.0)))
+    )
+    val result = process(events, conf, TestRankingEvent(List("p1", "p2", "p3", "p4", "p5"))).flatten
+    result shouldBe List(
+      SingleValue(conf.name, -10.0),
+      SingleValue(conf.name, 0.0),
+      SingleValue(conf.name, 10.0),
+      SingleValue(conf.name, -15.0),
+      SingleValue(conf.name, -19.0)
+    )
+  }
+
   it should "compute diversity over strings" in {
     val conf = DiversitySchema(
       name = FeatureName("divstr"),

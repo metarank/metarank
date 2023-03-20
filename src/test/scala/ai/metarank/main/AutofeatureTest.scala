@@ -1,6 +1,7 @@
 package ai.metarank.main
 
 import ai.metarank.config.BoosterConfig.XGBoostConfig
+import ai.metarank.config.Config
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.CliArgs.AutoFeatureArgs
@@ -74,33 +75,8 @@ class AutofeatureTest extends AnyFlatSpec with Matchers {
       )
     )
     val generated = AutoFeature.yamlFormat.pretty(conf.asJson)
-    val expected = """features:
-                     |- type: string
-                     |  name: foo
-                     |  field: item.foo
-                     |  scope: item
-                     |  values:
-                     |  - ﾒｲｽﾞ
-                     |  - ｵﾘｼﾞﾅﾙ
-                     |models:
-                     |  default:
-                     |    type: lambdamart
-                     |    backend:
-                     |      type: xgboost
-                     |      iterations: 50
-                     |      learningRate: 0.1
-                     |      ndcgCutoff: 10
-                     |      maxDepth: 8
-                     |      seed: 0
-                     |      sampling: 0.8
-                     |    features:
-                     |    - foo
-                     |    weights:
-                     |      click: 1.0
-                     |    selector:
-                     |      accept: true
-                     |    split: time=80%
-                     |""".stripMargin
-    generated shouldBe expected
+    val parsed    = Config.load(generated, Map.empty).unsafeRunSync()
+    parsed.features shouldBe conf.features
+    parsed.models shouldBe conf.models
   }
 }

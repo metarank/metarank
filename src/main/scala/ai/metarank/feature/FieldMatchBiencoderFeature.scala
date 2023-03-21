@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.feature.BiencoderFeature.BiencoderSchema
+import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
@@ -11,7 +11,8 @@ import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{Event, Feature, FeatureSchema, FeatureValue, Field, Key, MValue, ScopeType, Write}
+import ai.metarank.model.FieldName.EventType.{Item, Ranking}
+import ai.metarank.model.{Event, Feature, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SDoubleList
@@ -20,12 +21,14 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
-import io.circe.Decoder
+import io.circe.{Decoder, DecodingFailure}
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class BiencoderFeature(schema: BiencoderSchema, encoder: Encoder) extends ItemFeature with Logging {
+case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder: Encoder)
+    extends ItemFeature
+    with Logging {
   override def dim = SingleDim
 
   private val conf = ScalarConfig(
@@ -44,7 +47,7 @@ case class BiencoderFeature(schema: BiencoderSchema, encoder: Encoder) extends I
     event match {
       case e: ItemEvent =>
         for {
-          field <- e.fieldsMap.get(schema.itemField)
+          field <- e.fieldsMap.get(schema.itemField.field)
           string <- field match {
             case Field.StringField(_, value)     => Some(value)
             case Field.StringListField(_, value) => Some(value.mkString(" "))
@@ -66,7 +69,7 @@ case class BiencoderFeature(schema: BiencoderSchema, encoder: Encoder) extends I
       features: Map[Key, FeatureValue],
       mode: BaseFeature.ValueMode
   ): List[MValue] = {
-    val queryOption = request.fieldsMap.get(schema.rankingField).collect {
+    val queryOption = request.fieldsMap.get(schema.rankingField.field).collect {
       case StringField(_, value)     => value
       case StringListField(_, value) => value.mkString(" ")
     }
@@ -85,38 +88,44 @@ case class BiencoderFeature(schema: BiencoderSchema, encoder: Encoder) extends I
   }
 }
 
-object BiencoderFeature {
+object FieldMatchBiencoderFeature {
   import ai.metarank.util.DurationJson._
-  case class BiencoderSchema(
+  case class FieldMatchBiencoderSchema(
       name: FeatureName,
-      rankingField: String,
-      itemField: String,
-      encoder: EncoderType,
+      rankingField: FieldName,
+      itemField: FieldName,
+      method: EncoderType,
       distance: DistanceFunction,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
     lazy val scope: ScopeType = ItemScopeType
 
-    override def create(): IO[BaseFeature] = Encoder.create(encoder).map(enc => BiencoderFeature(this, enc))
+    override def create(): IO[BaseFeature] = Encoder.create(method).map(enc => FieldMatchBiencoderFeature(this, enc))
   }
 
-  object BiencoderSchema {
-    implicit val biencSchemaDecoder: Decoder[BiencoderSchema] = Decoder.instance(c =>
+  object FieldMatchBiencoderSchema {
+    implicit val biencSchemaDecoder: Decoder[FieldMatchBiencoderSchema] = Decoder.instance(c =>
       for {
-        name         <- c.downField("name").as[FeatureName]
-        rankingField <- c.downField("rankingField").as[String]
-        itemField    <- c.downField("itemField").as[String]
-        encoder      <- c.downField("encoder").as[EncoderType]
-        distance     <- c.downField("distance").as[Option[DistanceFunction]]
-        refresh      <- c.downField("refresh").as[Option[FiniteDuration]]
-        ttl          <- c.downField("rrl").as[Option[FiniteDuration]]
+        name <- c.downField("name").as[FeatureName]
+        rankingField <- c.downField("rankingField").as[FieldName].flatMap {
+          case ok @ FieldName(Ranking, _) => Right(ok)
+          case other                      => Left(DecodingFailure(s"expected ranking field, but got $other", c.history))
+        }
+        itemField <- c.downField("itemField").as[FieldName].flatMap {
+          case ok @ FieldName(Item, _) => Right(ok)
+          case other                   => Left(DecodingFailure(s"expected item field, but got $other", c.history))
+        }
+        method   <- c.downField("method").as[EncoderType]
+        distance <- c.downField("distance").as[Option[DistanceFunction]]
+        refresh  <- c.downField("refresh").as[Option[FiniteDuration]]
+        ttl      <- c.downField("rrl").as[Option[FiniteDuration]]
       } yield {
-        BiencoderSchema(
+        FieldMatchBiencoderSchema(
           name = name,
           rankingField = rankingField,
           itemField = itemField,
-          encoder = encoder,
+          method = method,
           distance = distance.getOrElse(CosineDistance),
           refresh = refresh,
           ttl = ttl

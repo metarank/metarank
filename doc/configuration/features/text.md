@@ -5,6 +5,13 @@
 An extractor which can match a field from ranking event over an item field. In practice, it can be useful in search
 related tasks, when you need to match a search query over multiple separate fields in document, like title-tags-category.
 
+Field match extractor supports the following matching methods:
+* ngram: split item/query fields to N-grams and compute intersection over union score
+* term: use Lucene to perform language specific tokenization
+* bert: build LLM embeddings for item/query fields and compute a distance between them
+
+### Dataset example
+
 Given this metadata event:
 ```json
 {
@@ -40,6 +47,8 @@ And a following ranking event:
 }
 ```
 
+### Ngram matching
+
 With the following config file snippet you can do a per-field matching of `ranking.query` field over `item.title` field of
 the items in the ranking with 3-grams:
 ```yaml
@@ -54,6 +63,8 @@ the items in the ranking with 3-grams:
   refresh: 0s // optional, how frequently we should update the value, 0s by default
   ttl: 90d // optional, how long should we store this field
 ```
+
+### Term matching 
 
 In a similar way you can do the same with term matching:
 ```yaml
@@ -94,3 +105,19 @@ Both term and ngram method share the same approach to the text analysis:
 * stopwords are removed
 * for non-generic languages each term is stemmed
 * then terms/ngrams from item and ranking are scored using intersection/union method.
+
+### BERT LLM embedding similarity
+
+Then with the following config snippet we can compute a cosine distance between title and query embeddings:
+
+```yaml
+- type: field_match
+  name: title_query_match
+  rankingField: ranking.query
+  itemField: item.title
+  distance: cos # optional, default cos, options: cos/dot 
+  method:
+    type: bert # the only one supported for now
+    model: sentence-transformer/all-MiniLM-L6-v2 # the only one supported now
+```
+

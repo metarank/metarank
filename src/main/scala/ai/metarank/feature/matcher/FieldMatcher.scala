@@ -1,11 +1,14 @@
 package ai.metarank.feature.matcher
 
+import ai.metarank.ml.onnx.encoder.Encoder
+
 import java.util
 import java.util.Comparator
 
 trait FieldMatcher {
 
   /** Should emit a lexicographically sorted array of tokens
+    *
     * @param string
     * @return
     */

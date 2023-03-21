@@ -1,12 +1,13 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BiencoderFeature.BiencoderSchema
+import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{EventId, FeatureSchema, Timestamp, Write}
+import ai.metarank.model.FieldName.EventType.{Item, Ranking}
+import ai.metarank.model.{EventId, FeatureSchema, FieldName, Timestamp, Write}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
@@ -16,15 +17,15 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class BiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val schema = BiencoderSchema(
+class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
+  val schema = FieldMatchBiencoderSchema(
     name = FeatureName("foo"),
-    rankingField = "query",
-    itemField = "title",
+    rankingField = FieldName(Ranking,"query"),
+    itemField = FieldName(Item, "title"),
     distance = CosineDistance,
-    encoder = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2")
+    method = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2")
   )
-  lazy val feature = schema.create().unsafeRunSync().asInstanceOf[BiencoderFeature]
+  lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchBiencoderFeature]
 
   val now = Timestamp.now
   val itemEvent = ItemEvent(
@@ -36,12 +37,12 @@ class BiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "decode config" in {
     val yaml =
-      """type: biencoder
+      """type: field_match
         |name: foo
-        |rankingField: query
-        |itemField: title
+        |rankingField: ranking.query
+        |itemField: item.title
         |distance: cosine
-        |encoder:
+        |method:
         |  type: bert
         |  model: sentence-transformer/all-MiniLM-L6-v2
         |  """.stripMargin

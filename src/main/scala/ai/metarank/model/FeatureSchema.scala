@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import ai.metarank.feature.BiencoderFeature.BiencoderSchema
+import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
@@ -53,14 +53,23 @@ object FeatureSchema {
         case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
         case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)
         case "item_age"          => implicitly[Decoder[ItemAgeSchema]].apply(c)
-        case "field_match"       => implicitly[Decoder[FieldMatchSchema]].apply(c)
-        case "referer"           => implicitly[Decoder[RefererSchema]].apply(c)
-        case "position"          => implicitly[Decoder[PositionFeatureSchema]].apply(c)
-        case "vector"            => implicitly[Decoder[VectorFeatureSchema]].apply(c)
-        case "random"            => implicitly[Decoder[RandomFeatureSchema]].apply(c)
-        case "diversity"         => implicitly[Decoder[DiversitySchema]].apply(c)
-        case "biencoder"         => implicitly[Decoder[BiencoderSchema]].apply(c)
-        case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
+        case "field_match" =>
+          val biencoder = implicitly[Decoder[FieldMatchBiencoderSchema]]
+          val term      = implicitly[Decoder[FieldMatchSchema]]
+          c.downField("method").downField("type").as[String] match {
+            case Left(err)      => Left(err)
+            case Right("bert")  => biencoder.apply(c)
+            case Right("csv")   => biencoder.apply(c)
+            case Right("term")  => term.apply(c)
+            case Right("ngram") => term.apply(c)
+            case Right(other)   => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
+          }
+        case "referer"   => implicitly[Decoder[RefererSchema]].apply(c)
+        case "position"  => implicitly[Decoder[PositionFeatureSchema]].apply(c)
+        case "vector"    => implicitly[Decoder[VectorFeatureSchema]].apply(c)
+        case "random"    => implicitly[Decoder[RandomFeatureSchema]].apply(c)
+        case "diversity" => implicitly[Decoder[DiversitySchema]].apply(c)
+        case other       => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {
       decoded

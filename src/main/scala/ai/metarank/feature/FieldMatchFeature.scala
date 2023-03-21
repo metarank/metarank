@@ -4,6 +4,8 @@ import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher, TermMatcher}
 import ai.metarank.fstore.Persistence
+import ai.metarank.ml.onnx.encoder.EncoderType
+import ai.metarank.ml.onnx.encoder.EncoderType.{BertEncoderType, CsvEncoderType}
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -120,15 +122,9 @@ object FieldMatchFeature {
   )
 
   implicit val matchEncoder: Encoder[FieldMatcher] = Encoder.instance {
-    case m: NgramMatcher =>
-      NgramMatcher
-        .ngramEncoder(m)
-        .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
-    case t: TermMatcher =>
-      TermMatcher
-        .termEncoder(t)
-        .deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString("term")))))
-    case _ => ???
+    case m: NgramMatcher    => NgramMatcher.ngramEncoder(m).deepMerge(withType("ngram"))
+    case t: TermMatcher     => TermMatcher.termEncoder(t).deepMerge(withType("term"))
+    case _                  => ???
   }
 
   implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema]
@@ -139,4 +135,6 @@ object FieldMatchFeature {
   // .withErrorMessage("cannot parse a feature definition of type 'field_match'")
 
   implicit val fieldMatchEncoder: Encoder[FieldMatchSchema] = deriveEncoder[FieldMatchSchema]
+
+  def withType(t: String) = Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(t))))
 }

@@ -17,7 +17,11 @@ object ClickthroughQuery {
       item <- values
     } yield {
       LabeledItem(
-        label = ints.find(_.item == item.id).flatMap(tpe => weights.get(tpe.tpe)).getOrElse(0.0),
+        label = ints.find(_.item == item.id) match {
+          case Some(TypedInteraction(_, _, Some(rel))) => rel.toDouble
+          case Some(TypedInteraction(_, tpe, _))       => weights.getOrElse(tpe, 0.0)
+          case None                                    => 0.0
+        },
         group = math.abs(id.hashCode),
         values = collectFeatureValues(dataset, item.values)
       )

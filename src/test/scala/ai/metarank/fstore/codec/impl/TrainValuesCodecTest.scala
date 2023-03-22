@@ -1,6 +1,5 @@
 package ai.metarank.fstore.codec.impl
 
-import ai.metarank.fstore.codec.impl.TrainValuesCodec.ClickthroughValuesCodec.MValueCodec
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
@@ -8,7 +7,6 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model.{Clickthrough, EventId, ItemValue, Timestamp}
-import better.files.File
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -54,13 +52,14 @@ class TrainValuesCodecTest extends AnyFlatSpec with Matchers {
     )
   )
 
-  lazy val bytes   = IOUtils.resourceToByteArray("/codec/ctv-v2.bin")
+  lazy val bytes   = IOUtils.resourceToByteArray("/codec/ctv-v3.bin")
   lazy val bytesV1 = IOUtils.resourceToByteArray("/codec/ctv-v1.bin")
+  lazy val bytesV2 = IOUtils.resourceToByteArray("/codec/ctv-v2.bin")
 
   it should "roundtrip ctv" in {
     val out = new ByteArrayOutputStream()
     TrainValuesCodec.write(ctv, new DataOutputStream(out))
-    // val temp    = File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
+    // val temp    = better.files.File("/tmp/ctv.bin").writeByteArray(out.toByteArray)
     val decoded = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(out.toByteArray)))
     decoded shouldBe ctv
   }
@@ -71,9 +70,13 @@ class TrainValuesCodecTest extends AnyFlatSpec with Matchers {
     val actual = out.toByteArray
     actual should contain theSameElementsInOrderAs (bytes)
   }
+  it should "decode reference bytes v3" in {
+    val actual = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(bytes)))
+    actual shouldBe ctv
+  }
 
   it should "decode reference bytes v2" in {
-    val actual = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(bytes)))
+    val actual = TrainValuesCodec.read(new DataInputStream(new ByteArrayInputStream(bytesV2)))
     actual shouldBe ctv
   }
 

@@ -158,6 +158,7 @@ define which model to invoke.
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.
 - `items.fields`: an optional set of per-item fields, for example BM25 scores coming from ES. See [how to use BM25 scores](configuration/features/relevancy.md#ranking) in ranking.
+- `items.label`: an optional field for explicit relevance judgments.
 
 ### Response format
 

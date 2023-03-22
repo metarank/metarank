@@ -65,6 +65,14 @@ object CliArgs extends Logging {
       split: SplitStrategy = SplitStrategy.default
   ) extends CliConfArgs
 
+  case class TermFreqArgs(
+      data: Path,
+      conf: Path,
+      offset: SourceOffset = SourceOffset.Latest,
+      format: SourceFormat = JsonFormat,
+      out: Path
+  ) extends CliConfArgs
+
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
   def parse(args: List[String], env: Map[String, String]): Either[Throwable, CliArgs] = {
@@ -148,6 +156,16 @@ object CliArgs extends Logging {
               split  <- parseOption(parser.`export`.split)
             } yield {
               ExportArgs(conf, model, out, sample, split.getOrElse(SplitStrategy.default))
+            }
+          case Some(parser.termfreq) =>
+            for {
+              conf   <- parse(parser.termfreq.config)
+              data   <- parse(parser.termfreq.data)
+              offset <- parse(parser.termfreq.offset)
+              format <- parse(parser.termfreq.format)
+              out    <- parse(parser.termfreq.out)
+            } yield {
+              TermFreqArgs(data, conf, offset, format, out)
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -323,6 +341,15 @@ object CliArgs extends Logging {
       )
     }
 
+    object termfreq extends Subcommand("termfreq") with ConfigOption with ImportLikeOption {
+      descr("compute term frequencies for the BM25 field_match extractor")
+      val out = opt[Path](
+        name = "out",
+        required = true,
+        descr = "a path to an output json file"
+      )
+    }
+
     def pathExists(path: Path) = {
       val result = path.toFile.exists()
       if (!result) {
@@ -355,6 +382,7 @@ object CliArgs extends Logging {
     addSubcommand(sort)
     addSubcommand(autofeature)
     addSubcommand(`export`)
+    addSubcommand(termfreq)
     version(Logo.raw + " Metarank v:" + Version().getOrElse("unknown"))
     banner("""Usage: metarank <subcommand> <options>
              |Options:

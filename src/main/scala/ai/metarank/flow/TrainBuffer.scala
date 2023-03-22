@@ -6,7 +6,7 @@ import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.fstore.Persistence.KVStore
 import ai.metarank.fstore.{EventTicker, FeatureValueLoader, TrainStore}
 import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, UserEvent}
 import ai.metarank.model.TrainValues.{ClickthroughValues, ItemValues, UserValues}
 import ai.metarank.model.{Clickthrough, Event, FeatureValue, ItemValue, Key, TrainValues}
 import ai.metarank.util.Logging
@@ -56,15 +56,25 @@ case class TrainBuffer(
         user = event.user,
         session = event.session,
         items = event.items.toList.map(_.id),
-        rankingFields = event.fields
+        rankingFields = event.fields,
+        interactions = explicitLabelInteractions(event)
       ),
       mvalues.toList
     )
-    _ <- IO(cache.put(ctv.ct.id.value, ctv))
+    _ <- ctv.ct.interactions match {
+      case Nil => IO(cache.put(ctv.ct.id.value, ctv))
+      case _   => IO(queue.add(ctv))
+    }
   } yield {}
 
-  def handleInteraction(event: InteractionEvent): IO[Unit] = {
+  def explicitLabelInteractions(event: RankingEvent): List[TypedInteraction] = {
+    event.items.toList.flatMap {
+      case RankItem(id, _, Some(rel)) => Some(TypedInteraction(id, s"rel$rel", Some(rel)))
+      case _                          => None
+    }
+  }
 
+  def handleInteraction(event: InteractionEvent): IO[Unit] = {
     event.ranking match {
       case None => // probably a rec event, flush now
         IO {
@@ -120,7 +130,7 @@ case class TrainBuffer(
       })
       _ <- cts.put(expired)
     } yield {
-      // logger.info(s"expired $expired")
+      logger.info(s"expired $expired")
       flushable
     }
   }

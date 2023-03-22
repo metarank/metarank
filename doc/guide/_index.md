@@ -3,7 +3,8 @@
   * Architecture and how it works
   * Comparison to alternatives
 * Preparing historical data
-* Generating configuration 
+  * Explicit and implicit feedback 
+* Generating configuration
 * Setting up ranking model (supported model types and options)
   * Tuning model hyper-parameters 
 * Importing data

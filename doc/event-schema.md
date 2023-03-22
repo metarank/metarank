@@ -114,6 +114,7 @@ This information is used by personalization algorithms to understand which items
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from metadata event.
 - `items.fields`: a set of optional per-item fields.
+- `items.label`: an optional field for explicit relevance judgments.
 
 ## Interaction event
 

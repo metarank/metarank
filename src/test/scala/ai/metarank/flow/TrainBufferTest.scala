@@ -4,8 +4,10 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
-import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemPersistence, MemTrainStore}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
+import ai.metarank.model.Event.RankItem
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{EventId, Timestamp}
 import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
@@ -47,6 +49,22 @@ class TrainBufferTest extends AnyFlatSpec with Matchers {
     Thread.sleep(100)
     val cts = buffer.flushQueue().unsafeRunSync()
     cts shouldBe empty
+  }
+
+  it should "emit ctv on explicit labels" in {
+    val buffer = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val now    = Timestamp.now
+    val result = buffer
+      .process(
+        TestRankingEvent(List("p1"))
+          .copy(
+            id = EventId("i1"),
+            timestamp = now,
+            items = NonEmptyList.of(RankItem(ItemId("p1"), label = Some(1)), RankItem(ItemId("p2"), label = Some(2)))
+          )
+      )
+      .unsafeRunSync()
+    result shouldNot be(empty)
   }
 
   it should "not fail when there are no ranking features" in {

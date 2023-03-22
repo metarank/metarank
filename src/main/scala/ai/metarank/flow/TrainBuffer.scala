@@ -130,7 +130,7 @@ case class TrainBuffer(
       })
       _ <- cts.put(expired)
     } yield {
-      logger.info(s"expired $expired")
+      // logger.info(s"expired $expired")
       flushable
     }
   }

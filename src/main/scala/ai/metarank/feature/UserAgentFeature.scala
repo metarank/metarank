@@ -26,8 +26,7 @@ import ua_parser.{Client, Parser}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
-case class UserAgentFeature(schema: UserAgentSchema) extends RankingFeature {
-  lazy val parser  = new Parser()
+case class UserAgentFeature(schema: UserAgentSchema, parser: Parser) extends RankingFeature {
   override def dim = schema.field.dim
 
   val conf = ScalarConfig(
@@ -81,6 +80,8 @@ object UserAgentFeature {
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
     override val scope = ScopeType.SessionScopeType
+
+    override def create(): IO[BaseFeature] = IO(new Parser()).map(p => UserAgentFeature(this, p))
   }
 
   trait UAField {

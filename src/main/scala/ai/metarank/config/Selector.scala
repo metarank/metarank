@@ -1,7 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{Clickthrough, FieldName}
+import ai.metarank.model.{Clickthrough, FieldName, TrainValues}
 import cats.data.NonEmptyList
 import io.circe.{ACursor, Codec, Decoder, DecodingFailure, Encoder, HCursor, Json}
 import io.circe.generic.semiauto._
@@ -9,6 +9,11 @@ import io.circe.generic.semiauto._
 import scala.util.Random
 
 sealed trait Selector {
+  def accept(tv: TrainValues): Boolean = tv match {
+    case TrainValues.ClickthroughValues(ct, _) => accept(ct)
+    case _: TrainValues.ItemValues             => true
+    case _: TrainValues.UserValues             => true
+  }
   def accept(event: Clickthrough): Boolean
 }
 

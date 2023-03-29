@@ -61,16 +61,16 @@ class NumVectorFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   }
 
   it should "extract field from metadata with default reducers" in {
-    val event  = TestItemEvent("p1", List(NumberListField("vec", List(1.0, 2.0, 3.0))))
+    val event  = TestItemEvent("p1", List(NumberListField("vec", Array(1.0, 2.0, 3.0))))
     val result = feature.writes(event, store).unsafeRunSync().toList
     result shouldBe List(
-      Put(Key(ItemScope(ItemId("p1")), FeatureName("vec")), event.timestamp, SDoubleList(List(1.0, 3.0, 3.0, 2.0)))
+      Put(Key(ItemScope(ItemId("p1")), FeatureName("vec")), event.timestamp, SDoubleList(Array(1.0, 3.0, 3.0, 2.0)))
     )
   }
 
   it should "compute value" in {
     val values = process(
-      List(TestItemEvent("p1", List(NumberListField("vec", List(1.0, 2.0, 3.0))))),
+      List(TestItemEvent("p1", List(NumberListField("vec", Array(1.0, 2.0, 3.0))))),
       feature.schema,
       TestRankingEvent(List("p1"))
     )

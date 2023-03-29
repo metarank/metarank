@@ -4,8 +4,9 @@ import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model
 import ai.metarank.ml.Model.{ItemScore, RecommendModel, Response}
 import ai.metarank.ml.Predictor.RecommendPredictor
-import ai.metarank.model.{ClickthroughValues, Timestamp}
+import ai.metarank.model.{Timestamp, TrainValues}
 import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -35,8 +36,9 @@ object TrendingRecommender {
   case class TrendingPredictor(name: String, config: TrendingConfig)
       extends RecommendPredictor[TrendingConfig, TrendingModel]
       with Logging {
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[TrendingModel] = for {
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[TrendingModel] = for {
       ints <- data
+        .collect { case ct: ClickthroughValues => ct }
         .flatMap(ct => fs2.Stream(ct.ct.interactions.map(ti => ItemInteraction(ti.item, ti.tpe, ct.ct.ts)): _*))
         .compile
         .toList
@@ -84,7 +86,8 @@ object TrendingRecommender {
 
     }
 
-    override def load(bytesOption: Option[Array[Byte]]): Either[Throwable, TrendingModel] = {
+    override def load(bytes: Option[Array[Byte]]): IO[TrendingModel] = IO.fromEither(loadSync(bytes))
+    def loadSync(bytesOption: Option[Array[Byte]]): Either[Throwable, TrendingModel] = {
       bytesOption match {
         case None => Left(new Exception("cannot load trending model: not found"))
         case Some(bytes) =>

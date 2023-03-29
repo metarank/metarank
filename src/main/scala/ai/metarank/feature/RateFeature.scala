@@ -273,7 +273,9 @@ object RateFeature {
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None,
       normalize: Option[NormalizeSchema] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(RateFeature(this))
+  }
 
   case class NormalizeSchema(weight: Double)
 

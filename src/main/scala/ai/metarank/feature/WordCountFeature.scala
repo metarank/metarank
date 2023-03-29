@@ -73,7 +73,9 @@ object WordCountFeature {
       scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(WordCountFeature(this))
+  }
 
   implicit val wcSchemaDecoder: Decoder[WordCountSchema] =
     deriveDecoder[WordCountSchema].withErrorMessage("cannot parse a feature definition of type 'word_count'")

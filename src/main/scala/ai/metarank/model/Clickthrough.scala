@@ -21,7 +21,7 @@ case class Clickthrough(
 }
 
 object Clickthrough {
-  case class TypedInteraction(item: ItemId, tpe: String)
+  case class TypedInteraction(item: ItemId, tpe: String, rel: Option[Int] = None)
   import ai.metarank.model.Event.EventCodecs._
   implicit val wiCodec: Codec[TypedInteraction] = deriveCodec[TypedInteraction]
   implicit val ctCodec: Codec[Clickthrough]     = deriveCodec[Clickthrough]

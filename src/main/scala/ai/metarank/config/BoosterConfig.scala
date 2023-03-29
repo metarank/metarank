@@ -21,7 +21,7 @@ object BoosterConfig {
       learningRate: Double = 0.1,
       ndcgCutoff: Int = 10,
       maxDepth: Int = 8,
-      seed: Int = Random.nextInt(Int.MaxValue),
+      seed: Int = 0,
       numLeaves: Int = 16,
       sampling: Double = 0.8
   ) extends BoosterConfig
@@ -31,7 +31,7 @@ object BoosterConfig {
       learningRate: Double = 0.1,
       ndcgCutoff: Int = 10,
       maxDepth: Int = 8,
-      seed: Int = Random.nextInt(Int.MaxValue),
+      seed: Int = 0,
       sampling: Double = 0.8
   ) extends BoosterConfig
 

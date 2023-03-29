@@ -25,6 +25,7 @@
   * [Recommendations](configuration/recommendations.md)
     * [Trending items](configuration/recommendations/trending.md)
     * [Similar items](configuration/recommendations/similar.md)
+    * [Semantic similarity](configuration/recommendations/semantic.md)
   * [Models](configuration/supported-ranking-models.md)
   * [Data Sources](configuration/data-sources.md)
   * [Persistence](configuration/persistence.md)

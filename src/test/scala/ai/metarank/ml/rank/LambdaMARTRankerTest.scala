@@ -4,7 +4,6 @@ import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.ml.Predictor.EmptyDatasetException
 import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
-import ai.metarank.model.ClickthroughValues
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.{TestClickthroughValues, TestQueryRequest}
 import cats.data.NonEmptyList
@@ -58,7 +57,7 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     val pred2  = LambdaMARTPredictor("foo", conf, desc)
     val model  = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
     val blob   = model.save()
-    val result = pred2.load(blob)
-    result.isLeft shouldBe true
+    val result = Try(pred2.load(blob).unsafeRunSync())
+    result.isSuccess shouldBe false
   }
 }

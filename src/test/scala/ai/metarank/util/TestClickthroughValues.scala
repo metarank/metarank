@@ -3,7 +3,8 @@ package ai.metarank.util
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{ClickthroughValues, ItemValue}
+import ai.metarank.model.ItemValue
+import ai.metarank.model.TrainValues.ClickthroughValues
 
 import scala.util.Random
 

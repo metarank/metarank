@@ -2,8 +2,8 @@ package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.config.TrainConfig.{FileTrainConfig, RedisTrainConfig}
-import ai.metarank.fstore.ClickthroughStore
-import ai.metarank.fstore.clickthrough.FileClickthroughStore
+import ai.metarank.fstore.TrainStore
+import ai.metarank.fstore.clickthrough.FileTrainStore
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -37,7 +37,7 @@ class TrainConfigTest extends AnyFlatSpec with Matchers {
          |path: '$path'
          |format: binary""".stripMargin
     val confOpt = parse(yaml).flatMap(_.as[TrainConfig])
-    val result  = Try(ClickthroughStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()._1)
+    val result  = Try(TrainStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()._1)
     result.isSuccess shouldBe true
   }
 
@@ -59,7 +59,7 @@ class TrainConfigTest extends AnyFlatSpec with Matchers {
          |format: binary""".stripMargin
 
     val confOpt = parse(yaml).flatMap(_.as[TrainConfig])
-    val result  = Try(ClickthroughStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()._1)
+    val result  = Try(TrainStore.fromConfig(confOpt.toOption.get).allocated.unsafeRunSync()._1)
     result.isFailure shouldBe true
   }
 }

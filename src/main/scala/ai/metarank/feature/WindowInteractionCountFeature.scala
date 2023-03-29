@@ -74,7 +74,9 @@ object WindowInteractionCountFeature {
       scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(WindowInteractionCountFeature(this))
+  }
 
   implicit val windowCountDecoder: Decoder[WindowInteractionCountSchema] =
     deriveDecoder[WindowInteractionCountSchema].withErrorMessage(

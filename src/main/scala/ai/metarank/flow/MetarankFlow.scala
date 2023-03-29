@@ -3,7 +3,7 @@ package ai.metarank.flow
 import ai.metarank.FeatureMapping
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event
+import ai.metarank.model.{Event, TrainValues}
 import ai.metarank.util.analytics.Metrics
 import cats.effect.{IO, Ref}
 import fs2.Stream
@@ -14,7 +14,7 @@ object MetarankFlow {
       store: Persistence,
       source: Stream[IO, Event],
       mapping: FeatureMapping,
-      clickthrough: ClickthroughJoinBuffer
+      clickthrough: TrainBuffer
   ): IO[ProcessResult] = {
     val event = FeatureValueFlow(mapping, store)
     val sink  = FeatureValueSink(store)
@@ -32,12 +32,24 @@ object MetarankFlow {
           Stream.evalSeq[IO, List, Event](
             clickthrough
               .process(event)
-              .map(cts => event +: cts.flatMap(ct => ImpressionInject.process(ct)))
+              .map(cts =>
+                event +: cts.flatMap {
+                  case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
+                  case _                                     => Nil
+                }
+              )
           )
         )
         .onComplete(
           Stream.evalSeq[IO, List, Event](
-            clickthrough.flushAll().map(cts => cts.flatMap(ct => ImpressionInject.process(ct)))
+            clickthrough
+              .flushAll()
+              .map(cts =>
+                cts.flatMap {
+                  case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
+                  case _                                     => Nil
+                }
+              )
           )
         )
         .through(event.process)

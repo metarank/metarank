@@ -90,12 +90,14 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
 object NumberFeature {
   import ai.metarank.util.DurationJson._
   case class NumberFeatureSchema(
-                                  name: FeatureName,
-                                  field: FieldName,
-                                  scope: ScopeType,
-                                  refresh: Option[FiniteDuration] = None,
-                                  ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+      name: FeatureName,
+      field: FieldName,
+      scope: ScopeType,
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(NumberFeature(this))
+  }
 
   implicit val nfDecoder: Decoder[NumberFeatureSchema] = Decoder
     .instance(c =>

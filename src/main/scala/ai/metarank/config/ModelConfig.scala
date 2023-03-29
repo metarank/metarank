@@ -5,7 +5,8 @@ import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.ml.rank.{LambdaMARTRanker, NoopRanker, ShuffleRanker}
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
-import ai.metarank.ml.recommend.{MFRecommender, TrendingRecommender}
+import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
+import ai.metarank.ml.recommend.{BertSemanticRecommender, MFRecommender, TrendingRecommender}
 import ai.metarank.ml.recommend.TrendingRecommender.TrendingConfig
 import ai.metarank.ml.recommend.mf.ALSRecImpl
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
@@ -39,6 +40,7 @@ object ModelConfig {
       case Right("noop")       => NoopRanker.noopDecoder.tryDecode(c)
       case Right("trending")   => TrendingRecommender.trendingConfigCodec.tryDecode(c)
       case Right("als")        => ALSRecImpl.alsConfigDecoder.tryDecode(c)
+      case Right("semantic")   => BertSemanticRecommender.bertModelConfigDecoder.tryDecode(c)
       case Right(other)        => Left(DecodingFailure(s"cannot decode model $other", c.history))
       case Left(err)           => Left(err)
     }

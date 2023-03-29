@@ -61,7 +61,7 @@ object Event {
       fields: List[Field] = Nil
   ) extends FeedbackEvent
 
-  case class RankItem(id: ItemId, fields: List[Field] = Nil)
+  case class RankItem(id: ItemId, fields: List[Field] = Nil, label: Option[Int] = None)
   object RankItem {
     def apply(id: ItemId, relevancy: Double) = new RankItem(id, List(NumberField("relevancy", relevancy)))
   }
@@ -86,8 +86,9 @@ object Event {
         id     <- c.downField("id").as[ItemId]
         rel    <- c.downField("relevancy").as[Option[Double]]
         fields <- c.downField("fields").as[Option[List[Field]]]
+        label  <- c.downField("label").as[Option[Int]]
       } yield {
-        RankItem(id, rel.toList.map(r => NumberField("relevancy", r)) ++ fields.toList.flatten)
+        RankItem(id, rel.toList.map(r => NumberField("relevancy", r)) ++ fields.toList.flatten, label)
       }
     )
     implicit val relevancyCodec: Codec[RankItem] = Codec.from(relevancyDecoder, relevancyEncoder)

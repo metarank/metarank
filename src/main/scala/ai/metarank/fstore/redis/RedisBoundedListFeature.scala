@@ -29,7 +29,7 @@ case class RedisBoundedListFeature(
   override def put(action: Append): IO[Unit] = {
     val records = action.value match {
       case Scalar.SStringList(value) => value.map(v => TimeValue(action.ts, SString(v)))
-      case Scalar.SDoubleList(value) => value.map(v => TimeValue(action.ts, SDouble(v)))
+      case Scalar.SDoubleList(value) => value.toList.map(v => TimeValue(action.ts, SDouble(v)))
       case other                     => List(TimeValue(action.ts, other))
     }
     if (records.nonEmpty) {

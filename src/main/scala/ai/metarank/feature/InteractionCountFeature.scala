@@ -67,7 +67,9 @@ object InteractionCountFeature {
       scope: ScopeType,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
-  ) extends FeatureSchema
+  ) extends FeatureSchema {
+    override def create(): IO[BaseFeature] = IO.pure(InteractionCountFeature(this))
+  }
 
   implicit val interCountDecoder: Decoder[InteractionCountSchema] =
     deriveDecoder[InteractionCountSchema].withErrorMessage(

@@ -13,7 +13,24 @@ object Scalar {
   object SStringList {
     def apply(value: String) = new SStringList(List(value))
   }
-  case class SDoubleList(value: List[Double]) extends Scalar
+  case class SDoubleList(value: Array[Double]) extends Scalar {
+    override def equals(obj: Any): Boolean = obj match {
+      case SDoubleList(xvalue) => java.util.Arrays.equals(value, xvalue)
+      case _                   => false
+    }
+  }
+
+  object SDoubleList {
+    def apply(values: Array[Float]) = {
+      val buf = new Array[Double](values.length)
+      var i   = 0
+      while (i < values.length) {
+        buf(i) = values(i).toDouble
+        i += 1
+      }
+      new SDoubleList(buf)
+    }
+  }
 
   implicit val stringCodec: Codec[SString] =
     Codec.from(Decoder.decodeString.map(SString.apply), Encoder.encodeString.contramap[SString](_.value))
@@ -29,7 +46,7 @@ object Scalar {
 
   implicit val doubleListCodec: Codec[SDoubleList] =
     Codec.from(
-      decodeA = Decoder.decodeList[Double].map(SDoubleList.apply),
+      decodeA = Decoder.decodeList[Double].map(x => SDoubleList(x.toArray)),
       encodeA = Encoder.encodeList[Double].contramap(_.value.toList)
     )
 
@@ -54,7 +71,7 @@ object Scalar {
       jsonArray = array =>
         array.headOption match {
           case Some(x) if x.isString => array.map(_.as[String]).sequence.map(vec => SStringList(vec.toList))
-          case Some(x) if x.isNumber => array.map(_.as[Double]).sequence.map(vec => SDoubleList(vec.toList))
+          case Some(x) if x.isNumber => array.map(_.as[Double]).sequence.map(vec => SDoubleList(vec.toArray))
           case Some(x)               => Left(DecodingFailure(s"cannot decode list of $x", c.history))
           case None                  => Left(DecodingFailure("cannot decode empty list", c.history))
         }

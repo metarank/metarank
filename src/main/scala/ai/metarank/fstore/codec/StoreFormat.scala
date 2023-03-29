@@ -1,18 +1,12 @@
 package ai.metarank.fstore.codec
 
 import ai.metarank.fstore.Persistence.ModelName
-import ai.metarank.fstore.codec.impl.{
-  BinaryCodec,
-  ClickthroughValuesCodec,
-  FeatureValueCodec,
-  ScalarCodec,
-  TimeValueCodec
-}
+import ai.metarank.fstore.codec.impl.{BinaryCodec, FeatureValueCodec, ScalarCodec, TimeValueCodec, TrainValuesCodec}
 import ai.metarank.fstore.codec.values.{BinaryVCodec, JsonVCodec}
 import ai.metarank.ml.Model
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{ClickthroughValues, EventId, FeatureValue, Key, Scalar, Scope}
+import ai.metarank.model.{EventId, FeatureValue, Key, Scalar, Scope, TrainValues}
 import ai.metarank.util.DelimitedPair.SlashDelimitedPair
 import io.circe.{Codec, Decoder, Encoder, Json}
 import org.apache.commons.codec.binary.Base64
@@ -24,7 +18,7 @@ sealed trait StoreFormat {
   def key: KCodec[Key]
   def timeValue: VCodec[TimeValue]
   def eventId: KCodec[EventId]
-  def ctv: VCodec[ClickthroughValues]
+  def ctv: VCodec[TrainValues]
   def scalar: VCodec[Scalar]
   def modelName: KCodec[ModelName]
   def model: VCodec[Array[Byte]]
@@ -36,7 +30,7 @@ object StoreFormat {
     lazy val key          = keyEncoder
     lazy val timeValue    = JsonVCodec[TimeValue](FeatureValue.timeValueCodec)
     lazy val eventId      = idEncoder
-    lazy val ctv          = JsonVCodec[ClickthroughValues](ClickthroughValues.ctvJsonCodec)
+    lazy val ctv          = JsonVCodec[TrainValues](TrainValues.trainCodec)
     lazy val scalar       = JsonVCodec[Scalar](Scalar.scalarJsonCodec)
     lazy val modelName    = KCodec.wrap[ModelName](ModelName.apply, _.name)
     lazy val model        = JsonVCodec[Array[Byte]](byteArrayCodec)
@@ -47,7 +41,7 @@ object StoreFormat {
     lazy val key          = keyEncoder
     lazy val timeValue    = BinaryVCodec(compress = false, TimeValueCodec)
     lazy val eventId      = idEncoder
-    lazy val ctv          = BinaryVCodec(compress = true, ClickthroughValuesCodec)
+    lazy val ctv          = BinaryVCodec(compress = true, TrainValuesCodec)
     lazy val scalar       = BinaryVCodec(compress = false, ScalarCodec)
     lazy val modelName    = KCodec.wrap[ModelName](ModelName.apply, _.name)
     lazy val model        = BinaryVCodec(compress = false, BinaryCodec.byteArray)

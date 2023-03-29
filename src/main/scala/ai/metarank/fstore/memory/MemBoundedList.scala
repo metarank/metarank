@@ -28,7 +28,7 @@ case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, AnyRef] =
       case Some(cached) =>
         val result = action.value match {
           case Scalar.SStringList(values) => values.map(s => TimeValue(action.ts, SString(s))) ++ cached
-          case Scalar.SDoubleList(values) => values.map(s => TimeValue(action.ts, SDouble(s))) ++ cached
+          case Scalar.SDoubleList(values) => values.toList.map(s => TimeValue(action.ts, SDouble(s))) ++ cached
           case other                      => TimeValue(action.ts, action.value) :: cached
         }
         val filtered = result.filter(_.ts.isAfterOrEquals(action.ts.minus(config.duration))).take(config.count)

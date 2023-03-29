@@ -11,6 +11,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.{Event, EventId, FieldName, Timestamp}
 import cats.data.NonEmptyList
+import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration._
 import scala.util.Random
@@ -41,7 +42,7 @@ object RandomDataset {
         weights = Map("click" -> 1)
       )
     )
-    val mapping = FeatureMapping.fromFeatureSchema(features, models)
+    val mapping = FeatureMapping.fromFeatureSchema(features, models).unsafeRunSync()
     var ts      = System.currentTimeMillis() - (size * 3000)
     val events = for {
       i <- 0 until size

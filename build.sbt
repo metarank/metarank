@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.10"
-ThisBuild / version      := "0.6.4"
+ThisBuild / version      := "0.7.0-M1"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -28,7 +28,7 @@ lazy val root = (project in file("."))
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.5",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.6",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
@@ -57,7 +57,7 @@ lazy val root = (project in file("."))
       "io.lettuce"             % "lettuce-core"             % "6.2.3.RELEASE",
       "commons-io"             % "commons-io"               % "2.11.0",
       "com.google.guava"       % "guava"                    % "31.1-jre",
-      "io.sentry"              % "sentry-logback"           % "6.15.0",
+      "io.sentry"              % "sentry-logback"           % "6.16.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -69,10 +69,12 @@ lazy val root = (project in file("."))
         ExclusionRule("org.nd4j", "guava"),
         ExclusionRule("org.nd4j", "protobuf")
       ),
-      "org.rocksdb"        % "rocksdbjni"     % "7.10.2",
-      "org.mapdb"          % "mapdb"          % "3.0.9" exclude ("net.jpountz.lz4", "lz4"),
-      "com.github.jelmerk" % "hnswlib-core"   % "1.1.0",
-      "org.slf4j"          % "jcl-over-slf4j" % "2.0.6" // librec uses commons-logging, which is JCL
+      "org.rocksdb"               % "rocksdbjni"     % "7.10.2",
+      "org.mapdb"                 % "mapdb"          % "3.0.9" exclude ("net.jpountz.lz4", "lz4"),
+      "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
+      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.7", // librec uses commons-logging, which is JCL
+      "ai.djl"                    % "api"            % "0.21.0",
+      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.14.0"
     ),
     excludeDependencies ++= Seq(
       "commons-logging" % "commons-logging"
@@ -84,15 +86,23 @@ lazy val root = (project in file("."))
       val artifactTargetPath = s"/app/${artifact.name}"
 
       new Dockerfile {
-        from(s"--platform=$PLATFORM ubuntu:jammy-20221020")
+        from(s"--platform=$PLATFORM ubuntu:jammy-20230308")
         runRaw(
           List(
             "sed -i -e 's/archive\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "sed -i -e 's/security\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "apt-get update",
-            "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1",
+            "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1 locales",
+            "sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen",
             "rm -rf /var/lib/apt/lists/*"
           ).mkString(" && ")
+        )
+        env(
+          Map(
+            "LANG"     -> "en_US.UTF-8  ",
+            "LANGUAGE" -> "en_US:en ",
+            "LC_ALL"   -> "en_US.UTF-8  "
+          )
         )
         add(new File("deploy/metarank.sh"), "/metarank.sh")
         add(artifact, artifactTargetPath)

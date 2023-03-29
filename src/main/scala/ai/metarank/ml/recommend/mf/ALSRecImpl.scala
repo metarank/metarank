@@ -1,6 +1,8 @@
 package ai.metarank.ml.recommend.mf
 
 import ai.metarank.config.{ModelConfig, Selector}
+import ai.metarank.ml.recommend.KnnConfig
+import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.ml.recommend.embedding.EmbeddingMap
 import ai.metarank.ml.recommend.mf.ALSRecImpl.{ALSConfig, EALSRecommenderWrapper}
 import ai.metarank.ml.recommend.mf.MFRecImpl.MFModelConfig
@@ -47,8 +49,7 @@ object ALSRecImpl {
       factors: Int = 100,
       userReg: Float = 0.01f,
       itemReg: Float = 0.01f,
-      m: Int = 32,
-      ef: Int = 200,
+      store: KnnConfig = HnswConfig(),
       selector: Selector = Selector.AcceptSelector()
   ) extends MFModelConfig
 
@@ -63,8 +64,7 @@ object ALSRecImpl {
       factors    <- c.downField("factors").as[Option[Int]]
       userReg    <- c.downField("userReg").as[Option[Float]]
       itemReg    <- c.downField("itemRef").as[Option[Float]]
-      m          <- c.downField("m").as[Option[Int]]
-      ef         <- c.downField("ef").as[Option[Int]]
+      store      <- c.downField("store").as[Option[KnnConfig]]
       selector   <- c.downField("selector").as[Option[Selector]]
     } yield {
       val d = ALSConfig()
@@ -74,8 +74,7 @@ object ALSRecImpl {
         factors = factors.getOrElse(d.factors),
         userReg = userReg.getOrElse(d.userReg),
         itemReg = itemReg.getOrElse(d.itemReg),
-        m = m.getOrElse(d.m),
-        ef = ef.getOrElse(d.ef),
+        store = store.getOrElse(HnswConfig()),
         selector = selector.getOrElse(Selector.AcceptSelector())
       )
     }

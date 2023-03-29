@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
@@ -8,7 +9,7 @@ import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
-import ai.metarank.feature.{NumVectorFeature, NumberFeature}
+import ai.metarank.feature.{BaseFeature, NumVectorFeature, NumberFeature}
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
@@ -20,6 +21,7 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Key.FeatureName
+import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
 import scala.concurrent.duration.FiniteDuration
@@ -29,6 +31,8 @@ trait FeatureSchema {
   def refresh: Option[FiniteDuration]
   def ttl: Option[FiniteDuration]
   def scope: ScopeType
+
+  def create(): IO[BaseFeature]
 }
 
 object FeatureSchema {
@@ -49,13 +53,23 @@ object FeatureSchema {
         case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
         case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)
         case "item_age"          => implicitly[Decoder[ItemAgeSchema]].apply(c)
-        case "field_match"       => implicitly[Decoder[FieldMatchSchema]].apply(c)
-        case "referer"           => implicitly[Decoder[RefererSchema]].apply(c)
-        case "position"          => implicitly[Decoder[PositionFeatureSchema]].apply(c)
-        case "vector"            => implicitly[Decoder[VectorFeatureSchema]].apply(c)
-        case "random"            => implicitly[Decoder[RandomFeatureSchema]].apply(c)
-        case "diversity"         => implicitly[Decoder[DiversitySchema]].apply(c)
-        case other               => Left(DecodingFailure(s"feature type $other is not supported", c.history))
+        case "field_match" =>
+          val biencoder = implicitly[Decoder[FieldMatchBiencoderSchema]]
+          val term      = implicitly[Decoder[FieldMatchSchema]]
+          c.downField("method").downField("type").as[String] match {
+            case Left(err)      => Left(err)
+            case Right("bert")  => biencoder.apply(c)
+            case Right("csv")   => biencoder.apply(c)
+            case Right("term")  => term.apply(c)
+            case Right("ngram") => term.apply(c)
+            case Right(other)   => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
+          }
+        case "referer"   => implicitly[Decoder[RefererSchema]].apply(c)
+        case "position"  => implicitly[Decoder[PositionFeatureSchema]].apply(c)
+        case "vector"    => implicitly[Decoder[VectorFeatureSchema]].apply(c)
+        case "random"    => implicitly[Decoder[RandomFeatureSchema]].apply(c)
+        case "diversity" => implicitly[Decoder[DiversitySchema]].apply(c)
+        case other       => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {
       decoded

@@ -3,7 +3,7 @@ package ai.metarank.main
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.TrackingConfig
-import ai.metarank.fstore.{ClickthroughStore, Persistence}
+import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.{
   AutoFeatureArgs,
   ExportArgs,
@@ -55,9 +55,9 @@ object Main extends IOApp with Logging {
               )
               conf    <- Config.load(confString, env)
               _       <- sendUsageAnalytics(conf.core.tracking, AnalyticsPayload(conf, args))
-              mapping <- IO(FeatureMapping.fromFeatureSchema(conf.features, conf.models))
+              mapping <- FeatureMapping.fromFeatureSchema(conf.features, conf.models)
               store = Persistence.fromConfig(mapping.schema, conf.state, conf.core.`import`.cache)
-              cts   = ClickthroughStore.fromConfig(conf.train)
+              cts   = TrainStore.fromConfig(conf.train)
               _ <- confArgs match {
                 case a: ServeArgs      => Serve.run(conf, store, cts, mapping, a)
                 case a: ImportArgs     => Import.run(conf, store, cts, mapping, a)

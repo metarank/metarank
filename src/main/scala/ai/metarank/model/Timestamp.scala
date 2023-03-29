@@ -70,6 +70,6 @@ object Timestamp {
     }
   )
 
-  implicit val timestampJson: Codec[Timestamp] = Codec.from(timestampDecoder, timestampEncoder)
+  implicit val timestampJsonCodec: Codec[Timestamp] = Codec.from(timestampDecoder, timestampEncoder)
 
 }

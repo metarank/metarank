@@ -35,6 +35,7 @@ import ai.metarank.main.CliArgs.{
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
+import ai.metarank.ml.recommend.BertSemanticRecommender.BertSemanticModelConfig
 import ai.metarank.ml.recommend.TrendingRecommender.TrendingConfig
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import ai.metarank.model.AnalyticsPayload.{SystemParams, UsedFeature}
@@ -116,8 +117,9 @@ object AnalyticsPayload {
         case NoopConfig(_)                                   => "noop"
         case TrendingConfig(_, _)                            => "trending"
         case _: ALSConfig                                    => "als"
+        case _: BertSemanticModelConfig                      => "bert"
       }.toList,
-      usedFeatures = config.features.toList.map {
+      usedFeatures = config.features.map {
         case f: RateFeatureSchema            => UsedFeature(f.name, "rate")
         case f: BooleanFeatureSchema         => UsedFeature(f.name, "boolean")
         case f: FieldMatchSchema             => UsedFeature(f.name, "field_match")

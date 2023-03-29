@@ -40,6 +40,8 @@ object RandomFeature {
     lazy val refresh: Option[FiniteDuration] = None
     lazy val ttl: Option[FiniteDuration]     = None
     lazy val scope: ScopeType                = ItemScopeType
+
+    override def create(): IO[BaseFeature] = IO.pure(RandomFeature(this))
   }
 
   implicit val positionSchemaCodec: Codec[RandomFeatureSchema] = deriveCodec

@@ -27,4 +27,5 @@ class ModelConfigTest extends AnyFlatSpec with Matchers {
       XGBoostConfig(seed = 0, iterations = 200, learningRate = 0.2, ndcgCutoff = 5, maxDepth = 7, sampling = 0.8)
     )
   }
+
 }

@@ -4,8 +4,9 @@ import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model.{ItemScore, RecommendModel, Response}
 import ai.metarank.ml.Predictor.RecommendPredictor
 import ai.metarank.ml.{Model, Predictor}
-import ai.metarank.model.ClickthroughValues
 import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.TrainValues
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyVector}
 import cats.effect.IO
@@ -59,7 +60,8 @@ object RandomRecommender {
   case class RandomPredictor(name: String, config: RandomConfig)
       extends RecommendPredictor[RandomConfig, RandomModel]
       with Logging {
-    override def load(bytes: Option[Array[Byte]]): Either[Throwable, RandomModel] = bytes match {
+    override def load(bytes: Option[Array[Byte]]): IO[RandomModel] = IO.fromEither(loadSync(bytes))
+    def loadSync(bytes: Option[Array[Byte]]): Either[Throwable, RandomModel] = bytes match {
       case None => Left(new Exception("Cannot load model from store: not found. Did you train it before?"))
       case Some(bytes) =>
         val stream = new DataInputStream(new ByteArrayInputStream(bytes))
@@ -76,8 +78,9 @@ object RandomRecommender {
 
     }
 
-    override def fit(data: fs2.Stream[IO, ClickthroughValues]): IO[RandomModel] = {
+    override def fit(data: fs2.Stream[IO, TrainValues]): IO[RandomModel] = {
       data
+        .collect { case ct: ClickthroughValues => ct }
         .flatMap(ct => fs2.Stream(ct.ct.items: _*))
         .compile
         .fold(Set.empty[ItemId])((set, next) => set + next)

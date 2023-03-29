@@ -80,7 +80,7 @@ Train endpoint runs the training on persisted click-through data. You can run th
 A JSON response with the following fields:
 * `weights`: per-field model weights
 * `sizeBytes`: model size in bytes
-* `iterations`: test/train error loss while training.
+* `features`: test/train error loss while training.
 
 Example:
 ```json
@@ -158,6 +158,7 @@ define which model to invoke.
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.
 - `items.fields`: an optional set of per-item fields, for example BM25 scores coming from ES. See [how to use BM25 scores](configuration/features/relevancy.md#ranking) in ranking.
+- `items.label`: an optional field for explicit relevance judgments.
 
 ### Response format
 
@@ -180,6 +181,8 @@ define which model to invoke.
 **API Endpoint**: `/recommend/<model-name>`
 
 **Method**: `POST`
+
+Recommend endpoint returns recommended items that are produced by [recommendations model types](configuration/recommendations.md). 
 
 ### Payload format:
 

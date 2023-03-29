@@ -37,6 +37,7 @@ we can compute how different each item price compared to the median price across
   type: diversity
   source: item.price # only item.* fields are accepted
   ttl: 90d # optional, when to expire tracked fields
+  top: 10 # optional, take only top-N items to compute the median
 ```
 
 For example, given the following item prices:
@@ -52,6 +53,13 @@ So for a ranking `[p1, p2, p3, p4, p5]` we compute a median value of 220, and th
 * p3: price_diff=30
 * p4: price_diff=80
 * p5: price_diff=0
+
+When you have a very long ranking, it's worth to consider limiting the amount of items taken into account, when computing median. When setting `top=3`, for the same set of items in the ranking event above, you'll get the median of 200:
+* p1: price_diff=-100
+* p2: price_diff=0
+* p3: price_diff=50
+* p4: price_diff=100
+* p5: price_diff=20
 
 ### Diversification over string fields
 
@@ -88,6 +96,7 @@ we can compute how frequently each color is presented in the result set with the
   type: diversity
   source: item.color # only item.* fields are accepted
   ttl: 90d # optional, when to expire tracked fields
+  top: 10 # optional, take only top-N items to compute the histogram
 ```
 
 The difference algorithm builds tag frequencies over the ranking (so `color -> count` in our example above), and then computes relative intersection between tags of item and tag frequencies. 

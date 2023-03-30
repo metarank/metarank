@@ -20,7 +20,7 @@ import org.scalatest.matchers.should.Matchers
 class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val schema = FieldMatchBiencoderSchema(
     name = FeatureName("foo"),
-    rankingField = FieldName(Ranking,"query"),
+    rankingField = FieldName(Ranking, "query"),
     itemField = FieldName(Item, "title"),
     distance = CosineDistance,
     method = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2")

@@ -82,7 +82,6 @@ object BertSemanticRecommender {
       selector: Selector = Selector.AcceptSelector()
   ) extends ModelConfig
 
-
   implicit val bertModelConfigDecoder: Decoder[BertSemanticModelConfig] = Decoder.instance(c =>
     for {
       encoder    <- c.downField("encoder").as[EncoderType]

@@ -6,9 +6,9 @@ import java.io.{DataInput, DataOutput}
 
 object DoubleArrayCodec extends BinaryCodec[Array[Double]] {
   override def read(in: DataInput): Array[Double] = {
-    val size = in.readVarInt()
+    val size   = in.readVarInt()
     val buffer = new Array[Double](size)
-    var i = 0
+    var i      = 0
     while (i < size) {
       buffer(i) = in.readDouble()
       i += 1

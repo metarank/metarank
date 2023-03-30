@@ -26,10 +26,10 @@ sealed trait BaseFeature {
   }
 
   def readKey(event: RankingEvent, conf: FeatureConfig, id: ItemId): Option[Key] = conf.scope match {
-    case ScopeType.GlobalScopeType  => Some(Key(GlobalScope, conf.name))
-    case ScopeType.ItemScopeType    => Some(Key(ItemScope(id), conf.name))
-    case ScopeType.UserScopeType    => event.user.map(u => Key(UserScope(u), conf.name))
-    case ScopeType.SessionScopeType => event.session.map(s => Key(SessionScope(s), conf.name))
+    case ScopeType.GlobalScopeType   => Some(Key(GlobalScope, conf.name))
+    case ScopeType.ItemScopeType     => Some(Key(ItemScope(id), conf.name))
+    case ScopeType.UserScopeType     => event.user.map(u => Key(UserScope(u), conf.name))
+    case ScopeType.SessionScopeType  => event.session.map(s => Key(SessionScope(s), conf.name))
     case ScopeType.FieldScopeType(_) => None
   }
 

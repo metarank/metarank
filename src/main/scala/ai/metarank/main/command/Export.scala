@@ -19,19 +19,19 @@ import java.nio.file.{Path, Paths}
 
 object Export extends Logging {
   def run(
-           conf: Config,
-           ctsResource: Resource[IO, TrainStore],
-           mapping: FeatureMapping,
-           args: ExportArgs
+      conf: Config,
+      ctsResource: Resource[IO, TrainStore],
+      mapping: FeatureMapping,
+      args: ExportArgs
   ): IO[Unit] = ctsResource.use(cts => doexport(cts, mapping, args.model, args.out, args.sample, args.split))
 
   def doexport(
-                cts: TrainStore,
-                mapping: FeatureMapping,
-                modelName: String,
-                out: Path,
-                sample: Double,
-                splitter: SplitStrategy
+      cts: TrainStore,
+      mapping: FeatureMapping,
+      modelName: String,
+      out: Path,
+      sample: Double,
+      splitter: SplitStrategy
   ) = for {
     pred <- IO.fromOption(mapping.models.get(modelName))(new Exception(s"model $modelName is not defined in config"))
     lmart <- pred match {

@@ -1,6 +1,6 @@
 # Metarank CLI
 
-Metarank CLI has a set of command-line options to control its behavior. 
+Metarank CLI has a set of command-line options to control its behavior.
 
 To run the main app, download the [latest jar file](https://github.com/metarank/metarank/releases) and run the following command:
 
@@ -119,18 +119,18 @@ java -jar metarank.jar <command> <args>
 ## Running modes
 
 Metarank CLI has a set of different running modes:
-* `import`: import and process historical data, writing state to the chosen [persistecnce backend](../configuration/persistence.md) like Redis.
+* `import`: import and process historical data, writing state to the chosen [persistence backend](../configuration/persistence.md) like Redis.
 * [`train`](#training-the-model): train the ML model with XGBoost/LightGBM.
 * `serve`: run the inference API to do realtime reranking
 * `standalone`: run `import`, `train` and `serve` tasks at once.
 * [`validate`](#validation): validates data nd configuration files.
 * [`sort`](#historical-data-sorting): pre-sorts the dataset by timestamp.
-* [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on yourr data.
+* [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on your data.
 * [`export`](#dataset-export): export the training dataset for further hyperparam optimization.
 
 ### Validation
 
-Metarank CLI provides `validate` command to validate both your data and configuration file. 
+Metarank CLI provides `validate` command to validate both your data and configuration file.
 
 You will need to provide both data and configuration files
 ```shell
@@ -163,14 +163,14 @@ The above command will output validation checks performed on the files provided 
 
 ### Historical data sorting
 
-Metarank expects your historical data to be ordered by the timestamp in the ascending order. 
-If for any reason, you cannot generate a sorted file, the `sort` sub-command can do the job for you. 
+Metarank expects your historical data to be ordered by the timestamp in the ascending order.
+If for any reason, you cannot generate a sorted file, the `sort` sub-command can do the job for you.
 
-You can sort both signle files and folders with multiple files. In case of folders, `sort` command will merge all data into one sorted file. 
+You can sort both single files and folders with multiple files. In case of folders, `sort` command will merge all data into one sorted file.
 
-Sorting one file is a simple as 
+Sorting one file is a simple as
 ```bash
-java -jar metarank.jar sort --data unosrted_file.jsonl.gz --out sorted_file.jsonl.gz
+java -jar metarank.jar sort --data unsorted_file.jsonl.gz --out sorted_file.jsonl.gz
 ```
 
 You can do sorting with a folder as well
@@ -181,7 +181,7 @@ java -jar metarank.jar sort --data /my_folder --out sorted_file.jsonl.gz
 ### Auto feature generation
 
 If you don't know what [features](../configuration/feature-extractors.md) to include in the configuration file, the `autofeature` sub-command can generate the configuration for you
-based on the historical data you have. 
+based on the historical data you have.
 
 Simply run
 
@@ -198,17 +198,17 @@ You can train the underlying ML ranking model:
 java -jar metarank.jar train --config /path/to/config.yaml
 ```
 
-* if the `--model <name>` option is not given, then Metarank will train all the defined models sequentially. 
+* if the `--model <name>` option is not given, then Metarank will train all the defined models sequentially.
 
 While training the model, Metarank will split your data into train/validation datasets with the following supported splitting strategies:
-* `random`: shuffle all the training samples and take N% as a training part. May result in an implicit model leakage, when information about the future was leaked in the training set. 
+* `random`: shuffle all the training samples and take N% as a training part. May result in an implicit model leakage, when information about the future was leaked in the training set.
 
-    An example: on Christmas items with Santa are selling much better (and not selling at all afterwards), and leaking this knowledge into your training set will result in better offline scores (as model knows that Christmas is coming). In production, it will behave significantly worse, as there is no way to predict the future out of the training data anymore.
+  An example: on Christmas items with Santa are selling much better (and not selling at all afterwards), and leaking this knowledge into your training set will result in better offline scores (as model knows that Christmas is coming). In production, it will behave significantly worse, as there is no way to predict the future out of the training data anymore.
 
 * `time`: sort all training samples by timestamp and pick first N% as training set (the default option).
 * `hold_last`: group all samples by user, and sort per-user samples by timestamp. N% first samples within each user are picked into the training dataset.
 
-    Has the same issue with future leaking in the model, but optimizes the train dataset to focus on last user click.
+  Has the same issue with future leaking in the model, but optimizes the train dataset to focus on last user click.
 
 The format of split strategy CLI flag is `--strategy name=ratio%`. For example:
 * random with 90% ratio: `--split random=90%`

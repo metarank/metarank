@@ -65,6 +65,13 @@ object CliArgs extends Logging {
       split: SplitStrategy = SplitStrategy.default
   ) extends CliConfArgs
 
+  case class TermFreqArgs(
+      data: Path,
+      language: String,
+      fields: List[String],
+      out: Path
+  ) extends CliArgs
+
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
   def parse(args: List[String], env: Map[String, String]): Either[Throwable, CliArgs] = {
@@ -148,6 +155,20 @@ object CliArgs extends Logging {
               split  <- parseOption(parser.`export`.split)
             } yield {
               ExportArgs(conf, model, out, sample, split.getOrElse(SplitStrategy.default))
+            }
+          case Some(parser.termfreq) =>
+            for {
+              data   <- parse(parser.termfreq.data)
+              out    <- parse(parser.termfreq.out)
+              lang   <- parseOption(parser.termfreq.language)
+              fields <- parse(parser.termfreq.fields)
+            } yield {
+              TermFreqArgs(
+                data = data,
+                out = out,
+                language = lang.getOrElse("english"),
+                fields = fields.split(",").toList
+              )
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -323,6 +344,33 @@ object CliArgs extends Logging {
       )
     }
 
+    object termfreq extends Subcommand("termfreq") {
+      descr("compute term frequencies for the BM25 field_match extractor")
+      val data = opt[Path](
+        "data",
+        required = true,
+        short = 'd',
+        descr = "path to an input file",
+        validate = pathExists
+      )
+      val out = opt[Path](
+        name = "out",
+        required = true,
+        descr = "an file to write term-freq dict to"
+      )
+      val language = opt[String](
+        name = "language",
+        required = false,
+        default = Some("english"),
+        descr = "Language to use for tokenization, stemming and stopwords"
+      )
+      val fields = opt[String](
+        name = "fields",
+        required = true,
+        descr = "Comma-separated list of text fields"
+      )
+    }
+
     def pathExists(path: Path) = {
       val result = path.toFile.exists()
       if (!result) {
@@ -355,6 +403,7 @@ object CliArgs extends Logging {
     addSubcommand(sort)
     addSubcommand(autofeature)
     addSubcommand(`export`)
+    addSubcommand(termfreq)
     version(Logo.raw + " Metarank v:" + Version().getOrElse("unknown"))
     banner("""Usage: metarank <subcommand> <options>
              |Options:

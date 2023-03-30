@@ -1,6 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
+import ai.metarank.feature.FieldMatchFeature.FieldMatcherType.{NgramMatcherType, TermMatcherType}
 import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher, TermMatcher}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.StringField
@@ -19,14 +20,13 @@ import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
 
 class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val feature = FieldMatchFeature(
-    FieldMatchSchema(
-      name = FeatureName("title_match"),
-      rankingField = FieldName(Ranking, "query"),
-      itemField = FieldName(Item, "title"),
-      method = NgramMatcher(3, TextAnalyzer.english)
-    )
-  )
+  val feature = FieldMatchSchema(
+    name = FeatureName("title_match"),
+    rankingField = FieldName(Ranking, "query"),
+    itemField = FieldName(Item, "title"),
+    method = NgramMatcherType(3, "english")
+  ).create().unsafeRunSync()
+
   val now   = Timestamp.now
   val store = MemPersistence(Schema(feature.states))
   val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
@@ -34,13 +34,13 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   import FieldMatchFeature._
 
   it should "parse ngram config" in {
-    val result = parse("type: ngram\nn: 3\nlanguage: en").flatMap(_.as[FieldMatcher])
-    result shouldBe Right(NgramMatcher(3, TextAnalyzer.english))
+    val result = parse("type: ngram\nn: 3\nlanguage: en").flatMap(_.as[FieldMatcherType])
+    result shouldBe Right(NgramMatcherType(3, "en"))
   }
 
   it should "parse term config" in {
-    val result = parse("type: term\nlanguage: en").flatMap(_.as[FieldMatcher])
-    result shouldBe Right(TermMatcher(TextAnalyzer.english))
+    val result = parse("type: term\nlanguage: en").flatMap(_.as[FieldMatcherType])
+    result shouldBe Right(TermMatcherType("en"))
   }
 
   it should "generate puts" in {

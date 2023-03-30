@@ -14,22 +14,22 @@ trait FieldMatcher {
     */
   def tokenize(string: String): Array[String]
 
-  def score(a: Array[String], b: Array[String]): Double = {
-    if ((a.length == 0) || (b.length == 0)) {
+  def score(query: Array[String], doc: Array[String]): Double = {
+    if ((query.length == 0) || (doc.length == 0)) {
       0.0
     } else {
       var i            = 0
       var j            = 0
       var union        = 0
       var intersection = 0
-      while ((i < a.length) || (j < b.length)) {
-        if ((i < a.length) && (j < b.length)) {
-          if (a(i).compareTo(b(j)) == 0) {
+      while ((i < query.length) || (j < doc.length)) {
+        if ((i < query.length) && (j < doc.length)) {
+          if (query(i).compareTo(doc(j)) == 0) {
             intersection += 1
             union += 1
             i += 1
             j += 1
-          } else if (a(i).compareTo(b(j)) < 0) {
+          } else if (query(i).compareTo(doc(j)) < 0) {
             union += 1
             i += 1
           } else {
@@ -37,7 +37,7 @@ trait FieldMatcher {
             j += 1
           }
         } else {
-          if (i < a.length) {
+          if (i < query.length) {
             union += 1
             i += 1
           } else {

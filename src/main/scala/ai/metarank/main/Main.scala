@@ -3,7 +3,7 @@ package ai.metarank.main
 import ai.metarank.FeatureMapping
 import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.TrackingConfig
-import ai.metarank.fstore.{TrainStore, Persistence}
+import ai.metarank.fstore.{Persistence, TrainStore}
 import ai.metarank.main.CliArgs.{
   AutoFeatureArgs,
   ExportArgs,
@@ -11,10 +11,11 @@ import ai.metarank.main.CliArgs.{
   ServeArgs,
   SortArgs,
   StandaloneArgs,
+  TermFreqArgs,
   TrainArgs,
   ValidateArgs
 }
-import ai.metarank.main.command.{AutoFeature, Export, Import, Serve, Standalone, Train, Validate}
+import ai.metarank.main.command.{AutoFeature, Export, Import, Serve, Standalone, TermFreq, Train, Validate}
 import ai.metarank.model.AnalyticsPayload
 import ai.metarank.util.analytics.{AnalyticsReporter, ErrorReporter}
 import ai.metarank.util.{Logging, Version}
@@ -41,6 +42,7 @@ object Main extends IOApp with Logging {
           )
         _ <- info("Metarank v" + Version().getOrElse("unknown") + " is starting.")
         _ <- args match {
+          case a: TermFreqArgs => TermFreq.run(a)
           case a: AutoFeatureArgs =>
             for {
               tracking <- TrackingConfig.fromEnv(env)

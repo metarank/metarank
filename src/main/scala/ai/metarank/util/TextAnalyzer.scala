@@ -50,6 +50,14 @@ case class TextAnalyzer(makeAnalyzer: () => Analyzer, names: NonEmptyList[String
 object TextAnalyzer {
   def apply(make: => Analyzer, name: String)                = new TextAnalyzer(() => make, NonEmptyList.of(name))
   def apply(make: => Analyzer, alias: String, name: String) = new TextAnalyzer(() => make, NonEmptyList.of(alias, name))
+  def create(language: String): Either[Throwable, TextAnalyzer] =
+    analyzers.find(_.names.toList.contains(language)) match {
+      case Some(value) => Right(value)
+      case None =>
+        Left(
+          new Exception(s"language $language is not yet supported. Please, file an issue on github for it to be added.")
+        )
+    }
 
   def analyzer1(tok: Tokenizer) = new Analyzer() {
     override def createComponents(fieldName: String): Analyzer.TokenStreamComponents =

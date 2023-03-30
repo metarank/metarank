@@ -1,11 +1,16 @@
 package ai.metarank.feature.matcher
 
 import ai.metarank.feature.matcher.BM25Matcher.TermFreqDic
+import ai.metarank.flow.PrintProgress
+import ai.metarank.model.Event
+import ai.metarank.model.Event.ItemEvent
+import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.util.TextAnalyzer
 import cats.effect.IO
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json, JsonObject}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import org.apache.commons.io.IOUtils
+import fs2.{Chunk, Stream}
 
 import java.io.{File, FileReader}
 import io.circe.parser._
@@ -23,7 +28,7 @@ case class BM25Matcher(language: TextAnalyzer, freq: TermFreqDic) extends FieldM
     while (i < query.length) {
       val term           = query(i)
       val docTermFreq    = docFreq.getOrElse(term, 0)
-      val globalTermFreq = freq.docfreq.getOrElse(term, 0)
+      val globalTermFreq = freq.termfreq.getOrElse(term, 0)
       val termIDF        = math.log(1.0 + (freq.docs - globalTermFreq + 0.5) / (globalTermFreq + 0.5))
       sum += termIDF * (docTermFreq * (K1 + 1.0)) / (docTermFreq + K1 * (1.0 - B + B * (doc.length / freq.avgdl)))
       i += 1
@@ -35,7 +40,7 @@ case class BM25Matcher(language: TextAnalyzer, freq: TermFreqDic) extends FieldM
 }
 
 object BM25Matcher {
-  case class TermFreqDic(docs: Int, avgdl: Double, docfreq: Map[String, Int])
+  case class TermFreqDic(language: String, fields: List[String], docs: Int, avgdl: Double, termfreq: Map[String, Int])
 
   object TermFreqDic {
     case class Builder(docs: Int = 0, lenSum: Long = 0L, docFreq: Map[String, Int] = Map()) {
@@ -50,14 +55,28 @@ object BM25Matcher {
         )
       }
     }
-    def fromItemFields(fieldsSource: fs2.Stream[IO, String], language: TextAnalyzer): IO[TermFreqDic] = {
-      fieldsSource.compile
+    def fromEvents(events: Stream[IO, Event], fields: Set[String], language: TextAnalyzer): IO[TermFreqDic] = {
+      events
+        .through(PrintProgress.tap(None, "events"))
+        .collect { case e: ItemEvent => e }
+        .mapChunks(items =>
+          items.flatMap(item =>
+            Chunk.seq(item.fields.flatMap {
+              case StringField(name, value) if fields.contains(name)      => List(value)
+              case StringListField(name, values) if fields.contains(name) => values
+              case _                                                      => Nil
+            })
+          )
+        )
+        .compile
         .fold(Builder())((acc, next) => acc.withString(language.split(next)))
         .map(builder =>
           TermFreqDic(
             docs = builder.docs,
             avgdl = builder.lenSum.toDouble / builder.docs,
-            docfreq = builder.docFreq
+            termfreq = builder.docFreq,
+            language = language.names.head,
+            fields = fields.toList.sorted
           )
         )
     }
@@ -69,7 +88,23 @@ object BM25Matcher {
       decoded
     }
   }
-  implicit val termDicEncoder: Encoder[TermFreqDic] = deriveEncoder[TermFreqDic]
+  implicit val termDicEncoder: Encoder[TermFreqDic] = Encoder.instance(dic =>
+    Json.fromJsonObject(
+      JsonObject.fromMap(
+        Map(
+          "language" -> Json.fromString(dic.language),
+          "fields"   -> Json.fromValues(dic.fields.map(Json.fromString)),
+          "avgdl"    -> Json.fromDoubleOrNull(dic.avgdl),
+          "docs"     -> Json.fromInt(dic.docs),
+          "termfreq" -> Json.fromJsonObject(
+            JsonObject.fromIterable(
+              dic.termfreq.toList.sortBy(-_._2).map(x => x._1 -> Json.fromInt(x._2))
+            ) // sort by freq
+          )
+        )
+      )
+    )
+  )
   implicit val termDicDecoder: Decoder[TermFreqDic] = deriveDecoder[TermFreqDic]
 
 }

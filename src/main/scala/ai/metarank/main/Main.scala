@@ -42,6 +42,7 @@ object Main extends IOApp with Logging {
           )
         _ <- info("Metarank v" + Version().getOrElse("unknown") + " is starting.")
         _ <- args match {
+          case a: TermFreqArgs => TermFreq.run(a)
           case a: AutoFeatureArgs =>
             for {
               tracking <- TrackingConfig.fromEnv(env)
@@ -66,7 +67,6 @@ object Main extends IOApp with Logging {
                 case a: ValidateArgs   => Validate.run(conf, a)
                 case a: StandaloneArgs => Standalone.run(conf, store, cts, mapping, a)
                 case a: ExportArgs     => Export.run(conf, cts, mapping, a)
-                case a: TermFreqArgs   => TermFreq.run(conf, mapping, a)
               }
             } yield {}
         }

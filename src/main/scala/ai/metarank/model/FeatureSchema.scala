@@ -62,6 +62,7 @@ object FeatureSchema {
             case Right("csv")   => biencoder.apply(c)
             case Right("term")  => term.apply(c)
             case Right("ngram") => term.apply(c)
+            case Right("bm25")  => term.apply(c)
             case Right(other)   => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
           }
         case "referer"   => implicitly[Decoder[RefererSchema]].apply(c)

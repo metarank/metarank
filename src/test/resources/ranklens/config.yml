@@ -60,6 +60,15 @@ models:
 
 
 features:
+  - name: title_match
+    type: field_match
+    rankingField: ranking.query
+    itemField: item.title
+    method:
+      type: bm25
+      language: english
+      termFreq: "/tmp/foo"
+
   - name: ctr_tag
     type: rate
     top: click

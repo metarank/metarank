@@ -29,6 +29,7 @@ import ai.metarank.main.CliArgs.{
   ServeArgs,
   SortArgs,
   StandaloneArgs,
+  TermFreqArgs,
   TrainArgs,
   ValidateArgs
 }
@@ -99,6 +100,7 @@ object AnalyticsPayload {
     case _: SortArgs        => "sort"
     case _: AutoFeatureArgs => "autoconf"
     case _: ExportArgs      => "export"
+    case _: TermFreqArgs    => "termfreq"
   }
 
   def apply(config: Config, args: CliArgs): AnalyticsPayload =

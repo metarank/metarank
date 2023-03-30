@@ -9,7 +9,9 @@ class BM25MatcherTest extends AnyFlatSpec with Matchers {
   lazy val tf = TermFreqDic(
     docs = 3,
     avgdl = 3.0,
-    docfreq = Map("foo" -> 1, "bar" -> 2, "baz" -> 3)
+    termfreq = Map("foo" -> 1, "bar" -> 2, "baz" -> 3),
+    language = "en",
+    fields = List("title")
   )
   lazy val matcher = BM25Matcher(TextAnalyzer.english, tf)
 

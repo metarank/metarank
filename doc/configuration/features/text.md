@@ -6,6 +6,7 @@ An extractor which can match a field from ranking event over an item field. In p
 related tasks, when you need to match a search query over multiple separate fields in document, like title-tags-category.
 
 Field match extractor supports the following matching methods:
+* BM25: a Lucene-specific BM25 score between ranking and item fields (for example, between query and item title)
 * ngram: split item/query fields to N-grams and compute intersection over union score
 * term: use Lucene to perform language specific tokenization
 * bert: build LLM embeddings for item/query fields and compute a distance between them
@@ -46,6 +47,23 @@ And a following ranking event:
   ]
 }
 ```
+### BM25 score
+
+As BM25 formula requires term frequencies and some other index statistics, using BM25 requires you to build the term-freq dictionary beforehead, [see the CLI `termfreq` docs](../../cli.md#bm25-term-frequencies-dictionary) on how to do it.
+
+Having the `term-freq.json` file in hand, you can then configure Metarank to compute BM25 score between ranking field (for example, `query`) and item field (like `title`):
+
+```yaml
+  - name: title_match
+    type: field_match
+    rankingField: ranking.query
+    itemField: item.title
+    method:
+      type: bm25
+      language: english
+      termFreq: "/path/to/term-freq.json"
+```
+
 
 ### Ngram matching
 

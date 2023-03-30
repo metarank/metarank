@@ -106,6 +106,14 @@ Subcommand: export - export training dataset for hyperparameter optimization
                         time=80%, options: random=N%,time=N%,hold_last=N%)
   -h, --help            Show help message
 
+Subcommand: termfreq - compute term frequencies for the BM25 field_match extractor
+  -d, --data  <arg>       path to an input file
+  -f, --fields  <arg>     Comma-separated list of text fields
+  -l, --language  <arg>   Language to use for tokenization, stemming and
+                          stopwords
+  -o, --out  <arg>        an file to write term-freq dict to
+  -h, --help              Show help message
+
 For all other tricks, consult the docs on https://docs.metarank.ai
 ```
 
@@ -127,6 +135,7 @@ Metarank CLI has a set of different running modes:
 * [`sort`](#historical-data-sorting): pre-sorts the dataset by timestamp.
 * [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on your data.
 * [`export`](#dataset-export): export the training dataset for further hyperparam optimization.
+* [`termfreq`](): compute term frequency dictionary for [BM25 field_match extractor](configuration/features/text.md#text-based-extractors)
 
 ### Validation
 
@@ -328,6 +337,47 @@ And if memory is not enough, you can set `force_col_wise=true`.
 ```
 
 Metarank supports the same train/test split strategies for `export` subcommand as for the [train](cli.md#training-the-model) one.
+
+### BM25 term frequencies dictionary
+
+To use the BM25 score in the [field_match](configuration/features/text.md#fieldmatch), you need to compute a bit of statistics over your textual information.
+
+To do so, run the `termfreq` subcommand:
+```shell
+
+$> java -jar meratank.jar termfreq --data <path-to-data>\
+     --out /term-freq.json --fields title,description --language en
+     
+
+INFO  ai.metarank.main.Main$ - Metarank vunknown is starting.
+INFO  ai.metarank.source.FileEventSource - path=src/test/resources/ranklens/events/events.jsonl.gz is a file
+INFO  ai.metarank.source.FileEventSource - file src/test/resources/ranklens/events/events.jsonl.gz selected=true (timeMatch=true formatMatch=true)
+INFO  ai.metarank.source.FileEventSource - reading file src/test/resources/ranklens/events/events.jsonl.gz (with gzip decompressor)
+INFO  ai.metarank.flow.PrintProgress$ - processed 0 events, perf=0rps GC=9.54% heap=0.82%/7.82G 
+INFO  ai.metarank.flow.PrintProgress$ - processed 2048 events, perf=1557rps GC=2.51% heap=2.52%/7.82G 
+INFO  ai.metarank.flow.PrintProgress$ - processed 14336 events, perf=12130rps GC=0.0% heap=6.44%/7.82G 
+INFO  ai.metarank.flow.PrintProgress$ - processed 37888 events, perf=23296rps GC=0.3% heap=1.71%/7.82G 
+INFO  ai.metarank.main.command.TermFreq$ - built term-freq lang=en fields=[title, description] terms=11560
+INFO  ai.metarank.main.command.TermFreq$ - writing /tmp/tf.json, size=204 KB
+INFO  ai.metarank.main.command.TermFreq$ - done
+INFO  ai.metarank.main.command.TermFreq$ - done
+INFO  ai.metarank.main.Main$ - My job is done, exiting.
+```
+
+With the resulting `term-freq.json` file you can configure the BM25 score extractor in the following way:
+
+```yaml
+  - name: title_match
+    type: field_match
+    rankingField: ranking.query
+    itemField: item.title
+    method:
+      type: bm25
+      language: english
+      termFreq: "/path/to/term-freq.json"
+```
+
+The same dictionary can be used for multiple `field_match` extractors, for example when you want to have separate BM25 scores for query-title and query-description matches.
 
 ## Environment variables
 

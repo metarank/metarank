@@ -67,11 +67,10 @@ object CliArgs extends Logging {
 
   case class TermFreqArgs(
       data: Path,
-      conf: Path,
-      offset: SourceOffset = SourceOffset.Latest,
-      format: SourceFormat = JsonFormat,
+      language: String,
+      fields: List[String],
       out: Path
-  ) extends CliConfArgs
+  ) extends CliArgs
 
   def printHelp() = new ArgParser(Nil, Map.empty).printHelp()
 
@@ -159,13 +158,17 @@ object CliArgs extends Logging {
             }
           case Some(parser.termfreq) =>
             for {
-              conf   <- parse(parser.termfreq.config)
               data   <- parse(parser.termfreq.data)
-              offset <- parse(parser.termfreq.offset)
-              format <- parse(parser.termfreq.format)
               out    <- parse(parser.termfreq.out)
+              lang   <- parseOption(parser.termfreq.language)
+              fields <- parse(parser.termfreq.fields)
             } yield {
-              TermFreqArgs(data, conf, offset, format, out)
+              TermFreqArgs(
+                data = data,
+                out = out,
+                language = lang.getOrElse("english"),
+                fields = fields.split(",").toList
+              )
             }
           case other => Left(new Exception(s"subcommand $other is not supported"))
         }
@@ -341,12 +344,30 @@ object CliArgs extends Logging {
       )
     }
 
-    object termfreq extends Subcommand("termfreq") with ConfigOption with ImportLikeOption {
+    object termfreq extends Subcommand("termfreq") {
       descr("compute term frequencies for the BM25 field_match extractor")
+      val data = opt[Path](
+        "data",
+        required = true,
+        short = 'd',
+        descr = "path to an input file",
+        validate = pathExists
+      )
       val out = opt[Path](
         name = "out",
         required = true,
-        descr = "a path to an output json file"
+        descr = "an file to write term-freq dict to"
+      )
+      val language = opt[String](
+        name = "language",
+        required = false,
+        default = Some("english"),
+        descr = "Language to use for tokenization, stemming and stopwords"
+      )
+      val fields = opt[String](
+        name = "fields",
+        required = true,
+        descr = "Comma-separated list of text fields"
       )
     }
 

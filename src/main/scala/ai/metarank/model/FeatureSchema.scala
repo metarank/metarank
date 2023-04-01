@@ -57,13 +57,14 @@ object FeatureSchema {
           val biencoder = implicitly[Decoder[FieldMatchBiencoderSchema]]
           val term      = implicitly[Decoder[FieldMatchSchema]]
           c.downField("method").downField("type").as[String] match {
-            case Left(err)      => Left(err)
-            case Right("bert")  => biencoder.apply(c)
-            case Right("csv")   => biencoder.apply(c)
-            case Right("term")  => term.apply(c)
-            case Right("ngram") => term.apply(c)
-            case Right("bm25")  => term.apply(c)
-            case Right(other)   => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
+            case Right(other) => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
+            case Left(err)    => Left(err)
+            case Right("transformer") => biencoder.apply(c)
+            case Right("csv")         => biencoder.apply(c)
+            case Right("term")        => term.apply(c)
+            case Right("ngram")       => term.apply(c)
+            case Right("bm25")        => term.apply(c)
+            case Right(other) => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
           }
         case "referer"   => implicitly[Decoder[RefererSchema]].apply(c)
         case "position"  => implicitly[Decoder[PositionFeatureSchema]].apply(c)

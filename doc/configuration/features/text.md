@@ -124,7 +124,7 @@ Both term and ngram method share the same approach to the text analysis:
 * for non-generic languages each term is stemmed
 * then terms/ngrams from item and ranking are scored using intersection/union method.
 
-### BERT LLM embedding similarity
+### Transformer LLM embedding similarity
 
 Then with the following config snippet we can compute a cosine distance between title and query embeddings:
 
@@ -135,7 +135,14 @@ Then with the following config snippet we can compute a cosine distance between 
   itemField: item.title
   distance: cos # optional, default cos, options: cos/dot 
   method:
-    type: bert # the only one supported for now
-    model: sentence-transformer/all-MiniLM-L6-v2 # the only one supported now
+    type: transformer
+    model: metarank/all-MiniLM-L6-v2
 ```
 
+Metarank supports two embedding methods:
+* `transformer`: ONNX-encoded versions of the [sentence-transformers](https://sbert.net/docs/pretrained_models.html) models. See the [metarank HuggingFace namespace](https://huggingface.co/metarank) for a list of currently supported models.
+* `csv`: a comma-separated file with precomputed embeddings, where first row is source sentence. Useful for externally-generated embeddings with platforms like OpenAI and Cohere.
+
+For `transformer` models, Metarank supports fetching model directly from the HuggingFace Hub, or loading it from a local dir, depending on the model handle format:
+* `namespace/model`: fetch model from the HFHub
+* `file:///<path>/<to>/<model dir>`: load ONNX-encoded embedding model from a local file.

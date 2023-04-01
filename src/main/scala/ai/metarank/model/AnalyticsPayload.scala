@@ -119,7 +119,7 @@ object AnalyticsPayload {
         case NoopConfig(_)                                   => "noop"
         case TrendingConfig(_, _)                            => "trending"
         case _: ALSConfig                                    => "als"
-        case _: BertSemanticModelConfig                      => "bert"
+        case _: BertSemanticModelConfig                      => "semantic"
       }.toList,
       usedFeatures = config.features.map {
         case f: RateFeatureSchema            => UsedFeature(f.name, "rate")

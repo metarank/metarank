@@ -11,9 +11,7 @@ trait Encoder {
 
 object Encoder {
   def create(conf: EncoderType): IO[Encoder] = conf match {
-    case EncoderType.BertEncoderType(model) => BertEncoder.create(model)
+    case EncoderType.BertEncoderType(model, modelFile, vocabFile) => BertEncoder.create(model, modelFile, vocabFile)
     case EncoderType.CsvEncoderType(path)   => CsvEncoder.create(path)
-
   }
-
 }

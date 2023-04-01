@@ -2,6 +2,7 @@ package ai.metarank.feature
 
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.memory.MemPersistence
+import ai.metarank.ml.onnx.ModelHandle
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
 import ai.metarank.model.Event.ItemEvent
@@ -20,10 +21,10 @@ import org.scalatest.matchers.should.Matchers
 class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val schema = FieldMatchBiencoderSchema(
     name = FeatureName("foo"),
-    rankingField = FieldName(Ranking,"query"),
+    rankingField = FieldName(Ranking, "query"),
     itemField = FieldName(Item, "title"),
     distance = CosineDistance,
-    method = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2")
+    method = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"))
   )
   lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchBiencoderFeature]
 
@@ -43,8 +44,8 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
         |itemField: item.title
         |distance: cosine
         |method:
-        |  type: bert
-        |  model: sentence-transformer/all-MiniLM-L6-v2
+        |  type: transformer
+        |  model: metarank/all-MiniLM-L6-v2
         |  """.stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[FeatureSchema])
     decoded shouldBe Right(schema)

@@ -1,5 +1,6 @@
 package ai.metarank.ml.onnx
 
+import ai.metarank.flow.PrintProgress
 import ai.metarank.ml.onnx.HuggingFaceClient.ModelResponse
 import ai.metarank.ml.onnx.HuggingFaceClient.ModelResponse.Sibling
 import ai.metarank.ml.onnx.ModelHandle.HuggingFaceHandle
@@ -41,7 +42,9 @@ case class HuggingFaceClient(client: Client[IO], endpoint: Uri) extends Logging 
       .evalMap(response =>
         response.status.code match {
           case 200 =>
-            info("HuggingFace API: HTTP 200") *> response.entity.body.compile
+            info("HuggingFace API: HTTP 200") *> response.entity.body
+              .through(PrintProgress.tap(None, "bytes"))
+              .compile
               .foldChunks(new ByteArrayOutputStream())((acc, c) => {
                 acc.writeBytes(c.toArray)
                 acc
@@ -78,8 +81,12 @@ object HuggingFaceClient {
   implicit val modelResponseCodec: Codec[ModelResponse] = deriveCodec[ModelResponse]
 
   def create(endpoint: String = HUGGINGFACE_API_ENDPOINT): Resource[IO, HuggingFaceClient] = for {
-    uri    <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
-    client <- BlazeClientBuilder[IO].withRequestTimeout(120.second).withConnectTimeout(120.second).resource
+    uri <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
+    client <- BlazeClientBuilder[IO]
+      .withRequestTimeout(120.second)
+      .withConnectTimeout(120.second)
+      .withIdleTimeout(200.seconds)
+      .resource
   } yield {
     HuggingFaceClient(client, uri)
   }

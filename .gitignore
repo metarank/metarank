@@ -15,4 +15,3 @@ api/target
 *.crt
 *.key
 *.csr
-src/test/scala/ai/metarank/tool/esci

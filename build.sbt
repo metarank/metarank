@@ -74,7 +74,9 @@ lazy val root = (project in file("."))
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.7", // librec uses commons-logging, which is JCL
       "ai.djl"                    % "api"            % "0.21.0",
-      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.14.0"
+      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.14.0",
+      "org.apache.parquet"        % "parquet-hadoop" % "1.12.3" % "test",
+      "org.apache.hadoop"         % "hadoop-common"  % "3.3.4" % "test"
     ),
     excludeDependencies ++= Seq(
       "commons-logging" % "commons-logging"

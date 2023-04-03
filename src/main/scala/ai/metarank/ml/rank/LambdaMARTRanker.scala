@@ -52,11 +52,11 @@ object LambdaMARTRanker {
       _             <- checkDatasetSize(split.train)
       result        <- IO(makeBooster(split))
       model         <- IO.pure(LambdaMARTModel(name, config, result))
-      ndcg20        <- IO(model.eval(split.test, NDCG(20, nolabels = 1.0)))
+      ndcg20        <- IO(model.eval(split.test, NDCG(20, nolabels = 1.0, relpow = true)))
       _             <- info(s"NDCG20: source=${ndcg20.noopValue} reranked=${ndcg20.value} random=${ndcg20.randomValue}")
-      ndcg10        <- IO(model.eval(split.test, NDCG(10, nolabels = 1.0)))
+      ndcg10        <- IO(model.eval(split.test, NDCG(10, nolabels = 1.0, relpow = true)))
       _             <- info(s"NDCG10: source=${ndcg10.noopValue} reranked=${ndcg10.value} random=${ndcg10.randomValue}")
-      ndcg5         <- IO(model.eval(split.test, NDCG(5, nolabels = 1.0)))
+      ndcg5         <- IO(model.eval(split.test, NDCG(5, nolabels = 1.0, relpow = true)))
       _             <- info(s"NDCG5: source=${ndcg5.noopValue} reranked=${ndcg5.value} random=${ndcg5.randomValue}")
       mrr           <- IO(model.eval(split.test, MRR))
       _             <- info(s"MRR: source=${mrr.noopValue} reranked=${mrr.value} random=${mrr.randomValue}")
@@ -164,7 +164,8 @@ object LambdaMARTRanker {
           QueryMetadata(
             query = ClickthroughQuery(ct.values, ct.ct.interactions, ct, config.weights, desc),
             ts = ct.ct.ts,
-            user = ct.ct.user
+            user = ct.ct.user,
+            fields = ct.ct.rankingFields
           )
         )
         .compile

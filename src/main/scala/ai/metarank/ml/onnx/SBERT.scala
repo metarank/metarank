@@ -23,15 +23,16 @@ case class SBERT(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTo
     val tokens        = tokenStrings.map(t => tokenizer.getVocabulary.getIndex(t)).toArray
     val attentionMask = Array.fill(tokens.length)(1L)
     val tokenTypes    = Array.fill(tokens.length)(0L)
-    val result = session.run(
-      Map(
-        "input_ids"      -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokens), Array(1, tokens.length)),
-        "token_type_ids" -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokenTypes), Array(1, tokens.length)),
-        "attention_mask" -> OnnxTensor.createTensor(env, LongBuffer.wrap(attentionMask), Array(1, tokens.length))
-      ).asJava
+    val args = Map(
+      "input_ids"      -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokens), Array(1, tokens.length)),
+      "token_type_ids" -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokenTypes), Array(1, tokens.length)),
+      "attention_mask" -> OnnxTensor.createTensor(env, LongBuffer.wrap(attentionMask), Array(1, tokens.length))
     )
+    val result     = session.run(args.asJava)
     val tensor     = result.get(0).getValue.asInstanceOf[Array[Array[Array[Float]]]]
     val normalized = avgpool(tensor, dim)
+    result.close()
+    args.values.foreach(_.close())
     normalized
   }
 

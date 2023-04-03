@@ -6,9 +6,12 @@ import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserE
 case class EventCountStat(items: Int = 0, users: Int = 0, rankings: Int = 0, ints: Int = 0, intsWithRanking: Int = 0) {
   def total = items + users + rankings + ints
   def refresh(event: Event): EventCountStat = event match {
-    case e: ItemEvent    => copy(items = items + 1)
-    case e: UserEvent    => copy(users = users + 1)
-    case e: RankingEvent => copy(rankings = rankings + 1)
+    case e: ItemEvent => copy(items = items + 1)
+    case e: UserEvent => copy(users = users + 1)
+    case e: RankingEvent => {
+      val labels = e.items.toList.count(_.label.isDefined)
+      copy(rankings = rankings + 1, intsWithRanking = intsWithRanking + labels)
+    }
     case e: InteractionEvent =>
       copy(ints = ints + 1, intsWithRanking = intsWithRanking + (if (e.ranking.isDefined) 1 else 0))
   }

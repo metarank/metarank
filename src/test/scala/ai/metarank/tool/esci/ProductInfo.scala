@@ -23,12 +23,12 @@ object ProductInfo {
       asin: String,
       title: String,
       description: String,
-      bullets: String,
-      brand: String,
-      color: String,
+      bullets: Option[String],
+      brand: Option[String],
+      color: Option[String],
       locale: String
   ) {
-    def asText() = TitleDesc(title, description, brand, color, bullets)
+    def asText() = TitleDesc(title, description, brand.getOrElse(""), color.getOrElse(""), bullets.getOrElse(""))
   }
   def apply(page: BookPage): ProductInfo = {
     ProductInfo(

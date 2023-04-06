@@ -166,6 +166,7 @@ object Page {
     def template: String
     def price: String
 
+    def bulletOption: Option[String]
     def starsNumeric: Option[Double] = ProductInfo.parseStars(stars)
     def ratingsNumeric: Option[Int]  = ProductInfo.parseRatings(ratings)
     def color: Option[List[String]]  = attr.get("Color").flatMap(rawName => colors.get(rawName))
@@ -201,7 +202,10 @@ object Page {
       formats: Map[String, String],
       review: String,
       img: String
-  ) extends ContentPage
+  ) extends ContentPage {
+    override def bulletOption: Option[String] = None
+
+  }
   case class ProductPage(
       locale: String,
       asin: String,
@@ -221,6 +225,8 @@ object Page {
   ) extends ContentPage {
     override def desc: String              = description
     override def attr: Map[String, String] = attrs
+
+    override def bulletOption: Option[String] = Some(bullets.mkString(" "))
   }
 
   implicit val brokenCodec: Codec[BrokenPage] = deriveCodec

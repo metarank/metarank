@@ -7,6 +7,7 @@ import ai.metarank.model.{Event, EventId, Field, Timestamp}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.tool.esci.GenerateLLMTraining.Query
 import ai.metarank.tool.esci.Page.{BookPage, ContentPage}
+import ai.metarank.tool.esci.ProductInfo.ProductInfoOrig
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 import cats.effect.{ExitCode, IO, IOApp}
@@ -19,7 +20,7 @@ import io.circe.syntax._
 object ConvertDataset extends IOApp with Logging {
   val now = Timestamp.now
   override def run(args: List[String]): IO[ExitCode] = args match {
-    case parsedPath :: rankingPath :: Nil =>
+    case parsedPath :: rankingPath :: parqPath :: Nil =>
       for {
         seen <- GenerateLLMTraining
           .loadQueries(rankingPath)
@@ -31,15 +32,22 @@ object ConvertDataset extends IOApp with Logging {
               case (q, i) => makeRankingEvent(q, i)
             }
           )
-        items = GenerateLLMTraining
+        parsedProducts <- GenerateLLMTraining
           .loadPages(parsedPath)
           .filter(_.locale == "us")
           .filter(p => seen.contains(p.asin))
           .collect { case p: ContentPage =>
-            makeItemEvent(p)
+            p.asin -> makeItemEvent(p)
           }
           .through(PrintProgress.tap(None, "items"))
-        combined: Stream[IO, Event] = items ++ queries
+          .compile
+          .toList
+          .map(_.toMap)
+        datasetProducts <- GenerateLLMTraining
+          .loadProductInfoOrig(parqPath, seen)
+          .map(_.values.map(x => x.asin -> makeItemEvent(x)).toMap)
+        products <- IO(combineDatasets(parsedProducts, datasetProducts))
+        combined: Stream[IO, Event] = Stream.fromIterator[IO](products.iterator, 1024) ++ queries
         _ <- combined
           .map(_.asJson.noSpaces + "\n")
           .through(fs2.text.utf8.encode)
@@ -52,6 +60,9 @@ object ConvertDataset extends IOApp with Logging {
     case _ => IO.raiseError(new Exception("need path to esci.json.zst"))
   }
 
+  def combineDatasets(parsed: Map[String, ItemEvent], ds: Map[String, ItemEvent]) =
+    ds.map { case (asin, event) => parsed.getOrElse(asin, event) }
+
   def makeItemEvent(page: ContentPage): ItemEvent = {
     val extra = List(
       page.starsNumeric.map(s => NumberField("stars", s)),
@@ -62,7 +73,8 @@ object ConvertDataset extends IOApp with Logging {
       page.color.map(c => StringListField("color", c)),
       page.weight.map(w => NumberField("weight", w)),
       page.material.map(m => StringListField("material", m)),
-      page.priceNumeric.map(p => NumberField("price", p))
+      page.priceNumeric.map(p => NumberField("price", p)),
+      page.bulletOption.map(b => StringField("bullets", b))
     ).flatten[Field]
 
     ItemEvent(
@@ -73,6 +85,22 @@ object ConvertDataset extends IOApp with Logging {
         StringField("title", page.title),
         StringField("desc", page.desc),
         StringField("template", page.template)
+      ) ++ extra
+    )
+  }
+
+  def makeItemEvent(page: ProductInfoOrig): ItemEvent = {
+    val extra = List(
+      page.color.map(c => StringListField("color", Page.colors.getOrElse(c, List(c)))),
+      page.bullets.map(b => StringField("bullets", b))
+    ).flatten[Field]
+    ItemEvent(
+      id = EventId.randomUUID,
+      item = ItemId(page.asin),
+      timestamp = now,
+      fields = List(
+        StringField("title", page.title),
+        StringField("desc", page.description)
       ) ++ extra
     )
   }

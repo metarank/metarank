@@ -9,8 +9,8 @@ import com.github.luben.zstd.ZstdInputStream
 import com.opencsv.{CSVParserBuilder, CSVReaderBuilder}
 import fs2.Stream
 import fs2.io.file.{Files, Path}
-import io.circe.Codec
-import io.circe.generic.semiauto.deriveCodec
+import io.circe.{Codec, Encoder, Json, JsonObject}
+import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
 import io.circe.parser._
 import io.circe.syntax._
 import org.apache.hadoop.conf.Configuration
@@ -84,17 +84,18 @@ object GenerateLLMTraining extends IOApp with Logging {
   case class QueryProd(asin: String, label: String)
   case class TitleDesc(title: String, desc: String, brand: String, color: String, bullets: String)
   case class TrainSample(query: String, e: List[TitleDesc], s: List[TitleDesc], c: List[TitleDesc], i: List[TitleDesc])
-  implicit val titleDescCodec: Codec[TitleDesc]     = deriveCodec
-  implicit val trainSampleCodec: Codec[TrainSample] = deriveCodec
+  implicit val titleDescEncoder: Encoder[TitleDesc] =
+    Encoder.instance(c => Json.fromJsonObject(JsonObject.fromMap(Map("title" -> Json.fromString(c.title)))))
+  implicit val trainSampleEncoder: Encoder[TrainSample] = deriveEncoder
 
   override def run(args: List[String]): IO[ExitCode] = args match {
     case parsedPath :: rankingPath :: parqPath :: Nil =>
       for {
-        prodictsOrig <- loadProductInfoOrig(parqPath)
-        queries      <- loadQueries(rankingPath).map(_.filter(q => q.small && (q.locale == "us")))
+        prodictsOrig <- loadProductInfoOrig(parqPath, Set.empty)
+        queries      <- loadQueries(rankingPath).map(_.filter(q => q.large && (q.locale == "us")))
         products     <- loadProductInfo(parsedPath)
-        _            <- save(queries.filter(_.split == "train"), products, prodictsOrig, "/tmp/train-small.json")
-        _            <- save(queries.filter(_.split == "test"), products, prodictsOrig, "/tmp/test-small.json")
+        _            <- save(queries.filter(_.split == "train"), products, prodictsOrig, "/tmp/train-large.json")
+        _            <- save(queries.filter(_.split == "test"), products, prodictsOrig, "/tmp/test-large.json")
       } yield {
         ExitCode.Success
       }
@@ -123,9 +124,7 @@ object GenerateLLMTraining extends IOApp with Logging {
       .map(list => list.map(l => l.asin -> l).toMap)
   }
 
-  val features =
-    List("product_id", "product_title", "product_description", "product_bullet_point", "product_brand", "product_color")
-  def loadProductInfoOrig(path: String): IO[Map[String, ProductInfoOrig]] = IO {
+  def loadProductInfoOrig(path: String, seen: Set[String]): IO[Map[String, ProductInfoOrig]] = IO {
     val conf   = new Configuration()
     val reader = ParquetFileReader.open(HadoopInputFile.fromPath(new org.apache.hadoop.fs.Path("file://" + path), conf))
     val schema = reader.getFooter.getFileMetaData.getSchema
@@ -143,12 +142,12 @@ object GenerateLLMTraining extends IOApp with Logging {
           asin = group.getString("product_id", 0),
           title = group.getString("product_title", 0),
           description = Try(group.getString("product_description", 0)).getOrElse(""),
-          bullets = Try(group.getString("product_bullet_point", 0)).getOrElse(""),
-          brand = Try(group.getString("product_brand", 0)).getOrElse(""),
-          color = Try(group.getString("product_color", 0)).getOrElse(""),
+          bullets = Try(group.getString("product_bullet_point", 0)).toOption,
+          brand = Try(group.getString("product_brand", 0)).toOption,
+          color = Try(group.getString("product_color", 0)).toOption,
           locale = group.getString("product_locale", 0)
         )
-        buf.append(prod)
+        if (seen.isEmpty || seen.contains(prod.asin)) buf.append(prod)
         i += 1
         if (i % 123456 == 0) {
           logger.info(s"parsed $i parquet records")

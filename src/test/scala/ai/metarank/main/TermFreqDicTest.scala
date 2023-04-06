@@ -2,8 +2,10 @@ package ai.metarank.main
 
 import ai.metarank.feature.matcher.BM25Matcher.TermFreqDic
 import ai.metarank.main.command.TermFreq
+import ai.metarank.model.Event
 import ai.metarank.model.Event.ItemEvent
-import ai.metarank.util.RanklensEvents
+import ai.metarank.model.Field.StringField
+import ai.metarank.util.{RanklensEvents, TestItemEvent}
 import better.files.File
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
@@ -29,5 +31,19 @@ class TermFreqDicTest extends AnyFlatSpec with Matchers {
     TermFreq.saveFile(dir.toString() + "/dic.json", dic).unsafeRunSync()
     dir.children.toList.size shouldBe 1
     dir.delete()
+  }
+
+  it should "count repetitions only once" in {
+    val event =
+      TestItemEvent("p1", List(StringField("foo", "hello hello world"), StringField("bar", "hello hello world")))
+    val events = fs2.Stream(event)
+    val tf     = TermFreq.processLanguage("english", Set("foo", "bar"), events).unsafeRunSync()
+    tf shouldBe TermFreqDic(
+      language = "en",
+      fields = List("bar", "foo"),
+      docs = 1,
+      avgdl = 3.0,
+      termfreq = Map("hello" -> 1, "world" -> 1)
+    )
   }
 }

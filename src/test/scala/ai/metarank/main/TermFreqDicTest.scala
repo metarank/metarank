@@ -15,7 +15,7 @@ class TermFreqDicTest extends AnyFlatSpec with Matchers {
   it should "build termfreq from ranklens dataset" in {
     val events = RanklensEvents.stream()
     val tf     = TermFreq.processLanguage("english", Set("title", "description"), events).unsafeRunSync()
-    tf.docs shouldBe 5024
+    tf.docs shouldBe 2512
     tf.termfreq.size shouldBe 11560
   }
 

@@ -43,12 +43,18 @@ object BM25Matcher {
   case class TermFreqDic(language: String, fields: List[String], docs: Int, avgdl: Double, termfreq: Map[String, Int])
 
   object TermFreqDic {
-    case class Builder(docs: Int = 0, lenSum: Long = 0L, docFreq: Map[String, Int] = Map()) {
-      def withString(terms: Array[String]): Builder = {
+    case class Builder(docs: Int = 0, lenCount: Long = 0L, lenSum: Long = 0L, docFreq: Map[String, Int] = Map()) {
+      def withItem(item: ItemEvent, fields: Set[String], lang: TextAnalyzer): Builder = {
+        val matched = item.fields.flatMap {
+          case StringListField(name, values) if fields.contains(name) => values.map(lang.split)
+          case StringField(name, value) if fields.contains(name)      => List(lang.split(value))
+          case _                                                      => Nil
+        }
         Builder(
           docs = docs + 1,
-          lenSum = lenSum + terms.length,
-          docFreq = terms.foldLeft(docFreq)((acc, next) => {
+          lenSum = lenSum + matched.foldLeft(0L)((acc, terms) => acc + terms.length),
+          lenCount = lenCount + matched.size,
+          docFreq = matched.flatten.distinct.foldLeft(docFreq)((acc, next) => {
             val cnt = acc.getOrElse(next, 0)
             acc.updated(next, cnt + 1)
           })
@@ -59,21 +65,12 @@ object BM25Matcher {
       events
         .through(PrintProgress.tap(None, "events"))
         .collect { case e: ItemEvent => e }
-        .mapChunks(items =>
-          items.flatMap(item =>
-            Chunk.seq(item.fields.flatMap {
-              case StringField(name, value) if fields.contains(name)      => List(value)
-              case StringListField(name, values) if fields.contains(name) => values
-              case _                                                      => Nil
-            })
-          )
-        )
         .compile
-        .fold(Builder())((acc, next) => acc.withString(language.split(next)))
+        .fold(Builder())((acc, next) => acc.withItem(next, fields, language))
         .map(builder =>
           TermFreqDic(
             docs = builder.docs,
-            avgdl = builder.lenSum.toDouble / builder.docs,
+            avgdl = builder.lenSum.toDouble / builder.lenCount,
             termfreq = builder.docFreq,
             language = language.names.head,
             fields = fields.toList.sorted

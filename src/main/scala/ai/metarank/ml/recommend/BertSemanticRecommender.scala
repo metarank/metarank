@@ -53,7 +53,7 @@ object BertSemanticRecommender {
           case _                                                       => Nil
         }
       } yield {
-        val floats  = encoder.encode(item.item, stringFields.mkString(" "))
+        val floats  = encoder.encode(item.item.value, stringFields.mkString(" "))
         val doubles = new Array[Double](floats.length)
         var i       = 0
         while (i < doubles.length) {
@@ -81,7 +81,6 @@ object BertSemanticRecommender {
       store: KnnConfig,
       selector: Selector = Selector.AcceptSelector()
   ) extends ModelConfig
-
 
   implicit val bertModelConfigDecoder: Decoder[BertSemanticModelConfig] = Decoder.instance(c =>
     for {

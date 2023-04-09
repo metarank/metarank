@@ -11,9 +11,8 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, FileInputStre
 
 case class BertEncoder(sbert: SBERT) extends Encoder {
   override def dim: Int = sbert.dim
-
-  override def encode(str: String): Array[Float]             = sbert.embed(str)
-  override def encode(id: ItemId, str: String): Array[Float] = sbert.embed(str)
+  override def encode(key: String, str: String): Array[Float] = sbert.embed(str)
+  override def encode(str: String): Array[Float]              = sbert.embed(str)
 }
 
 object BertEncoder extends Logging {

@@ -54,7 +54,7 @@ case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder
             case _                               => None
           }
         } yield {
-          val encoded = encoder.encode(e.item, string)
+          val encoded = encoder.encode(e.item.value, string)
           Put(Key(ItemScope(e.item), conf.name), e.timestamp, SDoubleList(encoded))
         }
 

@@ -9,22 +9,31 @@ sealed trait EncoderType
 object EncoderType {
   case class BertEncoderType(
       model: ModelHandle,
+      itemFieldCache: Option[String] = None,
+      rankingFieldCache: Option[String] = None,
       modelFile: String = "pytorch_model.onnx",
-      vocabFile: String = "vocab.txt"
+      vocabFile: String = "vocab.txt",
+      dim: Int
   ) extends EncoderType
 
-  case class CsvEncoderType(path: String) extends EncoderType
+  case class CsvEncoderType(itemFieldCache: String, rankingFieldCache: String, dim: Int) extends EncoderType
 
   implicit val bertDecoder: Decoder[BertEncoderType] = Decoder.instance(c =>
     for {
       model     <- c.downField("model").as[ModelHandle]
       modelFile <- c.downField("modelFile").as[Option[String]]
       vocabFile <- c.downField("vocabFile").as[Option[String]]
+      itemCache <- c.downField("itemFieldCache").as[Option[String]]
+      rankCache <- c.downField("rankingFieldCache").as[Option[String]]
+      dim       <- c.downField("dim").as[Int]
     } yield {
       BertEncoderType(
         model,
         modelFile = modelFile.getOrElse("pytorch_model.onnx"),
-        vocabFile = vocabFile.getOrElse("vocab.txt")
+        vocabFile = vocabFile.getOrElse("vocab.txt"),
+        itemFieldCache = itemCache,
+        rankingFieldCache = rankCache,
+        dim = dim
       )
     }
   )

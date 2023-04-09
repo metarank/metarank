@@ -2,8 +2,8 @@ package ai.metarank.ml.recommend
 
 import ai.metarank.config.ModelConfig
 import ai.metarank.config.Selector.AcceptSelector
-import ai.metarank.ml.onnx.ModelHandle
-import ai.metarank.ml.onnx.encoder.CsvEncoder
+import ai.metarank.ml.onnx.{EmbeddingCache, ModelHandle}
+import ai.metarank.ml.onnx.encoder.Encoder
 import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
 import ai.metarank.ml.recommend.KnnConfig.HnswConfig
@@ -12,8 +12,10 @@ import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.TrainValues
 import ai.metarank.model.TrainValues.ItemValues
-import ai.metarank.util.RanklensEvents
+import ai.metarank.util.{CSVStream, RanklensEvents}
+import better.files.Resource
 import cats.effect.unsafe.implicits.global
+import com.opencsv.CSVReader
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -23,7 +25,7 @@ import java.nio.charset.StandardCharsets
 class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
   it should "train the model" in {
     val conf = BertSemanticModelConfig(
-      encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2")),
+      encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"), dim = 384),
       itemFields = List("title", "description"),
       store = HnswConfig()
     )
@@ -38,31 +40,22 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
         |encoder:
         |  type: transformer
         |  model: metarank/all-MiniLM-L6-v2
+        |  dim: 384
         |itemFields: [title, description]""".stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[ModelConfig])
     decoded shouldBe Right(
       BertSemanticModelConfig(
-        encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2")),
+        encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"), dim = 384),
         itemFields = List("title", "description"),
         store = HnswConfig()
       )
     )
   }
 
-  it should "load embeddings from a file" in {
-    val lines = List(
-      "1,1.0,1.0,1.0",
-      "2,2.0,2.0,2.0"
-    )
-    val encoder = CsvEncoder.create(fs2.Stream(lines: _*)).unsafeRunSync()
-    encoder.encode(ItemId("1"), "foo").toList shouldBe List(1.0, 1.0, 1.0)
-  }
-
   it should "load cohere embeddings" in {
-    val lines   = IOUtils.resourceToString("/embedding/cohere.csv", StandardCharsets.UTF_8).split('\n').toList
-    val encoder = CsvEncoder.create(fs2.Stream(lines: _*)).unsafeRunSync()
-    encoder.encode(ItemId("1"), "foo").length shouldBe 4096
-    encoder.dim shouldBe 4096
+    val lines   = Resource.my.getAsStream("/embedding/cohere.csv")
+    val encoder = EmbeddingCache.fromStream(CSVStream.fromStream(lines, ',', 0), 4096).unsafeRunSync()
+    encoder.get("8").map(_.length) shouldBe Some(4096)
   }
 
 }

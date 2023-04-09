@@ -146,3 +146,5 @@ Metarank supports two embedding methods:
 For `transformer` models, Metarank supports fetching model directly from the HuggingFace Hub, or loading it from a local dir, depending on the model handle format:
 * `namespace/model`: fetch model from the HFHub
 * `file:///<path>/<to>/<model dir>`: load ONNX-encoded embedding model from a local file.
+
+#### Using pre-computed embeddings

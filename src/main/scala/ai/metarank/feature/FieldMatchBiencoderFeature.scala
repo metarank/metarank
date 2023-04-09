@@ -53,8 +53,8 @@ case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder
             case Field.StringListField(_, value) => Some(value.mkString(" "))
             case _                               => None
           }
+          encoded <- encoder.encode(e.item.value, string)
         } yield {
-          val encoded = encoder.encode(e.item.value, string)
           Put(Key(ItemScope(e.item), conf.name), e.timestamp, SDoubleList(encoded))
         }
 
@@ -75,14 +75,17 @@ case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder
     }
     queryOption match {
       case Some(queryString) =>
-        val queryEmbedding = encoder.encode(queryString)
-        request.items.toList.map(item => {
-          features.get(Key(ItemScope(item.id), conf.name)) match {
-            case Some(ScalarValue(_, ts, SDoubleList(emb))) =>
-              MValue(schema.name.value, schema.distance.dist(queryEmbedding, emb))
-            case _ => SingleValue.missing(schema.name)
-          }
-        })
+        encoder.encode(queryString) match {
+          case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
+          case Some(queryEmbedding) =>
+            request.items.toList.map(item => {
+              features.get(Key(ItemScope(item.id), conf.name)) match {
+                case Some(ScalarValue(_, ts, SDoubleList(emb))) =>
+                  MValue(schema.name.value, schema.distance.dist(queryEmbedding, emb))
+                case _ => SingleValue.missing(schema.name)
+              }
+            })
+        }
       case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
     }
   }

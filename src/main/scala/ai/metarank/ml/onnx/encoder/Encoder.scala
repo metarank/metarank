@@ -5,8 +5,8 @@ import ai.metarank.model.Identifier.ItemId
 import cats.effect.IO
 
 trait Encoder {
-  def encode(key: String, str: String): Array[Float]
-  def encode(str: String): Array[Float]
+  def encode(key: String, str: String): Option[Array[Float]]
+  def encode(str: String): Option[Array[Float]]
   def dim: Int
 }
 

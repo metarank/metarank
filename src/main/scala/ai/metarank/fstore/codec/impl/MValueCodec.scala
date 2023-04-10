@@ -10,9 +10,9 @@ import java.io.{DataInput, DataOutput}
 
 object MValueCodec extends BinaryCodec[MValue] {
   override def read(in: DataInput): MValue = in.readByte() match {
-    case 0 => SingleValue(FeatureName(in.readUTF()), in.readDouble())
-    case 1 => VectorValue(FeatureName(in.readUTF()), DoubleArrayCodec.read(in), VectorDim(in.readVarInt()))
-    case 2 => CategoryValue(FeatureName(in.readUTF()), in.readUTF(), in.readVarInt())
+    case 0     => SingleValue(FeatureName(in.readUTF()), in.readDouble())
+    case 1     => VectorValue(FeatureName(in.readUTF()), DoubleArrayCodec.read(in), VectorDim(in.readVarInt()))
+    case 2     => CategoryValue(FeatureName(in.readUTF()), in.readUTF(), in.readVarInt())
     case other => throw new Exception(s"cannot decode mvalue with index $other")
   }
 

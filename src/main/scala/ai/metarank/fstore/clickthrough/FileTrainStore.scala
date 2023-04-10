@@ -10,7 +10,18 @@ import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
 import fs2.Stream
 
-import java.io.{BufferedInputStream, BufferedOutputStream, DataInputStream, DataOutput, DataOutputStream, File, FileInputStream, FileOutputStream, InputStream, OutputStream}
+import java.io.{
+  BufferedInputStream,
+  BufferedOutputStream,
+  DataInputStream,
+  DataOutput,
+  DataOutputStream,
+  File,
+  FileInputStream,
+  FileOutputStream,
+  InputStream,
+  OutputStream
+}
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID

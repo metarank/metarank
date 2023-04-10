@@ -7,11 +7,10 @@ import ai.metarank.model.{Clickthrough, EventId, Timestamp}
 import java.io.{DataInput, DataOutput}
 
 case class ClickthroughCodec(version: Int) extends BinaryCodec[Clickthrough] {
-  val listItemCodec = new ListCodec(ItemIdCodec)
-  val listInterCodec = new ListCodec(TypedIntCodec(version))
+  val listItemCodec      = new ListCodec(ItemIdCodec)
+  val listInterCodec     = new ListCodec(TypedIntCodec(version))
   val optionSessionCodec = new OptionCodec(SessionIdCodec)
-  val listFieldCodec = new ListCodec(FieldCodec)
-
+  val listFieldCodec     = new ListCodec(FieldCodec)
 
   override def read(in: DataInput): Clickthrough = {
     Clickthrough(

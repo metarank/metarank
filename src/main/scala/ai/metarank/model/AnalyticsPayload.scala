@@ -6,6 +6,7 @@ import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, 
 import ai.metarank.config.{Config, ModelConfig, StateStoreConfig}
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
+import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
@@ -119,7 +120,7 @@ object AnalyticsPayload {
         case NoopConfig(_)                                   => "noop"
         case TrendingConfig(_, _)                            => "trending"
         case _: ALSConfig                                    => "als"
-        case _: BertSemanticModelConfig                      => "bert"
+        case _: BertSemanticModelConfig                      => "semantic"
       }.toList,
       usedFeatures = config.features.map {
         case f: RateFeatureSchema            => UsedFeature(f.name, "rate")
@@ -139,6 +140,7 @@ object AnalyticsPayload {
         case f: PositionFeatureSchema        => UsedFeature(f.name, "position")
         case f: RandomFeatureSchema          => UsedFeature(f.name, "random")
         case f: DiversitySchema              => UsedFeature(f.name, "diversity")
+        case f: FieldMatchBiencoderSchema    => UsedFeature(f.name, "field_match.nn")
       },
       system = SystemParams(),
       ts = System.currentTimeMillis()

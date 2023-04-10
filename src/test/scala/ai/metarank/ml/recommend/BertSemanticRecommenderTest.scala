@@ -2,6 +2,7 @@ package ai.metarank.ml.recommend
 
 import ai.metarank.config.ModelConfig
 import ai.metarank.config.Selector.AcceptSelector
+import ai.metarank.ml.onnx.ModelHandle
 import ai.metarank.ml.onnx.encoder.CsvEncoder
 import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
@@ -22,7 +23,7 @@ import java.nio.charset.StandardCharsets
 class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
   it should "train the model" in {
     val conf = BertSemanticModelConfig(
-      encoder = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2"),
+      encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2")),
       itemFields = List("title", "description"),
       store = HnswConfig()
     )
@@ -35,13 +36,13 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
     val yaml =
       """type: semantic
         |encoder:
-        |  type: bert
-        |  model: sentence-transformer/all-MiniLM-L6-v2
+        |  type: transformer
+        |  model: metarank/all-MiniLM-L6-v2
         |itemFields: [title, description]""".stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[ModelConfig])
     decoded shouldBe Right(
       BertSemanticModelConfig(
-        encoder = BertEncoderType("sentence-transformer/all-MiniLM-L6-v2"),
+        encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2")),
         itemFields = List("title", "description"),
         store = HnswConfig()
       )

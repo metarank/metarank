@@ -5,6 +5,7 @@ import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.fstore.Persistence.KVStore
 import ai.metarank.fstore.{EventTicker, FeatureValueLoader, TrainStore}
+import ai.metarank.ml.Predictor.RecommendPredictor
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, UserEvent}
 import ai.metarank.model.TrainValues.{ClickthroughValues, ItemValues, UserValues}
@@ -25,7 +26,8 @@ case class TrainBuffer(
     values: KVStore[Key, FeatureValue],
     cts: TrainStore,
     mapping: FeatureMapping,
-    conf: ClickthroughJoinConfig
+    conf: ClickthroughJoinConfig,
+    userItemNeeded: Boolean = true
 ) extends Logging {
 
   def process(event: Event): IO[List[TrainValues]] = {
@@ -43,8 +45,8 @@ case class TrainBuffer(
     }
   }
 
-  def handleItem(item: ItemEvent) = IO { queue.add(ItemValues(item)) }
-  def handleUser(user: UserEvent) = IO { queue.add(UserValues(user)) }
+  def handleItem(item: ItemEvent): IO[Unit] = IO.whenA(userItemNeeded)(IO { queue.add(ItemValues(item)) })
+  def handleUser(user: UserEvent): IO[Unit] = IO.whenA(userItemNeeded)(IO { queue.add(UserValues(user)) })
 
   def handleRanking(event: RankingEvent): IO[Unit] = for {
     values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
@@ -162,6 +164,10 @@ object TrainBuffer extends Logging {
       .evictionListener(evictionListener(queue))
       .executor(MoreExecutors.directExecutor())
       .build[String, ClickthroughValues]()
+    val userItemTrainingNeeded = mapping.models.values.toList.exists {
+      case _: RecommendPredictor[_, _] => true
+      case _                           => false
+    }
     new TrainBuffer(
       values = values,
       cts = cts,
@@ -169,7 +175,8 @@ object TrainBuffer extends Logging {
       conf = conf,
       queue = queue,
       ticker = ticker,
-      cache = cache
+      cache = cache,
+      userItemNeeded = userItemTrainingNeeded
     )
   }
 

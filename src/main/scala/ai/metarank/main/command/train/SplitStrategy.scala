@@ -1,6 +1,7 @@
 package ai.metarank.main.command.train
 
 import ai.metarank.main.command.train.SplitStrategy.Split
+import ai.metarank.model.Field.StringField
 import ai.metarank.model.QueryMetadata
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -64,7 +65,22 @@ object SplitStrategy {
     }
   }
 
+  case class FieldStrategy(field: String, trainValue: String, testValue: String) extends SplitStrategy {
+    def select(queries: List[QueryMetadata], predicate: String) = queries.filter(qm =>
+      qm.fields.exists {
+        case StringField(name, value) => (name == field) && (value == predicate)
+        case _                        => false
+      }
+    )
+    override def split(desc: DatasetDescriptor, queries: List[QueryMetadata]): IO[Split] = IO {
+      val train = select(queries, trainValue)
+      val test  = select(queries, testValue)
+      Split(Dataset(desc, train.map(_.query)), Dataset(desc, test.map(_.query)))
+    }
+  }
+
   val splitPattern = "([a-z_]+)=([0-9]{1,3})%".r
+  val fieldPattern = "field=([a-zA-Z0-9\\-_]+):([a-zA-Z0-9\\-_]+):([a-zA-Z0-9\\-_]+)".r
   def parse(in: String): Either[Exception, SplitStrategy] = in match {
     case "random"                         => Right(RandomSplit(80))
     case splitPattern("random", ratio)    => Right(RandomSplit(ratio.toInt))
@@ -72,13 +88,15 @@ object SplitStrategy {
     case splitPattern("time", ratio)      => Right(TimeSplit(ratio.toInt))
     case "hold_last"                      => Right(HoldLastStrategy(80))
     case splitPattern("hold_last", ratio) => Right(HoldLastStrategy(ratio.toInt))
+    case fieldPattern(field, train, test) => Right(FieldStrategy(field, train, test))
     case other                            => Left(new Exception(s"split pattern $other cannot be parsed"))
   }
 
   implicit val splitDecoder: Decoder[SplitStrategy] = Decoder.decodeString.emapTry(str => parse(str).toTry)
   implicit val splitEncoder: Encoder[SplitStrategy] = Encoder.instance {
-    case RandomSplit(ratio)      => Json.fromString(s"random=$ratio%")
-    case TimeSplit(ratio)        => Json.fromString(s"time=$ratio%")
-    case HoldLastStrategy(ratio) => Json.fromString(s"hold_last=$ratio%")
+    case RandomSplit(ratio)                          => Json.fromString(s"random=$ratio%")
+    case TimeSplit(ratio)                            => Json.fromString(s"time=$ratio%")
+    case HoldLastStrategy(ratio)                     => Json.fromString(s"hold_last=$ratio%")
+    case FieldStrategy(field, trainValue, testValue) => Json.fromString(s"field=$field:$trainValue:$testValue")
   }
 }

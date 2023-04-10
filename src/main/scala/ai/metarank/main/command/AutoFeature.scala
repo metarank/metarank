@@ -2,6 +2,7 @@ package ai.metarank.main.command
 
 import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.feature.StringFeature.StringFeatureSchema
+import ai.metarank.flow.PrintProgress
 import ai.metarank.main.CliArgs.AutoFeatureArgs
 import ai.metarank.main.command.autofeature.{ConfigMirror, EventModel}
 import ai.metarank.main.command.autofeature.rules.RuleSet
@@ -45,13 +46,12 @@ object AutoFeature extends Logging {
 
   def run(source: Stream[IO, Event], rules: RuleSet): IO[ConfigMirror] = for {
     start <- IO(System.currentTimeMillis())
-    model <- source.compile.fold(EventModel())((model, event) => {
-      if (model.eventCount.total % 12345 == 1) {
-        val rate = math.round(model.eventCount.total / ((System.currentTimeMillis() - start) / 1000.0))
-        logger.info(s"processed ${model.eventCount} events, $rate events/s")
-      }
-      model.refresh(event)
-    })
+    model <- source
+      .through(PrintProgress.tap(None, "events"))
+      .compile
+      .fold(EventModel())((model, event) => {
+        model.refresh(event)
+      })
     _    <- info("Event model statistics collected")
     conf <- ConfigMirror.create(model, rules)
   } yield {

@@ -10,7 +10,7 @@ import org.apache.commons.io.IOUtils
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, FileInputStream}
 
 case class BertEncoder(sbert: SBERT) extends Encoder {
-  override def dim: Int = sbert.dim
+  override def dim: Int                                               = sbert.dim
   override def encode(key: String, str: String): Option[Array[Float]] = Some(sbert.embed(str))
   override def encode(str: String): Option[Array[Float]]              = Some(sbert.embed(str))
 }

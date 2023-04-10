@@ -25,11 +25,11 @@ import java.nio.file.Files
 
 object Import extends Logging {
   def run(
-           conf: Config,
-           storeResource: Resource[IO, Persistence],
-           ctsResource: Resource[IO, TrainStore],
-           mapping: FeatureMapping,
-           args: ImportArgs
+      conf: Config,
+      storeResource: Resource[IO, Persistence],
+      ctsResource: Resource[IO, TrainStore],
+      mapping: FeatureMapping,
+      args: ImportArgs
   ): IO[Unit] = {
     storeResource.use(store =>
       ctsResource.use(cts => {
@@ -77,11 +77,11 @@ object Import extends Logging {
   }
 
   def slurp(
-             source: fs2.Stream[IO, Event],
-             store: Persistence,
-             mapping: FeatureMapping,
-             buffer: TrainBuffer,
-             conf: Config
+      source: fs2.Stream[IO, Event],
+      store: Persistence,
+      mapping: FeatureMapping,
+      buffer: TrainBuffer,
+      conf: Config
   ): IO[ProcessResult] = {
     store match {
       case redis: RedisPersistence if conf.core.`import`.cache.enabled =>

@@ -22,11 +22,11 @@ import org.http4s.server.Router
 
 object Serve extends Logging {
   def run(
-           conf: Config,
-           storeResource: Resource[IO, Persistence],
-           ctsResource: Resource[IO, TrainStore],
-           mapping: FeatureMapping,
-           args: ServeArgs
+      conf: Config,
+      storeResource: Resource[IO, Persistence],
+      ctsResource: Resource[IO, TrainStore],
+      mapping: FeatureMapping,
+      args: ServeArgs
   ): IO[Unit] = {
     storeResource.use(store => {
       ctsResource.use(cts => {
@@ -46,11 +46,11 @@ object Serve extends Logging {
   }
 
   def api(
-           store: Persistence,
-           cts: TrainStore,
-           mapping: FeatureMapping,
-           conf: ApiConfig,
-           buffer: TrainBuffer
+      store: Persistence,
+      cts: TrainStore,
+      mapping: FeatureMapping,
+      conf: ApiConfig,
+      buffer: TrainBuffer
   ): IO[Unit] = for {
     health     <- IO.pure(HealthApi(store).routes)
     rank       <- IO.pure(RankApi(Ranker(mapping, store)).routes)

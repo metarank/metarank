@@ -7,11 +7,11 @@ import java.io.{DataInput, DataOutput}
 
 object FieldCodec extends BinaryCodec[Field] {
   override def read(in: DataInput): Field = in.readByte() match {
-    case 0 => StringField(in.readUTF(), in.readUTF())
-    case 1 => BooleanField(in.readUTF(), in.readBoolean())
-    case 2 => NumberField(in.readUTF(), in.readDouble())
-    case 3 => StringListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readUTF()).toList)
-    case 4 => NumberListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readDouble()).toArray)
+    case 0     => StringField(in.readUTF(), in.readUTF())
+    case 1     => BooleanField(in.readUTF(), in.readBoolean())
+    case 2     => NumberField(in.readUTF(), in.readDouble())
+    case 3     => StringListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readUTF()).toList)
+    case 4     => NumberListField(in.readUTF(), (0 until in.readInt()).map(_ => in.readDouble()).toArray)
     case other => throw new Exception(s"cannot decode type index $other")
   }
 

@@ -14,11 +14,11 @@ import cats.implicits._
 
 object Standalone extends Logging {
   def run(
-           conf: Config,
-           storeResource: Resource[IO, Persistence],
-           ctsResource: Resource[IO, TrainStore],
-           mapping: FeatureMapping,
-           args: StandaloneArgs
+      conf: Config,
+      storeResource: Resource[IO, Persistence],
+      ctsResource: Resource[IO, TrainStore],
+      mapping: FeatureMapping,
+      args: StandaloneArgs
   ): IO[Unit] = {
     storeResource.use(store =>
       ctsResource.use(cts => {

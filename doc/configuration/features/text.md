@@ -137,6 +137,9 @@ Then with the following config snippet we can compute a cosine distance between 
   method:
     type: transformer
     model: metarank/all-MiniLM-L6-v2
+    dim: 384 # required, dimensionality of the embedding
+    itemFieldCache: /path/to/item.embedding # optional, pre-computed embedding cache for items 
+    rankingFieldCache: /path/to/query.embedding # optional, pre-computed embedding cache for rankings
 ```
 
 Metarank supports two embedding methods:
@@ -147,4 +150,38 @@ For `transformer` models, Metarank supports fetching model directly from the Hug
 * `namespace/model`: fetch model from the HFHub
 * `file:///<path>/<to>/<model dir>`: load ONNX-encoded embedding model from a local file.
 
-#### Using pre-computed embeddings
+#### Using CSV cache of precomputed embeddings
+
+In some performance-sensitive cases you don't want to compute embeddings in realtime, but only use offline precomputed ones. This is possible with the `csv` `field_match` method:
+```yaml
+- type: field_match
+  name: title_query_match
+  rankingField: ranking.query
+  itemField: item.title
+  distance: cos # optional, default cos, options: cos/dot 
+  method:
+    type: csv
+    dim: 384
+    itemFieldCache: /path/to/item.embedding
+    rankingFieldCache: /path/to/query.embedding
+```
+
+In this case Metarank will load item and query embeddings from a CSV file in the following format:
+
+itemFieldCache:
+
+```
+item1,0,1,2,3,4,5
+item2,5,4,3,2,1,9
+item3,1,1,1,1,1,1
+```
+
+rankingFieldCache:
+```
+bananas,0,1,2,3,4,5
+red socks,5,4,3,2,1,9
+stone,1,1,1,1,1,1
+```
+* when both query and item embeddings are present, then `field_match` will produce a cosine distance between them.
+* when at least one of the embeddings is missing, then `field_match` with `csv` method will produce a `nil` missing value. 
+* when at least one of the embeddings is missing, then `field_match` with `transformer` method will compute the embedding real-time.

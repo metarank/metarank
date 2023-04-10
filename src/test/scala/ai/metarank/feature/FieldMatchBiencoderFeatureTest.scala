@@ -45,6 +45,7 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
         |distance: cosine
         |method:
         |  type: transformer
+        |  dim: 384
         |  model: metarank/all-MiniLM-L6-v2
         |  """.stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[FeatureSchema])

@@ -24,7 +24,7 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
     rankingField = FieldName(Ranking, "query"),
     itemField = FieldName(Item, "title"),
     distance = CosineDistance,
-    method = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"))
+    method = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"), dim = 384)
   )
   lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchBiencoderFeature]
 
@@ -45,6 +45,7 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
         |distance: cosine
         |method:
         |  type: transformer
+        |  dim: 384
         |  model: metarank/all-MiniLM-L6-v2
         |  """.stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[FeatureSchema])

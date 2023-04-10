@@ -10,7 +10,8 @@ This model is useful for solving a cold-start problem of recommendations, as it 
 - type: semantic
   encoder:
     type: bert
-    model: sentence-transformer/all-MiniLM-L6-v2
+    model: metarank/all-MiniLM-L6-v2
+    dim: 384 # embedding size
   itemFields: [title, description]
 ```
 
@@ -18,13 +19,14 @@ This model is useful for solving a cold-start problem of recommendations, as it 
 * encoder: a method of computing embeddings
 
 Metarank has quite limited support for embeddings:
-* `bert` type of embeddings only support a `sentence-transformer/all-MiniLM-L6-v2` model from HuggingFace
+* `bert` type of embeddings only supports ONNX-encoded models from sentence-transformers from HuggingFace
 * `csv` type of embeddings allows loading a custom pre-made dictionary. 
 
 ```yaml
 - type: semantic
   encoder:
     type: csv
+    dim: 384 # embedding size
     path: /opt/dic.csv
   itemFields: [title, description]
 ```

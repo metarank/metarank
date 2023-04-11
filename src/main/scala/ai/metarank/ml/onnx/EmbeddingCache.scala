@@ -1,5 +1,6 @@
 package ai.metarank.ml.onnx
 
+import ai.metarank.flow.PrintProgress
 import ai.metarank.util.CSVStream
 import cats.effect.IO
 
@@ -13,7 +14,8 @@ object EmbeddingCache {
   def empty(): EmbeddingCache = EmbeddingCache(Map.empty)
   def fromStream(stream: fs2.Stream[IO, Array[String]], dim: Int): IO[EmbeddingCache] =
     stream
-      .evalMapChunk(line => IO.fromEither(parseEmbedding(line, dim)))
+      .parEvalMapUnordered(8)(line => IO.fromEither(parseEmbedding(line, dim)))
+      .through(PrintProgress.tap(None, "embeddings"))
       .compile
       .toList
       .map(list => EmbeddingCache(list.map(e => e.key -> e.emb).toMap))
@@ -24,7 +26,7 @@ object EmbeddingCache {
 
   def parseEmbedding(line: Array[String], dim: Int): Either[Throwable, Embedding] = {
     if (line.length != dim + 1) {
-      Left(new Exception(s"dim mismatch for line ${line.toList}"))
+      Left(new Exception(s"dim mismatch for line ${line.toList}: expected $dim, got line with ${line.length} cols"))
     } else {
       val key    = line(0)
       val buffer = new Array[Float](dim)

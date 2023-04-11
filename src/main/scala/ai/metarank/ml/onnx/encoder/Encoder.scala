@@ -2,6 +2,7 @@ package ai.metarank.ml.onnx.encoder
 
 import ai.metarank.ml.onnx.EmbeddingCache
 import ai.metarank.model.Identifier.ItemId
+import ai.metarank.util.Logging
 import cats.effect.IO
 
 trait Encoder {
@@ -10,16 +11,16 @@ trait Encoder {
   def dim: Int
 }
 
-object Encoder {
+object Encoder extends Logging {
   def create(conf: EncoderType): IO[Encoder] = conf match {
     case EncoderType.BertEncoderType(model, itemCache, rankCache, modelFile, vocabFile, dim) =>
       for {
-        items <- itemCache match {
-          case Some(path) => EmbeddingCache.fromCSV(path, ',', dim)
+        fields <- rankCache match {
+          case Some(path) => info("Loading ranking embeddings") *> EmbeddingCache.fromCSV(path, ',', dim)
           case None       => IO.pure(EmbeddingCache.empty())
         }
-        fields <- rankCache match {
-          case Some(path) => EmbeddingCache.fromCSV(path, ',', dim)
+        items <- itemCache match {
+          case Some(path) => info("Loading item embeddings") *> EmbeddingCache.fromCSV(path, ',', dim)
           case None       => IO.pure(EmbeddingCache.empty())
         }
         bert <- BertEncoder.create(model, modelFile, vocabFile)
@@ -29,8 +30,11 @@ object Encoder {
 
     case EncoderType.CsvEncoderType(itemPath, fieldPath, dim) =>
       for {
-        items  <- EmbeddingCache.fromCSV(itemPath, ',', dim)
+        _      <- info("Loading ranking embeddings")
         fields <- EmbeddingCache.fromCSV(fieldPath, ',', dim)
+        _      <- info("Loading item embeddings")
+        items  <- EmbeddingCache.fromCSV(itemPath, ',', dim)
+
       } yield {
         CachedEncoder(items, fields, ZeroEncoder(dim))
       }

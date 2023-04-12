@@ -5,8 +5,6 @@ import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatcherType.{BM25MatcherType, NgramMatcherType, TermMatcherType}
 import ai.metarank.feature.matcher.{BM25Matcher, FieldMatcher, NgramMatcher, TermMatcher}
 import ai.metarank.fstore.Persistence
-import ai.metarank.ml.onnx.encoder.EncoderType
-import ai.metarank.ml.onnx.encoder.EncoderType.{BertEncoderType, CsvEncoderType}
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig

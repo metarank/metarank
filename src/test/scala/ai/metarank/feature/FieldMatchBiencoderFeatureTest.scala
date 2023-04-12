@@ -4,7 +4,7 @@ import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.ml.onnx.ModelHandle
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
-import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
+import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType.{Item, Ranking}
@@ -24,7 +24,7 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
     rankingField = FieldName(Ranking, "query"),
     itemField = FieldName(Item, "title"),
     distance = CosineDistance,
-    method = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"), dim = 384)
+    method = BiEncoderConfig(Some(ModelHandle("metarank", "all-MiniLM-L6-v2")), dim = 384)
   )
   lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchBiencoderFeature]
 

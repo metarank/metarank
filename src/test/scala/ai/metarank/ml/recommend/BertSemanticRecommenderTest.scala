@@ -2,21 +2,16 @@ package ai.metarank.ml.recommend
 
 import ai.metarank.config.ModelConfig
 import ai.metarank.config.Selector.AcceptSelector
+import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
 import ai.metarank.ml.onnx.{EmbeddingCache, ModelHandle}
-import ai.metarank.ml.onnx.encoder.Encoder
-import ai.metarank.ml.onnx.encoder.EncoderType.BertEncoderType
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
 import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.model.Event.ItemEvent
-import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.TrainValues
 import ai.metarank.model.TrainValues.ItemValues
 import ai.metarank.util.{CSVStream, RanklensEvents}
 import better.files.Resource
 import cats.effect.unsafe.implicits.global
-import com.opencsv.CSVReader
-import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -25,7 +20,7 @@ import java.nio.charset.StandardCharsets
 class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
   it should "train the model" in {
     val conf = BertSemanticModelConfig(
-      encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"), dim = 384),
+      encoder = BiEncoderConfig(Some(ModelHandle("metarank", "all-MiniLM-L6-v2")), dim = 384),
       itemFields = List("title", "description"),
       store = HnswConfig()
     )
@@ -45,7 +40,7 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[ModelConfig])
     decoded shouldBe Right(
       BertSemanticModelConfig(
-        encoder = BertEncoderType(ModelHandle("metarank", "all-MiniLM-L6-v2"), dim = 384),
+        encoder = BiEncoderConfig(Some(ModelHandle("metarank", "all-MiniLM-L6-v2")), dim = 384),
         itemFields = List("title", "description"),
         store = HnswConfig()
       )

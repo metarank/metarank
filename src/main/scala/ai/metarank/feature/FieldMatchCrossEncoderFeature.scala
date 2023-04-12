@@ -5,15 +5,21 @@ import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderS
 import ai.metarank.fstore.Persistence
 import ai.metarank.ml.onnx.EmbeddingCache
 import ai.metarank.ml.onnx.EmbeddingCache.ItemQueryKey
+import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
 import ai.metarank.ml.onnx.distance.DistanceFunction
+import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import ai.metarank.ml.onnx.encoder.EncoderConfig.CrossEncoderConfig
-import ai.metarank.ml.onnx.sbert.OnnxCrossEncoder
+import ai.metarank.ml.onnx.sbert.{OnnxCrossEncoder, OnnxSession}
+import ai.metarank.ml.onnx.sbert.OnnxCrossEncoder.SentencePair
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{StringField, StringListField}
+import ai.metarank.model.FieldName.EventType.{Item, Ranking}
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.ItemScopeType
@@ -21,6 +27,7 @@ import ai.metarank.model.Write.Put
 import ai.metarank.model.{Event, Feature, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
+import io.circe.{Decoder, DecodingFailure}
 
 import scala.concurrent.duration._
 
@@ -73,32 +80,86 @@ case class FieldMatchCrossEncoderFeature(
       case StringField(_, value)     => value
       case StringListField(_, value) => value.mkString(" ")
     }
-    queryOption match {
-      case Some(queryString) =>
-            request.items.toList.map(item => {
-              features.get(Key(ItemScope(item.id), conf.name)) match {
-                case Some(ScalarValue(_, ts, SDoubleList(emb))) =>
-                  MValue(schema.name.value, schema.distance.dist(queryEmbedding, emb))
-                case _ => SingleValue.missing(schema.name)
-              }
-            })
-        }
-      case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
+    val result = for {
+      queryString <- queryOption
+      enc         <- encoder
+    } yield {
+      val fieldValues = request.items.toList
+        .flatMap(item => {
+          features.get(Key(ItemScope(item.id), conf.name)) match {
+            case Some(ScalarValue(_, _, SString(value))) =>
+              Some(item.id -> SentencePair(queryString, value))
+            case _ =>
+              None
+          }
+        })
+      val fieldItems                  = fieldValues.map(_._1)
+      val encoded: Map[ItemId, Float] = fieldItems.zip(enc.encode(fieldValues.map(_._2).toArray)).toMap
+      request.items.toList.map(item => {
+        val score: Float = encoded.getOrElse(item.id, 0.0f)
+        SingleValue(schema.name, score)
+      })
     }
+    result.getOrElse(request.items.toList.map(_ => SingleValue.missing(schema.name)))
   }
 }
 
 object FieldMatchCrossEncoderFeature {
-  case class FieldMatchCrossEncoderSchema(name: FeatureName,
-                                          rankingField: FieldName,
-                                          itemField: FieldName,
-                                          method: CrossEncoderConfig,
-                                          distance: DistanceFunction,
-                                          refresh: Option[FiniteDuration] = None,
-                                          ttl: Option[FiniteDuration] = None
-                                         ) extends FeatureSchema {
+  import ai.metarank.util.DurationJson._
+
+  case class FieldMatchCrossEncoderSchema(
+      name: FeatureName,
+      rankingField: FieldName,
+      itemField: FieldName,
+      method: CrossEncoderConfig,
+      distance: DistanceFunction,
+      refresh: Option[FiniteDuration] = None,
+      ttl: Option[FiniteDuration] = None
+  ) extends FeatureSchema {
     lazy val scope: ScopeType = ItemScopeType
 
-    override def create(): IO[BaseFeature] = ???
+    override def create(): IO[BaseFeature] = for {
+      session <- method.model match {
+        case Some(hf: HuggingFaceHandle) =>
+          OnnxSession.loadFromHuggingFace(hf, method.modelFile, method.vocabFile).map(Option.apply)
+        case Some(local: LocalModelHandle) =>
+          OnnxSession.loadFromLocalDir(local, method.modelFile, method.vocabFile).map(Option.apply)
+        case None => IO.none
+      }
+      cache <- method.cache match {
+        case Some(path) => EmbeddingCache.fromCSVItemQuery(path, ',', method.dim)
+        case None       => IO.pure(EmbeddingCache.empty[ItemQueryKey]())
+      }
+    } yield {
+      FieldMatchCrossEncoderFeature(this, session.map(OnnxCrossEncoder.apply), cache)
+    }
   }
+
+  implicit val crossSchemaDecoder: Decoder[FieldMatchCrossEncoderSchema] = Decoder.instance(c =>
+    for {
+      name <- c.downField("name").as[FeatureName]
+      rankingField <- c.downField("rankingField").as[FieldName].flatMap {
+        case ok @ FieldName(Ranking, _) => Right(ok)
+        case other                      => Left(DecodingFailure(s"expected ranking field, but got $other", c.history))
+      }
+      itemField <- c.downField("itemField").as[FieldName].flatMap {
+        case ok @ FieldName(Item, _) => Right(ok)
+        case other                   => Left(DecodingFailure(s"expected item field, but got $other", c.history))
+      }
+      method   <- c.downField("method").as[CrossEncoderConfig]
+      distance <- c.downField("distance").as[Option[DistanceFunction]]
+      refresh  <- c.downField("refresh").as[Option[FiniteDuration]]
+      ttl      <- c.downField("rrl").as[Option[FiniteDuration]]
+    } yield {
+      FieldMatchCrossEncoderSchema(
+        name = name,
+        rankingField = rankingField,
+        itemField = itemField,
+        method = method,
+        distance = distance.getOrElse(CosineDistance),
+        refresh = refresh,
+        ttl = ttl
+      )
+    }
+  )
 }

@@ -59,13 +59,15 @@ case class OnnxCrossEncoder(env: OrtEnvironment, session: OrtSession, tokenizer:
     val logits = new Array[Float](batch.length)
     var j      = 0
     while (j < batch.length) {
-      logits(j) = tensor(j)(0)
+      logits(j) = sigmoid(tensor(j)(0))
       j += 1
     }
     result.close()
     args.values.foreach(_.close())
     logits
   }
+
+  def sigmoid(logit: Float): Float = (1.0 / (1.0 + math.exp(-logit))).toFloat
 
   def tokenize(sentence: SentencePair): TokenTypeMask = {
     val tokenBuffer = new ArrayBuffer[Long]()

@@ -49,7 +49,7 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
 
   it should "load cohere embeddings" in {
     val lines   = Resource.my.getAsStream("/embedding/cohere.csv")
-    val encoder = EmbeddingCache.fromStreamString(CSVStream.fromStream(lines, ',', 0), 4096).unsafeRunSync()
+    val encoder = EmbeddingCache.fromStream(CSVStream.fromStream(lines, ',', 0), 4096).unsafeRunSync()
     encoder.get("8").map(_.length) shouldBe Some(4096)
   }
 

@@ -3,8 +3,9 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.ml.onnx.EmbeddingCache
+import ai.metarank.ml.onnx.{EmbeddingCache, Normalize}
 import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
+import ai.metarank.ml.onnx.Normalize.NoopNormalize
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import ai.metarank.ml.onnx.encoder.EncoderConfig
@@ -33,8 +34,8 @@ import scala.concurrent.duration.FiniteDuration
 case class FieldMatchBiencoderFeature(
     schema: FieldMatchBiencoderSchema,
     encoder: Option[OnnxBiEncoder],
-    itemCache: EmbeddingCache[String],
-    rankingCache: EmbeddingCache[String]
+    itemCache: EmbeddingCache,
+    rankingCache: EmbeddingCache
 ) extends ItemFeature
     with Logging {
   override def dim = SingleDim
@@ -93,13 +94,14 @@ case class FieldMatchBiencoderFeature(
         queryEmbeddingOption match {
           case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
           case Some(queryEmbedding) =>
-            request.items.toList.map(item => {
+            val raw = request.items.toList.map(item => {
               features.get(Key(ItemScope(item.id), conf.name)) match {
                 case Some(ScalarValue(_, ts, SDoubleList(emb))) =>
                   MValue(schema.name.value, schema.distance.dist(queryEmbedding, emb))
                 case _ => SingleValue.missing(schema.name)
               }
             })
+            schema.norm.scale(raw)
         }
       case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
     }
@@ -114,6 +116,7 @@ object FieldMatchBiencoderFeature {
       itemField: FieldName,
       method: BiEncoderConfig,
       distance: DistanceFunction,
+      norm: Normalize = NoopNormalize,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
@@ -129,12 +132,12 @@ object FieldMatchBiencoderFeature {
           case None => IO.none
         }
         items <- method.itemFieldCache match {
-          case Some(path) => EmbeddingCache.fromCSVString(path, ',', method.dim)
-          case None       => IO.pure(EmbeddingCache.empty[String]())
+          case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)
+          case None       => IO.pure(EmbeddingCache.empty())
         }
         fields <- method.rankingFieldCache match {
-          case Some(path) => EmbeddingCache.fromCSVString(path, ',', method.dim)
-          case None       => IO.pure(EmbeddingCache.empty[String]())
+          case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)
+          case None       => IO.pure(EmbeddingCache.empty())
         }
       } yield {
         FieldMatchBiencoderFeature(this, session.map(OnnxBiEncoder.apply), items, fields)
@@ -157,6 +160,7 @@ object FieldMatchBiencoderFeature {
         distance <- c.downField("distance").as[Option[DistanceFunction]]
         refresh  <- c.downField("refresh").as[Option[FiniteDuration]]
         ttl      <- c.downField("rrl").as[Option[FiniteDuration]]
+        norm     <- c.downField("norm").as[Option[Normalize]]
       } yield {
         FieldMatchBiencoderSchema(
           name = name,
@@ -165,7 +169,8 @@ object FieldMatchBiencoderFeature {
           method = method,
           distance = distance.getOrElse(CosineDistance),
           refresh = refresh,
-          ttl = ttl
+          ttl = ttl,
+          norm = norm.getOrElse(NoopNormalize)
         )
       }
     )

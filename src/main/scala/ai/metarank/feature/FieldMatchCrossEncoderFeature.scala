@@ -3,9 +3,9 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.ml.onnx.EmbeddingCache
-import ai.metarank.ml.onnx.EmbeddingCache.ItemQueryKey
+import ai.metarank.ml.onnx.{EmbeddingCache, Normalize, ScoreCache}
 import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
+import ai.metarank.ml.onnx.Normalize.NoopNormalize
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import ai.metarank.ml.onnx.encoder.EncoderConfig.CrossEncoderConfig
@@ -34,7 +34,7 @@ import scala.concurrent.duration._
 case class FieldMatchCrossEncoderFeature(
     schema: FieldMatchCrossEncoderSchema,
     encoder: Option[OnnxCrossEncoder],
-    cache: EmbeddingCache[ItemQueryKey]
+    cache: ScoreCache
 ) extends ItemFeature
     with Logging {
   override def dim = SingleDim
@@ -82,7 +82,6 @@ case class FieldMatchCrossEncoderFeature(
     }
     val result = for {
       queryString <- queryOption
-      enc         <- encoder
     } yield {
       val fieldValues = request.items.toList
         .flatMap(item => {
@@ -93,12 +92,23 @@ case class FieldMatchCrossEncoderFeature(
               None
           }
         })
-      val fieldItems                  = fieldValues.map(_._1)
-      val encoded: Map[ItemId, Float] = fieldItems.zip(enc.encode(fieldValues.map(_._2).toArray)).toMap
-      request.items.toList.map(item => {
-        val score: Float = encoded.getOrElse(item.id, 0.0f)
-        SingleValue(schema.name, score)
+
+      val fieldItems      = fieldValues.map(_._1)
+      val cached          = fieldItems.flatMap(item => cache.get(item, queryString).map(score => item -> score)).toMap
+      val nonCachedValues = fieldValues.filterNot(fv => cached.contains(fv._1))
+      val nonCached = encoder match {
+        case Some(enc) => nonCachedValues.map(_._1).zip(enc.encode(nonCachedValues.map(_._2).toArray)).toMap
+        case None      => Map.empty
+      }
+      val encoded: Map[ItemId, Float] = cached ++ nonCached
+      val raw = request.items.toList.map(item => {
+        encoded.get(item.id) match {
+          case Some(score) => SingleValue(schema.name, score)
+          case None        => SingleValue.missing(schema.name)
+        }
+
       })
+      schema.norm.scale(raw)
     }
     result.getOrElse(request.items.toList.map(_ => SingleValue.missing(schema.name)))
   }
@@ -113,6 +123,7 @@ object FieldMatchCrossEncoderFeature {
       itemField: FieldName,
       method: CrossEncoderConfig,
       distance: DistanceFunction,
+      norm: Normalize = NoopNormalize,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
@@ -127,8 +138,8 @@ object FieldMatchCrossEncoderFeature {
         case None => IO.none
       }
       cache <- method.cache match {
-        case Some(path) => EmbeddingCache.fromCSVItemQuery(path, ',', method.dim)
-        case None       => IO.pure(EmbeddingCache.empty[ItemQueryKey]())
+        case Some(path) => ScoreCache.fromCSV(path, ',', method.dim)
+        case None       => IO.pure(ScoreCache.empty)
       }
     } yield {
       FieldMatchCrossEncoderFeature(this, session.map(OnnxCrossEncoder.apply), cache)
@@ -150,6 +161,7 @@ object FieldMatchCrossEncoderFeature {
       distance <- c.downField("distance").as[Option[DistanceFunction]]
       refresh  <- c.downField("refresh").as[Option[FiniteDuration]]
       ttl      <- c.downField("rrl").as[Option[FiniteDuration]]
+      norm     <- c.downField("norm").as[Option[Normalize]]
     } yield {
       FieldMatchCrossEncoderSchema(
         name = name,
@@ -158,7 +170,8 @@ object FieldMatchCrossEncoderFeature {
         method = method,
         distance = distance.getOrElse(CosineDistance),
         refresh = refresh,
-        ttl = ttl
+        ttl = ttl,
+        norm = norm.getOrElse(NoopNormalize)
       )
     }
   )

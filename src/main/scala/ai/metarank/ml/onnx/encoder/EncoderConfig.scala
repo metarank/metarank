@@ -11,8 +11,7 @@ object EncoderConfig {
       model: Option[ModelHandle],
       cache: Option[String] = None,
       modelFile: String = "pytorch_model.onnx",
-      vocabFile: String = "vocab.txt",
-      dim: Int
+      vocabFile: String = "vocab.txt"
   ) extends EncoderConfig
 
   implicit val crossDecoder: Decoder[CrossEncoderConfig] = Decoder.instance(c =>
@@ -21,7 +20,6 @@ object EncoderConfig {
       modelFile <- c.downField("modelFile").as[Option[String]]
       vocabFile <- c.downField("vocabFile").as[Option[String]]
       cache     <- c.downField("cache").as[Option[String]]
-      dim       <- c.downField("dim").as[Int]
       _ <- (model, cache) match {
         case (None, None) =>
           Left(DecodingFailure("either 'model' or 'cache' fields should be present for cross-encoder", c.history))
@@ -32,8 +30,7 @@ object EncoderConfig {
         model,
         modelFile = modelFile.getOrElse("pytorch_model.onnx"),
         vocabFile = vocabFile.getOrElse("vocab.txt"),
-        cache = cache,
-        dim = dim
+        cache = cache
       )
     }
   )

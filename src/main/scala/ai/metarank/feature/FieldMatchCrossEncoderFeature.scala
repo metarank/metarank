@@ -138,7 +138,7 @@ object FieldMatchCrossEncoderFeature {
         case None => IO.none
       }
       cache <- method.cache match {
-        case Some(path) => ScoreCache.fromCSV(path, ',', method.dim)
+        case Some(path) => ScoreCache.fromCSV(path, ',', 0)
         case None       => IO.pure(ScoreCache.empty)
       }
     } yield {

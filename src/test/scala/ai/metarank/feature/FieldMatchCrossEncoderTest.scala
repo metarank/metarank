@@ -24,7 +24,7 @@ class FieldMatchCrossEncoderTest extends AnyFlatSpec with Matchers with FeatureT
     rankingField = FieldName(Ranking, "query"),
     itemField = FieldName(Item, "title"),
     distance = CosineDistance,
-    method = CrossEncoderConfig(Some(ModelHandle("metarank", "ce-msmarco-MiniLM-L6-v2")), dim = 384)
+    method = CrossEncoderConfig(Some(ModelHandle("metarank", "ce-msmarco-MiniLM-L6-v2")))
   )
   lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchCrossEncoderFeature]
 

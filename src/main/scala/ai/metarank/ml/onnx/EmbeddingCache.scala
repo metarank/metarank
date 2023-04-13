@@ -1,5 +1,6 @@
 package ai.metarank.ml.onnx
 
+import ai.metarank.model.Identifier.ItemId
 import ai.metarank.flow.PrintProgress
 import ai.metarank.util.CSVStream
 import cats.effect.IO
@@ -9,12 +10,13 @@ case class EmbeddingCache(cache: Map[String, Array[Float]]) {
 }
 
 object EmbeddingCache {
+
   case class Embedding(key: String, emb: Array[Float])
 
   def empty(): EmbeddingCache = EmbeddingCache(Map.empty)
   def fromStream(stream: fs2.Stream[IO, Array[String]], dim: Int): IO[EmbeddingCache] =
     stream
-      .parEvalMapUnordered(8)(line => IO.fromEither(parseEmbedding(line, dim)))
+      .evalMapChunk(line => IO.fromEither(parseEmbedding(line, dim)))
       .through(PrintProgress.tap(None, "embeddings"))
       .compile
       .toList
@@ -46,4 +48,5 @@ object EmbeddingCache {
       }
     }
   }
+
 }

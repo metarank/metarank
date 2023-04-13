@@ -3,6 +3,7 @@ package ai.metarank.model
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
+import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
@@ -54,14 +55,15 @@ object FeatureSchema {
         case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)
         case "item_age"          => implicitly[Decoder[ItemAgeSchema]].apply(c)
         case "field_match" =>
-          val biencoder = implicitly[Decoder[FieldMatchBiencoderSchema]]
-          val term      = implicitly[Decoder[FieldMatchSchema]]
+          val biEncoder    = implicitly[Decoder[FieldMatchBiencoderSchema]]
+          val crossEncoder = implicitly[Decoder[FieldMatchCrossEncoderSchema]]
+          val term         = implicitly[Decoder[FieldMatchSchema]]
           c.downField("method").downField("type").as[String] match {
-            case Right("transformer") => biencoder.apply(c)
-            case Right("csv")         => biencoder.apply(c)
-            case Right("term")        => term.apply(c)
-            case Right("ngram")       => term.apply(c)
-            case Right("bm25")        => term.apply(c)
+            case Right("bi-encoder")    => biEncoder.apply(c)
+            case Right("cross-encoder") => crossEncoder.apply(c)
+            case Right("term")          => term.apply(c)
+            case Right("ngram")         => term.apply(c)
+            case Right("bm25")          => term.apply(c)
             case Right(other) => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
             case Left(err)    => Left(err)
           }

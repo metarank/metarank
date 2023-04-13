@@ -124,7 +124,13 @@ Both term and ngram method share the same approach to the text analysis:
 * for non-generic languages each term is stemmed
 * then terms/ngrams from item and ranking are scored using intersection/union method.
 
-### Transformer LLM embedding similarity
+### LLM Bi-Encoders
+
+This text matching method:
+* computes an embedding for both query and document
+* then computes a cosine between both embeddings.
+
+Semantically-similar query-document pairs will have higher score than irrelevant ones.
 
 Then with the following config snippet we can compute a cosine distance between title and query embeddings:
 
@@ -135,18 +141,18 @@ Then with the following config snippet we can compute a cosine distance between 
   itemField: item.title
   distance: cos # optional, default cos, options: cos/dot 
   method:
-    type: transformer
-    model: metarank/all-MiniLM-L6-v2
+    type: bi-encoder
+    model: metarank/all-MiniLM-L6-v2 # optional, can be only cache-based
     dim: 384 # required, dimensionality of the embedding
     itemFieldCache: /path/to/item.embedding # optional, pre-computed embedding cache for items 
     rankingFieldCache: /path/to/query.embedding # optional, pre-computed embedding cache for rankings
 ```
 
 Metarank supports two embedding methods:
-* `transformer`: ONNX-encoded versions of the [sentence-transformers](https://sbert.net/docs/pretrained_models.html) models. See the [metarank HuggingFace namespace](https://huggingface.co/metarank) for a list of currently supported models.
-* `csv`: a comma-separated file with precomputed embeddings, where first row is source sentence. Useful for externally-generated embeddings with platforms like OpenAI and Cohere.
+* `bi-encoder`: ONNX-encoded versions of the [sentence-transformers](https://sbert.net/docs/pretrained_models.html) models. See the [metarank HuggingFace namespace](https://huggingface.co/metarank) for a list of currently supported models.
+* `cross-encoder`: ONNX-encoded versions of [sentence-transformers](https://sbert.net/docs/pretrained_models.html) 
 
-For `transformer` models, Metarank supports fetching model directly from the HuggingFace Hub, or loading it from a local dir, depending on the model handle format:
+For both models, Metarank supports fetching model directly from the HuggingFace Hub, or loading it from a local dir, depending on the model handle format:
 * `namespace/model`: fetch model from the HFHub
 * `file:///<path>/<to>/<model dir>`: load ONNX-encoded embedding model from a local file.
 
@@ -160,7 +166,7 @@ In some performance-sensitive cases you don't want to compute embeddings in real
   itemField: item.title
   distance: cos # optional, default cos, options: cos/dot 
   method:
-    type: csv
+    type: bi-encoder # note that there is no model reference, only caches
     dim: 384
     itemFieldCache: /path/to/item.embedding
     rankingFieldCache: /path/to/query.embedding
@@ -185,3 +191,30 @@ stone,1,1,1,1,1,1
 * when both query and item embeddings are present, then `field_match` will produce a cosine distance between them.
 * when at least one of the embeddings is missing, then `field_match` with `csv` method will produce a `nil` missing value. 
 * when at least one of the embeddings is missing, then `field_match` with `transformer` method will compute the embedding real-time.
+
+### LLM Cross-encoders
+
+Cross-encoders are quite similar to bi-encoders, but instead of separately computing embedding for query and document, they feed both texts to the neural network, which produces the matching score.
+
+Compared to the bi-encoder approach:
+* cross-encoders are much more precise, even generic pre-trained models.
+* require much more resources, as there's no way to pre-compute embeddings for docs and queries - you need to perform a full neural inference query-time.
+
+Enabling cross-encoders in Metarank can be done with the following snippet:
+```yaml
+- type: field_match
+  name: title_query_match
+  rankingField: ranking.query
+  itemField: item.title
+  method:
+    type: cross-encoder
+    model: metarank/ce-msmarco-MiniLM-L6-v2 # optional, can be only cache-based
+    cache: /path/to/ce.cache # optional, pre-computed query-doc scores
+```
+
+Note that as cross-encoders are very CPU heavy to run, you can pre-compute a set of query-doc scores offline and supply Metarank with a cache in the following CSV format:
+```
+query1,doc1,0.7
+query1,doc2,0.1
+query2,doc3,0.2
+```

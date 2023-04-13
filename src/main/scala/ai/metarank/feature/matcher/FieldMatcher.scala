@@ -1,7 +1,5 @@
 package ai.metarank.feature.matcher
 
-import ai.metarank.ml.onnx.encoder.Encoder
-
 import java.util
 import java.util.Comparator
 

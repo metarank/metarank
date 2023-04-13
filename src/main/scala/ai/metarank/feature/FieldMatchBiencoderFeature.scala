@@ -3,9 +3,14 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.Persistence
+import ai.metarank.ml.onnx.{EmbeddingCache, Normalize}
+import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
+import ai.metarank.ml.onnx.Normalize.NoopNormalize
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
-import ai.metarank.ml.onnx.encoder.{Encoder, EncoderType}
+import ai.metarank.ml.onnx.encoder.EncoderConfig
+import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
+import ai.metarank.ml.onnx.sbert.{OnnxBiEncoder, OnnxSession}
 import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -26,8 +31,12 @@ import io.circe.{Decoder, DecodingFailure}
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder: Encoder)
-    extends ItemFeature
+case class FieldMatchBiencoderFeature(
+    schema: FieldMatchBiencoderSchema,
+    encoder: Option[OnnxBiEncoder],
+    itemCache: EmbeddingCache,
+    rankingCache: EmbeddingCache
+) extends ItemFeature
     with Logging {
   override def dim = SingleDim
 
@@ -53,7 +62,10 @@ case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder
             case Field.StringListField(_, value) => Some(value.mkString(" "))
             case _                               => None
           }
-          encoded <- encoder.encode(e.item.value, string)
+          encoded <- itemCache.get(e.item.value) match {
+            case cached @ Some(_) => cached
+            case None             => encoder.flatMap(_.embed(Array(string)).headOption)
+          }
         } yield {
           Put(Key(ItemScope(e.item), conf.name), e.timestamp, SDoubleList(encoded))
         }
@@ -75,16 +87,21 @@ case class FieldMatchBiencoderFeature(schema: FieldMatchBiencoderSchema, encoder
     }
     queryOption match {
       case Some(queryString) =>
-        encoder.encode(queryString) match {
+        val queryEmbeddingOption = rankingCache.get(queryString) match {
+          case None             => encoder.flatMap(_.embed(Array(queryString)).headOption)
+          case cached @ Some(_) => cached
+        }
+        queryEmbeddingOption match {
           case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
           case Some(queryEmbedding) =>
-            request.items.toList.map(item => {
+            val raw = request.items.toList.map(item => {
               features.get(Key(ItemScope(item.id), conf.name)) match {
                 case Some(ScalarValue(_, ts, SDoubleList(emb))) =>
                   MValue(schema.name.value, schema.distance.dist(queryEmbedding, emb))
                 case _ => SingleValue.missing(schema.name)
               }
             })
+            schema.norm.scale(raw)
         }
       case None => request.items.toList.map(_ => SingleValue.missing(schema.name))
     }
@@ -97,14 +114,34 @@ object FieldMatchBiencoderFeature {
       name: FeatureName,
       rankingField: FieldName,
       itemField: FieldName,
-      method: EncoderType,
+      method: BiEncoderConfig,
       distance: DistanceFunction,
+      norm: Normalize = NoopNormalize,
       refresh: Option[FiniteDuration] = None,
       ttl: Option[FiniteDuration] = None
   ) extends FeatureSchema {
     lazy val scope: ScopeType = ItemScopeType
 
-    override def create(): IO[BaseFeature] = Encoder.create(method).map(enc => FieldMatchBiencoderFeature(this, enc))
+    override def create(): IO[BaseFeature] =
+      for {
+        session <- method.model match {
+          case Some(hf: HuggingFaceHandle) =>
+            OnnxSession.loadFromHuggingFace(hf, method.modelFile, method.vocabFile).map(Option.apply)
+          case Some(local: LocalModelHandle) =>
+            OnnxSession.loadFromLocalDir(local, method.modelFile, method.vocabFile).map(Option.apply)
+          case None => IO.none
+        }
+        items <- method.itemFieldCache match {
+          case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)
+          case None       => IO.pure(EmbeddingCache.empty())
+        }
+        fields <- method.rankingFieldCache match {
+          case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)
+          case None       => IO.pure(EmbeddingCache.empty())
+        }
+      } yield {
+        FieldMatchBiencoderFeature(this, session.map(OnnxBiEncoder.apply), items, fields)
+      }
   }
 
   object FieldMatchBiencoderSchema {
@@ -119,10 +156,11 @@ object FieldMatchBiencoderFeature {
           case ok @ FieldName(Item, _) => Right(ok)
           case other                   => Left(DecodingFailure(s"expected item field, but got $other", c.history))
         }
-        method   <- c.downField("method").as[EncoderType]
+        method   <- c.downField("method").as[BiEncoderConfig]
         distance <- c.downField("distance").as[Option[DistanceFunction]]
         refresh  <- c.downField("refresh").as[Option[FiniteDuration]]
         ttl      <- c.downField("rrl").as[Option[FiniteDuration]]
+        norm     <- c.downField("norm").as[Option[Normalize]]
       } yield {
         FieldMatchBiencoderSchema(
           name = name,
@@ -131,7 +169,8 @@ object FieldMatchBiencoderFeature {
           method = method,
           distance = distance.getOrElse(CosineDistance),
           refresh = refresh,
-          ttl = ttl
+          ttl = ttl,
+          norm = norm.getOrElse(NoopNormalize)
         )
       }
     )

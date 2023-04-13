@@ -1,32 +1,32 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
+import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderSchema
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.ml.onnx.ModelHandle
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
-import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
+import ai.metarank.ml.onnx.encoder.EncoderConfig.CrossEncoderConfig
 import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.FieldName.EventType.{Item, Ranking}
 import ai.metarank.model.{EventId, FeatureSchema, FieldName, Timestamp, Write}
+import ai.metarank.model.FieldName.EventType.{Item, Ranking}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.Scalar.SDoubleList
+import ai.metarank.model.Scalar.SString
 import ai.metarank.util.{TestRankingEvent, TestSchema}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
-  val schema = FieldMatchBiencoderSchema(
+class FieldMatchCrossEncoderTest extends AnyFlatSpec with Matchers with FeatureTest {
+  val schema = FieldMatchCrossEncoderSchema(
     name = FeatureName("foo"),
     rankingField = FieldName(Ranking, "query"),
     itemField = FieldName(Item, "title"),
     distance = CosineDistance,
-    method = BiEncoderConfig(Some(ModelHandle("metarank", "all-MiniLM-L6-v2")), dim = 384)
+    method = CrossEncoderConfig(Some(ModelHandle("metarank", "ce-msmarco-MiniLM-L6-v2")))
   )
-  lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchBiencoderFeature]
+  lazy val feature = schema.create().unsafeRunSync().asInstanceOf[FieldMatchCrossEncoderFeature]
 
   val now = Timestamp.now
   val itemEvent = ItemEvent(
@@ -44,21 +44,18 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
         |itemField: item.title
         |distance: cosine
         |method:
-        |  type: bi-encoder
+        |  type: cross-encoder
         |  dim: 384
-        |  model: metarank/all-MiniLM-L6-v2
+        |  model: metarank/ce-msmarco-MiniLM-L6-v2
         |  """.stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[FeatureSchema])
     decoded shouldBe Right(schema)
   }
-
   it should "generate puts on item events" in {
     val store = MemPersistence(TestSchema(schema))
-    val emb =
-      feature.writes(itemEvent, store).unsafeRunSync().collectFirst { case Write.Put(_, _, SDoubleList(value)) =>
-        value
-      }
-    emb.map(_.length) shouldBe Some(384)
+    val value =
+      feature.writes(itemEvent, store).unsafeRunSync().collectFirst { case Write.Put(_, _, SString(value)) => value }
+    value shouldBe Some("red socks")
   }
 
   it should "generate values" in {
@@ -69,9 +66,10 @@ class FieldMatchBiencoderFeatureTest extends AnyFlatSpec with Matchers with Feat
       List(item2, item3, item4),
       schema,
       TestRankingEvent(List("p2", "p3", "p4")).copy(fields = List(StringField("query", "santa socks")))
-    ).flatten.collect { case SingleValue(name, value) => value }.toArray
-    result(0) shouldBe 0.7093 +- 0.001
-    result(1) shouldBe 0.6511 +- 0.001
-    result(2) shouldBe 0.2450 +- 0.001
+    ).flatten.collect { case SingleValue(_, value) => value }.toArray
+    result(0) shouldBe -3.6598 +- 0.001
+    result(1) shouldBe -4.1758 +- 0.001
+    result(2) shouldBe -11.0217 +- 0.001
   }
+
 }

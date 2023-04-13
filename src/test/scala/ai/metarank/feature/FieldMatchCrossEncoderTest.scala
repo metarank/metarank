@@ -67,9 +67,9 @@ class FieldMatchCrossEncoderTest extends AnyFlatSpec with Matchers with FeatureT
       schema,
       TestRankingEvent(List("p2", "p3", "p4")).copy(fields = List(StringField("query", "santa socks")))
     ).flatten.collect { case SingleValue(_, value) => value }.toArray
-    result(0) shouldBe 0.02509 +- 0.001
-    result(1) shouldBe 0.01512 +- 0.001
-    result(2) shouldBe 0.00016 +- 0.001
+    result(0) shouldBe -3.6598 +- 0.001
+    result(1) shouldBe -4.1758 +- 0.001
+    result(2) shouldBe -11.0217 +- 0.001
   }
 
 }

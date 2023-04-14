@@ -3,6 +3,15 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.0
+
+* Support for [LLM embedding-based content recommendations](configuration/recommendations/semantic.md)
+* `field_match` support for [BM25](configuration/features/text.md#bm25-score)
+* `field_match` support for [LLM bi-encoders](configuration/features/text.md#llm-bi-encoders)
+* `field_match` support for [LLM cross-encoders](configuration/features/text.md#llm-cross-encoders)
+* Relevance judgments can now also [be explicit](event-schema.md#ranking-event)
+
+
 ## 0.6.4
 
 * a minor bugfix release

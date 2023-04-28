@@ -1,6 +1,6 @@
 # Search re-ranking with cross-encoder LLMs
 
-In this guide we will set up Metarank as a simple inference server for cross-encoder LLMs. In other words, we will use a public pre-trained cross-encoder model to reorder your search results in a zero-shot manner (so without collecting any visitor feedback data). We will use a pre-trained `MS-MARCO MiniLM-L6-v2` cross-encoder from the [sentence-transformers](https://sbert.net) package. 
+In this guide we will set up Metarank as a simple inference server for cross-encoder LLMs. In other words, we will use an open-source cross-encoder model to reorder your search results in a zero-shot manner, without collecting any visitor feedback data. We will use a pre-trained `MS-MARCO MiniLM-L6-v2` cross-encoder from the [sentence-transformers](https://sbert.net) package. 
 
 ## What are cross-encoders?
 

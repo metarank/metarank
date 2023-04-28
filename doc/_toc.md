@@ -6,6 +6,11 @@
 * [Quickstart](quickstart/quickstart.md)
 * [Performance](performance.md)
 
+## Guide
+
+* [Search](guide/search.md)
+  * [Reranking with cross-encoders](guide/cross-encoders.md)
+
 ## Reference
 * [Installation](installation.md)
 * [Event Format](event-schema.md)

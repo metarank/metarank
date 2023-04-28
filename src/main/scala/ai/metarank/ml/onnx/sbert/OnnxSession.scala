@@ -2,7 +2,7 @@ package ai.metarank.ml.onnx.sbert
 
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.bert.BertFullTokenizer
-import ai.metarank.ml.onnx.HuggingFaceClient
+import ai.metarank.ml.onnx.{HuggingFaceClient, ModelHandle}
 import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
 import ai.metarank.util.{LocalCache, Logging}
 import ai.onnxruntime.{OrtEnvironment, OrtSession, TensorInfo}
@@ -18,6 +18,11 @@ import scala.jdk.CollectionConverters._
 case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int)
 
 object OnnxSession extends Logging {
+
+  def load(handle: ModelHandle, modelFile: String, vocabFile: String) = handle match {
+    case hh: HuggingFaceHandle => loadFromHuggingFace(hh, modelFile, vocabFile)
+    case lh: LocalModelHandle => loadFromLocalDir(lh, modelFile, vocabFile)
+  }
   def load(model: InputStream, dic: InputStream): IO[OnnxSession] = IO {
     val tokens    = IOUtils.toString(dic, StandardCharsets.UTF_8).split('\n')
     val vocab     = DefaultVocabulary.builder().add(tokens.toList.asJava).build()

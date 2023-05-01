@@ -15,30 +15,57 @@
 [![Join our slack](https://img.shields.io/badge/Slack-join%20the%20community-blue?logo=slack&style=social)](https://metarank.ai/slack)
 
 
-## What is Metarank?
+# What is Metarank?
 
-Metarank is a recommendation and personalization service - a self-hosted reranking API to improve CTR and conversion.
+[Metarank](https://metarank.ai) is an open-source ranking service. It can help you to build a personalized semantic/neural search and recommendations.
 
-Main features:
-* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/trending.md) (MF ALS).
+If you just want to get started, try:
+* the [quickstart](https://docs.metarank.ai/introduction/quickstart) tutorial of implementing Learning-to-Rank on top of your search engine.
+* a [semantic search guide](TODO) of building an LLM-based neural search.
+* a [collaborative filtering recommendations guide](TODO) to create a "you may also like" widget as seen on many e-commerce stores.
+
+## Why Metarank?
+
+With Metarank, you can make your existing search and recommendations **smarter**:
+* Integrate customer signals like clicks and purchases into the ranking - and optimize for maximal CTR!
+* Track [visitor profile](https://docs.metarank.ai/reference/overview/feature-extractors/user-session) and make search results adapt to user actions with real-time personalization.
+* Use [LLMs in bi- and cross-encoder mode](https://docs.metarank.ai/reference/overview/feature-extractors/text) to make your search understand the true meaning of search queries.
+
+Metarank is **fast**:
+* optimized for reranking latency, it can handle even large result sets within 10-20ms. See [benchmarks](https://docs.metarank.ai/introduction/performance).
+* as a stateless cloud-native service (with state managed by Redis), it can scale horizontally and process thousands of RPS. See [Kubernetes deployment guide](https://docs.metarank.ai/reference/deployment-overview/kubernetes) for details.
+
+Save your **development time**:
+* Metarank can compute dozens of typical ranking signals out of the box: CTR, referer, User-Agent, time, etc - you don't need to write custom ad-hoc code for most common ranking factors. See [the full list of supported ranking signals](https://docs.metarank.ai/reference/overview/feature-extractors) in our docs.
+* There are integrations with many possible streaming processing systems to ingest visitor signals: See [data sources](https://docs.metarank.ai/reference/overview/data-sources) for details.
+
+## What can you build with Metarank?
+
+Metarank helps you build advanced ranking systems for search and recommendations:
+* Semantic search: use state-of-the-art LLMs to make your Elasticsearch/OpenSearch understand the meaning of your queries
+* Recommendations: traditional collaborative-filtering and new-age semantic content recommendations.
+* Learning-to-Rank: optimize your existing search
+
+## Content
+
+Blog posts:
+* [Learn-to-Rank with OpenSearch and Metarank](https://opensearch.org/blog/ltr-with-opensearch-and-metarank/)
+* [Hybrid Search and Learning-to-Rank with Metarank](https://www.pinecone.io/learn/metarank/)
+* [Solving a search cold-start problem with aggregated CTR](https://blog.metarank.ai/solving-a-search-cold-start-problem-with-aggregated-ctr-b88c14f4d03c)
+* [Personalized search with Metarank and Elasticsearch](https://blog.metarank.ai/personalized-search-with-metarank-and-elasticsearch-a5a098548da7)
+
+Meetups and conference talks:
+* [Building an open-source online Learn-to-rank engine](https://www.youtube.com/watch?v=lbbp4CFWZGk), Haystack EU 23, [slides](https://metarank.github.io/haystack-eu22/#/)
+* [Overcoming position and presentation biases in search and recommender systems](https://www.youtube.com/watch?v=PqbYdDiwKBY), Data Natives Meetup Berlin, [slides](https://metarank.github.io/bias-talk/#/)
+* [Learning-to-rank: Deep, fast, precise - choose any two](https://www.youtube.com/watch?v=oXfFqAKf4Ac), DataTalks meetup, [slides](https://metarank.github.io/datatalks-ltr-talk/#/)
+
+## Main features
+
+* Semantic neural search: [TODO]
+* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/similar.md) (MF ALS).
 * Personalization: [secondary reranking](quickstart/quickstart.md) (LambdaMART)
-* A/B testing, [multiple model serving](configuration/overview.md#models)
-* [Bootstrapping](quickstart/quickstart.md#quickstart) on historical traffic data
-
-## Common use-cases
-
-Metarank is an open-source service for:
-* Algorithmic feed like on FB/Twitter.
-* CTR-optimized category/search page ordering on Airbnb.
-* Items similar to the one you're viewing on Amazon.
-* Popular items on any ecommerce store.
-
-Metarank's recommendations are based on interaction history (like clicks and purchases), and secondary reranking - on user & item metadata and a rich set of typical ranking feature generators:
-* [User-Agent](configuration/features/user-session.md#user-agent-field-extractor), [Referer](configuration/features/user-session.md#referer) field parsers
-* [Counters](configuration/features/counters.md#counters), [rolling window counters](configuration/features/counters.md#windowed-counter), [rates](configuration/features/counters.md#rate) (CTR & conversion)
-* [categorical](configuration/features/scalar.md#index-vs-one-hot-what-to-choose) (with one-hot, label and XGBoost/LightGBM native encodings)
-* [text matching](configuration/features/text.md#fieldmatch) (ngrams and Lucene-based)
-* and [many more](configuration/feature-extractors.md)!
+* AutoML: [automatic feature generation](howto/autofeature.md) and [model re-training](howto/model-retraining.md)
+* A/B testing: [multiple model serving](configuration/overview.md#models)
 
 ## Demo
 

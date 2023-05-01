@@ -24,11 +24,8 @@ object BertSemanticRecommender {
       with Logging {
     override def fit(data: fs2.Stream[IO, TrainValues]): IO[EmbeddingSimilarityModel] = for {
       session <- config.encoder.model match {
-        case Some(hf: HuggingFaceHandle) =>
-          OnnxSession.loadFromHuggingFace(hf, config.encoder.modelFile, config.encoder.vocabFile)
-        case Some(local: LocalModelHandle) =>
-          OnnxSession.loadFromLocalDir(local, config.encoder.modelFile, config.encoder.vocabFile)
-        case None => IO.raiseError(new Exception("you need to define an embedding model"))
+        case Some(handle) => OnnxSession.load(handle, config.encoder.modelFile, config.encoder.vocabFile)
+        case None         => IO.raiseError(new Exception("you need to define an embedding model"))
       }
       encoder    <- IO { OnnxBiEncoder(session) }
       fieldSet   <- IO(config.itemFields.toSet)

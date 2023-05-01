@@ -20,11 +20,11 @@ object ScalarCodec extends BinaryCodec[Scalar] {
       out.writeBoolean(value)
     case Scalar.SStringList(value) =>
       out.writeByte(3)
-      out.writeByte(value.length)
+      out.writeVarInt(value.length)
       value.foreach(out.writeUTF)
     case Scalar.SDoubleList(value) =>
       out.writeByte(4)
-      out.writeByte(value.length)
+      out.writeVarInt(value.length)
       value.foreach(out.writeDouble)
   }
 

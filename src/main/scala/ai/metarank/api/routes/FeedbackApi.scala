@@ -3,14 +3,12 @@ package ai.metarank.api.routes
 import ai.metarank.FeatureMapping
 import ai.metarank.api.JsonChunk
 import ai.metarank.api.routes.FeedbackApi.FeedbackResponse
-import ai.metarank.config.CoreConfig
 import ai.metarank.flow.{TrainBuffer, MetarankFlow}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
 import ai.metarank.model.{Event, Field}
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
-import ai.metarank.util.analytics.Metrics
 import cats.effect.IO
 import fs2.Chunk
 import org.http4s.dsl.io._

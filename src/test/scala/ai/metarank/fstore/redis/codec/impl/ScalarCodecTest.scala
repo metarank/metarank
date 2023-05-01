@@ -18,6 +18,9 @@ class ScalarCodecTest extends AnyFlatSpec with Matchers with BinCodecTest {
   it should "do string lists" in {
     roundtrip(ScalarCodec, SStringList(List("foo", "bar")))
   }
+  it should "do string lists size=1000" in {
+    roundtrip(ScalarCodec, SStringList((0 until 1000).map(_.toString).toList))
+  }
   it should "do double lists" in {
     roundtrip(ScalarCodec, SDoubleList(Array(1.0, 2.3)))
   }

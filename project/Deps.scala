@@ -8,9 +8,9 @@ object Deps {
   lazy val circeGenericExtrasVersion = "0.14.3"
   lazy val circeYamlVersion          = "0.14.2"
   lazy val fs2Version                = "3.2.2"
-  lazy val pulsarVersion             = "2.11.0"
+  lazy val pulsarVersion             = "2.11.1"
   lazy val luceneVersion             = "9.5.0"
-  lazy val awsVersion                = "2.20.27"
+  lazy val awsVersion                = "2.20.48"
   lazy val prometheusVersion         = "0.16.0"
 
   val httpsDeps = Seq(

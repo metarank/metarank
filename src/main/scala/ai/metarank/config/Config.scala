@@ -1,6 +1,7 @@
 package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
+import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyMap}
@@ -9,13 +10,14 @@ import io.circe.Decoder
 import io.circe.yaml.parser.{parse => parseYaml}
 
 case class Config(
-    core: CoreConfig,
-    api: ApiConfig,
-    state: StateStoreConfig,
-    train: TrainConfig,
-    input: Option[InputConfig],
-    features: List[FeatureSchema],
-    models: Map[String, ModelConfig]
+    core: CoreConfig = CoreConfig(),
+    api: ApiConfig = ApiConfig(),
+    state: StateStoreConfig = MemoryStateConfig(),
+    train: TrainConfig = TrainConfig.MemoryTrainConfig(),
+    input: Option[InputConfig] = None,
+    features: List[FeatureSchema] = Nil,
+    models: Map[String, ModelConfig] = Map.empty,
+    inference: Map[String, EncoderConfig] = Map.empty
 )
 
 object Config extends Logging {
@@ -29,13 +31,23 @@ object Config extends Logging {
         trainOption <- c.downField("train").as[Option[TrainConfig]]
         inputOption <- c.downField("input").as[Option[InputConfig]]
         features    <- c.downField("features").as[Option[List[FeatureSchema]]]
-        models      <- c.downField("models").as[Map[String, ModelConfig]]
+        models      <- c.downField("models").as[Option[Map[String, ModelConfig]]]
+        inference   <- c.downField("inference").as[Option[Map[String, EncoderConfig]]]
       } yield {
         val api   = get(apiOption, ApiConfig(), "api")
         val state = get(stateOption, MemoryStateConfig(), "state")
         val train = get(trainOption, TrainConfig.fromState(state), "train")
         val core  = coreOption.getOrElse(CoreConfig())
-        Config(core, api, state, train, inputOption, features.getOrElse(Nil), models)
+        Config(
+          core,
+          api,
+          state,
+          train,
+          inputOption,
+          features.getOrElse(Nil),
+          models.getOrElse(Map.empty),
+          inference.getOrElse(Map.empty)
+        )
       }
     )
     .ensure(ConfigValidations.checkFeatureModelReferences)

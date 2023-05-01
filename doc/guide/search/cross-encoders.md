@@ -22,7 +22,7 @@ Let's imagine you already have a traditional search engine running (like Elastic
 
 In this guide we will take a top-N matching documents from your search engine, and re-rank them according to their semantic similarity with the query.
 
-![reranking flow](../img/reranking.png)
+![reranking flow](../../img/reranking.png)
 
 ### Importing data
 
@@ -110,7 +110,7 @@ inference:
     model: metarank/ce-msmarco-MiniLM-L6-v2
 ```
 
-After start-up, Metarank will expose it's HTTP API. We're going to hit the `/inference` API route to perform the reranking. See the [API Reference](../api.md#inference-with-llms) for details on payload format:
+After start-up, Metarank will expose it's HTTP API. We're going to hit the `/inference` API route to perform the reranking. See the [API Reference](../../api.md#inference-with-llms) for details on payload format:
 ```bash
 curl -XPOST -d @rerank.json -H "Content-Type: application/json" http://metarank:8080/inference/encoder/msmarco
 ```

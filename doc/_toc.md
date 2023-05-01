@@ -8,8 +8,8 @@
 
 ## Guide
 
-* [Search](guide/search.md)
-  * [Reranking with cross-encoders](guide/cross-encoders.md)
+* [Search](guide/search/index.md)
+  * [Reranking with cross-encoders](guide/search/cross-encoders.md)
 
 ## Reference
 * [Installation](installation.md)

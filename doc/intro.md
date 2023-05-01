@@ -4,8 +4,8 @@
 
 If you just want to get started, try:
 * the [quickstart](https://docs.metarank.ai/introduction/quickstart) tutorial of implementing Learning-to-Rank on top of your search engine.
-* a [semantic search guide](TODO) of building an LLM-based neural search.
-* a [collaborative filtering recommendations guide](TODO) to create a "you may also like" widget as seen on many e-commerce stores.
+* a [guide on using cross-encoder LLM for search reranking](guide/search/cross-encoders.md) of building an LLM-based neural search.
+* a [Collaborative Filtering recommendations guide](TODO) to create a "you may also like" widget as seen on many e-commerce stores.
 
 ## Why Metarank?
 

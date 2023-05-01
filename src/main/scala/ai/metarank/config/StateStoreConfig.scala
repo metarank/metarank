@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import ai.metarank.config.StateStoreConfig.FileStateConfig.{FileBackend, RocksDBBackend}
+import ai.metarank.config.StateStoreConfig.FileStateConfig.{FileBackend, MapDBBackend, RocksDBBackend}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
@@ -110,7 +110,7 @@ object StateStoreConfig extends Logging {
   case class FileStateConfig(
       path: String,
       format: StoreFormat = BinaryStoreFormat,
-      backend: FileBackend = RocksDBBackend
+      backend: FileBackend = MapDBBackend
   ) extends StateStoreConfig
   object FileStateConfig {
     sealed trait FileBackend

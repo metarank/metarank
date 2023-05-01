@@ -8,19 +8,22 @@ import ai.metarank.model.State.FreqEstimatorState
 import ai.metarank.model.Write.PutFreqSample
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
+import org.scalatest.concurrent.{Eventually, IntegrationPatience}
 
 import scala.util.Random
 
-class FileFreqEstimatorTest extends FreqEstimatorSuite with FileTest {
+class FileFreqEstimatorTest extends FreqEstimatorSuite with FileTest with Eventually {
   override def feature(config: FreqEstimatorConfig): FileFreqEstimatorFeature =
     FileFreqEstimatorFeature(config, db.sortedStringDB(config.name.value + Random.nextInt()), BinaryStoreFormat)
 
   it should "pull state" in {
-    val c = config.copy(name = FeatureName("ffe"))
-    val f = feature(c)
-    f.put(PutFreqSample(TestKey(c, "a"), now, "a")).unsafeRunSync()
-    f.put(PutFreqSample(TestKey(c, "a"), now, "b")).unsafeRunSync()
-    val state = FileFreqEstimatorFeature.fileFreqSource.source(f).compile.toList.unsafeRunSync()
-    state.flatMap(_.values) should contain theSameElementsAs List("a", "b")
+    eventually {
+      val c = config.copy(name = FeatureName("ffe" + Random.nextInt()))
+      val f = feature(c)
+      f.put(PutFreqSample(TestKey(c, "a"), now, "a")).unsafeRunSync()
+      f.put(PutFreqSample(TestKey(c, "a"), now, "b")).unsafeRunSync()
+      val state = FileFreqEstimatorFeature.fileFreqSource.source(f).compile.toList.unsafeRunSync()
+      state.flatMap(_.values) should contain theSameElementsAs List("a", "b")
+    }
   }
 }

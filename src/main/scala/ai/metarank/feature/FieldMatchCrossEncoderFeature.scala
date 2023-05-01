@@ -131,11 +131,8 @@ object FieldMatchCrossEncoderFeature {
 
     override def create(): IO[BaseFeature] = for {
       session <- method.model match {
-        case Some(hf: HuggingFaceHandle) =>
-          OnnxSession.loadFromHuggingFace(hf, method.modelFile, method.vocabFile).map(Option.apply)
-        case Some(local: LocalModelHandle) =>
-          OnnxSession.loadFromLocalDir(local, method.modelFile, method.vocabFile).map(Option.apply)
-        case None => IO.none
+        case Some(handle) => OnnxSession.load(handle, method.modelFile, method.vocabFile).map(Option.apply)
+        case None         => IO.none
       }
       cache <- method.cache match {
         case Some(path) => ScoreCache.fromCSV(path, ',', 0)

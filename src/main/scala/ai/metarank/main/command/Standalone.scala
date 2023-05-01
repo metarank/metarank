@@ -25,7 +25,7 @@ object Standalone extends Logging {
         for {
           buffer <- prepare(conf, store, cts, mapping, args)
           _      <- IO(System.gc())
-          _      <- Serve.api(store, cts, mapping, conf.api, buffer)
+          _      <- Serve.api(store, cts, mapping, conf.api, buffer, conf.inference)
         } yield {}
       })
     )

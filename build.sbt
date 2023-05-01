@@ -28,7 +28,7 @@ lazy val root = (project in file("."))
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.6",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.7",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
@@ -69,7 +69,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.nd4j", "guava"),
         ExclusionRule("org.nd4j", "protobuf")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "8.0.0",
+      "org.rocksdb"               % "rocksdbjni"     % "8.1.1.1",
       "org.mapdb"                 % "mapdb"          % "3.0.9" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.7", // librec uses commons-logging, which is JCL
@@ -89,8 +89,6 @@ lazy val root = (project in file("."))
         from(s"--platform=$PLATFORM ubuntu:jammy-20230308")
         runRaw(
           List(
-            "sed -i -e 's/archive\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
-            "sed -i -e 's/security\\.ubuntu\\.com/mirror\\.facebook\\.net/g' /etc/apt/sources.list",
             "apt-get update",
             "apt-get install -y --no-install-recommends openjdk-17-jdk-headless htop procps curl inetutils-ping libgomp1 locales",
             "sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen",

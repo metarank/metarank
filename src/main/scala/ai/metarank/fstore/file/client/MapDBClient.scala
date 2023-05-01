@@ -50,6 +50,10 @@ object MapDBClient {
   def create(path: Path): Resource[IO, MapDBClient] = Resource.make(IO(createUnsafe(path)))(m => IO(m.close()))
 
   def createUnsafe(path: Path) = {
+    val pathFile = path.toFile
+    if (!pathFile.exists()) {
+      pathFile.mkdirs()
+    }
     val db = DBMaker.fileDB(path.toString + "/state.db").fileMmapEnable().closeOnJvmShutdown().make()
     new MapDBClient(db)
   }

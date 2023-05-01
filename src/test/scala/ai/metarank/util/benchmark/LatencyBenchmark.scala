@@ -106,7 +106,7 @@ object LatencyBenchmark extends IOApp with Logging {
           )
         )
     )
-    api    <- Serve.api(store, cts, mapping, conf.api, buffer).background
+    api    <- Serve.api(store, cts, mapping, conf.api, buffer, conf.inference).background
     client <- BlazeClientBuilder[IO].withConnectTimeout(1.second).withRequestTimeout(1.second).resource
   } yield {
     Services(store, client)

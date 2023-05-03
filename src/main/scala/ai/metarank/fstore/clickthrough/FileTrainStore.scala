@@ -2,7 +2,7 @@ package ai.metarank.fstore.clickthrough
 
 import ai.metarank.flow.PrintProgress
 import ai.metarank.fstore.TrainStore
-import ai.metarank.fstore.clickthrough.FileTrainStore.FILE_BUFFER_SIZE
+import ai.metarank.fstore.clickthrough.FileTrainStore.{FILE_BUFFER_SIZE, FILE_EXT}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.model.TrainValues
 import ai.metarank.util.Logging
@@ -38,6 +38,16 @@ case class FileTrainStore(file: File, output: DataOutput, stream: OutputStream, 
 
   override def getall(): fs2.Stream[IO, TrainValues] = {
     Stream(dir.listFiles().toList.sortBy(_.getName): _*)
+      .evalFilter(f =>
+        IO {
+          if (f.getName.endsWith(FILE_EXT)) {
+            true
+          } else {
+            logger.info(s"file $f extension mismatch: accepting only files ending with $FILE_EXT")
+            false
+          }
+        }
+      )
       .flatMap(f =>
         Stream
           .bracket[IO, InputStream](IO {
@@ -62,9 +72,10 @@ case class FileTrainStore(file: File, output: DataOutput, stream: OutputStream, 
 
 object FileTrainStore extends Logging {
   val FILE_BUFFER_SIZE = 128 * 1024
+  val FILE_EXT         = ".bin"
 
   val format     = DateTimeFormatter.ofPattern("yyyyMMdd-hhmmss-SSS")
-  def fileName() = format.format(LocalDateTime.now()) + "-" + UUID.randomUUID().toString + ".bin"
+  def fileName() = format.format(LocalDateTime.now()) + "-" + UUID.randomUUID().toString + FILE_EXT
 
   def create(path: String, fmt: StoreFormat): Resource[IO, FileTrainStore] =
     for {

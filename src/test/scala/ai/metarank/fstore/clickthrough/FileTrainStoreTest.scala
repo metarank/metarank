@@ -13,29 +13,47 @@ import scala.util.Try
 class FileTrainStoreTest extends AnyFlatSpec with Matchers {
   val ctv = TestClickthroughValues()
 
-  val dir = Files.createTempDirectory("meta-cts")
-
-  it should "write cts" in {
+  it should "write+read cts" in {
+    val dir = Files.createTempDirectory("meta-cts")
     val (store, close) = FileTrainStore
       .create(dir.toString, BinaryStoreFormat)
       .allocated
       .unsafeRunSync()
     store.put(List(ctv, ctv, ctv)).unsafeRunSync()
     store.flush().unsafeRunSync()
-    close.unsafeRunSync()
-  }
-
-  it should "read cts" in {
-    val (store, close) = FileTrainStore
-      .create(dir.toString, BinaryStoreFormat)
-      .allocated
-      .unsafeRunSync()
     val read = store.getall().compile.toList.unsafeRunSync()
     read shouldBe List(ctv, ctv, ctv)
     close.unsafeRunSync()
   }
 
-  it should "write+read cts" in {
+  it should "append to cts" in {
+    val dir = Files.createTempDirectory("meta-cts")
+
+    val (store1, close1) = FileTrainStore
+      .create(dir.toString, BinaryStoreFormat)
+      .allocated
+      .unsafeRunSync()
+    store1.put(List(ctv, ctv, ctv)).unsafeRunSync()
+    store1.flush().unsafeRunSync()
+    close1.unsafeRunSync()
+
+    val (store2, close2) = FileTrainStore
+      .create(dir.toString, BinaryStoreFormat)
+      .allocated
+      .unsafeRunSync()
+    store2.put(List(ctv, ctv, ctv)).unsafeRunSync()
+    store2.flush().unsafeRunSync()
+    close2.unsafeRunSync()
+
+    val read = store2.getall().compile.toList.unsafeRunSync()
+    read shouldBe List(ctv, ctv, ctv, ctv, ctv, ctv)
+
+  }
+
+  it should "skip file with wrong ext" in {
+    val dir  = Files.createTempDirectory("meta-cts")
+    val file = new File(dir.toFile, "wrong.txt")
+    file.createNewFile()
     val (store, close) = FileTrainStore
       .create(dir.toString, BinaryStoreFormat)
       .allocated
@@ -43,7 +61,7 @@ class FileTrainStoreTest extends AnyFlatSpec with Matchers {
     store.put(List(ctv, ctv, ctv)).unsafeRunSync()
     store.flush().unsafeRunSync()
     val read = store.getall().compile.toList.unsafeRunSync()
-    read shouldBe List(ctv, ctv, ctv, ctv, ctv, ctv)
+    read shouldBe List(ctv, ctv, ctv)
     close.unsafeRunSync()
   }
 

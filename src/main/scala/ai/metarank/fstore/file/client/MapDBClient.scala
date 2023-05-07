@@ -8,12 +8,12 @@ import java.nio.file.{Files, Path, Paths}
 
 class MapDBClient(db: DB) extends FileClient {
   override def hashDB(name: String): HashDB = {
-    val hash = db.hashMap(name, Serializer.STRING, Serializer.BYTE_ARRAY).create()
+    val hash = db.hashMap(name, Serializer.STRING, Serializer.BYTE_ARRAY).createOrOpen()
     MapdbHashDB(hash)
   }
 
   override def sortedStringDB(name: String): SortedDB[String] = {
-    val tree = db.treeMap(name, Serializer.STRING, Serializer.STRING).maxNodeSize(16).create()
+    val tree = db.treeMap(name, Serializer.STRING, Serializer.STRING).maxNodeSize(16).createOrOpen()
     MapdbSortedDB(tree, _.length)
   }
 
@@ -22,7 +22,7 @@ class MapDBClient(db: DB) extends FileClient {
       .treeMap(name, Serializer.STRING, Serializer.BYTE_ARRAY)
       .maxNodeSize(16)
       .valuesOutsideNodesEnable()
-      .create()
+      .createOrOpen()
     MapdbSortedDB(tree, _.length)
   }
 
@@ -31,13 +31,13 @@ class MapDBClient(db: DB) extends FileClient {
       .treeMap(name, Serializer.STRING, ScalaFloatSerializer)
       .maxNodeSize(16)
       .valuesOutsideNodesEnable()
-      .create()
+      .createOrOpen()
     MapdbSortedDB(tree, _ => 4)
   }
 
   override def sortedIntDB(name: String): SortedDB[Int] = {
     val tree =
-      db.treeMap(name, Serializer.STRING, ScalaIntSerializer).maxNodeSize(16).create()
+      db.treeMap(name, Serializer.STRING, ScalaIntSerializer).maxNodeSize(16).createOrOpen()
     MapdbSortedDB(tree, _ => 4)
   }
 

@@ -5,6 +5,7 @@ import ai.metarank.api.routes
 import ai.metarank.api.routes.inference.{BiEncoderApi, CrossEncoderApi}
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, RecommendApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config, InputConfig}
+import ai.metarank.feature.{FieldMatchBiencoderFeature, FieldMatchCrossEncoderFeature}
 import ai.metarank.flow.{MetarankFlow, TrainBuffer}
 import ai.metarank.fstore.{Persistence, TrainStore}
 import ai.metarank.main.CliArgs.ServeArgs
@@ -35,13 +36,22 @@ object Serve extends Logging {
         val buffer = TrainBuffer(conf.core.clickthrough, store.values, cts, mapping)
         conf.input match {
           case None =>
-            info("no stream input defined in config, using only REST API") *> api(store, cts, mapping, conf.api, buffer, conf.inference)
+            info("no stream input defined in config, using only REST API") *> api(
+              store,
+              cts,
+              mapping,
+              conf.api,
+              buffer,
+              conf.inference
+            )
           case Some(sourceConfig) =>
             val source = EventSource.fromConfig(sourceConfig)
             MetarankFlow
               .process(store, source.stream, mapping, buffer)
               .background
-              .use(_ => info(s"started ${source.conf} source") *> api(store, cts, mapping, conf.api, buffer, conf.inference))
+              .use(_ =>
+                info(s"started ${source.conf} source") *> api(store, cts, mapping, conf.api, buffer, conf.inference)
+              )
         }
       })
     })
@@ -55,14 +65,20 @@ object Serve extends Logging {
       buffer: TrainBuffer,
       inference: Map[String, EncoderConfig]
   ): IO[Unit] = for {
-    health           <- IO.pure(HealthApi(store).routes)
-    rank             <- IO.pure(RankApi(Ranker(mapping, store)).routes)
-    feedback         <- IO.pure(FeedbackApi(store, mapping, buffer).routes)
-    train            <- IO.pure(TrainApi(mapping, store, cts).routes)
-    rec              <- IO.pure(RecommendApi(Recommender(mapping, store), store).routes)
-    metricsApi       <- IO(DefaultExports.initialize()) *> IO.pure(MetricsApi().routes)
-    inferenceEncoder <- BiEncoderApi.create(inference)
-    inferenceCross   <- CrossEncoderApi.create(inference)
+    health     <- IO.pure(HealthApi(store).routes)
+    rank       <- IO.pure(RankApi(Ranker(mapping, store)).routes)
+    feedback   <- IO.pure(FeedbackApi(store, mapping, buffer).routes)
+    train      <- IO.pure(TrainApi(mapping, store, cts).routes)
+    rec        <- IO.pure(RecommendApi(Recommender(mapping, store), store).routes)
+    metricsApi <- IO(DefaultExports.initialize()) *> IO.pure(MetricsApi().routes)
+    inferenceEncoder <- BiEncoderApi.create(
+      models = inference,
+      existing = mapping.features.collect { case x: FieldMatchBiencoderFeature => x }
+    )
+    inferenceCross <- CrossEncoderApi.create(
+      models = inference,
+      existing = mapping.features.collect { case x: FieldMatchCrossEncoderFeature => x }
+    )
     routes  = health <+> rank <+> feedback <+> train <+> metricsApi <+> rec
     httpApp = Router("/" -> routes).orNotFound
     api = BlazeServerBuilder[IO]

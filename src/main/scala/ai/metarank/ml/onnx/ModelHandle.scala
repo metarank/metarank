@@ -15,8 +15,11 @@ object ModelHandle {
 
   case class HuggingFaceHandle(ns: String, name: String) extends ModelHandle {
     override def asList: List[String] = List(ns, name)
+
+    override def toString: String = s"hf://$ns/$name"
   }
   case class LocalModelHandle(dir: String) extends ModelHandle {
+    override def toString: String     = s"file://$dir"
     override def name: String         = dir
     override def asList: List[String] = List(dir)
   }

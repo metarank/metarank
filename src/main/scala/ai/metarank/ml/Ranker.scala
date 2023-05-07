@@ -65,7 +65,11 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
       }
 
     } yield {
-      RankResponse(state = Option.when(explain)(StateValues(queryValues.state.values.toList)), items = result.toList)
+      RankResponse(
+        state = Option.when(explain)(StateValues(queryValues.state.values.toList)),
+        items = result.toList,
+        took = System.currentTimeMillis() - start
+      )
     }
 
   def loadModel(pred: Predictor[_, _, _], name: String): IO[RankModel] = pred match {

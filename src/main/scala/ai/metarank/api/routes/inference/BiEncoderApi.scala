@@ -24,8 +24,9 @@ case class BiEncoderApi(encoders: Map[String, OnnxBiEncoder]) {
         encoder <- IO.fromOption(encoders.get(model))(
           new Exception(s"encoder $model is not defined in config (defined: ${encoders.keys.toList})")
         )
+        start    <- IO(System.currentTimeMillis())
         encoded  <- IO(encoder.embed(request.texts.toArray))
-        response <- IO(BiencoderResponse(encoded.toList))
+        response <- IO(BiencoderResponse(encoded.toList, took = System.currentTimeMillis() - start))
       } yield {
         Response[IO](
           entity = Entity.strict(JsonChunk(response)),
@@ -38,7 +39,7 @@ case class BiEncoderApi(encoders: Map[String, OnnxBiEncoder]) {
 
 object BiEncoderApi extends Logging {
   case class BiencoderRequest(texts: List[String])
-  case class BiencoderResponse(embeddings: List[Array[Float]])
+  case class BiencoderResponse(embeddings: List[Array[Float]], took: Long)
 
   implicit val biRequestCodec: Codec[BiencoderRequest]   = deriveCodec
   implicit val biResponseCodec: Codec[BiencoderResponse] = deriveCodec

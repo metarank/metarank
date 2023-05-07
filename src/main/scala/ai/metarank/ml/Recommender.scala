@@ -31,7 +31,8 @@ case class Recommender(mapping: FeatureMapping, store: Persistence) extends Logg
   } yield {
     RankResponse(
       state = None,
-      items = scores.items.toList.sortBy(-_.score).map(is => ItemScoreValues(is.item, is.score, features = None))
+      items = scores.items.toList.sortBy(-_.score).map(is => ItemScoreValues(is.item, is.score, features = None)),
+      took = total
     )
   }
 

@@ -316,13 +316,13 @@ object LambdaMARTRanker {
 
   implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder.instance(c =>
     for {
-      backend  <- c.downField("backend").as[BoosterConfig]
+      backend  <- c.downField("backend").as[Option[BoosterConfig]]
       features <- c.downField("features").as[NonEmptyList[FeatureName]]
-      weights  <- c.downField("weights").as[Map[String, Double]]
+      weights  <- c.downField("weights").as[Option[Map[String, Double]]]
       selector <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
       split    <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
     } yield {
-      LambdaMARTConfig(backend, features, weights, selector, split)
+      LambdaMARTConfig(backend.getOrElse(XGBoostConfig()), features, weights.getOrElse(Map.empty), selector, split)
     }
   )
   implicit val lmEncoder: Encoder[LambdaMARTConfig] = deriveEncoder

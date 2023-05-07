@@ -21,7 +21,8 @@ class BiEncoderApiTest extends AnyFlatSpec with Matchers {
           model = Some(HuggingFaceHandle("metarank", "all-MiniLM-L6-v2")),
           dim = 384
         )
-      )
+      ),
+      existing = Nil
     )
     .unsafeRunSync()
 

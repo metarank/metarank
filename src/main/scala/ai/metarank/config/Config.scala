@@ -1,6 +1,9 @@
 package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
+import ai.metarank.feature.FieldMatchBiencoderFeature
+import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
+import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderSchema
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
@@ -38,6 +41,10 @@ object Config extends Logging {
         val state = get(stateOption, MemoryStateConfig(), "state")
         val train = get(trainOption, TrainConfig.fromState(state), "train")
         val core  = coreOption.getOrElse(CoreConfig())
+        val inferenceDefault = features.toList.flatten.collect {
+          case x: FieldMatchBiencoderSchema    => x.name.value -> x.method
+          case x: FieldMatchCrossEncoderSchema => x.name.value -> x.method
+        }.toMap
         Config(
           core,
           api,
@@ -46,7 +53,7 @@ object Config extends Logging {
           inputOption,
           features.getOrElse(Nil),
           models.getOrElse(Map.empty),
-          inference.getOrElse(Map.empty)
+          inference.getOrElse(inferenceDefault)
         )
       }
     )

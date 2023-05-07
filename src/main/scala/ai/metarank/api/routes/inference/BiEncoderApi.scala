@@ -4,6 +4,7 @@ import ai.metarank.ml.onnx.sbert.{OnnxBiEncoder, OnnxSession}
 import ai.metarank.api.JsonChunk
 import ai.metarank.api.routes.inference.BiEncoderApi.{BiencoderRequest, BiencoderResponse}
 import ai.metarank.api.routes.inference.CrossEncoderApi.info
+import ai.metarank.feature.FieldMatchBiencoderFeature
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
 import ai.metarank.util.Logging
@@ -47,14 +48,25 @@ object BiEncoderApi extends Logging {
   implicit val biRequestJson: EntityDecoder[IO, BiencoderRequest]   = jsonOf[IO, BiencoderRequest]
   implicit val biResponseJson: EntityEncoder[IO, BiencoderResponse] = jsonEncoderOf[BiencoderResponse]
 
-  def create(models: Map[String, EncoderConfig]): IO[BiEncoderApi] = for {
+  def create(models: Map[String, EncoderConfig], existing: List[FieldMatchBiencoderFeature]): IO[BiEncoderApi] = for {
     bi <- IO(models.collect { case (name, c: BiEncoderConfig) =>
       name -> c
     })
     encoders <- bi.toList.traverseCollect { case (name, BiEncoderConfig(Some(handle), _, _, mf, vc, _)) =>
-      OnnxSession.load(handle, mf, vc).map(session => name -> OnnxBiEncoder(session))
+      existing.find(_.schema.method.model.contains(handle)) match {
+        case None => OnnxSession.load(handle, mf, vc).map(session => name -> OnnxBiEncoder(session))
+        case Some(bi) =>
+          bi.encoder match {
+            case Some(encoder) =>
+              info(s"re-using ${bi.schema.method.model} ONNX session for /inference/encoder/$name") *> IO.pure(
+                name -> encoder
+              )
+            case None => OnnxSession.load(handle, mf, vc).map(session => name -> OnnxBiEncoder(session))
+          }
+      }
+
     }
-    _ <- IO.whenA(encoders.nonEmpty)(info(s"loaded ${encoders.map(_._1).toList} bi-encoders for inference"))
+    _ <- IO.whenA(encoders.nonEmpty)(info(s"loaded ${encoders.map(_._1)} bi-encoders for inference"))
   } yield {
     BiEncoderApi(encoders.toMap)
   }

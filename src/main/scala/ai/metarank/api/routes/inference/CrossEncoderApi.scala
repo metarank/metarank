@@ -25,8 +25,9 @@ case class CrossEncoderApi(encoders: Map[String, OnnxCrossEncoder]) {
         encoder <- IO.fromOption(encoders.get(model))(
           new Exception(s"cross-encoder $model is not defined in config (defined: ${encoders.keys.toList})")
         )
+        start    <- IO(System.currentTimeMillis())
         scores   <- IO(encoder.encode(request.input.map(sp => SentencePair(sp.query, sp.text)).toArray))
-        response <- IO(CrossEncoderResponse(scores))
+        response <- IO(CrossEncoderResponse(scores, took = System.currentTimeMillis() - start))
       } yield {
         Response[IO](
           entity = Entity.strict(JsonChunk(response)),
@@ -41,7 +42,7 @@ case class CrossEncoderApi(encoders: Map[String, OnnxCrossEncoder]) {
 object CrossEncoderApi extends Logging {
   case class QueryDocumentPair(query: String, text: String)
   case class CrossEncoderRequest(input: List[QueryDocumentPair])
-  case class CrossEncoderResponse(scores: Array[Float])
+  case class CrossEncoderResponse(scores: Array[Float], took: Long)
 
   implicit val qdpCodec: Codec[QueryDocumentPair]              = deriveCodec[QueryDocumentPair]
   implicit val crossRequestCodec: Codec[CrossEncoderRequest]   = deriveCodec[CrossEncoderRequest]

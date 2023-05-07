@@ -165,6 +165,7 @@ define which model to invoke.
 
 ```json
 {
+  "took": 5,
   "items": [
     {"id": "item2", "score":  2.0, "features": [{"name": "popularity", "value": 10 }]},
     {"id": "item3", "score":  1.0, "features": [{"name": "popularity", "value": 5 }]},
@@ -173,6 +174,7 @@ define which model to invoke.
 }
 ```
 
+- `took`: number of millis spend processing request
 - `items.id`: id of the content item. Will match `item` property from the item metadata event.
 - `items.score`: a score calculated by personalization model
 - `items.features`: an array of feature values calculated by pesonaliization model. This field will be returned if `explain` field is set to `true` in the request. The structure of this object will vary depending on the feature type.
@@ -203,6 +205,7 @@ Where:
 
 ```json
 {
+  "took": 5,
   "items": [
     {"id": "item2", "score":  2.0},
     {"id": "item3", "score":  1.0},
@@ -211,6 +214,7 @@ Where:
 }
 ```
 
+- `took`: number of millis spend processing request
 - `items.id`: id of the content item. 
 - `items.score`: a score calculated by recommender model.
 
@@ -239,10 +243,13 @@ Encode a batch of strings into vectors using configured model `<name>`.
 #### Response format
 
 ```json
-{"embeddings": [
-  [1, 2, 3, 4],
-  [0, 7, 2, 1]
-]}
+{
+  "took": 5,
+  "embeddings": [
+    [1, 2, 3, 4],
+    [0, 7, 2, 1]
+  ]
+}
 ```
 
 ### LLM with cross-encoders
@@ -265,7 +272,10 @@ Encode a batch of query-document pairs into similarity scores using configured m
 #### Response format
 
 ```json
-{"scores": [0.25, 0.01]}
+{
+  "took": 5,
+  "scores": [0.25, 0.01]
+}
 ```
 
 ## Prometheus metrics

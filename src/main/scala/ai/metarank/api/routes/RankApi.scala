@@ -54,7 +54,7 @@ object RankApi {
   object ExplainParamDecoder         extends OptionalQueryParamDecoderMatcher[Boolean]("explain")
   case class ModelError(msg: String) extends Exception(msg)
 
-  case class RankResponse(state: Option[StateValues], items: List[ItemScoreValues])
+  case class RankResponse(state: Option[StateValues], items: List[ItemScoreValues], took: Long)
 
   object RankResponse {
     case class StateValues(

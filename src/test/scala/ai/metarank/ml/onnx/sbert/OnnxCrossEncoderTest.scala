@@ -29,7 +29,7 @@ class OnnxCrossEncoderTest extends AnyFlatSpec with Matchers {
 
   it should "not fail on empty input" in {
     val session = OnnxSession
-      .loadFromHuggingFace(HuggingFaceHandle("metarank", "ce-msmarco-MiniLM-L6-v2"), "pytorch_model.onnx", "vocab.txt")
+      .loadFromHuggingFace(HuggingFaceHandle("metarank", "ce-msmarco-MiniLM-L6-v2"), 0, "pytorch_model.onnx", "vocab.txt")
       .unsafeRunSync()
     val ce      = OnnxCrossEncoder(session)
     val result  = ce.encode(Array(SentencePair("", "")))

@@ -49,8 +49,9 @@ case class TrainBuffer(
   def handleUser(user: UserEvent): IO[Unit] = IO.whenA(userItemNeeded)(IO { queue.add(UserValues(user)) })
 
   def handleRanking(event: RankingEvent): IO[Unit] = for {
-    values  <- FeatureValueLoader.fromStateBackend(mapping, event, values)
-    mvalues <- IO.fromEither(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining))
+    all     <- IO(mapping.features.map(_.schema.name).toSet)
+    values  <- FeatureValueLoader.fromStateBackend(mapping, event, values, all)
+    mvalues <- IO.fromEither(ItemValue.fromState(event, values, mapping, ValueMode.OfflineTraining, all))
     ctv = ClickthroughValues(
       Clickthrough(
         id = event.id,

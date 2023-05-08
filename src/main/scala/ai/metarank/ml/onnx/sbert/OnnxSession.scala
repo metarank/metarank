@@ -15,13 +15,18 @@ import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 
-case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int)
+case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int) {
+  def close(): Unit = {
+    session.close()
+    env.close()
+  }
+}
 
 object OnnxSession extends Logging {
 
   def load(handle: ModelHandle, modelFile: String, vocabFile: String) = handle match {
     case hh: HuggingFaceHandle => loadFromHuggingFace(hh, modelFile, vocabFile)
-    case lh: LocalModelHandle => loadFromLocalDir(lh, modelFile, vocabFile)
+    case lh: LocalModelHandle  => loadFromLocalDir(lh, modelFile, vocabFile)
   }
   def load(model: InputStream, dic: InputStream): IO[OnnxSession] = IO {
     val tokens    = IOUtils.toString(dic, StandardCharsets.UTF_8).split('\n')

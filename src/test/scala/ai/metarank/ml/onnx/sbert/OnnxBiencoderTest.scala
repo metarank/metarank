@@ -1,18 +1,17 @@
 package ai.metarank.ml.onnx.sbert
 
-import ai.metarank.ml.onnx.ModelHandle.LocalModelHandle
+import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class OnnxBiencoderTest extends AnyFlatSpec with Matchers {
-  it should "match mpnet on python" in {
-    val handle = LocalModelHandle("/home/shutty/code/metarank-huggingface/all-mpnet-base-v2")
-    val session = OnnxSession
-      .loadFromLocalDir(handle, 768, "pytorch_model.onnx", "vocab.txt")
-      .unsafeRunSync()
-    val enc = OnnxBiEncoder(session)
+  it should "match minilm on python" in {
+    val handle  = HuggingFaceHandle("metarank", "all-MiniLM-L6-v2")
+    val session = OnnxSession.load(handle, 384).unsafeRunSync()
+    val enc     = OnnxBiEncoder(session)
+    val fp      = enc.embed(Array("copper frying pan"))
     val result = enc.embed(
       Array(
         "How many people live in Berlin?",
@@ -21,8 +20,8 @@ class OnnxBiencoderTest extends AnyFlatSpec with Matchers {
       )
     )
     val d1 = CosineDistance.dist(result(0), result(1).map(_.toFloat))
-    d1 shouldBe 0.261 +- 0.001
+    d1 shouldBe 0.539 +- 0.001
     val d2 = CosineDistance.dist(result(0), result(2).map(_.toFloat))
-    d2 shouldBe 0.183 +- 0.001
+    d2 shouldBe 0.738 +- 0.001
   }
 }

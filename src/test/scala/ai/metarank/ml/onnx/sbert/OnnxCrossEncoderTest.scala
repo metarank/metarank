@@ -10,7 +10,7 @@ import org.scalatest.matchers.should.Matchers
 class OnnxCrossEncoderTest extends AnyFlatSpec with Matchers {
   it should "encode qp" in {
     val session = OnnxSession
-      .loadFromHuggingFace(HuggingFaceHandle("metarank", "ce-msmarco-MiniLM-L6-v2"), "pytorch_model.onnx", "vocab.txt")
+      .load(HuggingFaceHandle("metarank", "ce-msmarco-MiniLM-L6-v2"), 0)
       .unsafeRunSync()
     val ce = OnnxCrossEncoder(session)
     val result = ce.encode(

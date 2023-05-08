@@ -19,11 +19,12 @@ case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: Bert
 
 object OnnxSession extends Logging {
 
-  def load(handle: ModelHandle, modelFile: String, vocabFile: String) = handle match {
-    case hh: HuggingFaceHandle => loadFromHuggingFace(hh, modelFile, vocabFile)
-    case lh: LocalModelHandle => loadFromLocalDir(lh, modelFile, vocabFile)
-  }
-  def load(model: InputStream, dic: InputStream): IO[OnnxSession] = IO {
+  def load(handle: ModelHandle, dim: Int, modelFile: String = "pytorch_model.onnx", vocabFile: String = "vocab.txt") =
+    handle match {
+      case hh: HuggingFaceHandle => loadFromHuggingFace(hh, dim, modelFile, vocabFile)
+      case lh: LocalModelHandle  => loadFromLocalDir(lh, dim, modelFile, vocabFile)
+    }
+  def load(model: InputStream, dic: InputStream, dim: Int): IO[OnnxSession] = IO {
     val tokens    = IOUtils.toString(dic, StandardCharsets.UTF_8).split('\n')
     val vocab     = DefaultVocabulary.builder().add(tokens.toList.asJava).build()
     val tokenizer = new BertFullTokenizer(vocab, true)
@@ -36,48 +37,51 @@ object OnnxSession extends Logging {
     val size       = FileUtils.byteCountToDisplaySize(modelBytes.length)
     val inputs     = session.getInputNames.asScala.toList
     val outputs    = session.getOutputNames.asScala.toList
-    val dim = session.getOutputInfo.asScala
-      .get("last_hidden_state")
-      .flatMap(_.getInfo.asInstanceOf[TensorInfo].getShape.lastOption)
-      .getOrElse(0L)
     logger.info(s"Loaded ONNX model (size=$size inputs=$inputs outputs=$outputs dim=$dim)")
-    OnnxSession(env, session, tokenizer, dim.toInt)
+    OnnxSession(env, session, tokenizer, dim)
   }
 
-  def loadFromHuggingFace(handle: HuggingFaceHandle, modelFile: String, vocabFile: String): IO[OnnxSession] = for {
-    cache        <- LocalCache.create()
-    modelDirName <- IO(handle.asList.mkString(File.separator))
-    sbert <- HuggingFaceClient
-      .create()
-      .use(hf =>
-        for {
-          modelBytes <- cache.getIfExists(modelDirName, modelFile).flatMap {
-            case Some(bytes) => info(s"found $modelFile in cache") *> IO.pure(bytes)
-            case None => hf.modelFile(handle, modelFile).flatTap(bytes => cache.put(modelDirName, modelFile, bytes))
+  def loadFromHuggingFace(handle: HuggingFaceHandle, dim: Int, modelFile: String, vocabFile: String): IO[OnnxSession] =
+    for {
+      cache        <- LocalCache.create()
+      modelDirName <- IO(handle.asList.mkString(File.separator))
+      sbert <- HuggingFaceClient
+        .create()
+        .use(hf =>
+          for {
+            modelBytes <- cache.getIfExists(modelDirName, modelFile).flatMap {
+              case Some(bytes) => info(s"found $modelFile in cache") *> IO.pure(bytes)
+              case None => hf.modelFile(handle, modelFile).flatTap(bytes => cache.put(modelDirName, modelFile, bytes))
+            }
+            vocabBytes <- cache.getIfExists(modelDirName, vocabFile).flatMap {
+              case Some(bytes) => info(s"found $vocabFile in cache") *> IO.pure(bytes)
+              case None => hf.modelFile(handle, vocabFile).flatTap(bytes => cache.put(modelDirName, vocabFile, bytes))
+            }
+            session <- OnnxSession.load(
+              model = new ByteArrayInputStream(modelBytes),
+              dic = new ByteArrayInputStream(vocabBytes),
+              dim = dim
+            )
+          } yield {
+            session
           }
-          vocabBytes <- cache.getIfExists(modelDirName, vocabFile).flatMap {
-            case Some(bytes) => info(s"found $vocabFile in cache") *> IO.pure(bytes)
-            case None => hf.modelFile(handle, vocabFile).flatTap(bytes => cache.put(modelDirName, vocabFile, bytes))
-          }
-          session <- OnnxSession.load(
-            model = new ByteArrayInputStream(modelBytes),
-            dic = new ByteArrayInputStream(vocabBytes)
-          )
-        } yield {
-          session
-        }
+        )
+    } yield {
+      sbert
+    }
+
+  def loadFromLocalDir(handle: LocalModelHandle, dim: Int, modelFile: String, vocabFile: String): IO[OnnxSession] =
+    for {
+      _          <- info(s"loading $modelFile from $handle")
+      modelBytes <- IO(IOUtils.toByteArray(new FileInputStream(new File(handle.dir + File.separator + modelFile))))
+      vocabBytes <- IO(IOUtils.toByteArray(new FileInputStream(new File(handle.dir + File.separator + vocabFile))))
+      session <- load(
+        model = new ByteArrayInputStream(modelBytes),
+        dic = new ByteArrayInputStream(vocabBytes),
+        dim = dim
       )
-  } yield {
-    sbert
-  }
-
-  def loadFromLocalDir(handle: LocalModelHandle, modelFile: String, vocabFile: String): IO[OnnxSession] = for {
-    _          <- info(s"loading $modelFile from $handle")
-    modelBytes <- IO(IOUtils.toByteArray(new FileInputStream(new File(handle.dir + File.separator + modelFile))))
-    vocabBytes <- IO(IOUtils.toByteArray(new FileInputStream(new File(handle.dir + File.separator + vocabFile))))
-    session    <- load(model = new ByteArrayInputStream(modelBytes), dic = new ByteArrayInputStream(vocabBytes))
-  } yield {
-    session
-  }
+    } yield {
+      session
+    }
 
 }

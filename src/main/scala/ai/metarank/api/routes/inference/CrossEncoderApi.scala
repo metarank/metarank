@@ -59,14 +59,14 @@ object CrossEncoderApi extends Logging {
       })
       encoders <- bi.toList.traverseCollect { case (name, CrossEncoderConfig(Some(handle), _, mf, vc)) =>
         existing.find(_.schema.method.model.contains(handle)) match {
-          case None => OnnxSession.load(handle, mf, vc).map(session => name -> OnnxCrossEncoder(session))
+          case None => OnnxSession.load(handle, 0, mf, vc).map(session => name -> OnnxCrossEncoder(session))
           case Some(cross) =>
             cross.encoder match {
               case Some(encoder) =>
                 info(s"re-using ${cross.schema.method.model} ONNX session for /inference/cross/$name") *> IO.pure(
                   name -> encoder
                 )
-              case None => OnnxSession.load(handle, mf, vc).map(session => name -> OnnxCrossEncoder(session))
+              case None => OnnxSession.load(handle, 0, mf, vc).map(session => name -> OnnxCrossEncoder(session))
             }
         }
 

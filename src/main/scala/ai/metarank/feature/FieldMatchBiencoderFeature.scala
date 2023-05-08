@@ -125,8 +125,9 @@ object FieldMatchBiencoderFeature {
     override def create(): IO[BaseFeature] =
       for {
         session <- method.model match {
-          case Some(handle) => OnnxSession.load(handle, method.modelFile, method.vocabFile).map(Option.apply)
-          case None         => IO.none
+          case Some(handle) =>
+            OnnxSession.load(handle, method.dim, method.modelFile, method.vocabFile).map(Option.apply)
+          case None => IO.none
         }
         items <- method.itemFieldCache match {
           case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)

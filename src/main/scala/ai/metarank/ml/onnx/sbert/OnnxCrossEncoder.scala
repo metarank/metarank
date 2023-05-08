@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ArrayBuffer
 
-case class OnnxCrossEncoder(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int) {
+case class OnnxCrossEncoder(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer) {
   val vocab = tokenizer.getVocabulary
   val cls   = vocab.getIndex("[CLS]")
   val sep   = vocab.getIndex("[SEP]")
@@ -106,6 +106,6 @@ object OnnxCrossEncoder extends Logging {
   case class TokenTypeMask(tokens: Array[Long], types: Array[Long], attmask: Array[Long])
 
   def apply(session: OnnxSession): OnnxCrossEncoder =
-    OnnxCrossEncoder(session.env, session.session, session.tokenizer, session.dim)
+    OnnxCrossEncoder(session.env, session.session, session.tokenizer)
 
 }

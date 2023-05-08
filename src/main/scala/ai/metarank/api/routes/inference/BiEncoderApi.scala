@@ -52,16 +52,16 @@ object BiEncoderApi extends Logging {
     bi <- IO(models.collect { case (name, c: BiEncoderConfig) =>
       name -> c
     })
-    encoders <- bi.toList.traverseCollect { case (name, BiEncoderConfig(Some(handle), _, _, mf, vc, _)) =>
+    encoders <- bi.toList.traverseCollect { case (name, BiEncoderConfig(Some(handle), _, _, mf, vc, dim)) =>
       existing.find(_.schema.method.model.contains(handle)) match {
-        case None => OnnxSession.load(handle, mf, vc).map(session => name -> OnnxBiEncoder(session))
+        case None => OnnxSession.load(handle, dim, mf, vc).map(session => name -> OnnxBiEncoder(session))
         case Some(bi) =>
           bi.encoder match {
             case Some(encoder) =>
               info(s"re-using ${bi.schema.method.model} ONNX session for /inference/encoder/$name") *> IO.pure(
                 name -> encoder
               )
-            case None => OnnxSession.load(handle, mf, vc).map(session => name -> OnnxBiEncoder(session))
+            case None => OnnxSession.load(handle, dim, mf, vc).map(session => name -> OnnxBiEncoder(session))
           }
       }
 

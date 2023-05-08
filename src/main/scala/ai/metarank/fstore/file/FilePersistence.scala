@@ -36,7 +36,7 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat, 
   override lazy val maps: Map[FeatureKey, FileMapFeature] =
     schema.maps.view.mapValues(c => FileMapFeature(c, db.sortedDB(c.name.value), format)).toMap
 
-  override lazy val models = MemModelStore()
+  override lazy val models = FileModelStore(db.hashDB("models"))
   lazy val fileValues      = FileKVStore(db.hashDB("values"), format)
   override lazy val values: KVStore[Key, FeatureValue] = if (cache.enabled) {
     CachedKVStore(

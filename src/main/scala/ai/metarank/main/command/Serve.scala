@@ -79,7 +79,8 @@ object Serve extends Logging {
       models = inference,
       existing = mapping.features.collect { case x: FieldMatchCrossEncoderFeature => x }
     )
-    routes  = health <+> rank <+> feedback <+> train <+> metricsApi <+> rec
+    routes =
+      health <+> rank <+> feedback <+> train <+> metricsApi <+> rec <+> inferenceCross.routes <+> inferenceEncoder.routes
     httpApp = Router("/" -> routes).orNotFound
     api = BlazeServerBuilder[IO]
       .bindHttp(conf.port.value, conf.host.value)

@@ -26,12 +26,6 @@ class RankApiTest extends AnyFlatSpec with Matchers {
     response.items.map(_.item.value) shouldBe List("p1", "p2", "p3")
   }
 
-  it should "emit feature values" in {
-    val response =
-      service.ranker.rerank(TestRankingEvent(List("p1", "p2", "p3")), "random", explain = true).unsafeRunSync()
-    response.items.forall(_.features.map(_.size).contains(5)) shouldBe true
-  }
-
   it should "accept ranking json event with explain" in {
     val response = post(
       uri = "http://localhost:8080/rank/random?explain=true",

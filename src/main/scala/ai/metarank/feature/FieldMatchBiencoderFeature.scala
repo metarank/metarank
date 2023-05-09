@@ -28,6 +28,7 @@ import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import io.circe.{Decoder, DecodingFailure}
 
+import java.io.File
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
@@ -108,7 +109,7 @@ case class FieldMatchBiencoderFeature(
   }
 }
 
-object FieldMatchBiencoderFeature {
+object FieldMatchBiencoderFeature extends Logging {
   import ai.metarank.util.DurationJson._
   case class FieldMatchBiencoderSchema(
       name: FeatureName,
@@ -130,10 +131,14 @@ object FieldMatchBiencoderFeature {
           case None => IO.none
         }
         items <- method.itemFieldCache match {
+          case Some(path) if !(new File(path).exists()) =>
+            info(s"cache file $path missing, ignoring") *> IO.pure(EmbeddingCache.empty())
           case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)
           case None       => IO.pure(EmbeddingCache.empty())
         }
         fields <- method.rankingFieldCache match {
+          case Some(path) if !(new File(path).exists()) =>
+            info(s"cache file $path missing, ignoring") *> IO.pure(EmbeddingCache.empty())
           case Some(path) => EmbeddingCache.fromCSV(path, ',', method.dim)
           case None       => IO.pure(EmbeddingCache.empty())
         }

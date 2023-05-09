@@ -12,8 +12,10 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import org.apache.commons.io.IOUtils
 import fs2.{Chunk, Stream}
 
-import java.io.{File, FileReader}
+import java.io.{File, FileInputStream, FileReader, InputStreamReader, Reader}
 import io.circe.parser._
+
+import java.util.zip.GZIPInputStream
 
 case class BM25Matcher(language: TextAnalyzer, freq: TermFreqDic) extends FieldMatcher {
   lazy val term                                        = TermMatcher(language)
@@ -79,10 +81,19 @@ object BM25Matcher {
     }
 
     def fromFile(path: String): IO[TermFreqDic] = for {
-      text    <- IO.blocking(IOUtils.toString(new FileReader(new File(path))))
+      reader  <- makeReader(path)
+      text    <- IO.blocking(IOUtils.toString(reader))
       decoded <- IO.fromEither(decode[TermFreqDic](text))
     } yield {
       decoded
+    }
+
+    def makeReader(path: String): IO[Reader] = IO {
+      if (path.endsWith(".gz")) {
+        new InputStreamReader(new GZIPInputStream(new FileInputStream(new File(path))))
+      } else {
+        new FileReader(new File(path))
+      }
     }
   }
   implicit val termDicEncoder: Encoder[TermFreqDic] = Encoder.instance(dic =>

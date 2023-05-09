@@ -33,6 +33,12 @@ class TermFreqDicTest extends AnyFlatSpec with Matchers {
     dir.delete()
   }
 
+  it should "load tf from compressed file" in {
+    val cwd = System.getProperty("user.dir")
+    val tf  = TermFreqDic.fromFile(cwd + "/src/test/resources/tf-test.json.gz").unsafeRunSync()
+    tf.termfreq.size shouldBe 12
+  }
+
   it should "count repetitions only once" in {
     val event =
       TestItemEvent("p1", List(StringField("foo", "hello hello world"), StringField("bar", "hello hello world")))

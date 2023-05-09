@@ -29,6 +29,7 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Decoder, DecodingFailure}
 
+import java.io.File
 import scala.concurrent.duration._
 
 case class FieldMatchCrossEncoderFeature(
@@ -115,7 +116,7 @@ case class FieldMatchCrossEncoderFeature(
   }
 }
 
-object FieldMatchCrossEncoderFeature {
+object FieldMatchCrossEncoderFeature extends Logging {
   import ai.metarank.util.DurationJson._
 
   case class FieldMatchCrossEncoderSchema(
@@ -136,6 +137,9 @@ object FieldMatchCrossEncoderFeature {
         case None         => IO.none
       }
       cache <- method.cache match {
+        case Some(path) if !(new File(path).exists()) =>
+          info(s"cache file $path missing, ignoring") *> IO.pure(ScoreCache.empty)
+
         case Some(path) => ScoreCache.fromCSV(path, ',', 0)
         case None       => IO.pure(ScoreCache.empty)
       }

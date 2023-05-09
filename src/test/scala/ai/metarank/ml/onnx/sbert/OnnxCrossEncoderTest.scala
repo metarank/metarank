@@ -24,5 +24,16 @@ class OnnxCrossEncoderTest extends AnyFlatSpec with Matchers {
     )
     result(0) shouldBe 8.607141f +- 0.1f
     result(1) shouldBe -4.32008f +- 0.1f
+    session.close()
+  }
+
+  it should "not fail on empty input" in {
+    val session = OnnxSession
+      .loadFromHuggingFace(HuggingFaceHandle("metarank", "ce-msmarco-MiniLM-L6-v2"), 0, "pytorch_model.onnx", "vocab.txt")
+      .unsafeRunSync()
+    val ce      = OnnxCrossEncoder(session)
+    val result  = ce.encode(Array(SentencePair("", "")))
+    val result2 = ce.encode(Array.empty)
+    session.close()
   }
 }

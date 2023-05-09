@@ -97,8 +97,9 @@ case class FieldMatchCrossEncoderFeature(
       val cached          = fieldItems.flatMap(item => cache.get(item, queryString).map(score => item -> score)).toMap
       val nonCachedValues = fieldValues.filterNot(fv => cached.contains(fv._1))
       val nonCached = encoder match {
-        case Some(enc) => nonCachedValues.map(_._1).zip(enc.encode(nonCachedValues.map(_._2).toArray)).toMap
-        case None      => Map.empty
+        case Some(enc) if nonCachedValues.nonEmpty =>
+          nonCachedValues.map(_._1).zip(enc.encode(nonCachedValues.map(_._2).toArray)).toMap
+        case _ => Map.empty
       }
       val encoded: Map[ItemId, Float] = cached ++ nonCached
       val raw = request.items.toList.map(item => {

@@ -22,49 +22,53 @@ case class OnnxCrossEncoder(env: OrtEnvironment, session: OrtSession, tokenizer:
   val pad   = vocab.getIndex("[PAD]")
 
   def encode(batch: Array[SentencePair]): Array[Float] = {
-    val encoded    = batch.map(sp => tokenize(sp))
-    val maxLength  = encoded.map(_.tokens.length).max
-    val tensorSize = batch.length * maxLength
-    val tokens     = new Array[Long](tensorSize)
-    val tokenTypes = new Array[Long](tensorSize)
-    val attMask    = new Array[Long](tensorSize)
+    if (batch.length == 0) {
+      Array.empty
+    } else {
+      val encoded    = batch.map(sp => tokenize(sp))
+      val maxLength  = encoded.map(_.tokens.length).max
+      val tensorSize = batch.length * maxLength
+      val tokens     = new Array[Long](tensorSize)
+      val tokenTypes = new Array[Long](tensorSize)
+      val attMask    = new Array[Long](tensorSize)
 
-    var s = 0
-    var i = 0
-    while (s < batch.length) {
-      var j = 0
-      while (j < maxLength) {
-        if (j < encoded(s).tokens.length) {
-          tokens(i) = encoded(s).tokens(j)
-          tokenTypes(i) = encoded(s).types(j)
-          attMask(i) = encoded(s).attmask(j)
-        } else {
-          tokens(i) = pad
-          tokenTypes(i) = pad
-          attMask(i) = pad
+      var s = 0
+      var i = 0
+      while (s < batch.length) {
+        var j = 0
+        while (j < maxLength) {
+          if (j < encoded(s).tokens.length) {
+            tokens(i) = encoded(s).tokens(j)
+            tokenTypes(i) = encoded(s).types(j)
+            attMask(i) = encoded(s).attmask(j)
+          } else {
+            tokens(i) = pad
+            tokenTypes(i) = pad
+            attMask(i) = pad
+          }
+          i += 1
+          j += 1
         }
-        i += 1
+        s += 1
+      }
+      val tensorDim = Array(batch.length.toLong, maxLength.toLong)
+      val args = Map(
+        "input_ids"      -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokens), tensorDim),
+        "token_type_ids" -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokenTypes), tensorDim),
+        "attention_mask" -> OnnxTensor.createTensor(env, LongBuffer.wrap(attMask), tensorDim)
+      )
+      val result = session.run(args.asJava)
+      val tensor = result.get(0).getValue.asInstanceOf[Array[Array[Float]]]
+      val logits = new Array[Float](batch.length)
+      var j      = 0
+      while (j < batch.length) {
+        logits(j) = tensor(j)(0)
         j += 1
       }
-      s += 1
+      result.close()
+      args.values.foreach(_.close())
+      logits
     }
-    val tensorDim = Array(batch.length.toLong, maxLength.toLong)
-    val args = Map(
-      "input_ids"      -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokens), tensorDim),
-      "token_type_ids" -> OnnxTensor.createTensor(env, LongBuffer.wrap(tokenTypes), tensorDim),
-      "attention_mask" -> OnnxTensor.createTensor(env, LongBuffer.wrap(attMask), tensorDim)
-    )
-    val result = session.run(args.asJava)
-    val tensor = result.get(0).getValue.asInstanceOf[Array[Array[Float]]]
-    val logits = new Array[Float](batch.length)
-    var j      = 0
-    while (j < batch.length) {
-      logits(j) = tensor(j)(0)
-      j += 1
-    }
-    result.close()
-    args.values.foreach(_.close())
-    logits
   }
 
   def tokenize(sentence: SentencePair): TokenTypeMask = {

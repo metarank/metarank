@@ -67,6 +67,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     )
   )
   val mapping     = FeatureMapping.fromFeatureSchema(features, models).unsafeRunSync()
+  val all         = mapping.features.map(_.schema.name).toSet
   val store       = MemPersistence(mapping.schema)
   val ts          = Timestamp.now
   val ranker      = Ranker(mapping, store)
@@ -114,16 +115,10 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate query for a ranking request" in {
-//<<<<<<< HEAD
-//    val q =
-//      ranker.makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
-//    q.values.toList shouldBe List(
-//      ItemValue(ItemId("p1"), List(MValue("pop", 10), MValue("genre", "action", 1), MValue("liked_genre", Array(0.0)))),
-//      ItemValue(ItemId("p2"), List(MValue("pop", 5), MValue("genre", "comedy", 3), MValue("liked_genre", Array(0.0)))),
-//      ItemValue(ItemId("p3"), List(MValue("pop", 15), MValue("genre", "drama", 2), MValue("liked_genre", Array(0.0))))
-//=======
     val q =
-      ranker.makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
+      ranker
+        .makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc, all)
+        .unsafeRunSync()
     q.values.toList shouldBe List(
       ItemValue(
         ItemId("p1"),
@@ -176,7 +171,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
 
   it should "generate updated query" in {
     val q =
-      ranker.makeQuery(rankingEvent2, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc).unsafeRunSync()
+      ranker
+        .makeQuery(rankingEvent2, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc, all)
+        .unsafeRunSync()
     q.values.toList shouldBe List(
       ItemValue(
         ItemId("p1"),

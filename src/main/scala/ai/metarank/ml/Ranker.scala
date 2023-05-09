@@ -17,6 +17,7 @@ import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTModel, LambdaMARTPredicto
 import ai.metarank.ml.rank.NoopRanker.{NoopModel, NoopPredictor}
 import ai.metarank.ml.rank.QueryRequest
 import ai.metarank.ml.rank.ShuffleRanker.{ShuffleModel, ShufflePredictor}
+import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.{KendallCorrelation, Logging}
 import cats.data.NonEmptyList
 import cats.effect.IO
@@ -34,8 +35,9 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
       }
       model <- loadModel(predictor, modelName)
       queryValues <- predictor match {
-        case LambdaMARTPredictor(name, config, desc) => makeQuery(request, desc)
-        case _                                       => makeQuery(request, DatasetDescriptor(Map.empty, Nil, 0))
+        case LambdaMARTPredictor(name, config, desc) =>
+          makeQuery(request, desc, config.features.toList.toSet)
+        case _ => makeQuery(request, DatasetDescriptor(Map.empty, Nil, 0), Set.empty)
       }
       stateTook <- IO { System.currentTimeMillis() }
       scores    <- model.predict(QueryRequest(request, queryValues.query))
@@ -43,14 +45,14 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
         case true =>
           IO {
             queryValues.values
-              .zip(scores.items)
+              .zip(scores.items.toList)
               .map(x => ItemScoreValues(x._1.id, x._2.score, Some(x._1.values)))
               .sortBy(-_.score)
           }
         case false =>
           IO {
             queryValues.values
-              .zip(scores.items)
+              .zip(scores.items.toList)
               .map(x => ItemScoreValues(x._1.id, x._2.score, None))
               .sortBy(-_.score)
           }
@@ -84,16 +86,18 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
     case other               => IO.raiseError(ModelError(s"model type $other not supported"))
   }
 
-  def makeQuery(request: RankingEvent, ds: DatasetDescriptor) = for {
-    state             <- FeatureValueLoader.fromStateBackend(mapping, request, store.values)
-    itemFeatureValues <- IO.fromEither(ItemValue.fromState(request, state, mapping, ValueMode.OnlineInference))
-    query             <- IO { ClickthroughQuery(itemFeatureValues.toList, request.id.value, ds) }
-    _                 <- IO { logger.info(s"generated query ${query.group} size=${query.columns}x${query.rows}") }
+  def makeQuery(request: RankingEvent, ds: DatasetDescriptor, modelFeatures: Set[FeatureName]) = for {
+    state <- FeatureValueLoader.fromStateBackend(mapping, request, store.values, modelFeatures)
+    itemFeatureValues <- IO.fromEither(
+      ItemValue.fromState(request, state, mapping, ValueMode.OnlineInference, modelFeatures)
+    )
+    query <- IO { ClickthroughQuery(itemFeatureValues.toList, request.id.value, ds) }
+    _     <- IO { logger.info(s"generated query ${query.group} size=${query.columns}x${query.rows}") }
   } yield {
     QueryValues(query, itemFeatureValues, state)
   }
 }
 
 object Ranker {
-  case class QueryValues(query: Query, values: NonEmptyList[ItemValue], state: Map[Key, FeatureValue])
+  case class QueryValues(query: Query, values: List[ItemValue], state: Map[Key, FeatureValue])
 }

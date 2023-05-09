@@ -15,7 +15,12 @@ import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters._
 
-case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int)
+case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int) {
+  def close(): Unit = {
+    session.close()
+    env.close()
+  }
+}
 
 object OnnxSession extends Logging {
 
@@ -24,6 +29,7 @@ object OnnxSession extends Logging {
       case hh: HuggingFaceHandle => loadFromHuggingFace(hh, dim, modelFile, vocabFile)
       case lh: LocalModelHandle  => loadFromLocalDir(lh, dim, modelFile, vocabFile)
     }
+
   def load(model: InputStream, dic: InputStream, dim: Int): IO[OnnxSession] = IO {
     val tokens    = IOUtils.toString(dic, StandardCharsets.UTF_8).split('\n')
     val vocab     = DefaultVocabulary.builder().add(tokens.toList.asJava).build()

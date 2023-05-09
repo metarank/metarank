@@ -28,7 +28,7 @@ case class RankApi(ranker: Ranker) extends Logging {
       start       <- IO(Metrics.requestLatency.labels(model).startTimer())
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))
-      _           <- IO { logRequest(request) }
+      _           <- IO { logRequest(model, request) }
       response    <- ranker.rerank(request, model, explain.getOrElse(false))
       _           <- IO(start.observeDuration())
     } yield {
@@ -40,10 +40,11 @@ case class RankApi(ranker: Ranker) extends Logging {
     }
   }
 
-  def logRequest(r: RankingEvent) = {
+  def logRequest(model: String, r: RankingEvent) = {
     val items = r.items.map(_.id.value).toList.mkString("[", ",", "]")
     logger.info(
-      s"request: user=${r.user.getOrElse("")} session=${r.session.map(_.value)} items=$items fields=${Field.toString(r.fields)}"
+      s"request: /rank/$model user=${r.user.getOrElse("")} session=${r.session.map(_.value)} items=$items fields=${Field
+          .toString(r.fields)}"
     )
   }
 

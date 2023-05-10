@@ -21,13 +21,19 @@ class SplitStrategyTest extends AnyFlatSpec with Matchers {
   val now   = Timestamp.now
   val query = QueryMetadata(Query(desc, List(LabeledItem(1.0, 1, Array(1.0)))), now, None, Nil)
 
-  "time-split" should "handle unbalanced small inputs, size=2" in {
+  "time-split" should "handle unbalanced small inputs, size=1" in {
     val split = TimeSplit(80).split(desc, List(query, query)).unsafeRunSync()
     split.test.groups.size shouldBe 1
     split.train.groups.size shouldBe 1
   }
 
-  "time-split" should "handle unbalanced small inputs, size=3" in {
+  it should "handle unbalanced small inputs, size=2" in {
+    val split = TimeSplit(80).split(desc, List(query, query)).unsafeRunSync()
+    split.test.groups.size shouldBe 1
+    split.train.groups.size shouldBe 1
+  }
+
+  it should "handle unbalanced small inputs, size=3" in {
     val split = TimeSplit(80).split(desc, List(query, query, query)).unsafeRunSync()
     split.test.groups.size shouldBe 1
     split.train.groups.size shouldBe 2

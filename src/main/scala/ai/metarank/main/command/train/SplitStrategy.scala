@@ -31,13 +31,26 @@ object SplitStrategy {
     override def split(desc: DatasetDescriptor, queries: List[QueryMetadata]): IO[Split] = for {
       _ <- info(s"using time split strategy, ratio=$ratioPercent%")
       size = queries.size
-      position <- queries.size match {
-        case 0 | 1 => IO.raiseError(new Exception(s"dataset size ($size items) is too small to be split"))
-        case 2     => warnSmallDataset(size) *> IO.pure(1)
+      split <- queries.size match {
+        case 0 =>
+          IO.raiseError(
+            new Exception("""Metarank needs a couple of click-through events (so pairs of ranking+interaction),
+                            |and you have zero of them.
+                            |""".stripMargin)
+          )
+        case 1 =>
+          warn("Only single click-through event available, and we need more for training") *> IO(
+            Split(Dataset(desc, queries.map(_.query)), Dataset(desc, queries.map(_.query)))
+          )
+        case 2 => warnSmallDataset(size) *> IO.pure(splitByPosition(desc, queries, 1))
         case gt =>
-          IO.whenA(gt < MIN_SPLIT)(warnSmallDataset(size)) *> IO(math.round(queries.size * (ratioPercent / 100.0f)))
+          IO.whenA(gt < MIN_SPLIT)(warnSmallDataset(size)) *> IO(
+            splitByPosition(desc, queries, math.round(queries.size * (ratioPercent / 100.0f)))
+          )
       }
-    } yield {
+    } yield { split }
+
+    def splitByPosition(desc: DatasetDescriptor, queries: List[QueryMetadata], position: Int) = {
       val (train, test) = queries.sortBy(_.ts.ts).splitAt(position)
       Split(Dataset(desc, train.map(_.query)), Dataset(desc, test.map(_.query)))
     }

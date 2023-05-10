@@ -3,6 +3,10 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.1
+
+* `/inference`: [Inference API](api.md#inference-with-llms) to expose bi- and cross-encoders. 
+
 ## 0.7.0
 
 * Support for [LLM embedding-based content recommendations](configuration/recommendations/semantic.md)

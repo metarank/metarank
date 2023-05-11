@@ -144,7 +144,7 @@ define which model to invoke.
     {"name": "source", "value": "search"}
   ],
   "items": [ 
-    {"id": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
+    {"": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
     {"id": "item1", "fields": [{"name": "relevancy", "value": 1.0}]},
     {"id": "item2", "fields": [{"name": "relevancy", "value": 0.1}]}
   ]
@@ -167,9 +167,9 @@ define which model to invoke.
 {
   "took": 5,
   "items": [
-    {"id": "item2", "score":  2.0, "features": [{"name": "popularity", "value": 10 }]},
-    {"id": "item3", "score":  1.0, "features": [{"name": "popularity", "value": 5 }]},
-    {"id": "item1", "score":  0.5, "features": [{"name": "popularity", "value": 2 }]}
+    {"item": "item2", "score":  2.0, "features": [{"name": "popularity", "value": 10 }]},
+    {"item": "item3", "score":  1.0, "features": [{"name": "popularity", "value": 5 }]},
+    {"item": "item1", "score":  0.5, "features": [{"name": "popularity", "value": 2 }]}
   ]
 }
 ```
@@ -207,9 +207,9 @@ Where:
 {
   "took": 5,
   "items": [
-    {"id": "item2", "score":  2.0},
-    {"id": "item3", "score":  1.0},
-    {"id": "item1", "score":  0.5}
+    {"item": "item2", "score":  2.0},
+    {"item": "item3", "score":  1.0},
+    {"item": "item1", "score":  0.5}
   ]
 }
 ```

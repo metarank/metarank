@@ -6,7 +6,7 @@
 * [Quickstart](quickstart/quickstart.md)
 * [Performance](performance.md)
 
-## Guide
+## Guides
 
 * [Search](guide/search/index.md)
   * [Reranking with cross-encoders](guide/search/cross-encoders.md)

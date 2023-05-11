@@ -18,7 +18,7 @@ For typical reranking scenarios, cross-encoders (even in zero-shot modes) are mu
 
 ## Initial setup
 
-Let's imagine you already have a traditional search engine running (like ElasticSearch, OpenSearch or SOLR), which already has a good [recall](https://en.wikipedia.org/wiki/Precision_and_recall) level - it retrieves all the relevant products, but it sometimes struggles with precision: there can be some false-positives, and the ranking is not perfect.
+Let's imagine you already have a traditional search engine running (like Elasticsearch, OpenSearch or SOLR), which already has a good [recall](https://en.wikipedia.org/wiki/Precision_and_recall) level - it retrieves all the relevant products, but it sometimes struggles with precision: there can be some false-positives, and the ranking is not perfect.
 
 In this guide we will take top-N matching documents from your search engine, and re-rank them according to their semantic similarity with the query.
 
@@ -28,7 +28,7 @@ In this guide we will take top-N matching documents from your search engine, and
 
 We will use an [Amazon ESCI](https://github.com/amazon-science/esci-data) e-commerce dataset as a toy but realistic example: it has 1.7M real products that we can easily query with Elasticsearch. You can download the JSON-encoded version here: [https://github.com/shuttie/esci-s](https://github.com/shuttie/esci-s).
 
-Assuming that you have ElasticSearch service running on `http://localhost:9200`, you can import the complete dataset with the following Python script:
+Assuming that you have Elasticsearch service running on `http://localhost:9200`, you can import the complete dataset with the following Python script:
 ```python
 import json
 from elasticsearch import Elasticsearch
@@ -60,7 +60,7 @@ Where the `search.json` looks like this:
 }
 ```
 
-For this search query, ElasticSearch returned 30 matching products, but we will take only top-10 of them for further reranking:
+For this search query, Elasticsearch returned 30 matching products, but we will take only top-10 of them for further reranking:
 ```json
 {
   "took": 7,

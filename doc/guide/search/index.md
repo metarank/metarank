@@ -10,7 +10,7 @@ There are two main approaches to search reranking:
 
 If you're not familiar with concepts of re-ranking and Metarank, start with these intro guides to get better understanding about how things work:
 
-* [Search re-ranking with cross-encoder LLMs](cross-encoders.md): How to use a general-purpose cross-encoder, pre-trained on MS-MARCO dataset to improve your ElasticSearch search relevance.
+* [Search re-ranking with cross-encoder LLMs](cross-encoders.md): How to use a general-purpose cross-encoder, pre-trained on MS-MARCO dataset to improve your Elasticsearch search relevance.
 * TODO: Semantic search with sentence-transformers and Qdrant: setting up Metarank as an inference server for bi-encoders for semantic retrieval with vector search.
 
 ## Learn-to-Rank

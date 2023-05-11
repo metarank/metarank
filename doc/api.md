@@ -144,7 +144,7 @@ define which model to invoke.
     {"name": "source", "value": "search"}
   ],
   "items": [ 
-    {"": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
+    {"id": "item3", "fields": [{"name": "relevancy", "value": 2.0}]},
     {"id": "item1", "fields": [{"name": "relevancy", "value": 1.0}]},
     {"id": "item2", "fields": [{"name": "relevancy", "value": 0.1}]}
   ]

@@ -4,7 +4,7 @@
 
 While implementing Learn-to-Rank systems, Metarank is designed to be a satellite secondary reranking system. It 
 assumes that there exists another service which generates candidates for the reranking process:
-* in search: ElasticSearch or SOLR
+* in search: Elasticsearch or SOLR
 * in recommendations: output of spark mmlib ALS recommender
 * in ecommerce: inventory database
 
@@ -46,7 +46,7 @@ Metarank <= 0.5.11 included now deprecated `relevancy` extractor. With Metarank 
 ### Multiple retrievers
 
 As there can be multiple per-item fields in the ranking event, it means that it's also possible to have multiple first-level relevancy signals. For example, when you have a hybrid search application with two retrievals:
-* ElasticSearch/OS/Solr for regular term search, giving you a per-document BM25 score.
+* Elasticsearch/OS/Solr for regular term search, giving you a per-document BM25 score.
 * PineCone/Vespa/QDrant/etc. vector search engine, doing a k-NN lookup over neural-based query embedding, giving you cosine similarity score.
 
 The app retrieves top-N documents from both sources, and then merges them together in a single list. Some documents may come from both retrievers, and some - only from one.

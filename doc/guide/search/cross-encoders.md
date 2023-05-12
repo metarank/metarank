@@ -1,6 +1,6 @@
 # Search re-ranking with cross-encoder LLMs
 
-In this guide we will set up Metarank as a simple inference server for cross-encoder LLMs. In other words, we will use an open-source cross-encoder model to reorder your search results in a zero-shot manner, without collecting any visitor feedback data. We will use a pre-trained `MS-MARCO MiniLM-L6-v2` cross-encoder from the [sentence-transformers](https://sbert.net) package. 
+In this guide we will set up Metarank as a simple inference server for cross-encoder LLMs (Large Language Models). In other words, we will use an open-source cross-encoder model to reorder your search results in a zero-shot manner, without collecting any visitor feedback data. We will use a pre-trained `MS-MARCO MiniLM-L6-v2` cross-encoder from the [sentence-transformers](https://sbert.net) package. 
 
 ## What are cross-encoders?
 
@@ -14,21 +14,21 @@ For a search query "crocs", reorder the following documents in the decreasing re
 
 TODO: add ChatGPT answer
 
-On typical reranking scenarios, cross-encoders (even in zero-shot modes) are much more precise compared to bi-encoders.
+For typical reranking scenarios, cross-encoders (even in zero-shot modes) are much more precise compared to bi-encoders.
 
 ## Initial setup
 
-Let's imagine you already have a traditional search engine running (like ElasticSearch, OpenSearch or SOLR), which already has a good [recall](TODO) level - it retrieves all the relevant products, but it sometimes struggles with precision: there can be some false-positives, and the ranking is not perfect.
+Let's imagine you already have a traditional search engine running (like Elasticsearch, OpenSearch or SOLR), which already has a good [recall](https://en.wikipedia.org/wiki/Precision_and_recall) level - it retrieves all the relevant products, but it sometimes struggles with precision: there can be some false-positives, and the ranking is not perfect.
 
-In this guide we will take a top-N matching documents from your search engine, and re-rank them according to their semantic similarity with the query.
+In this guide we will take top-N matching documents from your search engine, and re-rank them according to their semantic similarity with the query.
 
 ![reranking flow](../../img/reranking.png)
 
 ### Importing data
 
-We will use an [Amazon ESCI](TODO) e-commerce dataset as a toy but realistic example: it has 1.7M real products we can easily query with Elasticsearch. You can download the JSON-encoded version here: [https://github.com/shuttie/esci-s](https://github.com/shuttie/esci-s).
+We will use an [Amazon ESCI](https://github.com/amazon-science/esci-data) e-commerce dataset as a toy but realistic example: it has 1.7M real products that we can easily query with Elasticsearch. You can download the JSON-encoded version here: [https://github.com/shuttie/esci-s](https://github.com/shuttie/esci-s).
 
-Assuming that you have ElasticSearch service running on `http://localhost:9200`, you can import the complete dataset with the following Python script:
+Assuming that you have Elasticsearch service running on `http://localhost:9200`, you can import the complete dataset with the following Python script:
 ```python
 import json
 from elasticsearch import Elasticsearch
@@ -43,7 +43,7 @@ with open('esci.json', 'r') as f:
         es.index(index="esci", document={'title': doc['title'], 'asin': doc['asin']})
 ```
 
-And then we can perform simple keyword searches over the data. For example, we'll search for query "crocs":
+And then you can perform simple keyword searches over the data. For example, you can search for "crocs":
 ```bash
 curl -XPOST -d @search.json -H "Content-Type: application/json" http://localhost:9200/esci/_search
 ```
@@ -60,7 +60,7 @@ Where the `search.json` looks like this:
 }
 ```
 
-For this search query, we received 30 matching products, and we're going to take only top-10 of them for further reranking:
+For this search query, Elasticsearch returned 30 matching products, but we will take only top-10 of them for further reranking:
 ```json
 {
   "took": 7,
@@ -110,12 +110,12 @@ inference:
     model: metarank/ce-msmarco-MiniLM-L6-v2
 ```
 
-After start-up, Metarank will expose it's HTTP API. We're going to hit the `/inference` API route to perform the reranking. See the [API Reference](../../api.md#inference-with-llms) for details on payload format:
+After start-up, Metarank will expose it's HTTP API and you can query the `/inference` API endpoint to perform the reranking. See the [API Reference](../../api.md#inference-with-llms) for details about payload format:
 ```bash
 curl -XPOST -d @rerank.json -H "Content-Type: application/json" http://metarank:8080/inference/encoder/msmarco
 ```
 
-Where `rerank.json` request is looking like:
+Where `rerank.json` request looks like:
 ```json
 {"input": [
   {"query": "crocs", "title": "Crocs Jibbitz 5-Pack Alien Shoe Charms"},

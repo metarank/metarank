@@ -1,6 +1,13 @@
 package ai.metarank.config
 
-import ai.metarank.config.Selector.{AcceptSelector, AndSelector, FieldSelector, InteractionPositionSelector, OrSelector, RankingLengthSelector}
+import ai.metarank.config.Selector.{
+  AcceptSelector,
+  AndSelector,
+  FieldSelector,
+  InteractionPositionSelector,
+  OrSelector,
+  RankingLengthSelector
+}
 import ai.metarank.model.Field.StringField
 import ai.metarank.util.TestClickthrough
 import org.scalatest.flatspec.AnyFlatSpec

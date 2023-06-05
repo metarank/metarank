@@ -200,6 +200,16 @@ models:
 
 ```
 
+## Inference
+
+The "inference" section describes inference model configuration for search results re-ranking. Check the [inference models](inference-models.md) section for more information.
+
+```yaml
+inference:
+  msmarco: # name of the model
+    type: cross-encoder # model type
+    model: metarank/ce-msmarco-MiniLM-L6-v2 # model source
+```
 
 ## API
 

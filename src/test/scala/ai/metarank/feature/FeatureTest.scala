@@ -15,10 +15,12 @@ import fs2.Stream
 
 trait FeatureTest {
   def process(events: List[Event], schema: FeatureSchema, request: RankingEvent): List[List[MValue]] = {
-    val mapping = FeatureMapping.fromFeatureSchema(
-      schema = List(schema),
-      models = Map("random" -> LambdaMARTConfig(LightGBMConfig(), NonEmptyList.of(schema.name), Map("click" -> 1)))
-    ).unsafeRunSync()
+    val mapping = FeatureMapping
+      .fromFeatureSchema(
+        schema = List(schema),
+        models = Map("random" -> LambdaMARTConfig(LightGBMConfig(), NonEmptyList.of(schema.name), Map("click" -> 1)))
+      )
+      .unsafeRunSync()
 
     val flow =
       FeatureValueFlow(mapping, MemPersistence(mapping.schema), Scaffeine().maximumSize(0).build())

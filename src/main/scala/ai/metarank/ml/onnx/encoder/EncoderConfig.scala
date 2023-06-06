@@ -53,7 +53,7 @@ object EncoderConfig {
       vocabFile <- c.downField("vocabFile").as[Option[String]]
       itemCache <- c.downField("itemFieldCache").as[Option[String]]
       rankCache <- c.downField("rankingFieldCache").as[Option[String]]
-      dim <- c.downField("dim").as[Int]
+      dim       <- c.downField("dim").as[Int]
       _ <- (model, itemCache, rankCache) match {
         case (None, None, None) =>
           Left(

@@ -80,7 +80,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
   }
 
   it should "emit writes on meta field" in {
-    val writes = feature.writes(itemEvent1,store).unsafeRunSync().toList
+    val writes = feature.writes(itemEvent1, store).unsafeRunSync().toList
     writes shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("seen_color")),
@@ -92,7 +92,7 @@ class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTe
 
   it should "emit writes on meta list field" in {
     val event  = TestItemEvent("p1", List(StringListField("color", List("red"))))
-    val writes = feature.writes(event,store).unsafeRunSync().toList
+    val writes = feature.writes(event, store).unsafeRunSync().toList
     writes shouldBe List(
       Put(
         Key(ItemScope(ItemId("p1")), FeatureName("seen_color")),

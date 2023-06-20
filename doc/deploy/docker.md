@@ -37,9 +37,9 @@ docker run -v /home/user/input:/data metarank/metarank:latest train <opts>
 
 Metarank docker container uses 1Gb of JVM heap by default. In practice the actual RSS memory usage is a bit higher than the heap size due to JVM's extra overhead. 
 
-This can be configured with the `JVM_OPTS` environment variable:
+This can be configured with the `JAVA_OPTS` environment variable:
 ```shell
-docker run -e JVM_OPTS="-Xmx5g" metarank/metarank:latest train <opts>
+docker run -e JAVA_OPTS="-Xmx5g" metarank/metarank:latest train <opts>
 ```
 
 

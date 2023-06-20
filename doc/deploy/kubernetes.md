@@ -84,7 +84,7 @@ The `values.yaml` is a generic helm deployment configuration file. You can tune 
 
 The default helm chart sets no specific memory requests & limits, but it can be configured with `values.yaml`. 
 
-The Metarank docker container accepts a `JVM_OPTS` environment variable to control the JVM memory usage. It defaults to `JVM_OPTS="-Xmx1g -verbose:gc"` which means:
+The Metarank docker container accepts a `JAVA_OPTS` environment variable to control the JVM memory usage. It defaults to `JAVA_OPTS="-Xmx1g -verbose:gc"` which means:
 * Use 1Gb for JVM heap. The actual RSS memory usage should be a bit higher due to JVM extra overhead.
 * Enable verbose GC logging. You may notice the following lines in the log, they are normal:
 

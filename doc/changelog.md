@@ -44,7 +44,7 @@ Upgrading: note that redis state format has a non backwards compatible change, s
 
 ## 0.5.16
 
-* [expose](deploy/docker.md#memory) `JVM_OPTS` env variable to control JVM heap size.
+* [expose](deploy/docker.md#memory) `JAVA_OPTS` env variable to control JVM heap size.
 * fix bug for a case when there is a click on a non-existent item.
 
 ## 0.5.15

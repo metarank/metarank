@@ -11,15 +11,15 @@ object EncoderConfig {
       model: Option[ModelHandle],
       cache: Option[String] = None,
       modelFile: String = "pytorch_model.onnx",
-      vocabFile: String = "vocab.txt"
+      tokenizerFile: String = "tokenizer.json"
   ) extends EncoderConfig
 
   implicit val crossDecoder: Decoder[CrossEncoderConfig] = Decoder.instance(c =>
     for {
-      model     <- c.downField("model").as[Option[ModelHandle]]
-      modelFile <- c.downField("modelFile").as[Option[String]]
-      vocabFile <- c.downField("vocabFile").as[Option[String]]
-      cache     <- c.downField("cache").as[Option[String]]
+      model         <- c.downField("model").as[Option[ModelHandle]]
+      modelFile     <- c.downField("modelFile").as[Option[String]]
+      tokenizerFile <- c.downField("tokenizerFile").as[Option[String]]
+      cache         <- c.downField("cache").as[Option[String]]
       _ <- (model, cache) match {
         case (None, None) =>
           Left(DecodingFailure("either 'model' or 'cache' fields should be present for cross-encoder", c.history))
@@ -29,7 +29,7 @@ object EncoderConfig {
       CrossEncoderConfig(
         model,
         modelFile = modelFile.getOrElse("pytorch_model.onnx"),
-        vocabFile = vocabFile.getOrElse("vocab.txt"),
+        tokenizerFile = tokenizerFile.getOrElse("tokenizer.json"),
         cache = cache
       )
     }
@@ -42,18 +42,18 @@ object EncoderConfig {
       itemFieldCache: Option[String] = None,
       rankingFieldCache: Option[String] = None,
       modelFile: String = "pytorch_model.onnx",
-      vocabFile: String = "vocab.txt",
+      tokenizerFile: String = "tokenizer.json",
       dim: Int
   ) extends EncoderConfig
 
   implicit val biencDecoder: Decoder[BiEncoderConfig] = Decoder.instance(c =>
     for {
-      model     <- c.downField("model").as[Option[ModelHandle]]
-      modelFile <- c.downField("modelFile").as[Option[String]]
-      vocabFile <- c.downField("vocabFile").as[Option[String]]
-      itemCache <- c.downField("itemFieldCache").as[Option[String]]
-      rankCache <- c.downField("rankingFieldCache").as[Option[String]]
-      dim       <- c.downField("dim").as[Int]
+      model         <- c.downField("model").as[Option[ModelHandle]]
+      modelFile     <- c.downField("modelFile").as[Option[String]]
+      tokenizerFile <- c.downField("tokenizerFile").as[Option[String]]
+      itemCache     <- c.downField("itemFieldCache").as[Option[String]]
+      rankCache     <- c.downField("rankingFieldCache").as[Option[String]]
+      dim           <- c.downField("dim").as[Int]
       _ <- (model, itemCache, rankCache) match {
         case (None, None, None) =>
           Left(
@@ -65,7 +65,7 @@ object EncoderConfig {
       BiEncoderConfig(
         model,
         modelFile = modelFile.getOrElse("pytorch_model.onnx"),
-        vocabFile = vocabFile.getOrElse("vocab.txt"),
+        tokenizerFile = tokenizerFile.getOrElse("tokenizer.json"),
         itemFieldCache = itemCache,
         rankingFieldCache = rankCache,
         dim = dim

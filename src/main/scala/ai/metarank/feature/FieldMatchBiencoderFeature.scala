@@ -127,7 +127,7 @@ object FieldMatchBiencoderFeature extends Logging {
       for {
         session <- method.model match {
           case Some(handle) =>
-            OnnxSession.load(handle, method.dim, method.modelFile, method.vocabFile).map(Option.apply)
+            OnnxSession.load(handle, method.dim, method.modelFile, method.tokenizerFile).map(Option.apply)
           case None => IO.none
         }
         items <- method.itemFieldCache match {

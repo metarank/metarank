@@ -79,7 +79,7 @@ object Event {
         .map(Timestamp.apply),
       encodeA = Encoder.encodeString.contramap(_.ts.toString)
     )
-    implicit val conf                                = Configuration.default.withDefaults
+    implicit val conf: Configuration                 = Configuration.default.withDefaults
     implicit val relevancyEncoder: Encoder[RankItem] = deriveEncoder
     implicit val relevancyDecoder: Decoder[RankItem] = Decoder.instance(c =>
       for {
@@ -104,7 +104,7 @@ object Event {
   import EventCodecs.rankingCodec
   import EventCodecs.interactionCodec
 
-  implicit val conf = Configuration.default
+  implicit val conf: Configuration = Configuration.default
     .withDiscriminator("event")
     .withKebabCaseMemberNames
     .copy(transformConstructorNames = {

@@ -3,6 +3,10 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.2
+* Support for kv-granular Redis TTLs
+* Support HF tokenizers for biencoders: now you can run a multi-lingual E5 model in Metarank!
+
 ## 0.7.1
 
 * `/inference`: [Inference API](api.md#inference-with-llms) to expose bi- and cross-encoders. 

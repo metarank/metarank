@@ -10,17 +10,18 @@ import ai.metarank.util.{TestClickthrough, TestInteractionEvent, TestRankingEven
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.concurrent.duration._
 
 class RedisTrainStoreTest extends AnyFlatSpec with Matchers with RedisTest {
 
   it should "read empty" in {
-    lazy val stream = RedisTrainStore(client, "a", JsonStoreFormat)
+    lazy val stream = RedisTrainStore(client, "a", JsonStoreFormat, 90.days)
     val result      = stream.getall().compile.toList.unsafeRunSync()
     result shouldBe Nil
   }
 
   it should "write and read clickthrougts" in {
-    lazy val stream = RedisTrainStore(client, "b", JsonStoreFormat)
+    lazy val stream = RedisTrainStore(client, "b", JsonStoreFormat, 90.days)
     val ct          = List(ClickthroughValues(TestClickthrough(List("p1", "p2", "p3"), List("p2")), Nil))
     stream.put(ct).unsafeRunSync()
     val results = stream.getall().compile.toList.unsafeRunSync()
@@ -28,7 +29,7 @@ class RedisTrainStoreTest extends AnyFlatSpec with Matchers with RedisTest {
   }
 
   it should "read stream of events" in {
-    lazy val stream = RedisTrainStore(client, "c", JsonStoreFormat)
+    lazy val stream = RedisTrainStore(client, "c", JsonStoreFormat, 90.days)
     for {
       i <- 0 until 1000
     } {

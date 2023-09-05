@@ -59,7 +59,7 @@ object Feature {
     case class ScalarConfig(
         scope: ScopeType,
         name: FeatureName,
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig
   }
@@ -72,7 +72,7 @@ object Feature {
     case class MapConfig(
         scope: ScopeType,
         name: FeatureName,
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig
   }
@@ -85,7 +85,7 @@ object Feature {
     case class CounterConfig(
         scope: ScopeType,
         name: FeatureName,
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig
 
@@ -101,7 +101,7 @@ object Feature {
         name: FeatureName,
         count: Int = Int.MaxValue,
         duration: FiniteDuration = Long.MaxValue.nanos,
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig
   }
@@ -128,7 +128,7 @@ object Feature {
         name: FeatureName,
         poolSize: Int,
         sampleRate: Int,
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig
 
@@ -198,7 +198,7 @@ object Feature {
         name: FeatureName,
         period: FiniteDuration,
         sumPeriodRanges: List[PeriodRange],
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig {
       val periods: List[Int]   = (sumPeriodRanges.map(_.startOffset) ++ sumPeriodRanges.map(_.endOffset)).sorted
@@ -224,7 +224,8 @@ object Feature {
         ts = ts,
         min = pool.min,
         max = pool.max,
-        quantiles = quantile.toMap
+        quantiles = quantile.toMap,
+        expire = config.ttl
       )
     }
   }
@@ -236,7 +237,7 @@ object Feature {
         poolSize: Int,
         sampleRate: Double,
         percentiles: List[Int],
-        ttl: FiniteDuration = 365.days,
+        ttl: FiniteDuration = 90.days,
         refresh: FiniteDuration = 1.hour
     ) extends FeatureConfig
 

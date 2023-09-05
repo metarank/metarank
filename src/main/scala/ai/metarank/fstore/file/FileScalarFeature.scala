@@ -19,7 +19,7 @@ case class FileScalarFeature(config: ScalarConfig, db: HashDB, format: StoreForm
     for {
       bytes <- IO(db.get(format.key.encodeNoPrefix(key)))
       parsed <- bytes match {
-        case Some(value) => IO.fromEither(format.scalar.decode(value)).map(s => Some(ScalarValue(key, ts, s)))
+        case Some(value) => IO.fromEither(format.scalar.decode(value)).map(s => Some(ScalarValue(key, ts, s, config.ttl)))
         case None        => IO.pure(None)
       }
     } yield {

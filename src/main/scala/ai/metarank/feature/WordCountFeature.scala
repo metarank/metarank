@@ -55,7 +55,7 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Lo
       id: RankItem
   ): MValue =
     readKey(request, conf, id.id).flatMap(features.get) match {
-      case Some(ScalarValue(_, _, SDouble(value))) => SingleValue(schema.name, value)
+      case Some(ScalarValue(_, _, SDouble(value), _)) => SingleValue(schema.name, value)
       case _                                       => SingleValue.missing(schema.name)
     }
 

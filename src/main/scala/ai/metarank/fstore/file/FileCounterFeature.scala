@@ -21,7 +21,7 @@ case class FileCounterFeature(config: CounterConfig, db: SortedDB[Int], format: 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[FeatureValue.CounterValue]] = for {
     valueOption <- IO(db.get(format.key.encodeNoPrefix(key)))
   } yield {
-    valueOption.map(value => CounterValue(key, ts, value))
+    valueOption.map(value => CounterValue(key, ts, value, config.ttl))
   }
 }
 

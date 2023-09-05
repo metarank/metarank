@@ -32,7 +32,7 @@ case class MemPeriodicCounter(
       cache
         .getIfPresent(key)
         .flatMap(_.cast[Map[Timestamp, Long]])
-        .map(values => PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(values.toList))))
+        .map(values => PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(values.toList)), config.ttl))
     )
 
 }

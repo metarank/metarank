@@ -15,6 +15,7 @@ import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.TrainValues
 import cats.effect.IO
 import cats.effect.kernel.Resource
+import scala.concurrent.duration._
 
 trait TrainStore {
   def put(cts: List[TrainValues]): IO[Unit]
@@ -31,7 +32,7 @@ object TrainStore {
       for {
         rankings <- RedisClient.create(c.host.value, c.port.value, c.db, c.pipeline, c.auth, c.tls, c.timeout)
       } yield {
-        RedisTrainStore(rankings, RedisPersistence.Prefix.CT, c.format)
+        RedisTrainStore(rankings, RedisPersistence.Prefix.CT, c.format, 365.days)
       }
     case _: MemoryTrainConfig => Resource.pure(MemTrainStore())
     case other => Resource.raiseError[IO, TrainStore, Throwable](new Exception(s"conf $other is not supported"))

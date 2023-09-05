@@ -56,7 +56,7 @@ case class UserAgentFeature(schema: UserAgentSchema, parser: Parser) extends Ran
       features: Map[Key, FeatureValue]
   ): MValue = {
     request.session.flatMap(session => features.get(Key(SessionScope(session), conf.name))) match {
-      case Some(ScalarValue(_, _, SString(stored))) =>
+      case Some(ScalarValue(_, _, SString(stored), _)) =>
         VectorValue(schema.name, OneHotEncoder.fromValues(List(stored), schema.field.possibleValues, dim.dim), dim)
       case _ =>
         VectorValue(schema.name, OneHotEncoder.fromValues(parse(request), schema.field.possibleValues, dim.dim), dim)

@@ -11,7 +11,7 @@ import cats.effect.IO
 import cats.implicits._
 import scala.concurrent.duration._
 
-case class RedisKVStore[K, V](client: RedisClient, prefix: String)(implicit
+case class RedisKVStore[K, V](client: RedisClient, prefix: String, valueTTL: V => FiniteDuration)(implicit
     kc: KCodec[K],
     vc: VCodec[V]
 ) extends KVStore[K, V]
@@ -32,10 +32,16 @@ case class RedisKVStore[K, V](client: RedisClient, prefix: String)(implicit
     decodedKey -> decodedValue
   }
 
-  override def put(values: Map[K, V]): IO[Unit] = {
-    client.mset(values.map { case (k, v) => kc.encode(prefix, k) -> vc.encode(v) }).void
+  override def put(values: Map[K, V]): IO[Unit] = for {
+    _ <- client.mset(values.map { case (k, v) => kc.encode(prefix, k) -> vc.encode(v) })
+    _ <- values.toList.traverse(kv =>
+      for {
+        encoded <- IO(kc.encode(prefix, kv._1))
+        _       <- client.expire(encoded, valueTTL(kv._2))
+      } yield {}
+    )
 
-  }
+  } yield {}
 }
 
 object RedisKVStore {

@@ -58,6 +58,12 @@ state:
     connect: 1s # optional, defaults to 1s
     socket: 1s  # optional, defaults to 1s
     command: 1s # optional, defaults to 1s
+  
+  db: # optional, defaults to [0,1,2,3]: which redis dbs to use for persistence 
+    state: 0  # can be used to co-locate multiple metarank instances
+    values: 1 # on a single redis server
+    rankings: 2
+    models: 3
 ```
 
 Redis persistence is sensitive to network latencies (as it needs to perform a couple of round-trips on each event), 

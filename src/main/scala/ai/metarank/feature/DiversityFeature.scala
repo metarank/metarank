@@ -73,7 +73,7 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
       item       <- request.items.toList
       fieldValue <- features.get(Key(ItemScope(item.id), conf.name))
       scalar <- fieldValue match {
-        case FeatureValue.ScalarValue(_, _, value) => Some(value)
+        case FeatureValue.ScalarValue(_, _, value, _) => Some(value)
         case _                                     => None
       }
     } yield {

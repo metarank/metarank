@@ -28,7 +28,7 @@ case class FilePeriodicCounterFeature(
     values  <- IO(db.lastN(format.key.encodeNoPrefix(key), config.periods.max + 1))
     decoded <- IO.fromEither(decode(values.toList))
   } yield {
-    if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(decoded))))
+    if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(decoded)), config.ttl))
   }
 
   @tailrec private def decode(

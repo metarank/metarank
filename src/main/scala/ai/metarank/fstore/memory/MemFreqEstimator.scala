@@ -29,7 +29,7 @@ case class MemFreqEstimator(config: FreqEstimatorConfig, cache: Cache[Key, AnyRe
       pool <- cache.getIfPresent(key).flatMap(_.cast[List[String]]) if pool.nonEmpty
       freq <- freqFromSamples(pool)
     } yield {
-      FrequencyValue(key, ts, freq)
+      FrequencyValue(key, ts, freq, config.ttl)
     }
   }
 

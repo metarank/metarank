@@ -18,6 +18,6 @@ case class MemCounter(config: CounterConfig, cache: Cache[Key, AnyRef] = Scaffei
 
   }
   override def computeValue(key: Key, ts: Timestamp): IO[Option[CounterValue]] = IO {
-    cache.getIfPresent(key).flatMap(_.cast[Long]).map(c => CounterValue(key, ts, c))
+    cache.getIfPresent(key).flatMap(_.cast[Long]).map(c => CounterValue(key, ts, c, config.ttl))
   }
 }

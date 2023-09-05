@@ -22,7 +22,7 @@ trait CounterSuite extends FeatureSuite[Increment, CounterConfig, CounterFeature
   it should "increment once" in {
     val key      = TestKey(config, id = "p11")
     val result   = write(List(Increment(key, now, 1)))
-    val expected = Some(CounterValue(key, now, 1L))
+    val expected = Some(CounterValue(key, now, 1L, 90.days))
     result shouldBe expected
   }
 
@@ -30,7 +30,7 @@ trait CounterSuite extends FeatureSuite[Increment, CounterConfig, CounterFeature
     val key        = TestKey(config, id = "p12")
     val increments = (0 until 10).map(i => Increment(key, now.plus(i.seconds), Random.nextInt(100))).toList
     val result     = write(increments)
-    result shouldBe Some(CounterValue(key, increments.map(_.ts).maxBy(_.ts), increments.map(_.inc).sum))
+    result shouldBe Some(CounterValue(key, increments.map(_.ts).maxBy(_.ts), increments.map(_.inc).sum, 90.days))
   }
 
 }

@@ -58,7 +58,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
     val result = for {
       key <- readKey(request, conf, id.id)
       value <- features.get(key) match {
-        case Some(ScalarValue(_, _, SDouble(value))) => Some(SingleValue(schema.name, value))
+        case Some(ScalarValue(_, _, SDouble(value), _)) => Some(SingleValue(schema.name, value))
         case _                                       => None
       }
     } yield {

@@ -76,7 +76,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
       id: RankItem
   ): MValue =
     features.get(Key(ItemScope(id.id), conf.name)) match {
-      case Some(ScalarValue(_, _, SDouble(value))) =>
+      case Some(ScalarValue(_, _, SDouble(value), _)) =>
         val updatedAt = Timestamp(math.round(value * 1000))
         SingleValue(schema.name, updatedAt.diff(request.timestamp).toSeconds.toDouble)
       case _ => SingleValue.missing(schema.name)

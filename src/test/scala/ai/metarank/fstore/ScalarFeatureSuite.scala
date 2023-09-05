@@ -17,12 +17,12 @@ import cats.effect.unsafe.implicits.global
 import scala.concurrent.duration._
 
 trait ScalarFeatureSuite extends FeatureSuite[Put, ScalarConfig, ScalarFeature] {
-  val config = ScalarConfig(scope = ItemScopeType, FeatureName("counter"), 1.day)
+  val config = ScalarConfig(scope = ItemScopeType, FeatureName("counter"), 90.day)
 
   it should "write and read" in {
     val key    = TestKey(config, id = "p11")
     val result = write(List(Put(key, now, SString("foo"))))
-    result shouldBe Some(ScalarValue(key, now, SString("foo")))
+    result shouldBe Some(ScalarValue(key, now, SString("foo"), 90.days))
   }
 
   it should "update and read" in {
@@ -30,7 +30,7 @@ trait ScalarFeatureSuite extends FeatureSuite[Put, ScalarConfig, ScalarFeature] 
     val put1   = Put(key, now, SString("1"))
     val put2   = Put(key, now, SString("2"))
     val result = write(List(put1, put2))
-    result shouldBe Some(ScalarValue(key, now, put2.value))
+    result shouldBe Some(ScalarValue(key, now, put2.value, 90.days))
   }
 
 //  it should "accept bulk upload" in {

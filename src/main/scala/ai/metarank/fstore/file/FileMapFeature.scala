@@ -29,7 +29,7 @@ case class FileMapFeature(config: MapConfig, db: SortedDB[Array[Byte]], format: 
     values  <- IO(db.firstN(kb, Int.MaxValue))
     decoded <- IO.fromEither(decode(values.toList))
   } yield {
-    if (decoded.isEmpty) None else Some(MapValue(key, ts, decoded))
+    if (decoded.isEmpty) None else Some(MapValue(key, ts, decoded, config.ttl))
   }
 
   @tailrec private def decode(

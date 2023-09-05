@@ -16,7 +16,11 @@ import io.circe.{Codec, Decoder, Encoder}
 import io.circe.generic.semiauto.deriveCodec
 import cats.implicits._
 
-case class RedisTrainStore(rankings: RedisClient, prefix: String, format: StoreFormat) extends TrainStore with Logging {
+import scala.concurrent.duration.FiniteDuration
+
+case class RedisTrainStore(rankings: RedisClient, prefix: String, format: StoreFormat, ttl: FiniteDuration)
+    extends TrainStore
+    with Logging {
   val BATCH_SIZE        = 128
   val LARGE_BATCH_COUNT = 2
 
@@ -26,6 +30,7 @@ case class RedisTrainStore(rankings: RedisClient, prefix: String, format: StoreF
     _ <- batches
       .map(batch => rankings.mset(batch.map(ct => format.eventId.encode(prefix, ct.id) -> format.ctv.encode(ct)).toMap))
       .sequence
+    _ <- cts.map(ct => format.eventId.encode(prefix, ct.id)).traverse(key => rankings.expire(key, ttl))
   } yield {}
 
   override def flush(): IO[Unit] = rankings.doFlush(rankings.reader.ping().toCompletableFuture)

@@ -39,7 +39,8 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement, PeriodicCount
             8,
             1
           )
-        )
+        ),
+        90.days
       )
     )
   }
@@ -70,7 +71,8 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement, PeriodicCount
             8,
             10
           )
-        )
+        ),
+        90.days
       )
     )
   }
@@ -102,7 +104,8 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement, PeriodicCount
             8,
             8
           )
-        )
+        ),
+        90.days
       )
     )
   }
@@ -134,7 +137,8 @@ trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement, PeriodicCount
             8,
             2
           )
-        )
+        ),
+        90.days
       )
     )
   }

@@ -7,21 +7,30 @@ import io.circe.generic.semiauto._
 import shapeless.Lazy
 
 import java.util
+import scala.concurrent.duration.FiniteDuration
 
 sealed trait FeatureValue {
   def key: Key
   def ts: Timestamp
+  def expire: FiniteDuration
 }
 
 object FeatureValue {
-  case class ScalarValue(key: Key, ts: Timestamp, value: Scalar) extends FeatureValue
-  case class CounterValue(key: Key, ts: Timestamp, value: Long)  extends FeatureValue
-  case class NumStatsValue(key: Key, ts: Timestamp, min: Double, max: Double, quantiles: Map[Int, Double])
-      extends FeatureValue
-  case class MapValue(key: Key, ts: Timestamp, values: Map[String, Scalar]) extends FeatureValue
-  case class PeriodicCounterValue(key: Key, ts: Timestamp, values: Array[PeriodicValue]) extends FeatureValue {
+  case class ScalarValue(key: Key, ts: Timestamp, value: Scalar, expire: FiniteDuration) extends FeatureValue
+  case class CounterValue(key: Key, ts: Timestamp, value: Long, expire: FiniteDuration)  extends FeatureValue
+  case class NumStatsValue(
+      key: Key,
+      ts: Timestamp,
+      min: Double,
+      max: Double,
+      quantiles: Map[Int, Double],
+      expire: FiniteDuration
+  ) extends FeatureValue
+  case class MapValue(key: Key, ts: Timestamp, values: Map[String, Scalar], expire: FiniteDuration) extends FeatureValue
+  case class PeriodicCounterValue(key: Key, ts: Timestamp, values: Array[PeriodicValue], expire: FiniteDuration)
+      extends FeatureValue {
     override def equals(obj: Any): Boolean = obj match {
-      case PeriodicCounterValue(xkey, xts, xvalues) =>
+      case PeriodicCounterValue(xkey, xts, xvalues, _) =>
         (key == xkey) && (ts == xts) && (util.Arrays.deepEquals(
           values.asInstanceOf[Array[Object]],
           xvalues.asInstanceOf[Array[Object]]
@@ -32,11 +41,15 @@ object FeatureValue {
   object PeriodicCounterValue {
     case class PeriodicValue(start: Timestamp, end: Timestamp, periods: Int, value: Long)
   }
-  case class FrequencyValue(key: Key, ts: Timestamp, values: Map[String, Double]) extends FeatureValue
-  case class BoundedListValue(key: Key, ts: Timestamp, values: List[TimeValue])   extends FeatureValue
+  case class FrequencyValue(key: Key, ts: Timestamp, values: Map[String, Double], expire: FiniteDuration)
+      extends FeatureValue
+  case class BoundedListValue(key: Key, ts: Timestamp, values: List[TimeValue], expire: FiniteDuration)
+      extends FeatureValue
   object BoundedListValue {
     case class TimeValue(ts: Timestamp, value: Scalar)
   }
+
+  import ai.metarank.util.DurationJson._
 
   implicit val scalarCodec: Codec[ScalarValue]                        = deriveCodec
   implicit val freqCodec: Codec[FrequencyValue]                       = deriveCodec

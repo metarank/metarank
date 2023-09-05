@@ -9,6 +9,7 @@ ThisBuild / version      := "0.7.2"
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
   .configs(IntegrationTest extend Test)
+  .enablePlugins(JmhPlugin)
   .settings(
     Defaults.itSettings,
     name := "metarank",

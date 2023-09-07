@@ -155,7 +155,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         val visitorFieldValue = visitorFields.getOrElse(fieldName, Map.empty)
         val itemFeature = features
           .get(Key(ItemScope(item), fieldScalarFeature.name))
-          .collect { case ScalarValue(_, _, SStringList(values),_) => values }
+          .collect { case ScalarValue(_, _, SStringList(values), _) => values }
           .getOrElse(List.empty[String])
         itemFeature.foldLeft(0.0)((cnt, fieldValue) => cnt + visitorFieldValue.getOrElse(fieldValue, 0))
       }

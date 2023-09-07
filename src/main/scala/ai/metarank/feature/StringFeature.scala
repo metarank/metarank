@@ -74,7 +74,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
   ): MValue = {
     readKey(request, conf, id.id).flatMap(features.get) match {
       case Some(ScalarValue(_, _, SStringList(values), _)) => encoder.encode(values)
-      case _                                            => encoder.encode(Nil)
+      case _                                               => encoder.encode(Nil)
     }
   }
 

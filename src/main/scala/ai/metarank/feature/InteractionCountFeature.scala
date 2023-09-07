@@ -54,7 +54,7 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
     }
     result match {
       case Some(CounterValue(_, _, value, _)) => SingleValue(schema.name, value.toDouble)
-      case _                               => SingleValue(schema.name, 0.0)
+      case _                                  => SingleValue(schema.name, 0.0)
     }
   }
 }

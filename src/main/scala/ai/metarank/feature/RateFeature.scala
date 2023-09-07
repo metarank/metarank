@@ -176,7 +176,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
           fieldValue <- features.get(Key(ItemScope(item.id), fieldScope.name)).toList
           fieldString <- fieldValue match {
             case ScalarValue(_, _, SString(value), _) => List(value)
-            case _                                 => Nil
+            case _                                    => Nil
           }
           keys <- List(
             Key(FieldScope(field, fieldString), topTarget.name),
@@ -211,7 +211,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
       case FieldScopeType(field) =>
         features.get(Key(ItemScope(id.id), fieldScope.name)) match {
           case Some(ScalarValue(_, _, SString(value), _)) => Some(FieldScope(field, value))
-          case _                                       => None
+          case _                                          => None
         }
       case _ => None
     }

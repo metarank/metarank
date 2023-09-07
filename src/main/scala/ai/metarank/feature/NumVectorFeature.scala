@@ -64,7 +64,7 @@ case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature wit
       key <- readKey(request, conf, id.id)
       value <- features.get(key) match {
         case Some(ScalarValue(_, _, SDoubleList(values), _)) => Some(VectorValue(schema.name, values.toArray, dim))
-        case _                                            => None
+        case _                                               => None
       }
     } yield {
       value

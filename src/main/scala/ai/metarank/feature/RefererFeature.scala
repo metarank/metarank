@@ -102,7 +102,7 @@ case class RefererFeature(schema: RefererSchema, parser: Parser) extends Ranking
       }
       mediumString <- features.get(key).flatMap {
         case ScalarValue(_, _, SString(medium), _) => Some(medium)
-        case _                                  => None
+        case _                                     => None
       }
       index <- possibleValues.get(mediumString)
     } yield {

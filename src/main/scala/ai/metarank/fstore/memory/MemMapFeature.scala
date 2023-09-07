@@ -24,5 +24,11 @@ case class MemMapFeature(config: MapConfig, cache: Cache[Key, AnyRef] = Scaffein
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[MapValue]] =
-    IO(cache.getIfPresent(key).flatMap(_.cast[Map[String, Scalar]]).filter(_.nonEmpty).map(s => MapValue(key, ts, s, config.ttl)))
+    IO(
+      cache
+        .getIfPresent(key)
+        .flatMap(_.cast[Map[String, Scalar]])
+        .filter(_.nonEmpty)
+        .map(s => MapValue(key, ts, s, config.ttl))
+    )
 }

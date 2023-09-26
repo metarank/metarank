@@ -112,15 +112,15 @@ inference:
 
 After start-up, Metarank will expose it's HTTP API and you can query the `/inference` API endpoint to perform the reranking. See the [API Reference](../../api.md#inference-with-llms) for details about payload format:
 ```bash
-curl -XPOST -d @rerank.json -H "Content-Type: application/json" http://metarank:8080/inference/encoder/msmarco
+curl -XPOST -d @rerank.json -H "Content-Type: application/json" http://metarank:8080/inference/cross/msmarco
 ```
 
 Where `rerank.json` request looks like:
 ```json
 {"input": [
-  {"query": "crocs", "title": "Crocs Jibbitz 5-Pack Alien Shoe Charms"},
-  {"query": "crocs", "title": "Crocs Specialist Vent Work"},
-  {"query": "crocs", "title": "Crocs Kids' Baya Clog"}
+  {"query": "crocs", "text": "Crocs Jibbitz 5-Pack Alien Shoe Charms"},
+  {"query": "crocs", "text": "Crocs Specialist Vent Work"},
+  {"query": "crocs", "text": "Crocs Kids' Baya Clog"}
 ]}
 ```
 

@@ -15,6 +15,7 @@ import io.lettuce.core.{
   RedisCredentialsProvider,
   RedisURI,
   ScanArgs,
+  SetArgs,
   SocketOptions,
   SslOptions,
   SslVerifyMode,
@@ -84,8 +85,10 @@ case class RedisClient(
     }
   }
 
-  def set(key: String, value: Array[Byte]): IO[Unit] =
-    IO(writer.set(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
+  def set(key: String, value: Array[Byte], ex: FiniteDuration): IO[Unit] = {
+    val opts = SetArgs.Builder.ex(ex.toSeconds.toInt)
+    IO(writer.set(key, value, opts).toCompletableFuture).flatMap(x => maybeFlush(() => x))
+  }
 
   def hset(key: String, values: Map[String, Array[Byte]]): IO[Unit] =
     IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(x => maybeFlush(() => x))
@@ -107,6 +110,9 @@ case class RedisClient(
 
   def ltrim(key: String, start: Int, end: Int): IO[Unit] =
     IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(x => maybeFlush(() => x))
+
+  def expire(key: String, expire: FiniteDuration): IO[Unit] =
+    IO(writer.expire(key, expire.toSeconds.toInt).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def append(key: String, value: Array[Byte]): IO[Unit] =
     IO(writer.append(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))

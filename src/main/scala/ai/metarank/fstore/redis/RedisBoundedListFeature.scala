@@ -37,6 +37,7 @@ case class RedisBoundedListFeature(
       client
         .lpush(key, records.map(format.timeValue.encode))
         .flatMap(_ => client.ltrim(key, 0, config.count).void)
+        .flatMap(_ => client.expire(key, config.ttl))
     } else {
       IO.unit
     }
@@ -51,7 +52,7 @@ case class RedisBoundedListFeature(
         case None => None
         case Some(head) =>
           val threshold = head.ts.minus(config.duration)
-          Some(BoundedListValue(key, ts, timeValues.filter(_.ts.isAfterOrEquals(threshold))))
+          Some(BoundedListValue(key, ts, timeValues.filter(_.ts.isAfterOrEquals(threshold)), config.ttl))
       }
     }
   }
@@ -65,7 +66,7 @@ object RedisBoundedListFeature {
           .evalMap(s => {
             val key    = f.format.key.encode(f.prefix, s.key)
             val values = s.values.map(f.format.timeValue.encode)
-            f.client.lpush(key, values).map(_ => 1)
+            f.client.lpush(key, values) *> f.client.expire(key, f.config.ttl).map(_ => 1)
           })
           .compile
           .fold(0)(_ + _)

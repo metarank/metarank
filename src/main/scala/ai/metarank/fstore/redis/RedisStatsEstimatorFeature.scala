@@ -21,10 +21,12 @@ case class RedisStatsEstimatorFeature(
 ) extends StatsEstimatorFeature {
   override def put(action: PutStatSample): IO[Unit] = {
     if (shouldSample(config.sampleRate)) {
-      val key = format.key.encode(prefix, action.key)
-      client
-        .lpush(key, action.value.toString.getBytes())
-        .flatMap(_ => client.ltrim(key, 0, config.poolSize).void)
+      for {
+        key <- IO(format.key.encode(prefix, action.key))
+        _   <- client.lpush(key, action.value.toString.getBytes())
+        _   <- client.ltrim(key, 0, config.poolSize)
+        _   <- client.expire(key, config.ttl)
+      } yield {}
     } else {
       IO.unit
     }
@@ -47,7 +49,11 @@ object RedisStatsEstimatorFeature {
       override def sink(f: RedisStatsEstimatorFeature, state: fs2.Stream[IO, StatsEstimatorState]): IO[TransferResult] =
         state
           .evalMap(s =>
-            f.client.lpush(f.format.key.encode(f.prefix, s.key), s.values.toList.map(_.toString.getBytes())).map(_ => 1)
+            for {
+              key <- IO(f.format.key.encode(f.prefix, s.key))
+              _   <- f.client.lpush(key, s.values.toList.map(_.toString.getBytes()))
+              _   <- f.client.expire(key, f.config.ttl)
+            } yield { 1 }
           )
           .compile
           .fold(0)(_ + _)

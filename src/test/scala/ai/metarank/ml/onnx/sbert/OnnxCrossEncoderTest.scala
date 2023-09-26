@@ -33,7 +33,7 @@ class OnnxCrossEncoderTest extends AnyFlatSpec with Matchers {
         HuggingFaceHandle("metarank", "ce-msmarco-MiniLM-L6-v2"),
         0,
         "pytorch_model.onnx",
-        "vocab.txt"
+        "tokenizer.json"
       )
       .unsafeRunSync()
     val ce      = OnnxCrossEncoder(session)

@@ -84,7 +84,7 @@ object InputConfig {
       format: SourceFormat = JsonFormat
   ) extends InputConfig
 
-  implicit val conf = Configuration.default
+  implicit val conf: Configuration = Configuration.default
     .withDiscriminator("type")
     .withDefaults
     .copy(transformConstructorNames = {

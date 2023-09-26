@@ -18,7 +18,7 @@ import ai.metarank.util.{TestItemEvent, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-
+import scala.concurrent.duration._
 import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 
@@ -96,7 +96,12 @@ class ItemAgeFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     val result = feature.value(
       TestRankingEvent(List("p1")).copy(timestamp = nowts),
       Map(
-        key -> ScalarValue(key, Timestamp(updatedAt.toInstant.toEpochMilli), SDouble(updatedAt.toEpochSecond.toDouble))
+        key -> ScalarValue(
+          key,
+          Timestamp(updatedAt.toInstant.toEpochMilli),
+          SDouble(updatedAt.toEpochSecond.toDouble),
+          90.days
+        )
       ),
       RankItem(ItemId("p1"))
     )

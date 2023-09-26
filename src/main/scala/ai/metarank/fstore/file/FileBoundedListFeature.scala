@@ -37,7 +37,7 @@ case class FileBoundedListFeature(
   } yield {
     parsed match {
       case Nil => None
-      case _   => Some(BoundedListValue(key, ts, parsed.map(ktv => TimeValue(ktv.ts, ktv.s))))
+      case _   => Some(BoundedListValue(key, ts, parsed.map(ktv => TimeValue(ktv.ts, ktv.s)), config.ttl))
     }
   }
 

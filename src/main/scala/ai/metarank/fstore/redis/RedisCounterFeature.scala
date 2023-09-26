@@ -18,15 +18,17 @@ import scala.util.Try
 case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefix: String, format: StoreFormat)
     extends CounterFeature
     with Logging {
-  override def put(action: Increment): IO[Unit] = {
-    client.incrBy(format.key.encode(prefix, action.key), action.inc).void
-  }
+  override def put(action: Increment): IO[Unit] = for {
+    key <- IO.pure(format.key.encode(prefix, action.key))
+    _   <- client.incrBy(key, action.inc).void
+    _   <- client.expire(key, config.ttl)
+  } yield {}
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[CounterValue]] = {
     client.get(format.key.encode(prefix, key)).flatMap {
       case Some(str) =>
         IO.fromOption(new String(str).toLongOption)(new Exception("cannot parse long $str"))
-          .map(x => Some(CounterValue(key, ts, x)))
+          .map(x => Some(CounterValue(key, ts, x, config.ttl)))
       case None => IO.pure(None)
     }
   }
@@ -37,7 +39,13 @@ object RedisCounterFeature {
     new StateSink[CounterState, RedisCounterFeature] {
       override def sink(f: RedisCounterFeature, state: fs2.Stream[IO, CounterState]): IO[TransferResult] =
         state
-          .evalMap(c => f.client.incrBy(f.format.key.encode(f.prefix, c.key), c.value).map(_ => 1))
+          .evalMap(c =>
+            for {
+              key <- IO(f.format.key.encode(f.prefix, c.key))
+              _   <- f.client.incrBy(key, c.value)
+              _   <- f.client.expire(key, f.config.ttl)
+            } yield { 1 }
+          )
           .compile
           .fold(0)(_ + _)
           .map(TransferResult.apply)

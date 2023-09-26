@@ -27,7 +27,7 @@ trait BoundedListSuite extends FeatureSuite[Append, BoundedListConfig, BoundedLi
     val key    = TestKey(config, id = "p11")
     val result = write(List(Append(key, SString("foo"), now)))
     result should matchPattern {
-      case Some(BoundedListValue(_, _, vals)) if vals == List(TimeValue(now, SString("foo"))) =>
+      case Some(BoundedListValue(_, _, vals, _)) if vals == List(TimeValue(now, SString("foo"))) =>
     }
   }
 
@@ -35,7 +35,7 @@ trait BoundedListSuite extends FeatureSuite[Append, BoundedListConfig, BoundedLi
     val key    = TestKey(config, id = "p12")
     val result = write(List(Append(key, SString("foo"), now), Append(key, SString("bar"), now.plus(1.second))))
     result should matchPattern {
-      case Some(BoundedListValue(_, _, value))
+      case Some(BoundedListValue(_, _, value, _))
           if value == List(TimeValue(now.plus(1.second), SString("bar")), TimeValue(now, SString("foo"))) =>
     }
   }
@@ -45,7 +45,7 @@ trait BoundedListSuite extends FeatureSuite[Append, BoundedListConfig, BoundedLi
     val appends = for { i <- 0 until config.count } yield { Append(key, SString(i.toString), now.plus(i.millis)) }
     val result  = write(appends.toList)
     result should matchPattern {
-      case Some(BoundedListValue(_, _, values)) if values.size == config.count =>
+      case Some(BoundedListValue(_, _, values, _)) if values.size == config.count =>
     }
   }
 
@@ -57,7 +57,7 @@ trait BoundedListSuite extends FeatureSuite[Append, BoundedListConfig, BoundedLi
     val result = write(appends.toList)
     val cutoff = now.minus(config.duration)
     result should matchPattern {
-      case Some(BoundedListValue(_, _, values)) if values.forall(_.ts.isAfterOrEquals(cutoff)) =>
+      case Some(BoundedListValue(_, _, values, _)) if values.forall(_.ts.isAfterOrEquals(cutoff)) =>
     }
   }
 

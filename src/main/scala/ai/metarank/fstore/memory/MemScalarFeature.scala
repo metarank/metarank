@@ -14,6 +14,6 @@ case class MemScalarFeature(config: ScalarConfig, cache: Cache[Key, AnyRef] = Sc
   override def put(action: Put): IO[Unit] = IO(cache.put(action.key, action.value))
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[ScalarValue]] =
-    IO(cache.getIfPresent(key).flatMap(_.cast[Scalar]).map(ScalarValue(key, ts, _)))
+    IO(cache.getIfPresent(key).flatMap(_.cast[Scalar]).map(ScalarValue(key, ts, _, config.ttl)))
 
 }

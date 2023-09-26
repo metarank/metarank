@@ -11,7 +11,7 @@ import better.files.File
 import cats.data.NonEmptyList
 import cats.effect.kernel.Resource
 import cats.effect.{ExitCode, IO, IOApp}
-import org.http4s.{Entity, Method, Request, Uri}
+import org.http4s.{Entity, EntityDecoder, Method, Request, Uri}
 import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
 import scodec.bits.ByteVector
@@ -25,7 +25,7 @@ import org.http4s.circe._
 object StaticScoreTool extends IOApp with Logging {
   // loads the dataset and emits static scores
 
-  implicit val responseJson = jsonOf[IO, RankResponse]
+  implicit val responseJson: EntityDecoder[IO, RankResponse] = jsonOf[IO, RankResponse]
 
   override def run(args: List[String]): IO[ExitCode] = args match {
     case eventPath :: outPath :: endpoint :: _ =>

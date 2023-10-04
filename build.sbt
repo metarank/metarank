@@ -37,7 +37,7 @@ lazy val root = (project in file("."))
       "com.github.pathikrit"  %% "better-files"             % "3.9.2",
       "org.rogach"            %% "scallop"                  % "5.0.0",
       "com.github.blemale"    %% "scaffeine"                % "5.2.1",
-      "org.apache.kafka"       % "kafka-clients"            % "3.5.1",
+      "org.apache.kafka"       % "kafka-clients"            % "3.6.0",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,

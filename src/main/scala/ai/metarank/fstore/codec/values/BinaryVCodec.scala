@@ -41,6 +41,7 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
     }
     codec.write(value, stream)
     stream.flush()
+    stream.close()
     bytes.toByteArray
   }
 

@@ -55,9 +55,9 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
       "io.lettuce"             % "lettuce-core"             % "6.2.6.RELEASE",
-      "commons-io"             % "commons-io"               % "2.14.0",
       "com.google.guava"       % "guava"                    % "32.1.3-jre",
-      "io.sentry"              % "sentry-logback"           % "6.30.0",
+      "commons-io"             % "commons-io"               % "2.15.0",
+      "io.sentry"              % "sentry-logback"           % "6.32.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -75,7 +75,7 @@ lazy val root = (project in file("."))
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.9", // librec uses commons-logging, which is JCL
       "ai.djl"                    % "api"            % "0.24.0",
       "ai.djl.huggingface"        % "tokenizers"     % "0.24.0",
-      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.0"
+      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.1"
     ),
     excludeDependencies ++= Seq(
       "commons-logging" % "commons-logging"

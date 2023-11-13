@@ -35,7 +35,7 @@ lazy val root = (project in file("."))
       "io.circe"              %% "circe-generic-extras"     % circeGenericExtrasVersion,
       "io.circe"              %% "circe-parser"             % circeVersion,
       "com.github.pathikrit"  %% "better-files"             % "3.9.2",
-      "org.rogach"            %% "scallop"                  % "5.0.0",
+      "org.rogach"            %% "scallop"                  % "5.0.1",
       "com.github.blemale"    %% "scaffeine"                % "5.2.1",
       "org.apache.kafka"       % "kafka-clients"            % "3.6.0",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
@@ -55,6 +55,7 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
       "io.lettuce"             % "lettuce-core"             % "6.2.6.RELEASE",
+      "com.google.guava"       % "guava"                    % "32.1.3-jre",
       "commons-io"             % "commons-io"               % "2.15.0",
       "com.google.guava"       % "guava"                    % "32.1.2-jre",
       "io.sentry"              % "sentry-logback"           % "6.33.1",
@@ -73,8 +74,8 @@ lazy val root = (project in file("."))
       "org.mapdb"                 % "mapdb"          % "3.0.10" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.9", // librec uses commons-logging, which is JCL
-      "ai.djl"                    % "api"            % "0.24.0",
-      "ai.djl.huggingface"        % "tokenizers"     % "0.24.0",
+      "ai.djl"                    % "api"            % "0.25.0",
+      "ai.djl.huggingface"        % "tokenizers"     % "0.25.0",
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.1"
     ),
     excludeDependencies ++= Seq(

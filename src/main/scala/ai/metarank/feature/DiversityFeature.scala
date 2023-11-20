@@ -95,10 +95,10 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
           case Nil => emptyResponse(request)
           case nel => valuesDouble(request, nel)
         }
-      case None => Nil
+      case None => emptyResponse(request)
       case Some(other) =>
         logger.warn(s"feature ${schema.name} expected state to be string/number but got $other")
-        Nil
+        emptyResponse(request)
     }
   }
 

@@ -4,7 +4,7 @@ import java.nio.file.Files
 import scala.util.Random
 
 class RocksDBClientTest extends FileTestSuite {
-  lazy val rdb = RocksDBClient("/tmp")
+  lazy val rdb = RocksDBClient(Files.createTempDirectory("tmp").toString)
 
   override def makeHash(): HashDB[Array[Byte]] = rdb.hashDB("yep" + Random.nextInt())
 

@@ -7,7 +7,7 @@ import org.mapdb.{BTreeMap, DB, DBMaker, HTreeMap, Serializer}
 import java.nio.file.{Files, Path, Paths}
 
 class MapDBClient(db: DB) extends FileClient {
-  override def hashDB(name: String): HashDB = {
+  override def hashDB(name: String): HashDB[Array[Byte]] = {
     val hash = db.hashMap(name, Serializer.STRING, Serializer.BYTE_ARRAY).createOrOpen()
     MapdbHashDB(hash)
   }

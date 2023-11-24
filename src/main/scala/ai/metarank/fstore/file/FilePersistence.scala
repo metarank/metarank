@@ -8,7 +8,7 @@ import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.file.FilePersistence.FeatureSize
 import ai.metarank.fstore.file.client.FileClient.PrefixSize
-import ai.metarank.fstore.file.client.{FileClient, MapDBClient}
+import ai.metarank.fstore.file.client.{FileClient, MapDBClient, RocksDBClient}
 import ai.metarank.fstore.memory.{MemKVStore, MemModelStore, MemPeriodicCounter}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Feature, FeatureKey, FeatureValue, Key, Schema}
@@ -71,7 +71,7 @@ object FilePersistence {
   def create(conf: FileStateConfig, schema: Schema, imp: ImportCacheConfig): Resource[IO, FilePersistence] =
     conf.backend match {
       case FileStateConfig.RocksDBBackend =>
-        Resource.raiseError[IO, FilePersistence, Throwable](new Exception("not yet implemented"))
+        RocksDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format, imp))
       case FileStateConfig.MapDBBackend =>
         MapDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format, imp))
     }

@@ -4,7 +4,7 @@ import ai.metarank.fstore.file.client.HashDB
 import org.mapdb.HTreeMap
 import scala.jdk.CollectionConverters._
 
-case class MapdbHashDB(map: HTreeMap[String, Array[Byte]]) extends HashDB {
+case class MapdbHashDB(map: HTreeMap[String, Array[Byte]]) extends HashDB[Array[Byte]] {
   def put(key: String, value: Array[Byte]): Unit = {
     map.put(key, value)
   }
@@ -25,6 +25,6 @@ case class MapdbHashDB(map: HTreeMap[String, Array[Byte]]) extends HashDB {
 
   def all() = map.entrySet().iterator().asScala.map(e => e.getKey -> e.getValue)
 
-  override def sizeof(value: Array[Byte]): Int = value.length
+  override def sizeof(value: Array[Byte]): Int = value.length + 4
 
 }

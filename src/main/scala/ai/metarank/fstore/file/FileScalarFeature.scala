@@ -10,7 +10,7 @@ import ai.metarank.model.State.ScalarState
 import ai.metarank.model.{FeatureValue, Key, State, Timestamp, Write}
 import cats.effect.IO
 
-case class FileScalarFeature(config: ScalarConfig, db: HashDB, format: StoreFormat) extends ScalarFeature {
+case class FileScalarFeature(config: ScalarConfig, db: HashDB[Array[Byte]], format: StoreFormat) extends ScalarFeature {
   override def put(action: Write.Put): IO[Unit] = IO {
     db.put(format.key.encodeNoPrefix(action.key), format.scalar.encode(action.value))
   }

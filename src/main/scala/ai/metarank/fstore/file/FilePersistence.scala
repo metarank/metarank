@@ -49,7 +49,9 @@ case class FilePersistence(schema: Schema, db: FileClient, format: StoreFormat, 
 
   override def healthcheck(): IO[Unit] = IO.unit
 
-  override def sync: IO[Unit] = IO.unit
+  override def sync: IO[Unit] = IO {
+    db.compact()
+  }
 
   def estimateSize(): IO[List[FeatureSize]] = IO.blocking {
     List.concat(

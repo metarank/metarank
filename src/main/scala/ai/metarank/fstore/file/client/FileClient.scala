@@ -7,6 +7,7 @@ trait FileClient {
   def sortedIntDB(name: String): SortedDB[Int]
   def hashDB(name: String): HashDB[Array[Byte]]
   def close(): Unit
+  def compact(): Unit
 }
 
 object FileClient {

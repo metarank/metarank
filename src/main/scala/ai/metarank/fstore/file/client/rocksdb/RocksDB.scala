@@ -24,6 +24,10 @@ trait RocksDB[V] extends DB[V] {
     db.close()
   }
 
+  override def compact(): Unit = {
+    db.compactRange()
+  }
+
   override def all(): Iterator[(String, V)] = {
     val opts = new ReadOptions()
     val rit  = db.newIterator(opts)

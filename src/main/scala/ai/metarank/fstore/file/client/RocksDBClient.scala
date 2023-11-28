@@ -15,14 +15,14 @@ import org.rocksdb.{RocksDB => RDB}
 
 import java.io.File
 
-case class RocksDBClient(dir: String) extends FileClient {
+case class RocksDBClient(dir: String, opts: RocksDBBackend) extends FileClient with Logging {
   val options = {
     val o = new Options()
     o.setCreateIfMissing(true)
     val table = new BlockBasedTableConfig()
-    table.setBlockCache(new LRUCache(2024 * 1024 * 1024))
+    table.setBlockCache(new LRUCache(opts.lruCacheSize))
     table.setCacheIndexAndFilterBlocks(true)
-    table.setBlockSize(8 * 1024)
+    table.setBlockSize(opts.blockSize)
     o.setTableFormatConfig(table)
     o
   }
@@ -59,6 +59,13 @@ case class RocksDBClient(dir: String) extends FileClient {
     RocksSortedDB(db, Codec.STRING)
   }
 
+  override def compact(): Unit = {
+    dbs.foreach(db => {
+      logger.info(s"triggering compaction for ${db.getName}")
+      db.compactRange()
+    })
+  }
+
   override def close(): Unit = {
     dbs.foreach(_.close())
   }
@@ -70,7 +77,10 @@ object RocksDBClient extends Logging {
     _ <- IO.whenA(!exists)(
       Files[IO].createDirectory(fs2.io.file.Path(path.toString)) *> info(s"created rocksdb dir $path")
     )
-    c <- IO(RocksDBClient(path.toString))
+    c <- IO(createUnsafe(path, opts))
   } yield c)(x => IO(x.close()))
 
+  def createUnsafe(path: java.nio.file.Path, opts: RocksDBBackend) = {
+    RocksDBClient(path.toString, opts)
+  }
 }

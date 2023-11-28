@@ -22,7 +22,7 @@ case class RocksDBClient(dir: String) extends FileClient {
     val table = new BlockBasedTableConfig()
     table.setBlockCache(new LRUCache(2024 * 1024 * 1024))
     table.setCacheIndexAndFilterBlocks(true)
-    table.setBlockSize(8*1024)
+    table.setBlockSize(8 * 1024)
     o.setTableFormatConfig(table)
     o
   }
@@ -30,13 +30,13 @@ case class RocksDBClient(dir: String) extends FileClient {
   val dbs = ArrayBuffer[RDB]()
 
   override def hashDB(name: String): HashDB[Array[Byte]] = {
-    val db =   RDB.open(options, List(dir,name).mkString(File.separator))
+    val db = RDB.open(options, List(dir, name).mkString(File.separator))
     dbs.addOne(db)
     RocksHashDB(db)
   }
 
   override def sortedDB(name: String): SortedDB[Array[Byte]] = {
-    val db =   RDB.open(options, List(dir,name).mkString(File.separator))
+    val db = RDB.open(options, List(dir, name).mkString(File.separator))
     dbs.addOne(db)
     RocksSortedDB(db, Codec.BYTES)
   }
@@ -64,13 +64,13 @@ case class RocksDBClient(dir: String) extends FileClient {
   }
 }
 
-
 object RocksDBClient extends Logging {
   def create(path: java.nio.file.Path, opts: RocksDBBackend) = Resource.make(for {
     exists <- Files[IO].exists(fs2.io.file.Path(path.toString))
-    _ <- IO.whenA(!exists)(Files[IO].createDirectory(fs2.io.file.Path(path.toString)) *> info(s"created rocksdb dir $path"))
+    _ <- IO.whenA(!exists)(
+      Files[IO].createDirectory(fs2.io.file.Path(path.toString)) *> info(s"created rocksdb dir $path")
+    )
     c <- IO(RocksDBClient(path.toString))
   } yield c)(x => IO(x.close()))
 
 }
-

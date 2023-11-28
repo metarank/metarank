@@ -48,7 +48,8 @@ class MapDBClient(db: DB) extends FileClient {
 }
 
 object MapDBClient {
-  def create(path: Path, opts: MapDBBackend): Resource[IO, MapDBClient] = Resource.make(IO(createUnsafe(path)))(m => IO(m.close()))
+  def create(path: Path, opts: MapDBBackend): Resource[IO, MapDBClient] =
+    Resource.make(IO(createUnsafe(path)))(m => IO(m.close()))
 
   def createUnsafe(path: Path) = {
     val pathFile = path.toFile

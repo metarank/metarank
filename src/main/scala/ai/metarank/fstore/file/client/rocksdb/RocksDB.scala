@@ -26,27 +26,27 @@ trait RocksDB[V] extends DB[V] {
 
   override def all(): Iterator[(String, V)] = {
     val opts = new ReadOptions()
-    val rit = db.newIterator(opts)
+    val rit  = db.newIterator(opts)
     rit.seekToFirst()
     new CloseableIterator[(String, V)] {
       var closed = false
       override def nested: Iterator[(String, V)] = new Iterator[(String, V)] {
         override def hasNext: Boolean = {
-          val br=1
+          val br = 1
           !closed && rit.isValid
         }
 
         override def next(): (String, V) = {
-          val br=1
-          val k = new String(rit.key())
-          val v = codec.decode(rit.value())
+          val br = 1
+          val k  = new String(rit.key())
+          val v  = codec.decode(rit.value())
           rit.next()
-          (k,v)
+          (k, v)
         }
       }
 
       override def close(): Unit = {
-        val b=1
+        val b = 1
         rit.close()
         closed = true
       }

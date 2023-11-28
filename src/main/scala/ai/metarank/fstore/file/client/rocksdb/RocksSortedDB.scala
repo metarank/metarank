@@ -7,16 +7,16 @@ import org.rocksdb.{ReadOptions, RocksDB => RDB}
 case class RocksSortedDB[T](db: RDB, codec: Codec[T]) extends RocksDB[T] with SortedDB[T] {
   override def firstN(prefix: String, n: Int): Iterator[(String, T)] = {
     val prefixBytes = prefix.getBytes
-    new CloseableIterator[(String,T)] {
+    new CloseableIterator[(String, T)] {
       lazy val it = {
         val xit = db.newIterator()
         xit.seek(prefix.getBytes())
         xit
       }
-      var cnt = 0
+      var cnt    = 0
       var closed = false
 
-      override def nested: Iterator[(String,T)] = new Iterator[(String, T)] {
+      override def nested: Iterator[(String, T)] = new Iterator[(String, T)] {
 
         override def hasNext: Boolean = {
           !closed && (cnt < n) && it.isValid && hasPrefix(it.key(), prefixBytes)
@@ -40,10 +40,10 @@ case class RocksSortedDB[T](db: RDB, codec: Codec[T]) extends RocksDB[T] with So
 
   override def lastN(prefix: String, n: Int): Iterator[(String, T)] = {
     val prefixBytes = prefix.getBytes
-    val it = db.newIterator()
+    val it          = db.newIterator()
     it.seekForPrev(SortedDB.nextKey(prefix).getBytes())
     new CloseableIterator[(String, T)] {
-      var cnt = 0
+      var cnt    = 0
       var closed = false
 
       override def nested: Iterator[(String, T)] = new Iterator[(String, T)] {
@@ -51,7 +51,7 @@ case class RocksSortedDB[T](db: RDB, codec: Codec[T]) extends RocksDB[T] with So
           val over = cnt < n
           if (!closed) {
             val valid = it.isValid
-            val pref = hasPrefix(it.key(), prefixBytes)
+            val pref  = hasPrefix(it.key(), prefixBytes)
             over && valid && pref
           } else {
             false
@@ -74,7 +74,7 @@ case class RocksSortedDB[T](db: RDB, codec: Codec[T]) extends RocksDB[T] with So
   }
 
   def hasPrefix(key: Array[Byte], prefix: Array[Byte]): Boolean = {
-    var i = 0
+    var i       = 0
     var matches = prefix.length < key.length
     while (matches && (i < prefix.length)) {
       matches = prefix(i) == key(i)

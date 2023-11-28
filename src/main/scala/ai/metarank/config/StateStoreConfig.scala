@@ -114,36 +114,41 @@ object StateStoreConfig extends Logging {
   ) extends StateStoreConfig
   object FileStateConfig {
     sealed trait FileBackend
-    case class RocksDBBackend(lruCacheSize: Long = 1024*1024*1024L, blockSize: Int = 8*1024) extends FileBackend
-    case class MapDBBackend(mmap: Boolean = true, maxNodeSize: Int = 16)   extends FileBackend
+    case class RocksDBBackend(lruCacheSize: Long = 1024 * 1024 * 1024L, blockSize: Int = 8 * 1024) extends FileBackend
+    case class MapDBBackend(mmap: Boolean = true, maxNodeSize: Int = 16)                           extends FileBackend
 
-
-    implicit val fileBackendDecoder: Decoder[FileBackend] = Decoder.instance(c => c.as[String] match {
-      case Right("mapdb") => Right(MapDBBackend())
-      case Right("rocksdb") => Right(RocksDBBackend())
-      case Right(other) => Left(DecodingFailure(s"backend type $other not supported", c.history))
-      case Left(_) => c.downField("type").as[String] match {
-        case Right("mapdb") => mapDBBackendDecoder.tryDecode(c)
-        case Right("rocksdb") => rocksDbBackendDecoder.tryDecode(c)
-        case Right(other)=> Left(DecodingFailure(s"backend type $other not supported", c.history))
-        case Left(err) => Left(err)
+    implicit val fileBackendDecoder: Decoder[FileBackend] = Decoder.instance(c =>
+      c.as[String] match {
+        case Right("mapdb")   => Right(MapDBBackend())
+        case Right("rocksdb") => Right(RocksDBBackend())
+        case Right(other)     => Left(DecodingFailure(s"backend type $other not supported", c.history))
+        case Left(_) =>
+          c.downField("type").as[String] match {
+            case Right("mapdb")   => mapDBBackendDecoder.tryDecode(c)
+            case Right("rocksdb") => rocksDbBackendDecoder.tryDecode(c)
+            case Right(other)     => Left(DecodingFailure(s"backend type $other not supported", c.history))
+            case Left(err)        => Left(err)
+          }
       }
-    })
+    )
 
+    implicit val rocksDbBackendDecoder: Decoder[RocksDBBackend] = Decoder.instance(c =>
+      for {
+        lruCacheSize <- c.downField("lruCacheSize").as[Option[Long]].map(_.getOrElse(1024 * 1024 * 1024L))
+        blockSize    <- c.downField("blockSize").as[Option[Int]].map(_.getOrElse(8 * 1024))
+      } yield {
+        RocksDBBackend(lruCacheSize, blockSize)
+      }
+    )
 
-    implicit val rocksDbBackendDecoder: Decoder[RocksDBBackend] = Decoder.instance(c => for {
-      lruCacheSize <- c.downField("lruCacheSize").as[Option[Long]].map(_.getOrElse(1024*1024*1024L))
-      blockSize <- c.downField("blockSize").as[Option[Int]].map(_.getOrElse(8*1024))
-    } yield {
-      RocksDBBackend(lruCacheSize, blockSize)
-    })
-
-    implicit val mapDBBackendDecoder: Decoder[MapDBBackend] = Decoder.instance(c => for {
-      mmap <- c.downField("mmap").as[Option[Boolean]].map(_.getOrElse(true))
-      maxNodeSize <- c.downField("maxNodeSize").as[Option[Int]].map(_.getOrElse(16))
-    } yield {
-      MapDBBackend(mmap, maxNodeSize)
-    })
+    implicit val mapDBBackendDecoder: Decoder[MapDBBackend] = Decoder.instance(c =>
+      for {
+        mmap        <- c.downField("mmap").as[Option[Boolean]].map(_.getOrElse(true))
+        maxNodeSize <- c.downField("maxNodeSize").as[Option[Int]].map(_.getOrElse(16))
+      } yield {
+        MapDBBackend(mmap, maxNodeSize)
+      }
+    )
 
     implicit val fileStateDecoder: Decoder[FileStateConfig] = Decoder.instance(c =>
       for {

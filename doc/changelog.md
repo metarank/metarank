@@ -3,6 +3,10 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.4
+
+* support for rocksdb-backed file storage
+
 ## 0.7.3
 
 * a bugfix release

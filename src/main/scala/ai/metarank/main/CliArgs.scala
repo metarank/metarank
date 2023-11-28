@@ -131,6 +131,7 @@ object CliArgs extends Logging {
             for {
               data <- parse(parser.sort.data)
               out  <- parse(parser.sort.out)
+              _    <- if (data == out) Left(new Exception("data argument should not be equal to out")) else Right({})
             } yield {
               SortArgs(data, out)
             }

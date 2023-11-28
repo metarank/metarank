@@ -8,6 +8,7 @@ trait DB[T] {
   def all(): Iterator[(String, T)]
   def sync(): Unit = {}
   def sizeof(value: T): Int
+  def compact(): Unit = {}
 
   def size(): FileClient.PrefixSize = {
     val it         = all()

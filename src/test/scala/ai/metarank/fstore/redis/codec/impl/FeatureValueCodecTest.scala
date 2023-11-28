@@ -19,36 +19,37 @@ import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.UserScope
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.concurrent.duration._
 
 class FeatureValueCodecTest extends AnyFlatSpec with Matchers with BinCodecTest {
   val k  = Key(UserScope(UserId("u1")), FeatureName("foo"))
   val ts = Timestamp.now
 
   it should "do scalars" in {
-    roundtrip(FeatureValueCodec, ScalarValue(k, ts, SString("foo")))
+    roundtrip(FeatureValueCodec, ScalarValue(k, ts, SString("foo"), 90.days))
   }
 
   it should "do counters" in {
-    roundtrip(FeatureValueCodec, CounterValue(k, ts, 1L))
+    roundtrip(FeatureValueCodec, CounterValue(k, ts, 1L, 90.days))
   }
 
   it should "do numstats" in {
-    roundtrip(FeatureValueCodec, NumStatsValue(k, ts, 1.0, 2.0, Map(1 -> 1.0)))
+    roundtrip(FeatureValueCodec, NumStatsValue(k, ts, 1.0, 2.0, Map(1 -> 1.0), 90.days))
   }
 
   it should "do maps" in {
-    roundtrip(FeatureValueCodec, MapValue(k, ts, Map("foo" -> SString("bar"))))
+    roundtrip(FeatureValueCodec, MapValue(k, ts, Map("foo" -> SString("bar")), 90.days))
   }
 
   it should "do periodic counters" in {
-    roundtrip(FeatureValueCodec, PeriodicCounterValue(k, ts, Array(PeriodicValue(ts, ts, 1, 1L))))
+    roundtrip(FeatureValueCodec, PeriodicCounterValue(k, ts, Array(PeriodicValue(ts, ts, 1, 1L)), 90.days))
   }
 
   it should "do freqs" in {
-    roundtrip(FeatureValueCodec, FrequencyValue(k, ts, Map("foo" -> 1.0)))
+    roundtrip(FeatureValueCodec, FrequencyValue(k, ts, Map("foo" -> 1.0), 90.days))
   }
 
   it should "do lists" in {
-    roundtrip(FeatureValueCodec, BoundedListValue(k, ts, List(TimeValue(ts, SString("foo")))))
+    roundtrip(FeatureValueCodec, BoundedListValue(k, ts, List(TimeValue(ts, SString("foo"))), 90.days))
   }
 }

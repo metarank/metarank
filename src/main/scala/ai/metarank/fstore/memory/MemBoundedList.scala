@@ -37,7 +37,7 @@ case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, AnyRef] =
   }
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[BoundedListValue]] = IO {
-    cache.getIfPresent(key).flatMap(_.cast[List[TimeValue]]).map(BoundedListValue(key, ts, _))
+    cache.getIfPresent(key).flatMap(_.cast[List[TimeValue]]).map(BoundedListValue(key, ts, _, config.ttl))
   }
 
 }

@@ -97,7 +97,7 @@ case class FieldMatchBiencoderFeature(
           case Some(queryEmbedding) =>
             val raw = request.items.toList.map(item => {
               features.get(Key(ItemScope(item.id), conf.name)) match {
-                case Some(ScalarValue(_, ts, SDoubleList(emb))) =>
+                case Some(ScalarValue(_, ts, SDoubleList(emb), _)) =>
                   MValue(schema.name.value, schema.distance.dist(queryEmbedding, emb))
                 case _ => SingleValue.missing(schema.name)
               }
@@ -127,7 +127,7 @@ object FieldMatchBiencoderFeature extends Logging {
       for {
         session <- method.model match {
           case Some(handle) =>
-            OnnxSession.load(handle, method.dim, method.modelFile, method.vocabFile).map(Option.apply)
+            OnnxSession.load(handle, method.dim, method.modelFile, method.tokenizerFile).map(Option.apply)
           case None => IO.none
         }
         items <- method.itemFieldCache match {

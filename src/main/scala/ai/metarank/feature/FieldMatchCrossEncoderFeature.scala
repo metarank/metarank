@@ -87,7 +87,7 @@ case class FieldMatchCrossEncoderFeature(
       val fieldValues = request.items.toList
         .flatMap(item => {
           features.get(Key(ItemScope(item.id), conf.name)) match {
-            case Some(ScalarValue(_, _, SString(value))) =>
+            case Some(ScalarValue(_, _, SString(value), _)) =>
               Some(item.id -> SentencePair(queryString, value))
             case _ =>
               None
@@ -133,7 +133,7 @@ object FieldMatchCrossEncoderFeature extends Logging {
 
     override def create(): IO[BaseFeature] = for {
       session <- method.model match {
-        case Some(handle) => OnnxSession.load(handle, 0, method.modelFile, method.vocabFile).map(Option.apply)
+        case Some(handle) => OnnxSession.load(handle, 0, method.modelFile, method.tokenizerFile).map(Option.apply)
         case None         => IO.none
       }
       cache <- method.cache match {

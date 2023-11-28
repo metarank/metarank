@@ -1,5 +1,6 @@
 package ai.metarank.ml.onnx.sbert
 
+import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
 import ai.djl.modality.nlp.DefaultVocabulary
 import ai.djl.modality.nlp.bert.BertFullTokenizer
 import ai.metarank.ml.onnx.{HuggingFaceClient, ModelHandle}
@@ -13,9 +14,10 @@ import org.apache.commons.io.{FileUtils, IOUtils}
 
 import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
 import java.nio.charset.StandardCharsets
+import java.nio.file.Paths
 import scala.jdk.CollectionConverters._
 
-case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: BertFullTokenizer, dim: Int) {
+case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: HuggingFaceTokenizer, dim: Int) {
   def close(): Unit = {
     session.close()
     env.close()
@@ -24,16 +26,19 @@ case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: Bert
 
 object OnnxSession extends Logging {
 
-  def load(handle: ModelHandle, dim: Int, modelFile: String = "pytorch_model.onnx", vocabFile: String = "vocab.txt") =
+  def load(
+      handle: ModelHandle,
+      dim: Int,
+      modelFile: String = "pytorch_model.onnx",
+      tokenizerFile: String = "tokenizer.json"
+  ) =
     handle match {
-      case hh: HuggingFaceHandle => loadFromHuggingFace(hh, dim, modelFile, vocabFile)
-      case lh: LocalModelHandle  => loadFromLocalDir(lh, dim, modelFile, vocabFile)
+      case hh: HuggingFaceHandle => loadFromHuggingFace(hh, dim, modelFile, tokenizerFile)
+      case lh: LocalModelHandle  => loadFromLocalDir(lh, dim, modelFile, tokenizerFile)
     }
 
-  def load(model: InputStream, dic: InputStream, dim: Int): IO[OnnxSession] = IO {
-    val tokens    = IOUtils.toString(dic, StandardCharsets.UTF_8).split('\n')
-    val vocab     = DefaultVocabulary.builder().add(tokens.toList.asJava).build()
-    val tokenizer = new BertFullTokenizer(vocab, true)
+  def load(model: InputStream, tok: InputStream, dim: Int): IO[OnnxSession] = IO {
+    val tokenizer = HuggingFaceTokenizer.newInstance(tok, Map("padding" -> "true", "truncation" -> "true").asJava)
     val env       = OrtEnvironment.getEnvironment("sbert")
     val opts      = new SessionOptions()
     opts.setIntraOpNumThreads(Runtime.getRuntime.availableProcessors())
@@ -47,7 +52,12 @@ object OnnxSession extends Logging {
     OnnxSession(env, session, tokenizer, dim)
   }
 
-  def loadFromHuggingFace(handle: HuggingFaceHandle, dim: Int, modelFile: String, vocabFile: String): IO[OnnxSession] =
+  def loadFromHuggingFace(
+      handle: HuggingFaceHandle,
+      dim: Int,
+      modelFile: String,
+      tokenizerFile: String
+  ): IO[OnnxSession] =
     for {
       cache        <- LocalCache.create()
       modelDirName <- IO(handle.asList.mkString(File.separator))
@@ -59,13 +69,14 @@ object OnnxSession extends Logging {
               case Some(bytes) => info(s"found $modelFile in cache") *> IO.pure(bytes)
               case None => hf.modelFile(handle, modelFile).flatTap(bytes => cache.put(modelDirName, modelFile, bytes))
             }
-            vocabBytes <- cache.getIfExists(modelDirName, vocabFile).flatMap {
-              case Some(bytes) => info(s"found $vocabFile in cache") *> IO.pure(bytes)
-              case None => hf.modelFile(handle, vocabFile).flatTap(bytes => cache.put(modelDirName, vocabFile, bytes))
+            vocabBytes <- cache.getIfExists(modelDirName, tokenizerFile).flatMap {
+              case Some(bytes) => info(s"found $tokenizerFile in cache") *> IO.pure(bytes)
+              case None =>
+                hf.modelFile(handle, tokenizerFile).flatTap(bytes => cache.put(modelDirName, tokenizerFile, bytes))
             }
             session <- OnnxSession.load(
               model = new ByteArrayInputStream(modelBytes),
-              dic = new ByteArrayInputStream(vocabBytes),
+              tok = new ByteArrayInputStream(vocabBytes),
               dim = dim
             )
           } yield {
@@ -83,7 +94,7 @@ object OnnxSession extends Logging {
       vocabBytes <- IO(IOUtils.toByteArray(new FileInputStream(new File(handle.dir + File.separator + vocabFile))))
       session <- load(
         model = new ByteArrayInputStream(modelBytes),
-        dic = new ByteArrayInputStream(vocabBytes),
+        tok = new ByteArrayInputStream(vocabBytes),
         dim = dim
       )
     } yield {

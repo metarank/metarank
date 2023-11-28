@@ -3,6 +3,18 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.4
+
+* support for rocksdb-backed file storage
+
+## 0.7.3
+
+* a bugfix release
+
+## 0.7.2
+* Support for kv-granular Redis TTLs
+* Support HF tokenizers for biencoders: now you can run a multi-lingual E5 model in Metarank!
+
 ## 0.7.1
 
 * `/inference`: [Inference API](api.md#inference-with-llms) to expose bi- and cross-encoders. 
@@ -44,7 +56,7 @@ Upgrading: note that redis state format has a non backwards compatible change, s
 
 ## 0.5.16
 
-* [expose](deploy/docker.md#memory) `JVM_OPTS` env variable to control JVM heap size.
+* [expose](deploy/docker.md#memory) `JAVA_OPTS` env variable to control JVM heap size.
 * fix bug for a case when there is a click on a non-existent item.
 
 ## 0.5.15

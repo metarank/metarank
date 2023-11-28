@@ -114,7 +114,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
               )
               fieldValueOption <- fieldFeature.computeValue(Key(ItemScope(e.item), fieldScope.name), e.timestamp)
               writes <- fieldValueOption match {
-                case Some(ScalarValue(_, _, fieldScalar)) =>
+                case Some(ScalarValue(_, _, fieldScalar, _)) =>
                   e.`type` match {
                     case schema.top =>
                       fieldScalar match {
@@ -175,8 +175,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
           item       <- event.items.toList
           fieldValue <- features.get(Key(ItemScope(item.id), fieldScope.name)).toList
           fieldString <- fieldValue match {
-            case ScalarValue(_, _, SString(value)) => List(value)
-            case _                                 => Nil
+            case ScalarValue(_, _, SString(value), _) => List(value)
+            case _                                    => Nil
           }
           keys <- List(
             Key(FieldScope(field, fieldString), topTarget.name),
@@ -210,8 +210,8 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
       case ItemScopeType => Some(ItemScope(id.id))
       case FieldScopeType(field) =>
         features.get(Key(ItemScope(id.id), fieldScope.name)) match {
-          case Some(ScalarValue(_, _, SString(value))) => Some(FieldScope(field, value))
-          case _                                       => None
+          case Some(ScalarValue(_, _, SString(value), _)) => Some(FieldScope(field, value))
+          case _                                          => None
         }
       case _ => None
     }

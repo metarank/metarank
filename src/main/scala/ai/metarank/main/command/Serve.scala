@@ -22,6 +22,7 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import org.http4s.blaze.server.BlazeServerBuilder
 import org.http4s.server.Router
+import scala.concurrent.duration._
 
 object Serve extends Logging {
   def run(
@@ -86,6 +87,9 @@ object Serve extends Logging {
       .bindHttp(conf.port.value, conf.host.value)
       .withHttpApp(httpApp)
       .withBanner(Logo.lines)
+      .withIdleTimeout(conf.timeout)
+      // response header timeout should be less than idle timeout
+      .withResponseHeaderTimeout(conf.timeout - 1.second)
 
     _ <- info("Starting API...")
     _ <- api.serve.compile.drain

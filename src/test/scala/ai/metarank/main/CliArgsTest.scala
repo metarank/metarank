@@ -2,13 +2,14 @@ package ai.metarank.main
 
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
-import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TrainArgs}
+import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TermFreqArgs, TrainArgs}
 import ai.metarank.main.command.train.SplitStrategy.HoldLastStrategy
 import ai.metarank.source.format.JsonFormat
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.file.{Files, Path, Paths}
+import scala.Left
 
 class CliArgsTest extends AnyFlatSpec with Matchers {
   lazy val conf = Files.createTempFile("metarank-test-conf", ".yaml")
@@ -66,6 +67,21 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
 
   it should "parse serve with config taken from env" in {
     CliArgs.parse(List("serve"), Map("METARANK_CONFIG" -> conf.toString)) shouldBe Right(ServeArgs(conf))
+  }
+
+  it should "parse termfreq and fail if file exists" in {
+    val f = Files.createTempFile("termfreq", ".dat").toFile
+    val result = CliArgs.parse(
+      List("termfreq", "--data", "events.json", "--out", f.toString, "--fields", "bullets", "--language", "en"),
+      Map.empty
+    )
+    f.delete()
+    result shouldBe a[Left[_, _]]
+  }
+
+  it should "parse sort and fail if data=out" in {
+    val result = CliArgs.parse(List("sort", "-d", "/a", "--out", "/a"), Map.empty)
+    result shouldBe a[Left[_, _]]
   }
 
 }

@@ -114,8 +114,8 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
     visitorKey      <- makeVisitorKey(event.user, event.session).toSeq
     interactedItems <- features.get(visitorKey).toSeq
     item <- interactedItems match {
-      case BoundedListValue(_, _, values) => values.map(_.value).collect { case SString(id) => id }
-      case _                              => Nil
+      case BoundedListValue(_, _, values, _) => values.map(_.value).collect { case SString(id) => id }
+      case _                                 => Nil
     }
     (_, itemFieldFeature) <- fields
   } yield {
@@ -141,7 +141,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         .map(_.value)
         .collect { case SString(value) => ItemId(value) }
         .flatMap(item => features.get(Key(ItemScope(item), fieldFeature.name)))
-        .collect { case ScalarValue(_, _, SStringList(values)) => values }
+        .collect { case ScalarValue(_, _, SStringList(values), _) => values }
         .flatten
       fieldName -> visitorFieldInteractedValues.groupMapReduce(identity)(_ => 1)(_ + _)
     }).toMap
@@ -155,7 +155,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
         val visitorFieldValue = visitorFields.getOrElse(fieldName, Map.empty)
         val itemFeature = features
           .get(Key(ItemScope(item), fieldScalarFeature.name))
-          .collect { case ScalarValue(_, _, SStringList(values)) => values }
+          .collect { case ScalarValue(_, _, SStringList(values), _) => values }
           .getOrElse(List.empty[String])
         itemFeature.foldLeft(0.0)((cnt, fieldValue) => cnt + visitorFieldValue.getOrElse(fieldValue, 0))
       }

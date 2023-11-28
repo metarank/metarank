@@ -1,7 +1,8 @@
 package ai.metarank.config
 
+import ai.metarank.config.StateStoreConfig.FileStateConfig.RocksDBBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
-import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
+import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, RedisStateConfig}
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -64,6 +65,31 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
   it should "decode partial redis pipeline config" in {
     val conf = parse("flushPeriod: 77h").flatMap(_.as[PipelineConfig])
     conf shouldBe Right(PipelineConfig(flushPeriod = 77.hour))
+  }
+
+  it should "decode file with simple backend" in {
+    val yaml =
+      """
+        |type: file
+        |path: /tmp
+        |format: binary
+        |backend: rocksdb""".stripMargin
+    val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
+    conf shouldBe Right(FileStateConfig("/tmp", backend = RocksDBBackend()))
+  }
+
+  it should "decode file with backend and options" in {
+    val yaml =
+      """
+        |type: file
+        |path: /tmp
+        |format: binary
+        |backend:
+        |  type: rocksdb
+        |  lruCacheSize: 1
+        |  blockSize: 1""".stripMargin
+    val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
+    conf shouldBe Right(FileStateConfig("/tmp", backend = RocksDBBackend(1,1)))
   }
 
 }

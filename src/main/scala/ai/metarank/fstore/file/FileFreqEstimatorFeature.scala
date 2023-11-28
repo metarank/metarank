@@ -29,7 +29,7 @@ case class FileFreqEstimatorFeature(config: FreqEstimatorConfig, db: SortedDB[St
     values  <- IO(db.firstN(kb, config.poolSize))
     samples <- IO(values.map(_._2).toList)
   } yield {
-    freqFromSamples(samples).map(freq => FrequencyValue(key, ts, freq))
+    freqFromSamples(samples).map(freq => FrequencyValue(key, ts, freq, config.ttl))
   }
 }
 

@@ -114,7 +114,7 @@ case class RedisPersistence(
   )
 
   override lazy val values: RedisKVStore[Key, FeatureValue] =
-    RedisKVStore(valuesClient, Prefix.VALUES)(format.key, format.featureValue)
+    RedisKVStore[Key, FeatureValue](valuesClient, Prefix.VALUES, _.expire)(format.key, format.featureValue)
 
 //  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
 

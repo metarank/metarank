@@ -1,5 +1,6 @@
 package ai.metarank.fstore.file.client
 
+import ai.metarank.config.StateStoreConfig.FileStateConfig.MapDBBackend
 import ai.metarank.fstore.file.client.mapdb.{MapdbHashDB, MapdbSortedDB, ScalaFloatSerializer, ScalaIntSerializer}
 import cats.effect.{IO, Resource}
 import org.mapdb.{BTreeMap, DB, DBMaker, HTreeMap, Serializer}
@@ -47,7 +48,7 @@ class MapDBClient(db: DB) extends FileClient {
 }
 
 object MapDBClient {
-  def create(path: Path): Resource[IO, MapDBClient] = Resource.make(IO(createUnsafe(path)))(m => IO(m.close()))
+  def create(path: Path, opts: MapDBBackend): Resource[IO, MapDBClient] = Resource.make(IO(createUnsafe(path)))(m => IO(m.close()))
 
   def createUnsafe(path: Path) = {
     val pathFile = path.toFile

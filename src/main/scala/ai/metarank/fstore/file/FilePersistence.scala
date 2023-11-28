@@ -70,10 +70,10 @@ object FilePersistence {
   case class FeatureSize(name: FeatureName, size: PrefixSize)
   def create(conf: FileStateConfig, schema: Schema, imp: ImportCacheConfig): Resource[IO, FilePersistence] =
     conf.backend match {
-      case FileStateConfig.RocksDBBackend =>
-        RocksDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format, imp))
-      case FileStateConfig.MapDBBackend =>
-        MapDBClient.create(Path.of(conf.path)).map(c => FilePersistence(schema, c, conf.format, imp))
+      case opts: FileStateConfig.RocksDBBackend =>
+        RocksDBClient.create(Path.of(conf.path), opts).map(c => FilePersistence(schema, c, conf.format, imp))
+      case opts: FileStateConfig.MapDBBackend =>
+        MapDBClient.create(Path.of(conf.path), opts).map(c => FilePersistence(schema, c, conf.format, imp))
     }
 
 }

@@ -39,6 +39,7 @@
   * [Docker](deploy/docker.md)
   * [Kubernetes](deploy/kubernetes.md)
   * [Prometheus metrics export](deploy/prometheus.md)
+  * [Custom logging](deploy/custom-logging.md)
 * [Integrations](integrations/integrations-overview.md)
   * [Snowplow](integrations/snowplow.md) 
 

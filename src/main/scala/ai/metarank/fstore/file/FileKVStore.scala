@@ -8,7 +8,7 @@ import ai.metarank.model.{FeatureValue, Key}
 import cats.effect.IO
 import fs2.Stream
 
-case class FileKVStore(db: HashDB, format: StoreFormat) extends KVStore[Key, FeatureValue] {
+case class FileKVStore(db: HashDB[Array[Byte]], format: StoreFormat) extends KVStore[Key, FeatureValue] {
   override def put(values: Map[Key, FeatureValue]): IO[Unit] = IO {
     val size = values.size
     val keys = new Array[String](size)

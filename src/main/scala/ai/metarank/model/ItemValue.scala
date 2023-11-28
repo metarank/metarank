@@ -56,7 +56,9 @@ object ItemValue {
               throw new IllegalStateException(s"for ${feature.schema} dim mismatch: ${feature.dim} != ${value.dim}")
           }
           if (values.length != ranking.items.size) {
-            throw new IllegalStateException(s"for ${feature.schema} dim mismatch: there should be ${ranking.items.size} per-document values, but got ${values.length}")
+            throw new IllegalStateException(
+              s"for ${feature.schema} dim mismatch: there should be ${ranking.items.size} per-document values, but got ${values.length}"
+            )
           }
           values
         })

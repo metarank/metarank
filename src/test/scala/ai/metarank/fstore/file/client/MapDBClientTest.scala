@@ -5,7 +5,7 @@ import scala.util.Random
 
 class MapDBClientTest extends FileTestSuite {
   lazy val mapdb                  = MapDBClient.createUnsafe(Files.createTempDirectory("tmp"))
-  override def makeHash(): HashDB = mapdb.hashDB("yep" + Random.nextInt())
+  override def makeHash(): HashDB[Array[Byte]] = mapdb.hashDB("yep" + Random.nextInt())
 
   override def makeTree(): SortedDB[String] = mapdb.sortedStringDB("baa" + Random.nextInt())
 

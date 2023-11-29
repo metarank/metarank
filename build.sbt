@@ -45,7 +45,7 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-blaze-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
       "io.github.metarank"    %% "ltrlib"                   % "0.2.2",
-      "com.github.ua-parser"   % "uap-java"                 % "1.5.4",
+      "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-common"   % luceneVersion,

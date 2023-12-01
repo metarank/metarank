@@ -89,7 +89,7 @@ object Import extends Logging {
           dir <- IO(Files.createTempDirectory("metarank-rocksdb-temp"))
           _   <- info(s"using local disk cache for redis persistence: $dir")
           result <- FilePersistence
-            .create(FileStateConfig(dir.toString, backend = MapDBBackend), mapping.schema, conf.core.`import`.cache)
+            .create(FileStateConfig(dir.toString, backend = MapDBBackend()), mapping.schema, conf.core.`import`.cache)
             .use(cache =>
               for {
                 buf2  <- IO(buffer.copy(values = cache.values))

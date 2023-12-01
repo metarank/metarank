@@ -84,6 +84,63 @@ in the same datacenter/AZ)
 * `pipeline.flushPeriod` controls the level of "eventualness" in the overall eventual consistency. With values 
 larger than `10` seconds, a second Metarank instance may not see write buffered in a first instance.
 
+## Disk persistence
+
+Metarank has also an experimental option of using disk persistence instead of Redis. The main drawback of such an
+approach is that the deployment becomes stateful and you need to maintain a disk persistence.
+
+Metarank supports two disk backends for file-based persistence:
+
+* MapDB: uses a mmap-based storage for data, works well for smaller datasets.
+* RocksDB: uses an LSM-tree storage, suits for large datasets.
+
+The file persistence configured in the following way:
+
+```yaml
+state:
+  type: file
+  path: /path/to/dir # required
+  format: binary # optional, default=binary, possible values: json, binary
+  backend: # optional, default mapdb
+    type: rocksdb # required, values: rocksdb, mapdb
+  
+```
+
+### RocksDB options
+
+RocksDB can be configured by defining the following values in the config file:
+
+```yaml
+state:
+  type: file
+  path: /path/to/dir # required
+  backend: # optional, default mapdb
+    type: rocksdb
+    lruCacheSizeMb: 1024000000 # LRU cache size in bytes, optional, default 1Gb
+    blockSize: 8192 # Block size in bytes, optional, default 8kb
+
+```
+
+A rule of thumb defining these parameters:
+
+* higher LRU cache size leads to better read throughput at the cost of extra memory usage. If not sure, set it to 50% of your RAM.
+* blockSize defines a size of page RocksDB reads from disk. In a perfect world it should match your actual disk block size:
+For cloud-attached disks like AWS EBS it should be 16kb, for local drives 1-2kb.
+
+### MapDB options
+
+MapDB can be configured in the following way:
+
+```yaml
+state:
+  type: file
+  path: /path/to/dir # required
+  backend: # optional, default mapdb
+    type: mapdb
+    mmap: true # should MapDB use mmap or raw disk reads for data access? Optional, default true.
+    maxNodeSize: 16 # what is the node size for internal db index. Optional, default 16. 
+```
+
 ### TLS Support
 
 Metarank supports connecting to Redis using TLS for transport encryption, but there is no way to autodetect

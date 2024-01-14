@@ -71,7 +71,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.nd4j", "protobuf")
       ),
       "org.rocksdb"               % "rocksdbjni"     % "8.8.1",
-      "org.mapdb"                 % "mapdb"          % "3.0.10" exclude ("net.jpountz.lz4", "lz4"),
+      "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.9", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.3",

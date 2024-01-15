@@ -54,11 +54,11 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
-      "io.lettuce"             % "lettuce-core"             % "6.3.0.RELEASE",
+      "io.lettuce"             % "lettuce-core"             % "6.3.1.RELEASE",
       "com.google.guava"       % "guava"                    % "33.0.0-jre",
       "commons-io"             % "commons-io"               % "2.15.0",
       "com.google.guava"       % "guava"                    % "32.1.2-jre",
-      "io.sentry"              % "sentry-logback"           % "6.34.0",
+      "io.sentry"              % "sentry-logback"           % "7.2.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -70,10 +70,10 @@ lazy val root = (project in file("."))
         ExclusionRule("org.nd4j", "guava"),
         ExclusionRule("org.nd4j", "protobuf")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "8.8.1",
+      "org.rocksdb"               % "rocksdbjni"     % "8.9.1",
       "org.mapdb"                 % "mapdb"          % "3.0.10" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
-      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.9", // librec uses commons-logging, which is JCL
+      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.11", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.3",
       "ai.djl"                    % "api"            % "0.25.0",
       "ai.djl.huggingface"        % "tokenizers"     % "0.25.0"

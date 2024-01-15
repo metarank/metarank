@@ -10,10 +10,9 @@ import cats.effect.kernel.Resource
 import io.circe.Codec
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
 import org.http4s.{EntityDecoder, Request, Uri}
-import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
 import org.http4s.circe._
-import fs2.Stream
+import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
 
 import java.io.ByteArrayOutputStream
@@ -81,12 +80,8 @@ object HuggingFaceClient {
   implicit val modelResponseCodec: Codec[ModelResponse] = deriveCodec[ModelResponse]
 
   def create(endpoint: String = HUGGINGFACE_API_ENDPOINT): Resource[IO, HuggingFaceClient] = for {
-    uri <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
-    client <- BlazeClientBuilder[IO]
-      .withRequestTimeout(120.second)
-      .withConnectTimeout(120.second)
-      .withIdleTimeout(200.seconds)
-      .resource
+    uri    <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
+    client <- EmberClientBuilder.default[IO].withTimeout(200.seconds).build
   } yield {
     HuggingFaceClient(client, uri)
   }

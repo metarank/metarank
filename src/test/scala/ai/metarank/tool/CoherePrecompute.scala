@@ -22,13 +22,11 @@ import org.http4s.{
   Request,
   Uri
 }
-import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
-import scodec.bits.ByteVector
 import io.circe.syntax._
-import org.http4s.circe.CirceEntityCodec.circeEntityDecoder
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.circe.CirceEntityEncoder._
+import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
 
 import scala.concurrent.duration._
@@ -75,10 +73,10 @@ object CoherePrecompute extends IOApp with Logging {
       .map(resp => id -> resp.embeddings(0).toArray)
 
   def makeClient(): Resource[IO, Client[IO]] =
-    BlazeClientBuilder[IO]
-      .withRequestTimeout(10.second)
-      .withConnectTimeout(10.second)
-      .resource
+    EmberClientBuilder
+      .default[IO]
+      .withTimeout(10.second)
+      .build
 
   def makeRequest(token: String, req: CohereRequest) = {
     Request[IO](

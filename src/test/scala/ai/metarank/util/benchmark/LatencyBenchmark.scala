@@ -5,7 +5,7 @@ import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
-import ai.metarank.fstore.{TrainStore, Persistence}
+import ai.metarank.fstore.{Persistence, TrainStore}
 import ai.metarank.main.CliArgs.StandaloneArgs
 import ai.metarank.main.command.{Serve, Standalone}
 import ai.metarank.model.Event.{RankItem, RankingEvent}
@@ -18,7 +18,6 @@ import cats.effect.kernel.Resource
 import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.commons.io.IOUtils
 import org.http4s.{Entity, Method, Request, Uri}
-import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
 import cats.implicits._
 
@@ -30,6 +29,7 @@ import java.util.UUID
 import scala.util.Random
 import io.circe.syntax._
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
+import org.http4s.ember.client.EmberClientBuilder
 import scodec.bits.ByteVector
 
 object LatencyBenchmark extends IOApp with Logging {
@@ -107,7 +107,7 @@ object LatencyBenchmark extends IOApp with Logging {
         )
     )
     api    <- Serve.api(store, cts, mapping, conf.api, buffer, conf.inference).background
-    client <- BlazeClientBuilder[IO].withConnectTimeout(1.second).withRequestTimeout(1.second).resource
+    client <- EmberClientBuilder.default[IO].withTimeout(1.second).build
   } yield {
     Services(store, client)
   }

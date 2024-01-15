@@ -18,10 +18,12 @@ import ai.metarank.util.analytics.Metrics
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits._
+import com.comcast.ip4s.{Hostname, Port}
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
-import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
+
 import scala.concurrent.duration._
 
 object Serve extends Logging {
@@ -83,15 +85,23 @@ object Serve extends Logging {
     routes =
       health <+> rank <+> feedback <+> train <+> metricsApi <+> rec <+> inferenceCross.routes <+> inferenceEncoder.routes
     httpApp = Router("/" -> routes).orNotFound
-    api = BlazeServerBuilder[IO]
-      .bindHttp(conf.port.value, conf.host.value)
-      .withHttpApp(httpApp)
-      .withBanner(Logo.lines)
-      .withIdleTimeout(conf.timeout)
-      // response header timeout should be less than idle timeout
-      .withResponseHeaderTimeout(conf.timeout - 1.second)
+    host <- IO.fromOption(Hostname.fromString(conf.host.value))(
+      new Exception(s"cannot parse hostname '${conf.host.value}'")
+    )
+    port <- IO.fromOption(Port.fromInt(conf.port.value))(
+      new Exception(s"cannot parse port '${conf.port.value}'")
+    )
 
+    api <- IO(
+      EmberServerBuilder
+        .default[IO]
+        .withHost(host)
+        .withPort(port)
+        .withHttpApp(httpApp)
+        .withIdleTimeout(conf.timeout)
+    )
+    _ <- info(Logo.raw)
     _ <- info("Starting API...")
-    _ <- api.serve.compile.drain
+    _ <- api.build.use(_ => IO.never)
   } yield {}
 }

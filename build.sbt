@@ -68,10 +68,11 @@ lazy val root = (project in file("."))
       "org.apache.commons"     % "commons-rng-simple"       % "1.5",
       "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (
         ExclusionRule("org.nd4j", "guava"),
-        ExclusionRule("org.nd4j", "protobuf")
+        ExclusionRule("org.nd4j", "protobuf"),
+        ExclusionRule("com.squareup.okio", "okio")
       ),
       "org.rocksdb"               % "rocksdbjni"     % "8.9.1",
-      "org.mapdb"                 % "mapdb"          % "3.0.10" exclude ("net.jpountz.lz4", "lz4"),
+      "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.11", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.3",

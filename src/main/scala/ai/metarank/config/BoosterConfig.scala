@@ -23,7 +23,8 @@ object BoosterConfig {
       maxDepth: Int = 8,
       seed: Int = 0,
       numLeaves: Int = 16,
-      sampling: Double = 0.8
+      sampling: Double = 0.8,
+      debias: Boolean = false
   ) extends BoosterConfig
 
   case class XGBoostConfig(
@@ -32,7 +33,8 @@ object BoosterConfig {
       ndcgCutoff: Int = 10,
       maxDepth: Int = 8,
       seed: Int = 0,
-      sampling: Double = 0.8
+      sampling: Double = 0.8,
+      debias: Boolean = false
   ) extends BoosterConfig
 
   implicit val lgbmDecoder: Decoder[LightGBMConfig] = Decoder.instance(c =>
@@ -44,6 +46,7 @@ object BoosterConfig {
       seedOption         <- c.downField("seed").as[Option[Int]]
       numLeavesOption    <- c.downField("numLeaves").as[Option[Int]]
       samplingOption     <- c.downField("sampling").as[Option[Double]]
+      debiasOption       <- c.downField("debias").as[Option[Boolean]]
     } yield {
       val empty = LightGBMConfig()
       LightGBMConfig(
@@ -53,7 +56,8 @@ object BoosterConfig {
         maxDepth = maxDepthOption.getOrElse(empty.maxDepth),
         seed = seedOption.getOrElse(empty.seed),
         numLeaves = numLeavesOption.getOrElse(empty.numLeaves),
-        sampling = samplingOption.getOrElse(empty.sampling)
+        sampling = samplingOption.getOrElse(empty.sampling),
+        debias = debiasOption.getOrElse(empty.debias)
       )
     }
   )
@@ -68,6 +72,7 @@ object BoosterConfig {
       maxDepthOption     <- c.downField("maxDepth").as[Option[Int]]
       seedOption         <- c.downField("seed").as[Option[Int]]
       samplingOption     <- c.downField("sampling").as[Option[Double]]
+      debiasOption       <- c.downField("debias").as[Option[Boolean]]
     } yield {
       val empty = XGBoostConfig()
       XGBoostConfig(
@@ -76,7 +81,8 @@ object BoosterConfig {
         ndcgCutoff = ndcgCutoffOption.getOrElse(empty.ndcgCutoff),
         maxDepth = maxDepthOption.getOrElse(empty.maxDepth),
         seed = seedOption.getOrElse(empty.seed),
-        sampling = samplingOption.getOrElse(empty.sampling)
+        sampling = samplingOption.getOrElse(empty.sampling),
+        debias = debiasOption.getOrElse(empty.debias)
       )
     }
   )

@@ -143,6 +143,7 @@ AND and OR selectors take a list of nested selectors as arguments, NOT selector 
 * *maxDepth*: *optional*, *number*, default: *8*, the depth of the tree.
 * *seed*: *optional*, *string* or *number*, default: *random* to make model training deterministic.
 * *sampling*: *optional*, default: 0.8, fraction of features used to build a tree, useful to prevent over-fitting.
+* *debias*: *optional, default: false. Enable booster-native position bias removal support. See these two articles about the unbiased LTR for [XGBoost](https://xgboost.readthedocs.io/en/latest/tutorials/learning_to_rank.html#position-bias) and [LightGBM](https://lightgbm.readthedocs.io/en/latest/Advanced-Topics.html#support-for-position-bias-treatment) for details.
 
 LightGBM also supports these specific options:
 * *numLeaves*: *optional*, *number*, default: *16*, how many leaves the tree may have.

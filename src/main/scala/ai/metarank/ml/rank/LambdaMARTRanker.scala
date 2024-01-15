@@ -66,7 +66,7 @@ object LambdaMARTRanker {
 
     def makeBooster(split: Split) = {
       config.backend match {
-        case LightGBMConfig(it, lr, ndcg, depth, seed, leaves, sampling) =>
+        case LightGBMConfig(it, lr, ndcg, depth, seed, leaves, sampling, debias) =>
           val opts = LightGBMOptions(
             trees = it,
             numLeaves = leaves,
@@ -75,10 +75,11 @@ object LambdaMARTRanker {
             ndcgCutoff = ndcg,
             maxDepth = depth,
             featureFraction = sampling,
-            earlyStopping = Some(20)
+            earlyStopping = Some(20),
+            debias = debias
           )
-          LambdaMART(split.train, LightGBMBooster, Some(split.test)).fit(opts)
-        case XGBoostConfig(it, lr, ndcg, depth, seed, sampling) =>
+          LambdaMART(split.train, LightGBMBooster, Some(split.test), opts).fit(opts)
+        case XGBoostConfig(it, lr, ndcg, depth, seed, sampling, debias) =>
           val opts = XGBoostOptions(
             trees = it,
             randomSeed = seed,
@@ -87,9 +88,10 @@ object LambdaMARTRanker {
             maxDepth = depth,
             subsample = sampling,
             earlyStopping = Some(20),
-            treeMethod = "exact" // hist/approx do not work with categories
+            treeMethod = "exact", // hist/approx do not work with categories
+            debias = debias
           )
-          LambdaMART(split.train, XGBoostBooster, Some(split.test)).fit(opts)
+          LambdaMART(split.train, XGBoostBooster, Some(split.test), opts).fit(opts)
       }
     }
 

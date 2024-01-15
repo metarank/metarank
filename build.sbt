@@ -37,7 +37,7 @@ lazy val root = (project in file("."))
       "com.github.pathikrit"  %% "better-files"             % "3.9.2",
       "org.rogach"            %% "scallop"                  % "5.0.1",
       "com.github.blemale"    %% "scaffeine"                % "5.2.1",
-      "org.apache.kafka"       % "kafka-clients"            % "3.6.0",
+      "org.apache.kafka"       % "kafka-clients"            % "3.6.1",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
@@ -56,7 +56,7 @@ lazy val root = (project in file("."))
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
       "io.lettuce"             % "lettuce-core"             % "6.3.1.RELEASE",
       "com.google.guava"       % "guava"                    % "33.0.0-jre",
-      "commons-io"             % "commons-io"               % "2.15.0",
+      "commons-io"             % "commons-io"               % "2.15.1",
       "com.google.guava"       % "guava"                    % "32.1.2-jre",
       "io.sentry"              % "sentry-logback"           % "7.2.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
@@ -72,11 +72,11 @@ lazy val root = (project in file("."))
       ),
       "org.rocksdb"               % "rocksdbjni"     % "8.9.1",
       "org.mapdb"                 % "mapdb"          % "3.0.10" exclude ("net.jpountz.lz4", "lz4"),
-      "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
+      "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.11", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.3",
-      "ai.djl"                    % "api"            % "0.25.0",
-      "ai.djl.huggingface"        % "tokenizers"     % "0.25.0"
+      "ai.djl"                    % "api"            % "0.26.0",
+      "ai.djl.huggingface"        % "tokenizers"     % "0.26.0"
     ),
     excludeDependencies ++= Seq(
       "commons-logging" % "commons-logging"

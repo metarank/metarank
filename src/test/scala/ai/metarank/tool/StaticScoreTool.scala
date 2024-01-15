@@ -12,7 +12,6 @@ import cats.data.NonEmptyList
 import cats.effect.kernel.Resource
 import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s.{Entity, EntityDecoder, Method, Request, Uri}
-import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.client.Client
 import scodec.bits.ByteVector
 import io.circe.syntax._
@@ -21,6 +20,7 @@ import cats.implicits._
 import java.util.UUID
 import scala.concurrent.duration._
 import org.http4s.circe._
+import org.http4s.ember.client.EmberClientBuilder
 
 object StaticScoreTool extends IOApp with Logging {
   // loads the dataset and emits static scores
@@ -66,8 +66,8 @@ object StaticScoreTool extends IOApp with Logging {
   }
 
   def makeClient(): Resource[IO, Client[IO]] =
-    BlazeClientBuilder[IO]
-      .withRequestTimeout(10.second)
-      .withConnectTimeout(10.second)
-      .resource
+    EmberClientBuilder
+      .default[IO]
+      .withTimeout(10.second)
+      .build
 }

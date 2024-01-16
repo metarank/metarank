@@ -69,7 +69,9 @@ lazy val root = (project in file("."))
       "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (
         ExclusionRule("org.nd4j", "guava"),
         ExclusionRule("org.nd4j", "protobuf"),
-        ExclusionRule("com.squareup.okio", "okio")
+        ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk7"),
+        ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
+        ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
       "org.rocksdb"               % "rocksdbjni"     % "8.9.1",
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),

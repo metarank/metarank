@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.12"
-ThisBuild / version      := "0.7.4"
+ThisBuild / version      := "0.7.5"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -24,11 +24,11 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.5.2",
+      "org.typelevel"         %% "cats-effect"              % "3.5.3",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.4.7",
+      "ch.qos.logback"         % "logback-classic"          % "1.4.14",
       "io.circe"              %% "circe-yaml"               % circeYamlVersion,
       "io.circe"              %% "circe-core"               % circeVersion,
       "io.circe"              %% "circe-generic"            % circeVersion,
@@ -37,15 +37,15 @@ lazy val root = (project in file("."))
       "com.github.pathikrit"  %% "better-files"             % "3.9.2",
       "org.rogach"            %% "scallop"                  % "5.0.1",
       "com.github.blemale"    %% "scaffeine"                % "5.2.1",
-      "org.apache.kafka"       % "kafka-clients"            % "3.6.0",
+      "org.apache.kafka"       % "kafka-clients"            % "3.6.1",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
-      "org.http4s"            %% "http4s-blaze-server"      % http4sVersion,
-      "org.http4s"            %% "http4s-blaze-client"      % http4sVersion,
+      "org.http4s"            %% "http4s-ember-server"      % http4sVersion,
+      "org.http4s"            %% "http4s-ember-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
-      "io.github.metarank"    %% "ltrlib"                   % "0.2.2",
-      "com.github.ua-parser"   % "uap-java"                 % "1.5.4",
+      "io.github.metarank"    %% "ltrlib"                   % "0.2.4",
+      "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-common"   % luceneVersion,
@@ -54,11 +54,11 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
-      "io.lettuce"             % "lettuce-core"             % "6.3.0.RELEASE",
-      "com.google.guava"       % "guava"                    % "32.1.3-jre",
-      "commons-io"             % "commons-io"               % "2.15.0",
+      "io.lettuce"             % "lettuce-core"             % "6.3.1.RELEASE",
+      "com.google.guava"       % "guava"                    % "33.0.0-jre",
+      "commons-io"             % "commons-io"               % "2.15.1",
       "com.google.guava"       % "guava"                    % "32.1.2-jre",
-      "io.sentry"              % "sentry-logback"           % "6.34.0",
+      "io.sentry"              % "sentry-logback"           % "7.2.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -68,15 +68,18 @@ lazy val root = (project in file("."))
       "org.apache.commons"     % "commons-rng-simple"       % "1.5",
       "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (
         ExclusionRule("org.nd4j", "guava"),
-        ExclusionRule("org.nd4j", "protobuf")
+        ExclusionRule("org.nd4j", "protobuf"),
+        ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk7"),
+        ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
+        ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "8.8.1",
-      "org.mapdb"                 % "mapdb"          % "3.0.10" exclude ("net.jpountz.lz4", "lz4"),
-      "com.github.jelmerk"        % "hnswlib-core"   % "1.1.0",
-      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.9", // librec uses commons-logging, which is JCL
+      "org.rocksdb"               % "rocksdbjni"     % "8.9.1",
+      "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
+      "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
+      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.11", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.16.3",
-      "ai.djl"                    % "api"            % "0.25.0",
-      "ai.djl.huggingface"        % "tokenizers"     % "0.25.0"
+      "ai.djl"                    % "api"            % "0.26.0",
+      "ai.djl.huggingface"        % "tokenizers"     % "0.26.0"
     ),
     excludeDependencies ++= Seq(
       "commons-logging" % "commons-logging"
@@ -128,6 +131,7 @@ lazy val root = (project in file("."))
       case "findbugsExclude.xml"                                                 => MergeStrategy.discard
       case "log4j2-test.properties"                                              => MergeStrategy.discard
       case x if x.endsWith("/module-info.class")                                 => MergeStrategy.discard
+      case x if x.startsWith("META-INF/versions/9/org/yaml/snakeyaml/internal")  => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)

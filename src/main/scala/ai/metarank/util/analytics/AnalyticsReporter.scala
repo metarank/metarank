@@ -4,25 +4,25 @@ import ai.metarank.main.Constants
 import ai.metarank.model.AnalyticsPayload
 import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.Chunk
 import io.circe.Printer
-import org.http4s.blaze.client.BlazeClientBuilder
-import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.{Entity, Method, Request, Uri}
 
 import scala.concurrent.duration._
 import io.circe.syntax._
+import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 import scodec.bits.ByteVector
 
 object AnalyticsReporter extends Logging {
   val jsonFormat = Printer.noSpaces.copy(dropNullValues = true)
 
   def ping(enabled: Boolean, payload: AnalyticsPayload): IO[Unit] = {
-    val clientResource = BlazeClientBuilder[IO]
-      .withRequestTimeout(10.second)
-      .withConnectTimeout(10.second)
-      .withScheduler(new TickWheelExecutor(tick = 50.millis))
-      .resource
+    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    val clientResource = EmberClientBuilder
+      .default[IO]
+      .withTimeout(10.second)
+      .build
     clientResource
       .use(http =>
         for {

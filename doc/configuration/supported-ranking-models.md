@@ -44,12 +44,15 @@ To configure the model, use the following snippet:
 #    selector: # optional set of selectors to filter events for this specific model
 #      rankingField: source
 #      value: search
+
+#    split: optional definition of train/test splitting strategy. See below for examples.
 ```
 
 * `backend`: *required*, *xgboost* or *lightgbm*, specifies the backend and it's configuration.
 * `weights`: *required*, *list of string:number pairs*, specifies what interaction events are used for training. You can specify multiple events with different weights.
 * `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature-extractors.md) documentation.
 * `selector`: *optional*, *list of selectors*, a set of rules to filter which events should be accepted by this model.
+* `split`: *optional*, a train/test splitting strategy. Default: `time=80%`. Options: `random`/`hold_last`/`time` with an optional ratio (default: 80%, which means 80% allocated to train, 20% to test). Example: `random=80%` means split dataset randomly, 80% should be allocated to the train set.
 
 ### Interaction weight
 
@@ -135,6 +138,19 @@ selector:
 ```
 AND and OR selectors take a list of nested selectors as arguments, NOT selector only takes a single selector argument.
 
+### Train/test splitting strategies
+
+Metarank supports three train/test splitting strategies:
+
+* `random`: split dataset randomly.
+* `hold_last`: for each session having multiple rankings, take last N% of rankings as a test set. Can be useful to measure an in-session personalization impact .
+* `time`: split dataset by a timestamp.
+
+Each strategy definition in a config file can be optionally configured with a split ratio - 80% by default. An example:
+
+* `random=80%`: split dataset randomly. Be careful with random splitting, as it may introduce label leaking.
+* `hold_last`: split within session with a default 80% splitting ratio.
+
 ### XGBoost and LightGBM backend options
 
 * *iterations*: *optional*, *number*, default: *100*, number of trees in the model.
@@ -143,6 +159,7 @@ AND and OR selectors take a list of nested selectors as arguments, NOT selector 
 * *maxDepth*: *optional*, *number*, default: *8*, the depth of the tree.
 * *seed*: *optional*, *string* or *number*, default: *random* to make model training deterministic.
 * *sampling*: *optional*, default: 0.8, fraction of features used to build a tree, useful to prevent over-fitting.
+* *debias*: *optional*, default: false. Enable booster-native position bias removal support. See these two articles about the unbiased LTR for [XGBoost](https://xgboost.readthedocs.io/en/latest/tutorials/learning_to_rank.html#position-bias) and [LightGBM](https://lightgbm.readthedocs.io/en/latest/Advanced-Topics.html#support-for-position-bias-treatment) for details.
 
 LightGBM also supports these specific options:
 * *numLeaves*: *optional*, *number*, default: *16*, how many leaves the tree may have.

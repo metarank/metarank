@@ -31,7 +31,7 @@ class TrainApiTest extends AnyFlatSpec with Matchers {
     val request = Request[IO](
       uri = Uri.unsafeFromString("http://localhost/feedback"),
       method = Method.POST,
-      entity = Entity(Stream.emits(json.getBytes))
+      entity = Entity.stream(Stream.emits(json.getBytes))
     )
     val response = feedback.routes(request).value.unsafeRunSync()
     response.map(_.status.code) shouldBe Some(200)

@@ -3,6 +3,11 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.5
+
+* [Unbiased LTR support](configuration/supported-ranking-models.md#xgboost-and-lightgbm-backend-options)
+* [Train/test splitting strategy support](configuration/supported-ranking-models.md#traintest-splitting-strategies)
+
 ## 0.7.4
 
 * support for rocksdb-backed file storage

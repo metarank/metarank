@@ -26,7 +26,7 @@ To enable structured logging via [logstash-logback-encoder](https://github.com/l
 can build a custom Docker image with the following Dockerfile:
 
 ```shell
-FROM metarank/metarank:0.7.4-amd64
+FROM metarank/metarank:0.7.5-amd64
 
 # add logback configuration file to the image
 ADD logback.xml /app/

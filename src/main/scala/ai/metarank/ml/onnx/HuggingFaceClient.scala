@@ -14,6 +14,8 @@ import org.http4s.client.Client
 import org.http4s.circe._
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import java.io.ByteArrayOutputStream
 import scala.concurrent.duration._
@@ -79,11 +81,14 @@ object HuggingFaceClient {
   implicit val modelSiblingCodec: Codec[Sibling]        = deriveCodec[Sibling]
   implicit val modelResponseCodec: Codec[ModelResponse] = deriveCodec[ModelResponse]
 
-  def create(endpoint: String = HUGGINGFACE_API_ENDPOINT): Resource[IO, HuggingFaceClient] = for {
-    uri    <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
-    client <- EmberClientBuilder.default[IO].withTimeout(200.seconds).build
-  } yield {
-    HuggingFaceClient(client, uri)
+  def create(endpoint: String = HUGGINGFACE_API_ENDPOINT): Resource[IO, HuggingFaceClient] = {
+    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    for {
+      uri    <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
+      client <- EmberClientBuilder.default[IO].withTimeout(200.seconds).build
+    } yield {
+      HuggingFaceClient(client, uri)
+    }
   }
 
 }

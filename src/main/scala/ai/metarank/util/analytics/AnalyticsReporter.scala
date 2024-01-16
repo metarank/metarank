@@ -10,12 +10,15 @@ import org.http4s.{Entity, Method, Request, Uri}
 import scala.concurrent.duration._
 import io.circe.syntax._
 import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 import scodec.bits.ByteVector
 
 object AnalyticsReporter extends Logging {
   val jsonFormat = Printer.noSpaces.copy(dropNullValues = true)
 
   def ping(enabled: Boolean, payload: AnalyticsPayload): IO[Unit] = {
+    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     val clientResource = EmberClientBuilder
       .default[IO]
       .withTimeout(10.second)

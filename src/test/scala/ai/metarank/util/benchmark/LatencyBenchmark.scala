@@ -30,6 +30,8 @@ import scala.util.Random
 import io.circe.syntax._
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
 import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 import scodec.bits.ByteVector
 
 object LatencyBenchmark extends IOApp with Logging {
@@ -86,30 +88,33 @@ object LatencyBenchmark extends IOApp with Logging {
     ExitCode.Success
   }
 
-  def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = for {
-    store <- Persistence.fromConfig(mapping.schema, conf.state, ImportCacheConfig())
-    cts   <- TrainStore.fromConfig(conf.train)
-    buffer <- Resource.liftK(
-      Standalone
-        .prepare(
-          conf,
-          store,
-          cts,
-          mapping,
-          StandaloneArgs(
-            conf = Paths.get(confPath),
-            data = Paths.get(dataPath),
-            offset = SourceOffset.Earliest,
-            validation = false,
-            format = JsonFormat,
-            sort = SortingType.SortByName
+  def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = {
+    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    for {
+      store <- Persistence.fromConfig(mapping.schema, conf.state, ImportCacheConfig())
+      cts   <- TrainStore.fromConfig(conf.train)
+      buffer <- Resource.liftK(
+        Standalone
+          .prepare(
+            conf,
+            store,
+            cts,
+            mapping,
+            StandaloneArgs(
+              conf = Paths.get(confPath),
+              data = Paths.get(dataPath),
+              offset = SourceOffset.Earliest,
+              validation = false,
+              format = JsonFormat,
+              sort = SortingType.SortByName
+            )
           )
-        )
-    )
-    api    <- Serve.api(store, cts, mapping, conf.api, buffer, conf.inference).background
-    client <- EmberClientBuilder.default[IO].withTimeout(1.second).build
-  } yield {
-    Services(store, client)
+      )
+      api    <- Serve.api(store, cts, mapping, conf.api, buffer, conf.inference).background
+      client <- EmberClientBuilder.default[IO].withTimeout(1.second).build
+    } yield {
+      Services(store, client)
+    }
   }
 
   def bench(client: Client[IO], model: String, items: Int, requests: Int): IO[BenchResult] = for {

@@ -14,6 +14,8 @@ import org.http4s.{EntityDecoder, EntityEncoder, Method, Request, Uri}
 import org.http4s.circe._
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.util.UUID
@@ -93,10 +95,13 @@ object QdrantIndex extends Logging {
       QdrantIndexReader(uri, client, ids.toMap, ids.map(x => x._2 -> x._1).toMap)
     }
 
-    def makeClient() = EmberClientBuilder
-      .default[IO]
-      .withTimeout(10.second)
-      .build
+    def makeClient() = {
+      implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+      EmberClientBuilder
+        .default[IO]
+        .withTimeout(10.second)
+        .build
+    }
 
     def createCollection(client: Client[IO], uri: Uri, dim: Int, dist: String): IO[QdrantResponse] = {
       info(s"creating collection $uri") *> client.expect[QdrantResponse](

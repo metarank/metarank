@@ -9,25 +9,15 @@ import cats.effect.{ExitCode, IO, IOApp}
 import fs2.io.file.{Files, Path}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.http4s.{
-  AuthScheme,
-  Credentials,
-  Entity,
-  EntityDecoder,
-  EntityEncoder,
-  Header,
-  Headers,
-  MediaType,
-  Method,
-  Request,
-  Uri
-}
+import org.http4s.{AuthScheme, Credentials, Entity, EntityDecoder, EntityEncoder, Header, Headers, MediaType, Method, Request, Uri}
 import org.http4s.client.Client
 import io.circe.syntax._
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.circe.CirceEntityEncoder._
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import scala.concurrent.duration._
 
@@ -72,11 +62,13 @@ object CoherePrecompute extends IOApp with Logging {
       .expect[CohereResponse](makeRequest(token, CohereRequest("large", List(str))))
       .map(resp => id -> resp.embeddings(0).toArray)
 
-  def makeClient(): Resource[IO, Client[IO]] =
+  def makeClient(): Resource[IO, Client[IO]] = {
+    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     EmberClientBuilder
       .default[IO]
       .withTimeout(10.second)
       .build
+  }
 
   def makeRequest(token: String, req: CohereRequest) = {
     Request[IO](

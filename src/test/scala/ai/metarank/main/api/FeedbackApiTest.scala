@@ -63,7 +63,7 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
-      entity = Entity(stream)
+      entity = Entity.stream(stream)
     )
     val response = service.routes(request).value.unsafeRunSync().get
     response.status.code shouldBe 200

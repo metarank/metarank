@@ -30,7 +30,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, Da
 import java.util
 import scala.util.{Failure, Random, Success, Try}
 
-object LambdaMARTRanker {
+object LambdaMARTRanker extends Logging {
 
   import ai.metarank.util.DurationJson._
 
@@ -324,15 +324,33 @@ object LambdaMARTRanker {
 
   implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder.instance(c =>
     for {
-      backend  <- c.downField("backend").as[Option[BoosterConfig]]
-      features <- c.downField("features").as[NonEmptyList[FeatureName]]
-      weights  <- c.downField("weights").as[Option[Map[String, Double]]]
-      selector <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
-      split    <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
+      backendOption <- c.downField("backend").as[Option[BoosterConfig]]
+      features      <- c.downField("features").as[NonEmptyList[FeatureName]]
+      weightsOption <- c.downField("weights").as[Option[Map[String, Double]]]
+      selector      <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
+      split         <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
     } yield {
-      LambdaMARTConfig(backend.getOrElse(XGBoostConfig()), features, weights.getOrElse(Map.empty), selector, split)
+      val backend        = backendOption.getOrElse(XGBoostConfig())
+      val weights        = weightsOption.getOrElse(Map.empty)
+      val clippedWeights = maybeClipWeights(backend, weights)
+      LambdaMARTConfig(backend, features, clippedWeights, selector, split)
     }
   )
   implicit val lmEncoder: Encoder[LambdaMARTConfig] = deriveEncoder
 
+  def maybeClipWeights(backend: BoosterConfig, weights: Map[String, Double]): Map[String, Double] = {
+    backend match {
+      case x: XGBoostConfig if weights.values.exists(_ > 31) =>
+        logger.warn(
+          "XGBoost uses exponential weighting during optimization, and does not allow" +
+            s" item weights being > 31. Current weights: ${weights}. Clipping all weights to 31."
+        )
+        weights.map { case (name, w) =>
+          name -> math.min(31.0, w)
+        }
+      case _ =>
+        // no change
+        weights
+    }
+  }
 }

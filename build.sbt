@@ -73,7 +73,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "8.9.1",
+      "org.rocksdb"               % "rocksdbjni"     % "8.10.0",
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.11", // librec uses commons-logging, which is JCL

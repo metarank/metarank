@@ -11,6 +11,6 @@ class ScopeTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode item+field scope" in {
-    Scope.fromString("fi=foo:bar:i1") shouldBe Right(RankingFieldScope("foo", "bar", ItemId("i1")))
+    Scope.fromString("irf=foo:bar:i1") shouldBe Right(RankingFieldScope("foo", "bar", ItemId("i1")))
   }
 }

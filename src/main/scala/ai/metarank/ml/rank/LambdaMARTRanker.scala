@@ -322,20 +322,26 @@ object LambdaMARTRanker extends Logging {
   }
   case class MetricValue(value: Double, noopValue: Double, randomValue: Double, took: Long)
 
-  implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder.instance(c =>
-    for {
-      backendOption <- c.downField("backend").as[Option[BoosterConfig]]
-      features      <- c.downField("features").as[NonEmptyList[FeatureName]]
-      weightsOption <- c.downField("weights").as[Option[Map[String, Double]]]
-      selector      <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
-      split         <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
-    } yield {
-      val backend        = backendOption.getOrElse(XGBoostConfig())
-      val weights        = weightsOption.getOrElse(Map.empty)
-      val clippedWeights = maybeClipWeights(backend, weights)
-      LambdaMARTConfig(backend, features, clippedWeights, selector, split)
-    }
-  )
+  val forbiddenFeatureNames = Set("models", "state", "values")
+  implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder
+    .instance(c =>
+      for {
+        backendOption <- c.downField("backend").as[Option[BoosterConfig]]
+        features      <- c.downField("features").as[NonEmptyList[FeatureName]]
+        weightsOption <- c.downField("weights").as[Option[Map[String, Double]]]
+        selector      <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
+        split         <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
+      } yield {
+        val backend        = backendOption.getOrElse(XGBoostConfig())
+        val weights        = weightsOption.getOrElse(Map.empty)
+        val clippedWeights = maybeClipWeights(backend, weights)
+        LambdaMARTConfig(backend, features, clippedWeights, selector, split)
+      }
+    )
+    .ensure(
+      conf => conf.features.forall(f => !forbiddenFeatureNames.contains(f.value)),
+      s"feature names ${forbiddenFeatureNames} are reserved names, you cannot use them"
+    )
   implicit val lmEncoder: Encoder[LambdaMARTConfig] = deriveEncoder
 
   def maybeClipWeights(backend: BoosterConfig, weights: Map[String, Double]): Map[String, Double] = {

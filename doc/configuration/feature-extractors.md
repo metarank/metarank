@@ -67,7 +67,6 @@ The `scope: item` means that the extracted popularity field from item metadata s
 * [boolean](features/scalar.md#boolean-and-numerical-extractors): uses a raw boolean field as a 1 or 0 feature value.
 * [string](features/scalar.md#string-extractors): uses a raw string or list<string> field as an input and does a one-hot encoding of it.
 * [word_count](features/generic.md#word-count): how many words are in a string field.
-* [relative_number](features/generic.md#relative-number): scales a numerical field to make it fit 0..1 range.
 * [list_size](features/generic.md#list-size): size of string or numerical list.
 * [time_diff](features/generic.md#time-difference): difference in seconds between current timestamp and the numerical field value.
 * [field_match](features/text.md#field_match): match ranking field over item fields.

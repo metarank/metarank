@@ -13,47 +13,8 @@ You can use the `word_count` feature extractor to get the length of a string fie
 ```
 
 ## Relative number
-More advanced feature type, which can scale numerical feature using different methods. Example config for a static scaling with 
-predefined min and max values and log transformation:
-```yaml
-- name: price
-  type: relative_number
-  method:
-    type: minmax
-    min: 0
-    max: 100   
-  field: price
-  source: item
-  scope: item
-```
 
-Supported methods:
-* *minmax*: uses `min` and `max` fields to scale
-* *log_minmax*: uses `min` and `max` fields to scale, but the value is log-transformed before.
-* *estimate_minmax*: using a sample of latest `pool_size` events (sampled with `sample_rate` rate), estimate 
-min and max values used for scaling
-* *estimate_histogram*: using a sample of latest `pool_size` events (sampled with `sample_rate` rate), use a histogram scaling
-over `bucket_count` buckets. So for a price field from the example above, histogram scaling will translate absolute value
-into a percentile over a sampled pool of values.
-
-Estimate methods are useful for rough scaling of values, when you cannot easily define min and max:
-* `estimate_minmax` should be used when the value can be linearly scaled, and there are no outliers
-* `estimate_histogram` can handle skewed distributions and outliers, but has quantized output: there is only `bucket_count`
-possible output values.
-
-Example config for an `estimate_histogram`:
-```yaml
-- name: price
-  type: relative_number
-  method:
-    type: estimate_histogram
-    pool_size: 100 // for a pool size of 100
-    sample_rate: 10 // we sample every 10th event in the pool 
-    bucket_count: 5 // so value will be mapped to 0-20-40-60-80-100 percentiles
-  field: price
-  source: item
-  scope: item
-```
+> Update, v0.7.x: relative_number is deprecated and removed. Both XGBoost and LightGBM natively support this out of the box for all numeric features, so please use the [number](scalar.md#numerical-extractor) feature.   
 
 ## List size
 

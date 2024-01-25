@@ -10,8 +10,9 @@ import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import ai.metarank.model.Write._
 import ai.metarank.model.FeatureValue._
+import ai.metarank.model.Identifier.RankingId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.Scope.{GlobalScope, ItemScope, RankingFieldScope, RankingScope, SessionScope, UserScope}
 import ai.metarank.model.State.{
   BoundedListState,
   CounterState,
@@ -43,11 +44,13 @@ object Feature {
     def ttl: FiniteDuration
     def refresh: FiniteDuration
     def readKeys(event: Event.RankingEvent): Iterable[Key] = scope match {
-      case ScopeType.ItemScopeType     => event.items.toList.map(ir => Key(ItemScope(ir.id), name))
-      case ScopeType.UserScopeType     => event.user.map(u => Key(UserScope(u), name))
-      case ScopeType.SessionScopeType  => event.session.map(s => Key(SessionScope(s), name))
-      case ScopeType.GlobalScopeType   => Some(Key(GlobalScope, name))
-      case ScopeType.FieldScopeType(_) => None
+      case ScopeType.ItemScopeType            => event.items.toList.map(ir => Key(ItemScope(ir.id), name))
+      case ScopeType.UserScopeType            => event.user.map(u => Key(UserScope(u), name))
+      case ScopeType.SessionScopeType         => event.session.map(s => Key(SessionScope(s), name))
+      case ScopeType.GlobalScopeType          => Some(Key(GlobalScope, name))
+      case ScopeType.ItemFieldScopeType(_)    => None
+      case ScopeType.RankingFieldScopeType(_) => None
+      case ScopeType.RankingScopeType         => Some(Key(RankingScope(RankingId(event.id)), name))
     }
   }
 

@@ -3,8 +3,8 @@ package ai.metarank.feature
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, UserEvent}
 import ai.metarank.model.Feature.FeatureConfig
-import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.Scope.{GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.Identifier.{ItemId, RankingId}
+import ai.metarank.model.Scope.{GlobalScope, ItemScope, RankingScope, SessionScope, UserScope}
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
 import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import cats.effect.IO
@@ -26,11 +26,13 @@ sealed trait BaseFeature {
   }
 
   def readKey(event: RankingEvent, conf: FeatureConfig, id: ItemId): Option[Key] = conf.scope match {
-    case ScopeType.GlobalScopeType   => Some(Key(GlobalScope, conf.name))
-    case ScopeType.ItemScopeType     => Some(Key(ItemScope(id), conf.name))
-    case ScopeType.UserScopeType     => event.user.map(u => Key(UserScope(u), conf.name))
-    case ScopeType.SessionScopeType  => event.session.map(s => Key(SessionScope(s), conf.name))
-    case ScopeType.FieldScopeType(_) => None
+    case ScopeType.GlobalScopeType          => Some(Key(GlobalScope, conf.name))
+    case ScopeType.ItemScopeType            => Some(Key(ItemScope(id), conf.name))
+    case ScopeType.UserScopeType            => event.user.map(u => Key(UserScope(u), conf.name))
+    case ScopeType.SessionScopeType         => event.session.map(s => Key(SessionScope(s), conf.name))
+    case ScopeType.ItemFieldScopeType(_)    => None
+    case ScopeType.RankingFieldScopeType(_) => None
+    case ScopeType.RankingScopeType         => Some(Key(RankingScope(RankingId(event.id)), conf.name))
   }
 
   def valueKeys(event: RankingEvent): Iterable[Key]

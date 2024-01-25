@@ -1,8 +1,16 @@
 package ai.metarank.model
 
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
-import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
-import ai.metarank.model.ScopeType.{FieldScopeType, GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
+import ai.metarank.model.Identifier.{ItemId, RankingId, SessionId, UserId}
+import ai.metarank.model.ScopeType.{
+  GlobalScopeType,
+  ItemFieldScopeType,
+  ItemScopeType,
+  RankingFieldScopeType,
+  RankingScopeType,
+  SessionScopeType,
+  UserScopeType
+}
 import io.circe.{Codec, Decoder, Encoder}
 
 import scala.annotation.switch
@@ -25,10 +33,22 @@ object Scope {
     override val getType: ScopeType = ItemScopeType
   }
 
-  case class FieldScope(fieldName: String, fieldValue: String) extends Scope {
+  case class RankingScope(item: RankingId) extends Scope {
+    override val hashCode: Int      = item.value.hashCode
+    override val asString: String   = s"ranking=${item.value}"
+    override val getType: ScopeType = RankingScopeType
+  }
+
+  case class ItemFieldScope(fieldName: String, fieldValue: String) extends Scope {
     override val hashCode: Int      = fieldName.hashCode ^ fieldValue.hashCode
     override val asString: String   = s"field=$fieldName:$fieldValue"
-    override val getType: ScopeType = FieldScopeType(fieldName)
+    override val getType: ScopeType = ItemFieldScopeType(fieldName)
+  }
+
+  case class RankingFieldScope(fieldName: String, fieldValue: String, item: ItemId) extends Scope {
+    override val hashCode: Int      = fieldName.hashCode ^ fieldValue.hashCode ^ item.value.hashCode
+    override val asString: String   = s"irf=$fieldName:$fieldValue:${item.value}"
+    override val getType: ScopeType = RankingFieldScopeType(fieldName)
   }
 
   case object GlobalScope extends Scope {
@@ -54,13 +74,21 @@ object Scope {
           (left: @switch) match {
             case "item"    => Right(ItemScope(ItemId(right)))
             case "session" => Right(SessionScope(SessionId(right)))
+            case "ranking" => Right(RankingScope(RankingId(right)))
             case "user"    => Right(UserScope(UserId(right)))
             case "field" =>
               val tokens = right.split(':')
               if (tokens.length == 2) {
-                Right(FieldScope(tokens(0), tokens(1)))
+                Right(ItemFieldScope(tokens(0), tokens(1)))
               } else {
-                Left(new IllegalArgumentException(s"cannot parse itemfield value '$right'"))
+                Left(new IllegalArgumentException(s"cannot parse field scope value '$right'"))
+              }
+            case "irf" =>
+              val tokens = right.split(':')
+              if (tokens.length == 3) {
+                Right(RankingFieldScope(tokens(0), tokens(1), ItemId(tokens(2))))
+              } else {
+                Left(new IllegalArgumentException(s"cannot parse item field scope value '$right'"))
               }
             case _ => Left(new IllegalArgumentException(s"cannot parse scope $other"))
           }

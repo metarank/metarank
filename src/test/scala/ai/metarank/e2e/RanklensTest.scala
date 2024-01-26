@@ -89,10 +89,10 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val i3 = i1.copy(item = ItemId("8644"))
 
     val ranker = Ranker(mapping, store)
-    val resp1  = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
+    val resp1  = ranker.rerank(ranking, "xgboost", true, silent = false).unsafeRunSync()
 
     Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping, buffer, config).unsafeRunSync()
-    val resp2 = ranker.rerank(ranking, "xgboost", true).unsafeRunSync()
+    val resp2 = ranker.rerank(ranking, "xgboost", true, silent = false).unsafeRunSync()
     resp1 shouldNot be(resp2)
     resp1.items.map(_.item.value) shouldNot be(resp2.items.map(_.item.value))
   }

@@ -105,12 +105,12 @@ object LambdaMARTRanker extends Logging {
       with Logging {
     override def fit(data: fs2.Stream[IO, TrainValues]): IO[LambdaMARTModel] = for {
       sampleSize           <- IO(config.warmup.map(_.sampledRequests).getOrElse(0))
-      warmupRequestsBuffer <- Queue.dropping[IO, RankingEvent](sampleSize)
+      warmupRequestsBuffer <- Queue.unbounded[IO, RankingEvent]
       clickthroughs        <- loadDataset(data.through(sampleN(sampleSize, warmupRequestsBuffer)))
       split                <- splitDataset(config.split, desc, clickthroughs)
       _                    <- checkDatasetSize(split.train)
       result               <- IO(makeBooster(split))
-      warmupRequests       <- warmupRequestsBuffer.tryTakeN(Some(sampleSize))
+      warmupRequests       <- warmupRequestsBuffer.tryTakeN(None)
       model                <- IO.pure(LambdaMARTModel(name, config, result, warmupRequests))
       _ <- config.eval.map {
         case metric @ NdcgMetric(cutoff) =>

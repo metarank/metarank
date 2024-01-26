@@ -24,7 +24,7 @@ import cats.effect.IO
 import io.github.metarank.ltrlib.model.{DatasetDescriptor, Query}
 
 case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
-  def rerank(request: RankingEvent, modelName: String, explain: Boolean): IO[RankResponse] =
+  def rerank(request: RankingEvent, modelName: String, explain: Boolean, silent: Boolean): IO[RankResponse] =
     for {
       start <- IO { System.currentTimeMillis() }
       predictor <- mapping.models.get(modelName) match {
@@ -36,8 +36,8 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
       model <- loadModel(predictor, modelName)
       queryValues <- predictor match {
         case LambdaMARTPredictor(name, config, desc) =>
-          makeQuery(request, desc, config.features.toList.toSet)
-        case _ => makeQuery(request, DatasetDescriptor(Map.empty, Nil, 0), Set.empty)
+          makeQuery(request, desc, config.features.toList.toSet, silent = silent)
+        case _ => makeQuery(request, DatasetDescriptor(Map.empty, Nil, 0), Set.empty, silent = silent)
       }
       stateTook <- IO { System.currentTimeMillis() }
       scores    <- model.predict(QueryRequest(request, queryValues.query))
@@ -57,19 +57,19 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
               .sortBy(-_.score)
           }
       }
-      _ <- IO {
+      _ <- IO.whenA(!silent)(IO {
         val items   = result.map(is => s"${is.item.value}=${String.format("%.2f", is.score)}").toList.mkString(",")
         val total   = System.currentTimeMillis() - start
         val kendall = KendallCorrelation(request.items.map(_.id).toList, result.map(_.item).toList)
         logger.info(
           s"response: krr=$kendall user=${request.user.getOrElse("")} items=$items state=${stateTook - start}ms, total=${total}ms"
         )
-      }
+      })
 
     } yield {
       RankResponse(
         state = Option.when(explain)(StateValues(queryValues.state.values.toList)),
-        items = result.toList,
+        items = result,
         took = System.currentTimeMillis() - start
       )
     }
@@ -86,13 +86,13 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
     case other               => IO.raiseError(ModelError(s"model type $other not supported"))
   }
 
-  def makeQuery(request: RankingEvent, ds: DatasetDescriptor, modelFeatures: Set[FeatureName]) = for {
+  def makeQuery(request: RankingEvent, ds: DatasetDescriptor, modelFeatures: Set[FeatureName], silent: Boolean) = for {
     state <- FeatureValueLoader.fromStateBackend(mapping, request, store.values, modelFeatures)
     itemFeatureValues <- IO.fromEither(
       ItemValue.fromState(request, state, mapping, ValueMode.OnlineInference, modelFeatures)
     )
-    query <- IO { ClickthroughQuery(itemFeatureValues.toList, request.id.value, ds) }
-    _     <- IO { logger.info(s"generated query ${query.group} size=${query.columns}x${query.rows}") }
+    query <- IO { ClickthroughQuery(itemFeatureValues, request.id.value, ds) }
+    _     <- IO.whenA(!silent)(info(s"generated query ${query.group} size=${query.columns}x${query.rows}"))
   } yield {
     QueryValues(query, itemFeatureValues, state)
   }

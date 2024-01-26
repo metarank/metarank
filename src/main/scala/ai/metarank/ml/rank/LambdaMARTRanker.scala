@@ -2,7 +2,7 @@ package ai.metarank.ml.rank
 
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.Selector.AcceptSelector
-import ai.metarank.config.{BoosterConfig, ModelConfig, Selector}
+import ai.metarank.config.{BoosterConfig, ModelConfig, Selector, WarmupConfig}
 import ai.metarank.flow.{ClickthroughQuery, PrintProgress}
 import ai.metarank.flow.PrintProgress.ProgressPeriod
 import ai.metarank.main.command.Train.info
@@ -12,12 +12,15 @@ import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
 import ai.metarank.ml.rank.LambdaMARTRanker.EvalMetricName.{MapMetric, MrrMetric, NdcgMetric}
 import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.model.Event.{RankItem, RankingEvent}
 import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
-import ai.metarank.model.{FeatureWeight, QueryMetadata, TrainValues}
+import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.{FeatureWeight, Field, QueryMetadata, TrainValues}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.TrainValues.ClickthroughValues
-import ai.metarank.util.Logging
+import ai.metarank.util.{Logging, RankingEventFormat}
 import cats.data.NonEmptyList
+import cats.effect.std.Queue
 import cats.effect.{IO, ParallelF}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
@@ -27,6 +30,7 @@ import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 import org.apache.commons.io.FileUtils
 import cats.implicits._
+import fs2.Pipe
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.util
@@ -42,7 +46,8 @@ object LambdaMARTRanker extends Logging {
       weights: Map[String, Double],
       selector: Selector = AcceptSelector(),
       split: SplitStrategy = SplitStrategy.default,
-      eval: List[EvalMetricName] = EvalMetricName.default
+      eval: List[EvalMetricName] = EvalMetricName.default,
+      warmup: Option[WarmupConfig] = None
   ) extends ModelConfig
 
   sealed trait EvalMetricName {
@@ -93,17 +98,20 @@ object LambdaMARTRanker extends Logging {
     }
   }
 
-  val BITSTREAM_VERSION = 2
+  val BITSTREAM_VERSION = 3
 
   case class LambdaMARTPredictor(name: String, config: LambdaMARTConfig, desc: DatasetDescriptor)
       extends RankPredictor[LambdaMARTConfig, LambdaMARTModel]
       with Logging {
     override def fit(data: fs2.Stream[IO, TrainValues]): IO[LambdaMARTModel] = for {
-      clickthroughs <- loadDataset(data)
-      split         <- splitDataset(config.split, desc, clickthroughs)
-      _             <- checkDatasetSize(split.train)
-      result        <- IO(makeBooster(split))
-      model         <- IO.pure(LambdaMARTModel(name, config, result))
+      sampleSize           <- IO(config.warmup.map(_.sampledRequests).getOrElse(0))
+      warmupRequestsBuffer <- Queue.dropping[IO, RankingEvent](sampleSize)
+      clickthroughs        <- loadDataset(data.through(sampleN(sampleSize, warmupRequestsBuffer)))
+      split                <- splitDataset(config.split, desc, clickthroughs)
+      _                    <- checkDatasetSize(split.train)
+      result               <- IO(makeBooster(split))
+      warmupRequests       <- warmupRequestsBuffer.tryTakeN(Some(sampleSize))
+      model                <- IO.pure(LambdaMARTModel(name, config, result, warmupRequests))
       _ <- config.eval.map {
         case metric @ NdcgMetric(cutoff) =>
           model
@@ -121,6 +129,33 @@ object LambdaMARTRanker extends Logging {
     private def logMetric(metric: EvalMetricName, value: MetricValue) =
       info(
         s"$metric: source=${value.noopValue} reranked=${value.value} random=${value.randomValue} (took ${value.took})"
+      )
+
+    private def sampleN(n: Int, dest: Queue[IO, RankingEvent]): Pipe[IO, TrainValues, TrainValues] = in =>
+      in.evalMap(event =>
+        for {
+          size <- dest.size
+          _ <- IO.whenA(size < n)(event match {
+            case ClickthroughValues(ct, _) =>
+              NonEmptyList.fromList(ct.items) match {
+                case None => IO.unit
+                case Some(itemsNel) =>
+                  dest.offer(
+                    RankingEvent(
+                      id = event.id,
+                      timestamp = ct.ts,
+                      user = ct.user,
+                      session = ct.session,
+                      fields = ct.rankingFields,
+                      items = itemsNel.map(item => RankItem(ItemId(item.value)))
+                    )
+                  )
+              }
+            case _ => IO.unit
+          })
+        } yield {
+          event
+        }
       )
 
     def makeBooster(split: Split) = {
@@ -161,6 +196,7 @@ object LambdaMARTRanker extends Logging {
       case Some(blob) =>
         val stream = new DataInputStream(new ByteArrayInputStream(blob))
         Try(stream.readByte()) match {
+          case Success(2) => loadSyncV2(stream)
           case Success(BITSTREAM_VERSION) =>
             val featuresSize = stream.readInt()
             val features     = (0 until featuresSize).map(_ => FeatureName(stream.readUTF())).toList
@@ -174,9 +210,11 @@ object LambdaMARTRanker extends Logging {
               val size        = stream.readInt()
               val buf         = new Array[Byte](size)
               stream.read(buf)
+              val warmupSampleSize = stream.readInt()
+              val warmupRequests   = (0 until warmupSampleSize).map(_ => RankingEventFormat.read(stream))
               boosterType match {
-                case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf)))
-                case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf)))
+                case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf), warmupRequests.toList))
+                case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf), warmupRequests.toList))
                 case other => Left(new Exception(s"unsupported booster tag $other"))
               }
             }
@@ -186,6 +224,28 @@ object LambdaMARTRanker extends Logging {
             )
           case Failure(ex) => Left(ex)
         }
+    }
+
+    private def loadSyncV2(stream: DataInputStream): Either[Exception, LambdaMARTModel] = {
+      val featuresSize = stream.readInt()
+      val features     = (0 until featuresSize).map(_ => FeatureName(stream.readUTF())).toList
+      if (features != config.features.toList) {
+        val expected = features.map(_.value)
+        val actual   = config.features.map(_.value).toList
+        Left(new Exception(s"""booster trained with $expected features, but config defines $actual
+                              |You may need to retrain the model with the newer config""".stripMargin))
+      } else {
+        val boosterType = stream.readByte()
+        val size        = stream.readInt()
+        val buf         = new Array[Byte](size)
+        stream.read(buf)
+        boosterType match {
+          case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf)))
+          case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf)))
+          case other => Left(new Exception(s"unsupported booster tag $other"))
+        }
+      }
+
     }
 
     def splitDataset(splitter: SplitStrategy, desc: DatasetDescriptor, clickthroughs: List[QueryMetadata]): IO[Split] =
@@ -289,7 +349,13 @@ object LambdaMARTRanker extends Logging {
     }
   }
 
-  case class LambdaMARTModel(name: String, conf: LambdaMARTConfig, booster: Booster[_]) extends RankModel with Logging {
+  case class LambdaMARTModel(
+      name: String,
+      conf: LambdaMARTConfig,
+      booster: Booster[_],
+      warmupRequests: List[RankingEvent] = Nil
+  ) extends RankModel
+      with Logging {
     override def predict(request: QueryRequest): IO[Model.Response] = {
       IO(booster.predictMat(request.query.values, request.query.rows, request.query.columns).toList).flatMap {
         case head :: tail =>
@@ -323,6 +389,8 @@ object LambdaMARTRanker extends Logging {
         case _ =>
           logger.warn("serializing unsupported booster")
       }
+      stream.writeInt(warmupRequests.size)
+      warmupRequests.foreach(request => RankingEventFormat.write(request, stream))
       Some(buf.toByteArray)
     }
 
@@ -394,11 +462,12 @@ object LambdaMARTRanker extends Logging {
         selector      <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
         split         <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
         eval          <- c.downField("eval").as[Option[List[EvalMetricName]]].map(_.getOrElse(EvalMetricName.default))
+        warmup        <- c.downField("warmup").as[Option[WarmupConfig]]
       } yield {
         val backend        = backendOption.getOrElse(XGBoostConfig())
         val weights        = weightsOption.getOrElse(Map.empty)
         val clippedWeights = maybeClipWeights(backend, weights)
-        LambdaMARTConfig(backend, features, clippedWeights, selector, split, eval)
+        LambdaMARTConfig(backend, features, clippedWeights, selector, split, eval, warmup)
       }
     )
     .ensure(

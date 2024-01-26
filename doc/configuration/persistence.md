@@ -36,6 +36,7 @@ state:
   cache:           # optional
     maxSize: 1024  # size of in-memory client-side cache for hot keys, optional, default=1024
     ttl: 1h        # how long should key-values should be cached, optional, default=1h
+    clientTracking: true # should we subscribe for CLIENT TRACKING invalidation events
 
   pipeline:         # optional
     maxSize: 128    # batch write buffer size, optional, default=128
@@ -207,4 +208,6 @@ important factor.
 
 * Metarank requires Redis 6+ due to a lack of client-side caching support in 5.x
   * you can disable client caching altogether (for example, for managed Redis-compatible engines, like GCP Memorystore Redis) with `cache.maxSize: 0`.
+  * For GCP Memorystore Redis, you can also set `state.cache.clientTracking: false` to disable the `CLIENT TRACKING` cache 
+  eviction support: GCP Memstore has client-side caching disabled even on 7.x Redis cluster.
 * Redis Cluster is not yet supported; see ticket [568](https://github.com/metarank/metarank/issues/568) for the progress.

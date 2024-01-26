@@ -115,8 +115,8 @@ object AnalyticsPayload {
         case _: FileStateConfig   => "file"
       },
       modelTypes = config.models.values.map {
-        case LambdaMARTConfig(_: LightGBMConfig, _, _, _, _) => "lambdamart-lightgbm"
-        case LambdaMARTConfig(_: XGBoostConfig, _, _, _, _)  => "lambdamart-xgboost"
+        case LambdaMARTConfig(_: LightGBMConfig, _, _, _, _, _) => "lambdamart-lightgbm"
+        case LambdaMARTConfig(_: XGBoostConfig, _, _, _, _, _)  => "lambdamart-xgboost"
         case ShuffleConfig(_, _)                             => "shuffle"
         case NoopConfig(_)                                   => "noop"
         case TrendingConfig(_, _)                            => "trending"

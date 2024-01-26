@@ -47,6 +47,15 @@ class ModelConfigTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "fail on reserved feature names on lambdamart model config" in {
+    val yaml =
+      """
+        |type: lambdamart
+        |features: [state]""".stripMargin
+    val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[ModelConfig])
+    decoded shouldBe a[Left[_, _]]
+  }
+
   it should "clip xgboost weights for lmart" in {
     val yaml =
       """

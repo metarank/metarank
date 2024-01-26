@@ -49,16 +49,18 @@ object StateStoreConfig extends Logging {
       }
     )
 
-    case class CacheConfig(maxSize: Int = 4096, ttl: FiniteDuration = 1.hour)
+    case class CacheConfig(maxSize: Int = 4096, ttl: FiniteDuration = 1.hour, clientTracking: Boolean = true)
 
     implicit val cacheConfigDecoder: Decoder[CacheConfig] = Decoder.instance(c =>
       for {
-        maxSize <- c.downField("maxSize").as[Option[Int]]
-        ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
+        maxSize    <- c.downField("maxSize").as[Option[Int]]
+        ttl        <- c.downField("ttl").as[Option[FiniteDuration]]
+        invalidate <- c.downField("clientTracking").as[Option[Boolean]]
       } yield {
         CacheConfig(
           maxSize = maxSize.getOrElse(CacheConfig().maxSize),
-          ttl = ttl.getOrElse(CacheConfig().ttl)
+          ttl = ttl.getOrElse(CacheConfig().ttl),
+          clientTracking = invalidate.getOrElse(true)
         )
       }
     )

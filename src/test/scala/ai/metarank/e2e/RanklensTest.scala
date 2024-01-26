@@ -4,9 +4,9 @@ import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.flow.TrainBuffer
-import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
+import ai.metarank.fstore.memory.{MemPersistence, MemTrainStore}
 import ai.metarank.main.command.train.SplitStrategy
-import ai.metarank.main.command.{Import, Train}
+import ai.metarank.main.command.{Import, Serve, Train}
 import ai.metarank.model.Event.{InteractionEvent, RankItem, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{EventId, Timestamp}
@@ -33,7 +33,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
   val model       = mapping.models("xgboost").asInstanceOf[LambdaMARTPredictor]
   val modelConfig = config.models("xgboost").asInstanceOf[LambdaMARTConfig]
   lazy val buffer = TrainBuffer(ClickthroughJoinConfig(), store.values, cts, mapping)
-
+  lazy val ranker = Ranker(mapping, store)
   it should "import events" in {
     Import.slurp(fs2.Stream.emits(RanklensEvents()), store, mapping, buffer, config).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()
@@ -41,6 +41,10 @@ class RanklensTest extends AnyFlatSpec with Matchers {
 
   it should "train the xgboost model" in {
     Train.train(store, cts, model).unsafeRunSync()
+  }
+
+  it should "do the warmup" in {
+    Serve.maybeWarmup(mapping, store, ranker).compile.drain.unsafeRunSync()
   }
 
   it should "rerank things" in {
@@ -88,8 +92,7 @@ class RanklensTest extends AnyFlatSpec with Matchers {
     val i2 = i1.copy(item = ItemId("109487"))
     val i3 = i1.copy(item = ItemId("8644"))
 
-    val ranker = Ranker(mapping, store)
-    val resp1  = ranker.rerank(ranking, "xgboost", true, silent = false).unsafeRunSync()
+    val resp1 = ranker.rerank(ranking, "xgboost", true, silent = false).unsafeRunSync()
 
     Import.slurp(fs2.Stream.emits(List(ranking, i1, i2, i3)), store, mapping, buffer, config).unsafeRunSync()
     val resp2 = ranker.rerank(ranking, "xgboost", true, silent = false).unsafeRunSync()

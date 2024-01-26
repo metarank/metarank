@@ -31,6 +31,9 @@ models:
 
   xgboost:
     type: lambdamart
+    warmup:
+      sampleRequests: 100
+      duration: 1s
     backend:
       type: lightgbm
       iterations: 500

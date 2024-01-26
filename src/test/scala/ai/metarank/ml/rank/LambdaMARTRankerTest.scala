@@ -1,6 +1,7 @@
 package ai.metarank.ml.rank
 
 import ai.metarank.config.BoosterConfig.XGBoostConfig
+import ai.metarank.config.WarmupConfig
 import ai.metarank.ml.Predictor.EmptyDatasetException
 import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
@@ -11,8 +12,8 @@ import cats.effect.unsafe.implicits.global
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
 
-import scala.util.{Failure, Try}
-
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration._
 class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest, LambdaMARTModel] {
   val conf = LambdaMARTConfig(
     backend = XGBoostConfig(),
@@ -59,5 +60,20 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     val blob   = model.save()
     val result = Try(pred2.load(blob).unsafeRunSync())
     result.isSuccess shouldBe false
+  }
+
+  it should "roundtrip with warmup requests" in {
+    val conf = LambdaMARTConfig(
+      backend = XGBoostConfig(),
+      features = NonEmptyList.of(FeatureName("foo")),
+      weights = Map("click" -> 1.0),
+      warmup = Some(WarmupConfig(sampledRequests = 10, duration = 1.second))
+    )
+    val desc   = DatasetDescriptor(List(SingularFeature("bar")))
+    val pred2  = LambdaMARTPredictor("foo", conf, desc)
+    val model  = pred2.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val blob   = model.save()
+    val result = Try(pred2.load(blob).unsafeRunSync())
+    result.map(_.warmupRequests.size) shouldBe Success(10)
   }
 }

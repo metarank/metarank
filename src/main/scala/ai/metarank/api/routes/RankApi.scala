@@ -29,7 +29,7 @@ case class RankApi(ranker: Ranker) extends Logging {
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))
       _           <- IO { logRequest(model, request) }
-      response    <- ranker.rerank(request, model, explain.getOrElse(false))
+      response    <- ranker.rerank(request, model, explain.getOrElse(false), silent = false)
       _           <- IO(start.observeDuration())
     } yield {
       Response[IO](

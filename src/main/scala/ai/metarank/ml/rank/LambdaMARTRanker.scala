@@ -10,6 +10,7 @@ import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.train.SplitStrategy.{Split, splitDecoder}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
+import ai.metarank.ml.rank.LambdaMARTRanker.EvalMetricName.{MapMetric, MrrMetric, NdcgMetric}
 import ai.metarank.ml.{Model, Predictor}
 import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
 import ai.metarank.model.{FeatureWeight, QueryMetadata, TrainValues}
@@ -21,10 +22,11 @@ import cats.effect.{IO, ParallelF}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
-import io.github.metarank.ltrlib.metric.{MRR, Metric, NDCG}
+import io.github.metarank.ltrlib.metric.{MAP, MRR, Metric, NDCG}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 import org.apache.commons.io.FileUtils
+import cats.implicits._
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.util
@@ -39,8 +41,57 @@ object LambdaMARTRanker extends Logging {
       features: NonEmptyList[FeatureName],
       weights: Map[String, Double],
       selector: Selector = AcceptSelector(),
-      split: SplitStrategy = SplitStrategy.default
+      split: SplitStrategy = SplitStrategy.default,
+      eval: List[EvalMetricName] = EvalMetricName.default
   ) extends ModelConfig
+
+  sealed trait EvalMetricName {
+    def name: String
+    def cutoff: Option[Int]
+
+    override def toString: String = cutoff match {
+      case Some(value) => s"$name@$value"
+      case None        => name
+    }
+  }
+  object EvalMetricName {
+    case class NdcgMetric(cutoff: Option[Int]) extends EvalMetricName {
+      def name = "NDCG"
+    }
+    case class MapMetric(cutoff: Option[Int]) extends EvalMetricName {
+      def name = "MAP"
+    }
+    case class MrrMetric() extends EvalMetricName {
+      def cutoff = None
+      def name   = "MRR"
+    }
+
+    val metricPattern       = "([A-Za-z]+)".r
+    val metricCutoffPattern = "([a-zA-Z]+)@([0-9]+)".r
+
+    val default = List(NdcgMetric(Some(10)))
+
+    def fromString(name: String, cutoff: Option[Int] = None): Either[Throwable, EvalMetricName] =
+      name.toLowerCase() match {
+        case "ndcg" => Right(NdcgMetric(cutoff))
+        case "map"  => Right(MapMetric(cutoff))
+        case "mrr"  => Right(MrrMetric())
+        case other  => Left(new Exception(s"cannot decode metric $other"))
+      }
+
+    implicit val evalMetricNameDecoder: Decoder[EvalMetricName] = Decoder.decodeString.emapTry {
+      case metricCutoffPattern(name, cutoff) => fromString(name, Some(cutoff.toInt)).toTry
+      case metricPattern(name)               => fromString(name).toTry
+    }
+
+    implicit val evalMetricNameEncoder: Encoder[EvalMetricName] = Encoder.encodeString.contramap {
+      case NdcgMetric(Some(cutoff)) => s"ndcg@$cutoff"
+      case NdcgMetric(None)         => "ndcg"
+      case MapMetric(Some(cutoff))  => s"map@$cutoff"
+      case MapMetric(None)          => "map"
+      case MrrMetric()              => "mrr"
+    }
+  }
 
   val BITSTREAM_VERSION = 2
 
@@ -53,13 +104,24 @@ object LambdaMARTRanker extends Logging {
       _             <- checkDatasetSize(split.train)
       result        <- IO(makeBooster(split))
       model         <- IO.pure(LambdaMARTModel(name, config, result))
-      ndcg10        <- model.eval(split.test, NDCG(10, nolabels = 1.0, relpow = true))
-      _ <- info(
-        s"NDCG10: source=${ndcg10.noopValue} reranked=${ndcg10.value} random=${ndcg10.randomValue} (took ${ndcg10.took}ms)"
-      )
+      _ <- config.eval.map {
+        case metric @ NdcgMetric(cutoff) =>
+          model
+            .eval(split.test, NDCG(cutoff.getOrElse(Int.MaxValue), nolabels = 1.0, relpow = true))
+            .flatMap(logMetric(metric, _))
+        case metric @ MapMetric(cutoff) =>
+          model.eval(split.test, MAP(cutoff.getOrElse(Int.MaxValue))).flatMap(logMetric(metric, _))
+        case metric @ MrrMetric() => model.eval(split.test, MRR).flatMap(logMetric(metric, _))
+      }.sequence
+
     } yield {
       model
     }
+
+    private def logMetric(metric: EvalMetricName, value: MetricValue) =
+      info(
+        s"$metric: source=${value.noopValue} reranked=${value.value} random=${value.randomValue} (took ${value.took})"
+      )
 
     def makeBooster(split: Split) = {
       config.backend match {
@@ -331,17 +393,19 @@ object LambdaMARTRanker extends Logging {
         weightsOption <- c.downField("weights").as[Option[Map[String, Double]]]
         selector      <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
         split         <- c.downField("split").as[Option[SplitStrategy]].map(_.getOrElse(SplitStrategy.default))
+        eval          <- c.downField("eval").as[Option[List[EvalMetricName]]].map(_.getOrElse(EvalMetricName.default))
       } yield {
         val backend        = backendOption.getOrElse(XGBoostConfig())
         val weights        = weightsOption.getOrElse(Map.empty)
         val clippedWeights = maybeClipWeights(backend, weights)
-        LambdaMARTConfig(backend, features, clippedWeights, selector, split)
+        LambdaMARTConfig(backend, features, clippedWeights, selector, split, eval)
       }
     )
     .ensure(
       conf => conf.features.forall(f => !forbiddenFeatureNames.contains(f.value)),
       s"feature names ${forbiddenFeatureNames} are reserved names, you cannot use them"
     )
+
   implicit val lmEncoder: Encoder[LambdaMARTConfig] = deriveEncoder
 
   def maybeClipWeights(backend: BoosterConfig, weights: Map[String, Double]): Map[String, Double] = {

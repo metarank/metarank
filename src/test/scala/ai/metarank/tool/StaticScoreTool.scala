@@ -11,8 +11,7 @@ import better.files.File
 import cats.data.NonEmptyList
 import cats.effect.kernel.Resource
 import cats.effect.{ExitCode, IO, IOApp}
-import org.http4s.{Entity, Method, Request, Uri}
-import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.{Entity, EntityDecoder, Method, Request, Uri}
 import org.http4s.client.Client
 import scodec.bits.ByteVector
 import io.circe.syntax._
@@ -21,11 +20,14 @@ import cats.implicits._
 import java.util.UUID
 import scala.concurrent.duration._
 import org.http4s.circe._
+import org.http4s.ember.client.EmberClientBuilder
+import org.typelevel.log4cats.LoggerFactory
+import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 object StaticScoreTool extends IOApp with Logging {
   // loads the dataset and emits static scores
 
-  implicit val responseJson = jsonOf[IO, RankResponse]
+  implicit val responseJson: EntityDecoder[IO, RankResponse] = jsonOf[IO, RankResponse]
 
   override def run(args: List[String]): IO[ExitCode] = args match {
     case eventPath :: outPath :: endpoint :: _ =>
@@ -65,9 +67,11 @@ object StaticScoreTool extends IOApp with Logging {
     case _ => IO.raiseError(new Exception("usage: sst <path to events> <out file> <endpoint>"))
   }
 
-  def makeClient(): Resource[IO, Client[IO]] =
-    BlazeClientBuilder[IO]
-      .withRequestTimeout(10.second)
-      .withConnectTimeout(10.second)
-      .resource
+  def makeClient(): Resource[IO, Client[IO]] = {
+    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    EmberClientBuilder
+      .default[IO]
+      .withTimeout(10.second)
+      .build
+  }
 }

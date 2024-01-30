@@ -73,8 +73,8 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
       item       <- request.items.toList
       fieldValue <- features.get(Key(ItemScope(item.id), conf.name))
       scalar <- fieldValue match {
-        case FeatureValue.ScalarValue(_, _, value) => Some(value)
-        case _                                     => None
+        case FeatureValue.ScalarValue(_, _, value, _) => Some(value)
+        case _                                        => None
       }
     } yield {
       item.id -> scalar
@@ -95,10 +95,10 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
           case Nil => emptyResponse(request)
           case nel => valuesDouble(request, nel)
         }
-      case None => Nil
+      case None => emptyResponse(request)
       case Some(other) =>
         logger.warn(s"feature ${schema.name} expected state to be string/number but got $other")
-        Nil
+        emptyResponse(request)
     }
   }
 

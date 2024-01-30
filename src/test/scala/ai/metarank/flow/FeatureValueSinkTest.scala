@@ -12,12 +12,13 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import scala.concurrent.duration._
 
 class FeatureValueSinkTest extends AnyFlatSpec with Matchers {
   it should "write values to store" in {
     val store = MemPersistence(TestFeatureMapping().schema)
     val key   = Key(ItemScope(ItemId("p1")), FeatureName("foo"))
-    val value = ScalarValue(key, Timestamp.now, SString("bar"))
+    val value = ScalarValue(key, Timestamp.now, SString("bar"), 90.days)
     fs2.Stream
       .emit[IO, List[FeatureValue]](List(value))
       .through(FeatureValueSink(store).write)

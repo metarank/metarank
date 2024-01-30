@@ -13,6 +13,7 @@ import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
+import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.feature.PositionFeature.PositionFeatureSchema
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
@@ -115,8 +116,8 @@ object AnalyticsPayload {
         case _: FileStateConfig   => "file"
       },
       modelTypes = config.models.values.map {
-        case LambdaMARTConfig(_: LightGBMConfig, _, _, _, _) => "lambdamart-lightgbm"
-        case LambdaMARTConfig(_: XGBoostConfig, _, _, _, _)  => "lambdamart-xgboost"
+        case LambdaMARTConfig(_: LightGBMConfig, _, _, _, _, _, _) => "lambdamart-lightgbm"
+        case LambdaMARTConfig(_: XGBoostConfig, _, _, _, _, _, _)  => "lambdamart-xgboost"
         case ShuffleConfig(_, _)                             => "shuffle"
         case NoopConfig(_)                                   => "noop"
         case TrendingConfig(_, _)                            => "trending"
@@ -143,6 +144,8 @@ object AnalyticsPayload {
         case f: DiversitySchema              => UsedFeature(f.name, "diversity")
         case f: FieldMatchBiencoderSchema    => UsedFeature(f.name, "field_match.bi-encoder")
         case f: FieldMatchCrossEncoderSchema => UsedFeature(f.name, "field_match.cross-encoder")
+        case f: VectorFeatureSchema          => UsedFeature(f.name, "vector")
+        case f                               => UsedFeature(f.name, "unknown")
       },
       system = SystemParams(),
       ts = System.currentTimeMillis()

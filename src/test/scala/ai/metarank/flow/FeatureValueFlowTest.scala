@@ -13,6 +13,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import fs2.Stream
+import scala.concurrent.duration._
 
 class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
   val mapping = TestFeatureMapping()
@@ -28,7 +29,7 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
       .unsafeRunSync()
       .flatten
     values shouldBe List(
-      ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
+      ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0), 90.days)
     )
   }
 
@@ -42,7 +43,7 @@ class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
       .unsafeRunSync()
       .flatten
     values shouldBe List(
-      ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0))
+      ScalarValue(Key(ItemScope(ItemId("p1")), FeatureName("price")), event.timestamp, SDouble(10.0), 90.days)
     )
   }
 }

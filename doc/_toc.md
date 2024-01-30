@@ -39,6 +39,8 @@
   * [Docker](deploy/docker.md)
   * [Kubernetes](deploy/kubernetes.md)
   * [Prometheus metrics export](deploy/prometheus.md)
+  * [Custom logging](deploy/custom-logging.md)
+  * [Warmup](deploy/warmup.md)
 * [Integrations](integrations/integrations-overview.md)
   * [Snowplow](integrations/snowplow.md) 
 
@@ -52,5 +54,5 @@
 * [Building from source](dev/build.md)
 
 ### Doc versions
-* [0.7.1 (stable)](https://docs.metarank.ai)
+* [0.7.6 (stable)](https://docs.metarank.ai)
 * [master (unstable)](https://metarank.gitbook.io/metarank-docs-unstable/)

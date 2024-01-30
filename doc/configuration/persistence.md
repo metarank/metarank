@@ -36,6 +36,7 @@ state:
   cache:           # optional
     maxSize: 1024  # size of in-memory client-side cache for hot keys, optional, default=1024
     ttl: 1h        # how long should key-values should be cached, optional, default=1h
+    clientTracking: true # should we subscribe for CLIENT TRACKING invalidation events
 
   pipeline:         # optional
     maxSize: 128    # batch write buffer size, optional, default=128
@@ -58,6 +59,12 @@ state:
     connect: 1s # optional, defaults to 1s
     socket: 1s  # optional, defaults to 1s
     command: 1s # optional, defaults to 1s
+  
+  db: # optional, defaults to [0,1,2,3]: which redis dbs to use for persistence 
+    state: 0  # can be used to co-locate multiple metarank instances
+    values: 1 # on a single redis server
+    rankings: 2
+    models: 3
 ```
 
 Redis persistence is sensitive to network latencies (as it needs to perform a couple of round-trips on each event), 
@@ -77,6 +84,63 @@ Redis server sends a notification to Metarank when key value was changed by some
 in the same datacenter/AZ)
 * `pipeline.flushPeriod` controls the level of "eventualness" in the overall eventual consistency. With values 
 larger than `10` seconds, a second Metarank instance may not see write buffered in a first instance.
+
+## Disk persistence
+
+Metarank has also an experimental option of using disk persistence instead of Redis. The main drawback of such an
+approach is that the deployment becomes stateful and you need to maintain a disk persistence.
+
+Metarank supports two disk backends for file-based persistence:
+
+* MapDB: uses a mmap-based storage for data, works well for smaller datasets.
+* RocksDB: uses an LSM-tree storage, suits for large datasets.
+
+The file persistence configured in the following way:
+
+```yaml
+state:
+  type: file
+  path: /path/to/dir # required
+  format: binary # optional, default=binary, possible values: json, binary
+  backend: # optional, default mapdb
+    type: rocksdb # required, values: rocksdb, mapdb
+  
+```
+
+### RocksDB options
+
+RocksDB can be configured by defining the following values in the config file:
+
+```yaml
+state:
+  type: file
+  path: /path/to/dir # required
+  backend: # optional, default mapdb
+    type: rocksdb
+    lruCacheSizeMb: 1024000000 # LRU cache size in bytes, optional, default 1Gb
+    blockSize: 8192 # Block size in bytes, optional, default 8kb
+
+```
+
+A rule of thumb defining these parameters:
+
+* higher LRU cache size leads to better read throughput at the cost of extra memory usage. If not sure, set it to 50% of your RAM.
+* blockSize defines a size of page RocksDB reads from disk. In a perfect world it should match your actual disk block size:
+For cloud-attached disks like AWS EBS it should be 16kb, for local drives 1-2kb.
+
+### MapDB options
+
+MapDB can be configured in the following way:
+
+```yaml
+state:
+  type: file
+  path: /path/to/dir # required
+  backend: # optional, default mapdb
+    type: mapdb
+    mmap: true # should MapDB use mmap or raw disk reads for data access? Optional, default true.
+    maxNodeSize: 16 # what is the node size for internal db index. Optional, default 16. 
+```
 
 ### TLS Support
 
@@ -144,4 +208,6 @@ important factor.
 
 * Metarank requires Redis 6+ due to a lack of client-side caching support in 5.x
   * you can disable client caching altogether (for example, for managed Redis-compatible engines, like GCP Memorystore Redis) with `cache.maxSize: 0`.
+  * For GCP Memorystore Redis, you can also set `state.cache.clientTracking: false` to disable the `CLIENT TRACKING` cache 
+  eviction support: GCP Memstore has client-side caching disabled even on 7.x Redis cluster.
 * Redis Cluster is not yet supported; see ticket [568](https://github.com/metarank/metarank/issues/568) for the progress.

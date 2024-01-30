@@ -19,17 +19,19 @@ case class RedisPeriodicCounterFeature(
     prefix: String,
     format: StoreFormat
 ) extends PeriodicCounterFeature {
-  override def put(action: PeriodicIncrement): IO[Unit] = {
-    val period = action.ts.toStartOfPeriod(config.period)
-    client.hincrby(format.key.encode(prefix, action.key), period.ts.toString, action.inc).void
-  }
+  override def put(action: PeriodicIncrement): IO[Unit] = for {
+    period <- IO(action.ts.toStartOfPeriod(config.period))
+    key    <- IO(format.key.encode(prefix, action.key))
+    _      <- client.hincrby(key, period.ts.toString, action.inc)
+    _      <- client.expire(key, config.ttl)
+  } yield {}
 
   override def computeValue(key: Key, ts: Timestamp): IO[Option[PeriodicCounterValue]] = {
     for {
       map     <- client.hgetAll(format.key.encode(prefix, key))
       decoded <- map.toList.map { case (k, v) => decode(new String(k), new String(v)) }.sequence
     } yield {
-      if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(decoded))))
+      if (decoded.isEmpty) None else Some(PeriodicCounterValue(key, ts, fromMap(TimestampLongMap(decoded)), config.ttl))
     }
   }
 
@@ -50,10 +52,13 @@ object RedisPeriodicCounterFeature {
       ): IO[TransferResult] =
         state
           .evalMap(s =>
-            s.values.toList
-              .map(kv => f.client.hincrby(f.format.key.encode(f.prefix, s.key), kv._1.ts.toString, kv._2.toInt))
-              .sequence
-              .map(_ => 1)
+            for {
+              key <- IO(f.format.key.encode(f.prefix, s.key))
+              _ <- s.values.toList
+                .map(kv => f.client.hincrby(key, kv._1.ts.toString, kv._2.toInt))
+                .sequence
+              _ <- f.client.expire(key, f.config.ttl)
+            } yield { 1 }
           )
           .compile
           .fold(0)(_ + _)

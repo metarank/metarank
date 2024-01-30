@@ -74,7 +74,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema, matcher: FieldMatcher) ex
           val result = for {
             featureValue <- features.get(key)
             itemStringTokens <- featureValue match {
-              case ScalarValue(_, _, SStringList(value)) => Some(value.toArray)
+              case ScalarValue(_, _, SStringList(value), _) => Some(value.toArray)
               case other =>
                 logger.warn(s"${schema.name}: expected string state, but got $other")
                 None

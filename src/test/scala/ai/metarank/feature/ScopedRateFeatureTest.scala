@@ -8,8 +8,8 @@ import ai.metarank.model.{FeatureKey, FeatureSchema, Key, Schema}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scalar.SString
-import ai.metarank.model.Scope.{FieldScope, ItemScope}
-import ai.metarank.model.ScopeType.{FieldScopeType, ItemScopeType}
+import ai.metarank.model.Scope.{ItemFieldScope, ItemScope}
+import ai.metarank.model.ScopeType.{ItemFieldScopeType, ItemScopeType}
 import ai.metarank.model.Write.{PeriodicIncrement, Put}
 import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -25,7 +25,7 @@ class ScopedRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
       FeatureName("ctr"),
       "click",
       "impression",
-      FieldScopeType("color"),
+      ItemFieldScopeType("color"),
       24.hours,
       List(7, 14),
       refresh = Some(0.seconds)
@@ -42,7 +42,7 @@ class ScopedRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
 
   it should "extract item writes when field matches" in {
     val w1 = feature.writes(item, store).unsafeRunSync()
-    w1 shouldBe List(Put(Key(ItemScope(ItemId("p1")), feature.fieldScope.name), item.timestamp, SString("red")))
+    w1 shouldBe List(Put(Key(ItemScope(ItemId("p1")), feature.itemFieldFeature.name), item.timestamp, SString("red")))
   }
 
   it should "drop item writes on field mismatch" in {
@@ -61,12 +61,12 @@ class ScopedRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
     }
     val click = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "click")
     feature.writes(click, store).unsafeRunSync().toList shouldBe List(
-      PeriodicIncrement(Key(FieldScope("color", "red"), FeatureName("ctr_click")), click.timestamp, 1)
+      PeriodicIncrement(Key(ItemFieldScope("color", "red"), FeatureName("ctr_click")), click.timestamp, 1)
     )
     val impression = TestInteractionEvent("p1", "i1", Nil).copy(`type` = "impression")
     feature.writes(impression, store).unsafeRunSync().toList shouldBe List(
       PeriodicIncrement(
-        Key(FieldScope("color", "red"), FeatureName("ctr_impression")),
+        Key(ItemFieldScope("color", "red"), FeatureName("ctr_impression")),
         impression.timestamp,
         1
       )

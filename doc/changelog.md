@@ -3,6 +3,30 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.6
+
+* [API Warmup support](deploy/warmup.md)
+* Rate feature now can be scoped to [ranking.field + item](configuration/features/counters.md#grouping-by-ranking-field)
+* You can now specify [which eval metrics](configuration/supported-ranking-models.md#lambdamart) should be computed on training.
+* Proper handling of [GCP Memorystore Redis](configuration/persistence.md#redis-support-limitations)
+
+## 0.7.5
+
+* [Unbiased LTR support](configuration/supported-ranking-models.md#xgboost-and-lightgbm-backend-options)
+* [Train/test splitting strategy support](configuration/supported-ranking-models.md#traintest-splitting-strategies)
+
+## 0.7.4
+
+* support for rocksdb-backed file storage
+
+## 0.7.3
+
+* a bugfix release
+
+## 0.7.2
+* Support for kv-granular Redis TTLs
+* Support HF tokenizers for biencoders: now you can run a multi-lingual E5 model in Metarank!
+
 ## 0.7.1
 
 * `/inference`: [Inference API](api.md#inference-with-llms) to expose bi- and cross-encoders. 

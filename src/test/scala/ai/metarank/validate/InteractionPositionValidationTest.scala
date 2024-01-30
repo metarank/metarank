@@ -48,4 +48,16 @@ class InteractionPositionValidationTest extends AnyFlatSpec with Matchers {
     )
     result shouldNot be(empty)
   }
+
+  it should "handle clicks with no rankings" in {
+    val result = InteractionPositionValidation.validate(
+      TestConfig(),
+      List(
+        TestInteractionEvent("p1", "e1"),
+        TestInteractionEvent("p2", "e2"),
+        TestInteractionEvent("p3", "e3")
+      )
+    )
+    result shouldNot be(empty)
+  }
 }

@@ -12,17 +12,17 @@ import ai.metarank.util.TestKey
 import scala.concurrent.duration._
 
 trait MapFeatureSuite extends FeatureSuite[PutTuple, MapConfig, MapFeature] {
-  val config = MapConfig(scope = ItemScopeType, FeatureName("counter"), 1.day)
+  val config = MapConfig(scope = ItemScopeType, FeatureName("counter"), 90.days)
   val k      = TestKey(config, id = "p11")
 
   it should "write-read" in {
     val result = write(List(PutTuple(k, now, "foo", Some(SString("bar")))))
-    result shouldBe Some(MapValue(k, now, Map("foo" -> SString("bar"))))
+    result shouldBe Some(MapValue(k, now, Map("foo" -> SString("bar")), 90.days))
   }
 
   it should "update" in {
     val result = write(List(PutTuple(k, now, "foo", Some(SString("baz")))))
-    result shouldBe Some(MapValue(k, now, Map("foo" -> SString("baz"))))
+    result shouldBe Some(MapValue(k, now, Map("foo" -> SString("baz")), 90.days))
   }
 
   it should "remove" in {

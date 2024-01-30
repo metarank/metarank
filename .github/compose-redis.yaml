@@ -2,6 +2,7 @@ version: '2'
 
 services:
   redis:
-    image: 'redis:7.0.5'
+    image: 'redis:7.2.4'
     ports:
       - '6379:6379'
+    command: ['--user', 'default', 'on','nopass','~*','&*','+@all','-client']

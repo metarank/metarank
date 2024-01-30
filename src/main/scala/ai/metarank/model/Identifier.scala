@@ -29,6 +29,18 @@ object Identifier {
     implicit val itemCodec: Codec[ItemId] = Codec.from(itemDecoder, itemEncoder)
   }
 
+  case class RankingId(value: String) extends AnyVal with Identifier {
+    override def toString: String = value
+  }
+
+  object RankingId {
+    implicit val rankingEncoder: Encoder[RankingId] = Encoder.encodeString.contramap(_.value)
+    implicit val rankingDecoder: Decoder[RankingId] =
+      Decoder.decodeString.ensure(_.nonEmpty, "item id cannot be empty").map(RankingId.apply)
+    implicit val rankingCodec: Codec[RankingId] = Codec.from(rankingDecoder, rankingEncoder)
+    def apply(e: EventId)                       = new RankingId(e.value)
+  }
+
   case class SessionId(value: String) extends AnyVal with Identifier {
     override def toString: String = value
   }

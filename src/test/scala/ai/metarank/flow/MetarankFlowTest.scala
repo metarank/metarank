@@ -96,9 +96,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     val k3           = Key(ItemScope(ItemId("p3")), FeatureName("pop"))
     val popularities = store.values.get(List(k1, k2, k3)).unsafeRunSync()
     popularities shouldBe Map(
-      k1 -> ScalarValue(k1, ts, SDouble(10)),
-      k2 -> ScalarValue(k2, ts, SDouble(5)),
-      k3 -> ScalarValue(k3, ts, SDouble(15))
+      k1 -> ScalarValue(k1, ts, SDouble(10), 90.days),
+      k2 -> ScalarValue(k2, ts, SDouble(5), 90.days),
+      k3 -> ScalarValue(k3, ts, SDouble(15), 90.days)
     )
   }
 
@@ -108,16 +108,16 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     val k3     = Key(ItemScope(ItemId("p3")), FeatureName("genre"))
     val genres = store.values.get(List(k1, k2, k3)).unsafeRunSync()
     genres shouldBe Map(
-      k1 -> ScalarValue(k1, ts, SStringList("action")),
-      k2 -> ScalarValue(k2, ts, SStringList("comedy")),
-      k3 -> ScalarValue(k3, ts, SStringList("drama"))
+      k1 -> ScalarValue(k1, ts, SStringList("action"), 90.days),
+      k2 -> ScalarValue(k2, ts, SStringList("comedy"), 90.days),
+      k3 -> ScalarValue(k3, ts, SStringList("drama"), 90.days)
     )
   }
 
   it should "generate query for a ranking request" in {
     val q =
       ranker
-        .makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc, all)
+        .makeQuery(rankingEvent1, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc, all, silent = false)
         .unsafeRunSync()
     q.values.toList shouldBe List(
       ItemValue(
@@ -172,9 +172,9 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
   it should "generate updated query" in {
     val q =
       ranker
-        .makeQuery(rankingEvent2, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc, all)
+        .makeQuery(rankingEvent2, mapping.models("random").asInstanceOf[LambdaMARTPredictor].desc, all, silent = false)
         .unsafeRunSync()
-    q.values.toList shouldBe List(
+    q.values shouldBe List(
       ItemValue(
         ItemId("p1"),
         List(

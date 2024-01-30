@@ -131,6 +131,7 @@ object CliArgs extends Logging {
             for {
               data <- parse(parser.sort.data)
               out  <- parse(parser.sort.out)
+              _    <- if (data == out) Left(new Exception("data argument should not be equal to out")) else Right({})
             } yield {
               SortArgs(data, out)
             }
@@ -158,8 +159,12 @@ object CliArgs extends Logging {
             }
           case Some(parser.termfreq) =>
             for {
-              data   <- parse(parser.termfreq.data)
-              out    <- parse(parser.termfreq.out)
+              data <- parse(parser.termfreq.data)
+              out <- parse(parser.termfreq.out) match {
+                case Left(value)                   => Left(value)
+                case Right(f) if f.toFile.exists() => Left(new Exception(s"a file ${f} already exists"))
+                case Right(f)                      => Right(f)
+              }
               lang   <- parseOption(parser.termfreq.language)
               fields <- parse(parser.termfreq.fields)
             } yield {

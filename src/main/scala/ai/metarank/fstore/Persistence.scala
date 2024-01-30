@@ -54,7 +54,7 @@ object Persistence extends Logging {
   object KVCodec {
     import io.circe.syntax._
     import io.circe.parser.{decode => cdecode}
-    implicit def jsonCodec[T](implicit codec: Codec[T]) = new KVCodec[T] {
+    implicit def jsonCodec[T](implicit codec: Codec[T]): KVCodec[T] = new KVCodec[T] {
       override def encode(value: T)                                 = value.asJson.noSpaces.getBytes()
       override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))
     }

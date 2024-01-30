@@ -131,7 +131,7 @@ case class RedisPersistence(
   }
 }
 
-object RedisPersistence {
+object RedisPersistence extends Logging {
   object Prefix {
     val STATE  = "s"
     val VALUES = "v"
@@ -153,8 +153,14 @@ object RedisPersistence {
     state  <- RedisClient.create(host, port, db.state, pipeline, auth, tls, timeout)
     models <- RedisClient.create(host, port, db.models, pipeline.copy(enabled = false), auth, tls, timeout)
     values <- RedisClient.create(host, port, db.values, pipeline, auth, tls, timeout)
+    _      <- Resource.eval(IO.whenA(cache.maxSize == 0)(info("Client-side caching disabled")))
+    _ <- Resource.eval(
+      IO.whenA((cache.maxSize > 0) && !cache.clientTracking)(
+        warn("Client-side caching enabled - CLIENT TRACKING disabled")
+      )
+    )
     _ <- Resource.liftK(
-      IO.whenA(cache.maxSize > 0)(
+      IO.whenA((cache.maxSize > 0) && cache.clientTracking)(
         IO.fromCompletableFuture(
           IO(
             state.reader
@@ -166,6 +172,19 @@ object RedisPersistence {
                   .prefixes(Prefix.STATE, Prefix.VALUES, Prefix.MODELS, Prefix.CT)
               )
               .toCompletableFuture
+          )
+        ).onError(err =>
+          error(
+            s"""
+               |
+               |*********************************
+               |Error: ${err}
+               |Got NOPERM error while sending CLIENT TRACKING redis command. This is a known issue
+               | with GCP Memorystore Redis, which does not support client-side caching. As an option
+               | you can disable caching (store.cache.maxSize=0 - can cause slower ingestion) or disable
+               | client-side cache invalidation (store.cache.invalidate=false - can cause cache consistency issues)
+               | ********************************
+               | """.stripMargin
           )
         ).void
       )

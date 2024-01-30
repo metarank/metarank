@@ -11,9 +11,17 @@ import ai.metarank.model.FeatureValue.{
   PeriodicCounterValue,
   ScalarValue
 }
-import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.model.Identifier.{ItemId, RankingId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.{FieldScope, GlobalScope, ItemScope, SessionScope, UserScope}
+import ai.metarank.model.Scope.{
+  GlobalScope,
+  ItemFieldScope,
+  ItemScope,
+  RankingFieldScope,
+  RankingScope,
+  SessionScope,
+  UserScope
+}
 import ai.metarank.model.{FeatureValue, Key, Scope, Timestamp}
 
 import scala.concurrent.duration._
@@ -195,7 +203,9 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
       case 1     => ItemScope(ItemId(in.readUTF()))
       case 2     => GlobalScope
       case 3     => SessionScope(SessionId(in.readUTF()))
-      case 4     => FieldScope(in.readUTF(), in.readUTF())
+      case 4     => ItemFieldScope(in.readUTF(), in.readUTF())
+      case 5     => RankingFieldScope(in.readUTF(), in.readUTF(), ItemId(in.readUTF()))
+      case 6     => RankingScope(RankingId(in.readUTF()))
       case other => throw new Exception(s"cannot parse scope with index $other")
     }
     override def write(value: Scope, out: DataOutput): Unit = value match {
@@ -210,10 +220,18 @@ object FeatureValueCodec extends BinaryCodec[FeatureValue] {
       case Scope.SessionScope(session) =>
         out.writeByte(3)
         out.writeUTF(session.value)
-      case Scope.FieldScope(fieldName, fieldValue) =>
+      case Scope.ItemFieldScope(fieldName, fieldValue) =>
         out.writeByte(4)
         out.writeUTF(fieldName)
         out.writeUTF(fieldValue)
+      case Scope.RankingFieldScope(fieldName, fieldValue, itemId) =>
+        out.writeByte(5)
+        out.writeUTF(fieldName)
+        out.writeUTF(fieldValue)
+        out.writeUTF(itemId.value)
+      case Scope.RankingScope(id) =>
+        out.writeByte(6)
+        out.writeUTF(id.value)
     }
   }
 }

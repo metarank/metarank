@@ -46,6 +46,13 @@ To configure the model, use the following snippet:
 #      value: search
 
 #    split: optional definition of train/test splitting strategy. See below for examples.
+
+#    eval: optional list of evaluation metrics.
+
+#    warmup: optional API warmup settings
+#      sampledRequests: 100 # how many requests to sample during training
+#      duration: 5s # how long to perform the warmup.
+
 ```
 
 * `backend`: *required*, *xgboost* or *lightgbm*, specifies the backend and it's configuration.
@@ -53,6 +60,8 @@ To configure the model, use the following snippet:
 * `features`: *required*, *list of string*, features used for model training, see [Feature extractors](feature-extractors.md) documentation.
 * `selector`: *optional*, *list of selectors*, a set of rules to filter which events should be accepted by this model.
 * `split`: *optional*, a train/test splitting strategy. Default: `time=80%`. Options: `random`/`hold_last`/`time` with an optional ratio (default: 80%, which means 80% allocated to train, 20% to test). Example: `random=80%` means split dataset randomly, 80% should be allocated to the train set.
+* `eval`: *optional*, a list of eval metrics to measure after training. Default value is `["NDCG@10"]`, supported metrics are `NDCG`, `NDCG@k`, `MAP`, `MAP@k`, `MRR` (where `k` - cutoff value).
+* `warmup`: *optional*, API warmup settings. See the [API warmup section](../deploy/warmup.md) for details.
 
 ### Interaction weight
 

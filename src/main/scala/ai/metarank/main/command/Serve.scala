@@ -6,12 +6,16 @@ import ai.metarank.api.routes.inference.{BiEncoderApi, CrossEncoderApi}
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, RecommendApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config, InputConfig}
 import ai.metarank.feature.{FieldMatchBiencoderFeature, FieldMatchCrossEncoderFeature}
-import ai.metarank.flow.{MetarankFlow, TrainBuffer}
+import ai.metarank.flow.{MetarankFlow, PrintProgress, TrainBuffer}
+import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.fstore.{Persistence, TrainStore}
 import ai.metarank.main.CliArgs.ServeArgs
 import ai.metarank.main.Logo
 import ai.metarank.ml.onnx.encoder.EncoderConfig
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.ml.{Ranker, Recommender}
+import ai.metarank.model.Event.RankingEvent
+import ai.metarank.model.Timestamp
 import ai.metarank.source.EventSource
 import ai.metarank.util.Logging
 import ai.metarank.util.analytics.Metrics
@@ -25,6 +29,7 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
+import fs2.Stream
 
 import scala.concurrent.duration._
 
@@ -74,7 +79,9 @@ object Serve extends Logging {
     for {
 
       health     <- IO.pure(HealthApi(store).routes)
-      rank       <- IO.pure(RankApi(Ranker(mapping, store)).routes)
+      ranker     <- IO.pure(Ranker(mapping, store))
+      rank       <- IO.pure(RankApi(ranker).routes)
+      _          <- maybeWarmup(mapping, store, ranker).compile.drain
       feedback   <- IO.pure(FeedbackApi(store, mapping, buffer).routes)
       train      <- IO.pure(TrainApi(mapping, store, cts).routes)
       rec        <- IO.pure(RecommendApi(Recommender(mapping, store), store).routes)
@@ -110,4 +117,26 @@ object Serve extends Logging {
       _ <- api.build.use(_ => IO.never)
     } yield {}
   }
+
+  def maybeWarmup(mapping: FeatureMapping, store: Persistence, ranker: Ranker) = for {
+    lmart <- Stream.emits(mapping.models.values.collect { case lm: LambdaMARTPredictor => lm }.toSeq)
+    _ <- Stream.emit(lmart.config.warmup.isDefined).flatMap {
+      case false => Stream.eval(info(s"API warmup disabled for model ${lmart.name}"))
+      case true =>
+        for {
+          model        <- Stream.eval(store.models.get(ModelName(lmart.name), lmart)).flatMap(x => Stream.fromOption(x))
+          warmupConfig <- Stream.fromOption(lmart.config.warmup)
+          timeThreshold <- Stream.eval(IO(Timestamp.now.plus(warmupConfig.duration)))
+          _ <- Stream
+            .eval(info(s"warmup of model ${model.name}: config=$warmupConfig requests=${model.warmupRequests.size}"))
+          request <- Stream
+            .emits[IO, RankingEvent](model.warmupRequests)
+            .repeat
+            .through(PrintProgress.tap(Some(store), "warmup requests"))
+            .takeWhile(_ => Timestamp.now.isBefore(timeThreshold))
+          _ <- Stream.eval(ranker.rerank(request, lmart.name, false, silent = true))
+
+        } yield {}
+    }
+  } yield {}
 }

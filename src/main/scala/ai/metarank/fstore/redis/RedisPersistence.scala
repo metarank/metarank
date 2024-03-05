@@ -4,10 +4,9 @@ import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTim
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
-import ai.metarank.fstore.cache.{CachedTrainStore, CachedKVStore, CachedModelStore}
+import ai.metarank.fstore.cache.{CachedKVStore, CachedModelStore, CachedTrainStore}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.memory.MemModelStore
-
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.ml.Model
 import ai.metarank.model.{FeatureValue, Key, Schema}
@@ -15,6 +14,7 @@ import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
+import com.github.benmanes.caffeine.cache.RemovalCause
 import com.github.blemale.scaffeine.Scaffeine
 import io.lettuce.core.TrackingArgs
 import io.lettuce.core.api.push.{PushListener, PushMessage}
@@ -75,11 +75,7 @@ case class RedisPersistence(
     .expireAfterAccess(cache.ttl)
     .build[Key, AnyRef]()
 
-  lazy val modelCache = Scaffeine()
-    .ticker(ticker)
-    .maximumSize(32)
-    .expireAfterAccess(1.hour)
-    .build[ModelName, Model[_]]()
+  lazy val modelCache = CachedModelStore.createCache(ticker)
 
   override lazy val lists: Map[FeatureKey, RedisBoundedListFeature] = schema.lists.map { case (name, conf) =>
     name -> RedisBoundedListFeature(conf, stateClient, Prefix.STATE, format)

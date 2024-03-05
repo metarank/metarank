@@ -370,6 +370,10 @@ object LambdaMARTRanker extends Logging {
       }
     }
 
+    override def close(): Unit = {
+      booster.close()
+    }
+
     override def save(): Option[Array[Byte]] = {
       val buf    = new ByteArrayOutputStream()
       val stream = new DataOutputStream(buf)

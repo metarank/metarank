@@ -89,7 +89,7 @@ class StateStoreConfigTest extends AnyFlatSpec with Matchers {
         |  lruCacheSize: 1
         |  blockSize: 1""".stripMargin
     val conf = parse(yaml).flatMap(_.as[StateStoreConfig])
-    conf shouldBe Right(FileStateConfig("/tmp", backend = RocksDBBackend(1,1)))
+    conf shouldBe Right(FileStateConfig("/tmp", backend = RocksDBBackend(1, 1)))
   }
 
 }

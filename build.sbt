@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.5.3",
+      "org.typelevel"         %% "cats-effect"              % "3.5.4",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
@@ -58,7 +58,7 @@ lazy val root = (project in file("."))
       "com.google.guava"       % "guava"                    % "33.0.0-jre",
       "commons-io"             % "commons-io"               % "2.15.1",
       "com.google.guava"       % "guava"                    % "32.1.2-jre",
-      "io.sentry"              % "sentry-logback"           % "7.5.0",
+      "io.sentry"              % "sentry-logback"           % "7.6.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -73,7 +73,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "8.10.2",
+      "org.rocksdb"               % "rocksdbjni"     % "8.11.3",
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.12", // librec uses commons-logging, which is JCL

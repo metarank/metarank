@@ -21,7 +21,7 @@ import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{Logging, RankingEventFormat}
 import cats.data.NonEmptyList
 import cats.effect.std.Queue
-import cats.effect.{IO, ParallelF}
+import cats.effect.{IO, ParallelF, Ref}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
@@ -109,9 +109,9 @@ object LambdaMARTRanker extends Logging {
       clickthroughs        <- loadDataset(data.through(sampleN(sampleSize, warmupRequestsBuffer)))
       split                <- splitDataset(config.split, desc, clickthroughs)
       _                    <- checkDatasetSize(split.train)
-      result               <- IO(makeBooster(split))
+      booster              <- IO(makeBooster(split))
       warmupRequests       <- warmupRequestsBuffer.tryTakeN(None)
-      model                <- IO.pure(LambdaMARTModel(name, config, result, warmupRequests))
+      model                <- IO.pure(LambdaMARTModel(name, config, booster, warmupRequests))
       _ <- config.eval.map {
         case metric @ NdcgMetric(cutoff) =>
           model
@@ -189,63 +189,50 @@ object LambdaMARTRanker extends Logging {
       }
     }
 
-    override def load(bytes: Option[Array[Byte]]): IO[LambdaMARTModel] = IO.fromEither(loadSync(bytes))
-
-    def loadSync(bytes: Option[Array[Byte]]): Either[Throwable, LambdaMARTModel] = bytes match {
-      case None => Left(new Exception(s"cannot load model: not found, maybe you forgot to run train?"))
+    override def load(bytes: Option[Array[Byte]]): IO[LambdaMARTModel] = bytes match {
+      case None => IO.raiseError(new Exception(s"cannot load model: not found, maybe you forgot to run train?"))
       case Some(blob) =>
-        val stream = new DataInputStream(new ByteArrayInputStream(blob))
-        Try(stream.readByte()) match {
-          case Success(2) => loadSyncV2(stream)
-          case Success(BITSTREAM_VERSION) =>
-            val featuresSize = stream.readInt()
-            val features     = (0 until featuresSize).map(_ => FeatureName(stream.readUTF())).toList
-            if (features != config.features.toList) {
-              val expected = features.map(_.value)
-              val actual   = config.features.map(_.value).toList
-              Left(new Exception(s"""booster trained with $expected features, but config defines $actual
-                                    |You may need to retrain the model with the newer config""".stripMargin))
-            } else {
-              val boosterType = stream.readByte()
-              val size        = stream.readInt()
-              val buf         = new Array[Byte](size)
-              stream.read(buf)
-              val warmupSampleSize = stream.readInt()
-              val warmupRequests   = (0 until warmupSampleSize).map(_ => RankingEventFormat.read(stream))
-              boosterType match {
-                case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf), warmupRequests.toList))
-                case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf), warmupRequests.toList))
-                case other => Left(new Exception(s"unsupported booster tag $other"))
-              }
-            }
-          case Success(other) =>
-            Left(
-              new Exception(s"unsupported bitstream version $other (expected $BITSTREAM_VERSION), please re-run train")
-            )
-          case Failure(ex) => Left(ex)
+        for {
+          stream    <- IO(new DataInputStream(new ByteArrayInputStream(blob)))
+          bitstream <- IO(stream.readByte())
+          model     <- loadVersion(stream, bitstream)
+        } yield {
+          model
         }
     }
 
-    private def loadSyncV2(stream: DataInputStream): Either[Exception, LambdaMARTModel] = {
-      val featuresSize = stream.readInt()
-      val features     = (0 until featuresSize).map(_ => FeatureName(stream.readUTF())).toList
-      if (features != config.features.toList) {
-        val expected = features.map(_.value)
-        val actual   = config.features.map(_.value).toList
-        Left(new Exception(s"""booster trained with $expected features, but config defines $actual
-                              |You may need to retrain the model with the newer config""".stripMargin))
-      } else {
-        val boosterType = stream.readByte()
-        val size        = stream.readInt()
-        val buf         = new Array[Byte](size)
-        stream.read(buf)
-        boosterType match {
-          case 0     => Right(LambdaMARTModel(name, config, LightGBMBooster(buf)))
-          case 1     => Right(LambdaMARTModel(name, config, XGBoostBooster(buf)))
-          case other => Left(new Exception(s"unsupported booster tag $other"))
+    private def loadVersion(stream: DataInputStream, bitstream: Int): IO[LambdaMARTModel] = {
+      for {
+        featuresSize <- IO(stream.readInt())
+        features     <- IO((0 until featuresSize).map(_ => FeatureName(stream.readUTF())).toList)
+        _ <- IO.whenA(features != config.features.toList)(IO.raiseError {
+          val expected = features.map(_.value)
+          val actual   = config.features.map(_.value).toList
+          new Exception(s"""booster trained with $expected features, but config defines $actual
+                           |You may need to retrain the model with the newer config""".stripMargin)
+        })
+        boosterType <- IO(stream.readByte())
+        size        <- IO(stream.readInt())
+        buf         <- IO(new Array[Byte](size))
+        _           <- IO(stream.read(buf))
+        warmup <- bitstream match {
+          case 2 => IO(Nil)
+          case 3 =>
+            for {
+              warmupSampleSize <- IO(stream.readInt())
+              warmupRequests   <- IO((0 until warmupSampleSize).map(_ => RankingEventFormat.read(stream)))
+            } yield {
+              warmupRequests
+            }
         }
+        booster <- boosterType match {
+          case 0     => IO(LightGBMBooster(buf))
+          case 1     => IO(XGBoostBooster(buf))
+          case other => IO.raiseError(new Exception(s"unsupported booster tag $other"))
+        }
+      } yield {
+        LambdaMARTModel(name, config, booster, warmup.toList)
       }
-
     }
 
     def splitDataset(splitter: SplitStrategy, desc: DatasetDescriptor, clickthroughs: List[QueryMetadata]): IO[Split] =
@@ -355,7 +342,8 @@ object LambdaMARTRanker extends Logging {
       booster: Booster[_],
       warmupRequests: List[RankingEvent] = Nil
   ) extends RankModel
-      with Logging {
+      with Logging
+      with AutoCloseable {
     override def predict(request: QueryRequest): IO[Model.Response] = {
       IO(booster.predictMat(request.query.values, request.query.rows, request.query.columns).toList).flatMap {
         case head :: tail =>
@@ -373,6 +361,8 @@ object LambdaMARTRanker extends Logging {
     override def close(): Unit = {
       booster.close()
     }
+
+    override def isClosed(): Boolean = booster.isClosed()
 
     override def save(): Option[Array[Byte]] = {
       val buf    = new ByteArrayOutputStream()

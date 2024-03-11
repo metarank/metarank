@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.13"
-ThisBuild / version      := "0.7.6"
+ThisBuild / version      := "0.7.6-SNAPSHOT-memleak-fix-v2"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -44,7 +44,7 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-ember-server"      % http4sVersion,
       "org.http4s"            %% "http4s-ember-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
-      "io.github.metarank"    %% "ltrlib"                   % "0.2.4",
+      "io.github.metarank"    %% "ltrlib"                   % "0.2.5.1",
       "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,

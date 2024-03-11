@@ -10,8 +10,8 @@ import cats.effect.IO
 case class FileModelStore(db: HashDB[Array[Byte]]) extends ModelStore {
   override def put(value: Model[_]): IO[Unit] = IO {
     value.save() match {
-      case None        => {}
-      case Some(bytes) => db.put(value.name, bytes)
+      case None        => IO.unit
+      case Some(bytes) => IO(db.put(value.name, bytes))
     }
   }
 

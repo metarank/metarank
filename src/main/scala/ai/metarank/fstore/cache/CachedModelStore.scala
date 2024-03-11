@@ -19,8 +19,8 @@ case class CachedModelStore(fast: ModelStore, slow: ModelStore) extends ModelSto
       pred: Predictor[C, T, M]
   ): IO[Option[M]] =
     fast.get(key, pred).flatMap {
-      case Some(c) => IO.pure(Some(c))
-      case None =>
+      case Some(c) if !c.isClosed() => IO.pure(Some(c))
+      case _ =>
         slow.get(key, pred).flatMap {
           case Some(model) => fast.put(model) *> IO.pure(Some(model))
           case None        => IO.pure(None)

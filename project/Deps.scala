@@ -10,7 +10,7 @@ object Deps {
   lazy val fs2Version                = "3.2.2"
   lazy val pulsarVersion             = "3.2.1"
   lazy val luceneVersion             = "9.10.0"
-  lazy val awsVersion                = "2.25.3"
+  lazy val awsVersion                = "2.25.15"
   lazy val prometheusVersion         = "0.16.0"
 
   val httpsDeps = Seq(

@@ -4,7 +4,7 @@ lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.13"
-ThisBuild / version      := "0.7.6"
+ThisBuild / version      := "0.7.6-SNAPSHOT-memleak-fix-v2"
 
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.5.3",
+      "org.typelevel"         %% "cats-effect"              % "3.5.4",
       "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
       "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
       "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
@@ -44,7 +44,7 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-ember-server"      % http4sVersion,
       "org.http4s"            %% "http4s-ember-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
-      "io.github.metarank"    %% "ltrlib"                   % "0.2.4",
+      "io.github.metarank"    %% "ltrlib"                   % "0.2.5.1",
       "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
@@ -54,11 +54,11 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
-      "io.lettuce"             % "lettuce-core"             % "6.3.1.RELEASE",
-      "com.google.guava"       % "guava"                    % "33.0.0-jre",
+      "io.lettuce"             % "lettuce-core"             % "6.3.2.RELEASE",
+      "com.google.guava"       % "guava"                    % "33.1.0-jre",
       "commons-io"             % "commons-io"               % "2.15.1",
       "com.google.guava"       % "guava"                    % "32.1.2-jre",
-      "io.sentry"              % "sentry-logback"           % "7.5.0",
+      "io.sentry"              % "sentry-logback"           % "7.6.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -73,7 +73,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "8.10.2",
+      "org.rocksdb"               % "rocksdbjni"     % "8.11.3",
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.12", // librec uses commons-logging, which is JCL

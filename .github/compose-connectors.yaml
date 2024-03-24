@@ -38,7 +38,7 @@ services:
       - "REDIS_TLS_AUTH_CLIENTS=no"
 
   kinesis:
-    image: ghcr.io/etspaceman/kinesis-mock:0.2.3
+    image: ghcr.io/etspaceman/kinesis-mock:0.4.6
     environment:
       - INITIALIZE_STREAMS=events:1
     ports:

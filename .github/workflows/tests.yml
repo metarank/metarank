@@ -25,7 +25,7 @@ jobs:
           - jvm: 11
             platform: macos-12
             architecture: x64
-          - jvm: 21
+          - jvm: 11
             platform: macos-14
             architecture: aarch64
           - jvm: 11

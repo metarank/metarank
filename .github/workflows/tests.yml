@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ master, 0.5.x ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, 0.5.x ]
+    branches: [ master ]
 
 env:
   METARANK_TRACKING: false
@@ -18,16 +18,23 @@ jobs:
         include:
           - jvm: 11
             platform: ubuntu-22.04
-          - jvm: 17
+            architecture: x64
+          - jvm: 21
             platform: ubuntu-22.04
+            architecture: x64
           - jvm: 11
             platform: macos-12
+            architecture: x64
+          - jvm: 11
+            platform: macos-14
+            architecture: aarch64
           - jvm: 11
             platform: windows-2022
+            architecture: x64
 
     steps:
     - name: install libomp
-      run: brew install libomp
+      run: brew install libomp && sudo mkdir -p /usr/local/lib/ && sudo ln -s /opt/homebrew/opt/libomp/lib/libomp.dylib /usr/local/lib/libomp.dylib
       if: runner.os == 'macOS'
 
     - uses: actions/checkout@v2
@@ -47,7 +54,7 @@ jobs:
       if: runner.os == 'Linux'
 
     - name: Start Redis on Mac
-      run: brew install redis && brew services start redis
+      run: brew install redis sbt && brew services start redis
       if: runner.os == 'macOS'
 
     - name: Start Redis on Windows
@@ -66,10 +73,13 @@ jobs:
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
         key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
+
     - name: Set up JDK
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.jvm }}
+        architecture: ${{ matrix.architecture }}
+        distribution: 'temurin'
 
     - name: Run tests
       run: sbt -mem 3000 test

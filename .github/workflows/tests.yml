@@ -18,14 +18,19 @@ jobs:
         include:
           - jvm: 11
             platform: ubuntu-22.04
+            architecture: x64
           - jvm: 21
             platform: ubuntu-22.04
+            architecture: x64
           - jvm: 11
             platform: macos-12
+            architecture: x64
           - jvm: 21
             platform: macos-14
+            architecture: aarch64
           - jvm: 11
             platform: windows-2022
+            architecture: x64
 
     steps:
     - name: install libomp
@@ -73,6 +78,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.jvm }}
+        architecture: ${{ matrix.architecture }}
         distribution: 'temurin'
 
     - name: Run tests

@@ -16,13 +16,13 @@ services:
       - ./s3:/etc/localstack/init/ready.d
 
   redis:
-    image: 'redis:7.0.5'
+    image: 'redis:7.2.4'
     command: ['--requirepass', 'test', '--port', '16379']
     ports:
       - '16379:16379'
 
   redistls:
-    image: 'bitnami/redis:7.0.5'
+    image: 'bitnami/redis:7.2.4'
     volumes:
       - "./tls:/tls"
     ports:

@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ master, 0.5.x ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, 0.5.x ]
+    branches: [ master ]
 
 env:
   METARANK_TRACKING: false
@@ -18,10 +18,12 @@ jobs:
         include:
           - jvm: 11
             platform: ubuntu-22.04
-          - jvm: 17
+          - jvm: 21
             platform: ubuntu-22.04
           - jvm: 11
             platform: macos-12
+          - jvm: 21
+            platform: macos-14
           - jvm: 11
             platform: windows-2022
 

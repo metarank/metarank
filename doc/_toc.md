@@ -54,5 +54,5 @@
 * [Building from source](dev/build.md)
 
 ### Doc versions
-* [0.7.7 (stable)](https://docs.metarank.ai)
+* [0.7.8 (stable)](https://docs.metarank.ai)
 * [master (unstable)](https://metarank.gitbook.io/metarank-docs-unstable/)

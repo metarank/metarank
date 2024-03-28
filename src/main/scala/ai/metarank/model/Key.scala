@@ -1,5 +1,6 @@
 package ai.metarank.model
 
+import ai.metarank.fstore.codec.impl.ScopeCodec
 import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, Encoder, Json, JsonObject}
 
@@ -15,7 +16,7 @@ object Key {
     if (slashIndex > 0) {
       val scopeString = str.substring(0, slashIndex)
       val feature     = str.substring(slashIndex + 1)
-      Scope.fromString(scopeString).map(s => Key(s, FeatureName(feature)))
+      ScopeCodec.decode(scopeString).map(s => Key(s, FeatureName(feature)))
     } else {
       Left(new IllegalArgumentException("slash not found"))
     }

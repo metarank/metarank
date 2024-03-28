@@ -1,7 +1,7 @@
 package ai.metarank.fstore.codec
 
 import ai.metarank.fstore.Persistence.ModelName
-import ai.metarank.fstore.codec.impl.{BinaryCodec, FeatureValueCodec, ScalarCodec, TimeValueCodec, TrainValuesCodec}
+import ai.metarank.fstore.codec.impl.{BinaryCodec, FeatureValueCodec, KeyCodec, ScalarCodec, TimeValueCodec, TrainValuesCodec}
 import ai.metarank.fstore.codec.values.{BinaryVCodec, JsonVCodec}
 import ai.metarank.ml.Model
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
@@ -27,7 +27,7 @@ sealed trait StoreFormat {
 
 object StoreFormat {
   case object JsonStoreFormat extends StoreFormat {
-    lazy val key          = keyEncoder
+    lazy val key          = KeyCodec
     lazy val timeValue    = JsonVCodec[TimeValue](FeatureValue.timeValueCodec)
     lazy val eventId      = idEncoder
     lazy val ctv          = JsonVCodec[TrainValues](TrainValues.trainCodec)
@@ -38,7 +38,7 @@ object StoreFormat {
   }
 
   case object BinaryStoreFormat extends StoreFormat {
-    lazy val key          = keyEncoder
+    lazy val key          = KeyCodec
     lazy val timeValue    = BinaryVCodec(compress = false, TimeValueCodec)
     lazy val eventId      = idEncoder
     lazy val ctv          = BinaryVCodec(compress = true, TrainValuesCodec)
@@ -48,23 +48,6 @@ object StoreFormat {
     lazy val featureValue = BinaryVCodec(compress = false, FeatureValueCodec)
   }
 
-  val keyEncoder: KCodec[Key] = new KCodec[Key] {
-    override def encode(prefix: String, value: Key): String = s"$prefix/${value.feature.value}/${value.scope.asString}"
-
-    override def decodeNoPrefix(str: String): Either[Throwable, Key] = str.split('/').toList match {
-      case value :: scope :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(value)))
-      case other                 => Left(new Exception(s"cannot parse key $other"))
-    }
-
-    override def encodeNoPrefix(value: Key): String = s"${value.feature.value}/${value.scope.asString}"
-
-    override def decode(str: String): Either[Throwable, Key] = {
-      str.split('/').toList match {
-        case _ :: value :: scope :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(value)))
-        case other                      => Left(new Exception(s"cannot parse key $other"))
-      }
-    }
-  }
 
   val idEncoder: KCodec[EventId] = new KCodec[EventId] {
     override def encode(prefix: String, value: EventId): String = s"$prefix/${value.value}"

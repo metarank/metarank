@@ -44,6 +44,8 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-ember-server"      % http4sVersion,
       "org.http4s"            %% "http4s-ember-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
+      "org.typelevel"         %% "log4cats-core"            % "2.6.0",
+      "org.typelevel"         %% "log4cats-slf4j"           % "2.6.0",
       "io.github.metarank"    %% "ltrlib"                   % "0.2.5.1",
       "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
       "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",

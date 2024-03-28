@@ -45,7 +45,7 @@ case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logg
             consumer
               .getRecords(it)
               .map(records => {
-                val chunk = Chunk.seq(records.events)
+                val chunk = Chunk.from(records.events)
                 val next  = records.next
                 Some(chunk, next)
               })

@@ -34,7 +34,7 @@ case class KafkaSource(conf: KafkaInputConfig) extends EventSource {
             messages <- cons.client.poll2(POLL_FREQUENCY)
             _        <- cons.client.commit(messages.offsets)
           } yield {
-            Some(Chunk.seq(messages.events), cons)
+            Some(Chunk.from(messages.events), cons)
           }
         )
         .flatMap(record => Stream.emits(record).through(conf.format.parse))

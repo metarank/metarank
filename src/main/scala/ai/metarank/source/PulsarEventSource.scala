@@ -27,7 +27,7 @@ case class PulsarEventSource(conf: PulsarInputConfig) extends EventSource {
             messages <- cons.batchReceiveAsync()
             _        <- cons.acknowledgeAsync(messages.ids)
           } yield {
-            Some(Chunk.seq(messages.events) -> cons)
+            Some(Chunk.from(messages.events) -> cons)
           }
         )
         .flatMap(message => Stream.emits(message).through(conf.format.parse))

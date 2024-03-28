@@ -81,6 +81,7 @@ object InputConfig {
       endpoint: Option[String] = None,
       skipCertVerification: Boolean = false,
       getRecordsPeriod: FiniteDuration = 200.millis,
+      sleepOnEmptyPeriod: FiniteDuration = 1.second,
       format: SourceFormat = JsonFormat
   ) extends InputConfig
 

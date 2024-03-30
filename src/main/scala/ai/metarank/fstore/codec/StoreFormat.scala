@@ -1,7 +1,14 @@
 package ai.metarank.fstore.codec
 
 import ai.metarank.fstore.Persistence.ModelName
-import ai.metarank.fstore.codec.impl.{BinaryCodec, FeatureValueCodec, KeyCodec, ScalarCodec, TimeValueCodec, TrainValuesCodec}
+import ai.metarank.fstore.codec.impl.{
+  BinaryCodec,
+  FeatureValueCodec,
+  KeyCodec,
+  ScalarCodec,
+  TimeValueCodec,
+  TrainValuesCodec
+}
 import ai.metarank.fstore.codec.values.{BinaryVCodec, JsonVCodec}
 import ai.metarank.ml.Model
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
@@ -47,7 +54,6 @@ object StoreFormat {
     lazy val model        = BinaryVCodec(compress = false, BinaryCodec.byteArray)
     lazy val featureValue = BinaryVCodec(compress = false, FeatureValueCodec)
   }
-
 
   val idEncoder: KCodec[EventId] = new KCodec[EventId] {
     override def encode(prefix: String, value: EventId): String = s"$prefix/${value.value}"

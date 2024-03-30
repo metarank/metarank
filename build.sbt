@@ -81,7 +81,7 @@ lazy val root = (project in file("."))
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.12", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.17.1",
       "ai.djl"                    % "api"            % "0.26.0",
-      "ai.djl.huggingface"        % "tokenizers"     % "0.26.0"
+      "ai.djl.huggingface"        % "tokenizers"     % "0.27.0"
     ),
     excludeDependencies ++= Seq(
       "commons-logging" % "commons-logging"

@@ -40,7 +40,7 @@ class ConfigEnvSubstTest extends AnyFlatSpec with Matchers {
       case RedisStateConfig(_, _, _, _, _, _, Some(RedisCredentials(Some("alice"), "secret")), _, _) =>
     }
     result.train should matchPattern {
-      case RedisTrainConfig(_, _, _, _, _, _, Some(RedisCredentials(Some("alice"), "secret")), _, _) =>
+      case RedisTrainConfig(_, _, _, _, _, _, Some(RedisCredentials(Some("alice"), "secret")), _, _, _) =>
     }
   }
 }

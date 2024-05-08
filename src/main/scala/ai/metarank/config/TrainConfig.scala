@@ -111,7 +111,8 @@ object TrainConfig {
       format: StoreFormat = BinaryStoreFormat,
       auth: Option[RedisCredentials] = None,
       tls: Option[RedisTLS] = None,
-      timeout: RedisTimeouts = RedisTimeouts()
+      timeout: RedisTimeouts = RedisTimeouts(),
+      ttl: FiniteDuration = 365.days
   ) extends TrainConfig
   implicit val redisDecoder: Decoder[RedisTrainConfig] = Decoder.instance(c =>
     for {
@@ -124,6 +125,7 @@ object TrainConfig {
       auth    <- c.downField("auth").as[Option[RedisCredentials]]
       tls     <- c.downField("tls").as[Option[RedisTLS]]
       timeout <- c.downField("timeout").as[Option[RedisTimeouts]].map(_.getOrElse(RedisTimeouts()))
+      ttl     <- c.downField("ttl").as[Option[FiniteDuration]]
     } yield {
       RedisTrainConfig(
         host = host,
@@ -134,7 +136,8 @@ object TrainConfig {
         format = format.getOrElse(BinaryStoreFormat),
         auth = auth,
         tls = tls,
-        timeout = timeout
+        timeout = timeout,
+        ttl = ttl.getOrElse(365.days)
       )
     }
   )

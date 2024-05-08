@@ -1,11 +1,13 @@
 # Persistence
 
-Metarank supports two possible persistence modes:
+Metarank supports two possible persistence modes for storing features:
 * [Memory](persistence.md#memory-persistence): ephemeral; all state is in RAM. 
 * [Redis](persistence.md#redis-persistence): state persisted in remote Redis.
 
 Persistence mode is configured by the optional `state` section in the [configuration file](overview.md).
 By default, if the section is not defined, Metarank uses [memory persistence](persistence.md#memory-persistence).
+
+> See also [training click-through persistence configuration](overview.md#training).
 
 ## Memory persistence
 

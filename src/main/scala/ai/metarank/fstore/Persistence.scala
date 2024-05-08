@@ -9,7 +9,15 @@ import ai.metarank.fstore.file.FilePersistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.ml.{Context, Model, Predictor}
-import ai.metarank.model.Feature.{BoundedListFeature, CounterFeature, FreqEstimatorFeature, MapFeature, PeriodicCounterFeature, ScalarFeature, StatsEstimatorFeature}
+import ai.metarank.model.Feature.{
+  BoundedListFeature,
+  CounterFeature,
+  FreqEstimatorFeature,
+  MapFeature,
+  PeriodicCounterFeature,
+  ScalarFeature,
+  StatsEstimatorFeature
+}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
 import ai.metarank.util.Logging

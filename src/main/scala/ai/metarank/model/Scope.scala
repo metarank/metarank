@@ -3,7 +3,15 @@ package ai.metarank.model
 import ai.metarank.fstore.codec.impl.ScopeCodec
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, RankingId, SessionId, UserId}
-import ai.metarank.model.ScopeType.{GlobalScopeType, ItemFieldScopeType, ItemScopeType, RankingFieldScopeType, RankingScopeType, SessionScopeType, UserScopeType}
+import ai.metarank.model.ScopeType.{
+  GlobalScopeType,
+  ItemFieldScopeType,
+  ItemScopeType,
+  RankingFieldScopeType,
+  RankingScopeType,
+  SessionScopeType,
+  UserScopeType
+}
 import io.circe.{Codec, Decoder, Encoder}
 
 import scala.annotation.switch
@@ -55,7 +63,6 @@ object Scope {
     override val asString: String   = ScopeCodec.encode(this)
     override val getType: ScopeType = SessionScopeType
   }
-
 
   implicit val scopeDecoder: Decoder[Scope] = Decoder.decodeString.emapTry(str => ScopeCodec.decode(str).toTry)
   implicit val scopeEncoder: Encoder[Scope] = Encoder.encodeString.contramap(_.asString)

@@ -82,6 +82,7 @@ Metarank has multiple ways of storing these click-throughs with different pros a
 train:
   type: redis
   # all options from state.redis here
+  ttl: <duration> # optional, default 365 days.
 ```
 * **Discard**: do not store click-through events at all.
 ```yaml

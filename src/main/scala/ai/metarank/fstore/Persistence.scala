@@ -4,6 +4,7 @@ import ai.metarank.config.CoreConfig.{ImportCacheConfig, ImportConfig}
 import ai.metarank.config.{ModelConfig, StateStoreConfig}
 import ai.metarank.fstore.Persistence.{KVStore, ModelName, ModelStore}
 import ai.metarank.config.StateStoreConfig.FileStateConfig
+import ai.metarank.fstore.codec.impl.ScopeCodec
 import ai.metarank.fstore.file.FilePersistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
@@ -22,8 +23,6 @@ import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec
-
-import java.nio.file.Path
 
 trait Persistence {
   lazy val ticker = new EventTicker
@@ -68,7 +67,7 @@ object Persistence extends Logging {
       override def decode(bytes: Array[Byte]): Either[Throwable, Key] = {
         val str = new String(bytes)
         str.split("/").toList match {
-          case scope :: name :: Nil => Scope.fromString(scope).map(s => Key(s, FeatureName(name)))
+          case scope :: name :: Nil => ScopeCodec.decode(scope).map(s => Key(s, FeatureName(name)))
           case _                    => Left(new Exception(s"cannot decode key $str"))
         }
       }

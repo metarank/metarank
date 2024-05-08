@@ -24,7 +24,6 @@ import java.time.{Duration, Instant}
 import scala.concurrent.duration._
 
 case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logging {
-  val GETRECORDS_TIMEOUT = 200.millis
   override def stream: fs2.Stream[IO, Event] =
     Stream
       .bracket(Consumer.create(conf))(_.close())
@@ -36,29 +35,77 @@ case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logg
           .flatten
       })
 
+  case class IteratorState(
+      nextIterator: String,
+      iteratorCreatedAt: Timestamp = Timestamp.now,
+      millisBehind: Long = 0L,
+      lastSeqNr: Option[String] = None
+  ) {
+    def withSeqNr(seqnr: Option[String]) = seqnr match {
+      case Some(value) => copy(lastSeqNr = Some(value))
+      case None        => this
+    }
+  }
   def shardStream(consumer: Consumer, shard: String, offset: SourceOffset): Stream[IO, Event] =
     Stream
       .eval(consumer.getShardIterator(conf.topic, shard, offset))
       .flatMap(iterator => {
         Stream
-          .unfoldChunkEval[IO, String, Array[Byte]](iterator)(it => {
+          .unfoldChunkEval[IO, IteratorState, Array[Byte]](IteratorState(iterator))(is => {
             consumer
-              .getRecords(it)
+              .getRecords(is.nextIterator)
+              .handleErrorWith(ex =>
+                for {
+                  _ <- error("Kinesis error: ", ex)
+                  _ <- error(
+                    s"it=${is.nextIterator} seqnr=${is.lastSeqNr} created=${is.iteratorCreatedAt} lag=${is.millisBehind}"
+                  )
+                  seqnr <- IO.fromOption(is.lastSeqNr)(new Exception("cannot rewind iterator to not yet known seqnr"))
+                  newIterator <- consumer.getShardIteratorOnSeqNr(conf.topic, shard, seqnr)
+                  _           <- warn(s"recreated shard iterator for seqnr ${seqnr}")
+                  records     <- consumer.getRecords(newIterator)
+                } yield {
+                  records
+                }
+              )
+              .flatTap(records => IO.whenA(records.events.isEmpty)(IO.sleep(conf.sleepOnEmptyPeriod)))
               .map(records => {
-                val chunk = Chunk.seq(records.events)
-                val next  = records.next
-                Some(chunk, next)
+                val chunk = Chunk.from(records.events)
+                val next  = records.nextIterator
+                Some(
+                  chunk,
+                  is.copy(
+                    nextIterator = next,
+                    iteratorCreatedAt = records.iteratorCreatedAt,
+                    millisBehind = records.millisBehind
+                  ).withSeqNr(records.lastSequenceNumber)
+                )
               })
           })
-          .metered(GETRECORDS_TIMEOUT)
+          .metered(conf.getRecordsPeriod)
           .flatMap(bytes => Stream.emits(bytes).through(conf.format.parse))
       })
 }
 
 object KinesisSource {
-  case class Records(events: List[Array[Byte]], next: String)
+  case class Records(
+      events: List[Array[Byte]],
+      nextIterator: String,
+      iteratorCreatedAt: Timestamp,
+      lastSequenceNumber: Option[String],
+      millisBehind: Long
+  )
   case class Consumer(client: KinesisAsyncClient, shards: List[String]) extends Logging {
     def close(): IO[Unit] = IO(client.close())
+
+    def getShardIteratorOnSeqNr(topic: String, shard: String, seqnr: String): IO[String] = {
+      val builder = GetShardIteratorRequest.builder().streamName(topic).shardId(shard)
+      val request =
+        builder.shardIteratorType(ShardIteratorType.AT_SEQUENCE_NUMBER).startingSequenceNumber(seqnr).build()
+      IO.fromCompletableFuture(IO(client.getShardIterator(request)))
+        .map(_.shardIterator())
+        .flatTap(it => warn(s"rewind shard iterator: $it (seqnr=$seqnr)"))
+    }
 
     def getShardIterator(topic: String, shard: String, offset: SourceOffset): IO[String] = {
       val builder = GetShardIteratorRequest.builder().streamName(topic).shardId(shard)
@@ -75,15 +122,25 @@ object KinesisSource {
       }
       IO.fromCompletableFuture(IO(client.getShardIterator(request)))
         .map(_.shardIterator())
-        .flatTap(it => debug(s"initial shard iterator: $it"))
+        .flatTap(it => info(s"initial shard iterator: $it"))
     }
 
     def getRecords(it: String): IO[Records] = {
       IO
         .fromCompletableFuture(IO(client.getRecords(GetRecordsRequest.builder().shardIterator(it).build())))
-        .map(response =>
-          Records(response.records().asScala.toList.map(_.data().asByteArray()), response.nextShardIterator())
-        )
+        .map(response => {
+          val events = response.records().asScala.toList
+          val it     = response.nextShardIterator()
+          val seqnr  = events.map(_.sequenceNumber()).lastOption
+          logger.debug(s"it=$it seqnr=$seqnr")
+          Records(
+            events = events.map(_.data().asByteArray()),
+            nextIterator = it,
+            iteratorCreatedAt = Timestamp.now,
+            lastSequenceNumber = seqnr,
+            millisBehind = response.millisBehindLatest()
+          )
+        })
         .flatTap(rec => debug(s"getRecords: received ${rec.events.size} records"))
     }
   }

@@ -32,7 +32,7 @@ object TrainStore {
       for {
         rankings <- RedisClient.create(c.host.value, c.port.value, c.db, c.pipeline, c.auth, c.tls, c.timeout)
       } yield {
-        RedisTrainStore(rankings, RedisPersistence.Prefix.CT, c.format, 365.days)
+        RedisTrainStore(rankings, RedisPersistence.Prefix.CT, c.format, c.ttl)
       }
     case _: MemoryTrainConfig => Resource.pure(MemTrainStore())
     case other => Resource.raiseError[IO, TrainStore, Throwable](new Exception(s"conf $other is not supported"))

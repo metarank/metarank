@@ -2,7 +2,7 @@ version: '2'
 
 services:
   s3:
-    image: 'localstack/localstack:1.3.0'
+    image: 'localstack/localstack:3.2.0'
     ports:
       - "4566:4566"
     environment:
@@ -16,13 +16,13 @@ services:
       - ./s3:/etc/localstack/init/ready.d
 
   redis:
-    image: 'redis:7.0.5'
+    image: 'redis:7.2.4'
     command: ['--requirepass', 'test', '--port', '16379']
     ports:
       - '16379:16379'
 
   redistls:
-    image: 'bitnami/redis:7.0.5'
+    image: 'bitnami/redis:7.2.4'
     volumes:
       - "./tls:/tls"
     ports:
@@ -38,7 +38,7 @@ services:
       - "REDIS_TLS_AUTH_CLIENTS=no"
 
   kinesis:
-    image: ghcr.io/etspaceman/kinesis-mock:0.2.3
+    image: ghcr.io/etspaceman/kinesis-mock:0.4.6
     environment:
       - INITIALIZE_STREAMS=events:1
     ports:

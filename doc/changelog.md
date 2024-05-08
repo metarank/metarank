@@ -3,6 +3,18 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.9
+
+* expose redis click-through store TTL to config
+
+## 0.7.8
+
+* a bigfix release: slash/semicolon in key/value, kinesis retries
+
+## 0.7.7
+
+* a bugfix release: race condition in cache invalidation, booster native memleak
+
 ## 0.7.6
 
 * [API Warmup support](deploy/warmup.md)

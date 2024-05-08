@@ -12,6 +12,8 @@ sealed trait Model[T <: Context] {
   def name: String
   def save(): Option[Array[Byte]]
   def predict(request: T): IO[Response]
+  def close(): Unit       = {}
+  def isClosed(): Boolean = false
 }
 
 object Model {

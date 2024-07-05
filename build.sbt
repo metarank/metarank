@@ -37,7 +37,7 @@ lazy val root = (project in file("."))
       "com.github.pathikrit"  %% "better-files"             % "3.9.2",
       "org.rogach"            %% "scallop"                  % "5.1.0",
       "com.github.blemale"    %% "scaffeine"                % "5.2.1",
-      "org.apache.kafka"       % "kafka-clients"            % "3.7.0",
+      "org.apache.kafka"       % "kafka-clients"            % "3.7.1",
       "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
@@ -59,7 +59,7 @@ lazy val root = (project in file("."))
       "io.lettuce"             % "lettuce-core"             % "6.3.2.RELEASE",
       "com.google.guava"       % "guava"                    % "33.2.0-jre",
       "commons-io"             % "commons-io"               % "2.16.1",
-      "io.sentry"              % "sentry-logback"           % "7.8.0",
+      "io.sentry"              % "sentry-logback"           % "7.11.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
@@ -74,7 +74,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "9.1.1",
+      "org.rocksdb"               % "rocksdbjni"     % "9.3.1",
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.13", // librec uses commons-logging, which is JCL

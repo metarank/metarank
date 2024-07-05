@@ -30,7 +30,15 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
       predictor <- mapping.models.get(modelName) match {
         case Some(existing: RankPredictor[_, _]) => IO.pure(existing)
         case Some(existing: RecommendPredictor[_, _]) =>
-          IO.raiseError(ModelError(s"cannot rerank over recommender model $modelName"))
+          val otherRankModels = mapping.models.values.collect { case predictor: RankPredictor[_, _] =>
+            predictor.name
+          }
+          IO.raiseError(
+            ModelError(
+              s"""Received a 'rank' request for a model $modelName, which is a recommender (not a ranker model).
+                 |Have you tried other ranker models like $otherRankModels?""".stripMargin
+            )
+          )
         case None => IO.raiseError(ModelError(s"model $modelName is not configured"))
       }
       model <- loadModel(predictor, modelName)

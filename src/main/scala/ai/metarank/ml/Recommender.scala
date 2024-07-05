@@ -20,7 +20,15 @@ case class Recommender(mapping: FeatureMapping, store: Persistence) extends Logg
     predictor <- mapping.models.get(modelName) match {
       case Some(existing: RecommendPredictor[_, _]) => IO.pure(existing)
       case Some(_: RankPredictor[_, _]) =>
-        IO.raiseError(ModelError(s"cannot recommend over rank model $modelName"))
+        val otherRecommenderModels = mapping.models.values.collect { case predictor: RecommendPredictor[_, _] =>
+          predictor.name
+        }
+        IO.raiseError(
+          ModelError(
+            s"""Received a 'recommend' request for a model $modelName, which is a ranking (not a recommender model).
+               |Have you tried other recommender models like $otherRecommenderModels?""".stripMargin
+          )
+        )
       case None => IO.raiseError(ModelError(s"model $modelName is not configured"))
     }
 

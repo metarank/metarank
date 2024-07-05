@@ -133,6 +133,7 @@ lazy val root = (project in file("."))
       case "META-INF/versions/9/OSGI-INF/MANIFEST.MF"                            => MergeStrategy.discard
       case "META-INF/native-image/reflect-config.json"                           => MergeStrategy.concat
       case "META-INF/native-image/io.netty/netty-common/native-image.properties" => MergeStrategy.first
+      case "META-INF/native-image/io.netty/netty-transport/reflect-config.json"  => MergeStrategy.first
       case "META-INF/okio.kotlin_module"                                         => MergeStrategy.first
       case "findbugsExclude.xml"                                                 => MergeStrategy.discard
       case "log4j2-test.properties"                                              => MergeStrategy.discard

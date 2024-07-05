@@ -24,22 +24,24 @@ lazy val root = (project in file("."))
       "-release:11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"         %% "cats-effect"              % "3.5.4",
-      "org.scalatest"         %% "scalatest"                % scalatestVersion % "test,it",
-      "org.scalactic"         %% "scalactic"                % scalatestVersion % "test,it",
-      "org.scalatestplus"     %% "scalacheck-1-16"          % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"         % "logback-classic"          % "1.5.6",
-      "io.circe"              %% "circe-yaml"               % circeYamlVersion,
-      "io.circe"              %% "circe-core"               % circeVersion,
-      "io.circe"              %% "circe-generic"            % circeVersion,
-      "io.circe"              %% "circe-generic-extras"     % circeGenericExtrasVersion,
-      "io.circe"              %% "circe-parser"             % circeVersion,
-      "com.github.pathikrit"  %% "better-files"             % "3.9.2",
-      "org.rogach"            %% "scallop"                  % "5.1.0",
-      "com.github.blemale"    %% "scaffeine"                % "5.2.1",
-      "org.apache.kafka"       % "kafka-clients"            % "3.7.1",
-      "org.apache.pulsar"      % "pulsar-client"            % pulsarVersion,
-      "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion    % "test",
+      "org.typelevel"        %% "cats-effect"          % "3.5.4",
+      "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
+      "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
+      "org.scalatestplus"    %% "scalacheck-1-16"      % "3.2.14.0"       % "test,it",
+      "ch.qos.logback"        % "logback-classic"      % "1.5.6",
+      "io.circe"             %% "circe-yaml"           % circeYamlVersion,
+      "io.circe"             %% "circe-core"           % circeVersion,
+      "io.circe"             %% "circe-generic"        % circeVersion,
+      "io.circe"             %% "circe-generic-extras" % circeGenericExtrasVersion,
+      "io.circe"             %% "circe-parser"         % circeVersion,
+      "com.github.pathikrit" %% "better-files"         % "3.9.2",
+      "org.rogach"           %% "scallop"              % "5.1.0",
+      "com.github.blemale"   %% "scaffeine"            % "5.2.1",
+      "org.apache.kafka"      % "kafka-clients"        % "3.7.1",
+      "org.apache.pulsar"     % "pulsar-client"        % pulsarVersion excludeAll (
+        ExclusionRule("org.bouncycastle", "bcprov-ext-jdk18on")
+      ),
+      "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion % "test",
       "org.http4s"            %% "http4s-dsl"               % http4sVersion,
       "org.http4s"            %% "http4s-ember-server"      % http4sVersion,
       "org.http4s"            %% "http4s-ember-client"      % http4sVersion,
@@ -128,6 +130,7 @@ lazy val root = (project in file("."))
       case PathList("module-info.class")                                         => MergeStrategy.discard
       case "META-INF/io.netty.versions.properties"                               => MergeStrategy.first
       case "META-INF/MANIFEST.MF"                                                => MergeStrategy.discard
+      case "META-INF/versions/9/OSGI-INF/MANIFEST.MF"                            => MergeStrategy.discard
       case "META-INF/native-image/reflect-config.json"                           => MergeStrategy.concat
       case "META-INF/native-image/io.netty/netty-common/native-image.properties" => MergeStrategy.first
       case "META-INF/okio.kotlin_module"                                         => MergeStrategy.first

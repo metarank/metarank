@@ -51,5 +51,8 @@ jobs:
       - name: Run docker image tests
         run: .github/test_docker.sh
 
+      - name: Run java version test
+        run: .github/test_java_version.sh
+
       - name: Run quickstart test
         run: ./run_quickstart.sh target/scala-2.13/metarank.jar

@@ -23,6 +23,12 @@ lazy val root = (project in file("."))
       "-Xfatal-warnings",
       "-release:11"
     ),
+    javacOptions ++= Seq(
+      "-source",
+      "11",
+      "-target",
+      "11"
+    ),
     libraryDependencies ++= Seq(
       "org.typelevel"        %% "cats-effect"          % "3.5.4",
       "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",

@@ -86,7 +86,7 @@ lazy val root = (project in file("."))
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.13", // librec uses commons-logging, which is JCL
-      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.18.0",
+      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.19.0",
       "ai.djl"                    % "api"            % djlVersion,
       "ai.djl.huggingface"        % "tokenizers"     % djlVersion,
       "co.fs2"                   %% "fs2-core"       % fs2Version,

@@ -43,7 +43,7 @@ lazy val root = (project in file("."))
       "com.github.pathikrit" %% "better-files"         % "3.9.2",
       "org.rogach"           %% "scallop"              % "5.1.0",
       "com.github.blemale"   %% "scaffeine"            % "5.3.0",
-      "org.apache.kafka"      % "kafka-clients"        % "3.7.1",
+      "org.apache.kafka"      % "kafka-clients"        % "3.9.0",
       "org.apache.pulsar"     % "pulsar-client"        % pulsarVersion excludeAll (
         ExclusionRule("org.bouncycastle", "bcprov-ext-jdk18on")
       ),

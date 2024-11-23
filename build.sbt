@@ -30,7 +30,7 @@ lazy val root = (project in file("."))
       "11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"          % "3.5.4",
+      "org.typelevel"        %% "cats-effect"          % "3.5.6",
       "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
       "org.scalatestplus"    %% "scalacheck-1-16"      % "3.2.14.0"       % "test,it",

@@ -34,7 +34,7 @@ To configure the model, use the following snippet:
     type: lambdamart 
     backend:
       type: xgboost # supported values: xgboost, lightgbm
-      iterations: 100 # optional (default 100), number of interations while training the model
+      iterations: 100 # optional (default 100), number of interactions while training the model
       seed: 0 # optional (default = random), a seed to make training deterministic
     weights: # types and weights of interactions used in the model training
       click: 1 # you can increase the weight of some events to hint model to optimize more for them

@@ -81,7 +81,7 @@ Subcommand: sort - sort the dataset by timestamp
 
 Subcommand: autofeature - generate reference config based on existing data
   -c, --cat-threshold  <arg>   min threshold of category frequency, when its
-                               considered a catergory (optional, default=0.003)
+                               considered a category (optional, default=0.003)
   -d, --data  <arg>            path to an input file
   -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
                                snowplow:json (optional, default=json)
@@ -345,7 +345,7 @@ To use the BM25 score in the [field_match](configuration/features/text.md#fieldm
 To do so, run the `termfreq` subcommand:
 ```shell
 
-$> java -jar meratank.jar termfreq --data <path-to-data>\
+$> java -jar metarank.jar termfreq --data <path-to-data>\
      --out /term-freq.json --fields title,description --language en
      
 

@@ -37,8 +37,8 @@ So Metarank does the following:
 * pre-builds a [HNSW](https://www.pinecone.io/learn/hnsw/) index for fast lookups for similar embeddings.
 * during inference (when you call the [/recommend/modelname](../../api.md#recommendations) endpoint), it makes a k-NN index lookup of similar items.
 
-Main pros and cons of such apporach:
+Main pros and cons of such approach:
 * *pros*: fast even for giant inventories, simple to implement
-* *cons*: lower precision compared to neural networks based methods like [BERT4rec](https://arxiv.org/abs/1904.06690), recommendations are not personalized.
+* *cons*: lower precision compared to neural networks based methods like [BERT4Rec](https://arxiv.org/abs/1904.06690), recommendations are not personalized.
 
 *There is an ongoing work in Metarank project to implement NN-based methods and make current ALS implementation personalized.*

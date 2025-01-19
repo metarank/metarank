@@ -169,7 +169,7 @@ Highlights of this release are:
 ## 0.5.1
 
 Highlights of this release are:
-* Flink is rermoved. As a result only `memory` and `redis` [persistance](configuration/persistence.md) modes are supported now.
+* Flink is removed. As a result only `memory` and `redis` [persistence](configuration/persistence.md) modes are supported now.
 * [Configuration file](configuration/sample-config.yml) now has updated structure and is not compatible with previous format.
 * CLI is updated, most of the options are moved to [configuration](configuration/overview.md).
   * We have updated the [`validate`](cli.md#validation) mode of the CLI, so you can use it to validate your data and configuration.
@@ -181,14 +181,14 @@ Highlights of this release are:
 * Kinesis source: on par with Kafka and Pulsar
 * Custom connector options pass-through
 
-### Kunernetes support
+### Kubernetes support
 
 Metarank is a multi-stage and multi-component system, and now it's possible to get it deployed
 in minutes inside a Kubernetes cluster:
 * Inference API is just a regular [Deployment](https://github.com/metarank/metarank/blob/master/deploy/kubernetes/deployment.yaml)
 * Bootstrap, Upload and Update jobs can be run both locally (to simplify things up for small datasets) and
 inside the cluster in a distributed mode.
-* Job mabagement is done with [flink-kubernetes-operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/)
+* Job management is done with [flink-kubernetes-operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/)
 
 See [this doc section](https://docs.metarank.ai/deployment/kubernetes) for details.
 

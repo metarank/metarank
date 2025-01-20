@@ -20,7 +20,7 @@ Mozilla/5.0 (iPhone; CPU iPhone OS 15_3_1 like Mac OS X) AppleWebKit/605.1.15 (K
 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.51 Safari/537.36 Edg/98.0.1108.62
 ```
 
-There is a large collaborative effort to build a database of typical UA patterns, (UA-Parser)[https://github.com/ua-parser],
+There is a large collaborative effort to build a database of typical UA patterns, [UA-Parser](https://github.com/ua-parser),
 which is used to extract all the possible item metadata from these strings. 
 
 To map this to actual ML features, there is a predefined set of mappers:

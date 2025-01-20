@@ -134,7 +134,7 @@ Metarank CLI has a set of different running modes:
 * [`validate`](#validation): validates data nd configuration files.
 * [`sort`](#historical-data-sorting): pre-sorts the dataset by timestamp.
 * [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on your data.
-* [`export`](#dataset-export): export the training dataset for further hyperparam optimization.
+* [`export`](#dataset-export): export the training dataset for further hyperparameter optimization.
 * [`termfreq`](): compute term frequency dictionary for [BM25 field_match extractor](configuration/features/text.md#text-based-extractors)
 
 ### Validation
@@ -226,7 +226,7 @@ The format of split strategy CLI flag is `--strategy name=ratio%`. For example:
 
 ### Dataset export
 
-Metarank can emit CSV/LibSVM formatted datasets and corresponding config files for LightGBM and XGBoost, so you can later perform a hyper-parameter optimization using your favourite tool:
+Metarank can emit CSV/LibSVM formatted datasets and corresponding config files for LightGBM and XGBoost, so you can later perform a hyperparameter optimization using your favourite tool:
 
 ```shell
 java -jar metarank.jar export --config /path/to/config.yaml --model <modelname> --out /export/dir

@@ -118,5 +118,5 @@ A source field can be of a user/ranking/interaction type, and feature extractor 
 * there can be multiple referers. For example, visitor lands on a site from google (and gets a "search" referer),
   then does a couple of interactions with the site (and also gets an "internal" referer medium)
 
-In a case when a visitor has multiple referers memorized, then the one-hot-encoded vector will have multiple flags enabled,
+In a case when a visitor has multiple referers memorised, then the one-hot-encoded vector will have multiple flags enabled,
 like `[0, 1, 1, 0, 0, 0]` for a case with search+internal referer mediums.

@@ -1,6 +1,6 @@
 # Inference models
 
-Inference models allow to re-rank search results using pre-train LLMs (Large Language Models). You can use Metarank's pre-built models or provide your own. 
+Inference models allow to rerank search results using pre-train LLMs (Large Language Models). You can use Metarank's pre-built models or provide your own. 
 At the moment `cross-encoder` and `bi-encoder` model types are supported.
 
 Metarank uses [ONNX](https://onnx.ai/) for loading models and can handle referencing models from [HuggingFace](https://huggingface.co/metarank) or local files. 

@@ -6,7 +6,7 @@ While implementing Learn-to-Rank systems, Metarank is designed to be a satellite
 assumes that there exists another service which generates candidates for the reranking process:
 * in search: Elasticsearch or SOLR
 * in recommendations: output of spark mllib ALS recommender
-* in ecommerce: inventory database
+* in e-commerce: inventory database
 
 Most of these primary sources of input may also have a per-item score: how much this item is matching the original query:
 * BM25 or TF/IDF score in search

@@ -168,7 +168,7 @@ curl http://localhost:8080/rank/xgboost -d '{
 }'
 ```
 
-The API will respond with a list of 100 re-ranked movie ids:
+The API will respond with a list of 100 reranked movie ids:
 ```json5
 {
   "items": [

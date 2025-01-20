@@ -53,7 +53,7 @@ Check our [blog](https://blog.metarank.ai) for more detailed updates.
 * `field_match` support for [BM25](configuration/features/text.md#bm25-score)
 * `field_match` support for [LLM bi-encoders](configuration/features/text.md#llm-bi-encoders)
 * `field_match` support for [LLM cross-encoders](configuration/features/text.md#llm-cross-encoders)
-* Relevance judgments can now also [be explicit](event-schema.md#ranking-event)
+* Relevance judgements can now also [be explicit](event-schema.md#ranking-event)
 
 
 ## 0.6.4
@@ -125,7 +125,7 @@ Upgrading: note that redis state format has a non backwards compatible change, s
 
 * [`interacted_with`](configuration/features/user-session.md#interacted-with) feature now has much less overhead in Redis, and supports multiple fields in a single visitor profile.
 * [click-through events now can be stored in a file](configuration/overview.md#training), and not inside Redis, also reducing the overall costs of running Metarank
-* it is now possible to [export lightgbm/xgboost-compatible](cli.md#dataset-export) datasets for further hyper-parameter optimization.
+* it is now possible to [export lightgbm/xgboost-compatible](cli.md#dataset-export) datasets for further hyperparameter optimization.
 
 ## 0.5.8
 
@@ -145,13 +145,13 @@ Upgrading: note that redis state format has a non backwards compatible change, s
 * [Binary state serialization format](configuration/persistence.md#state-encoding-formats), which is 2x faster and 4x more compact than JSON
 * [Multi-arch docker images](deploy/docker.md), so metarank can now be run natively on Mac M1/M2.
 * [Kubernetes Helm chart](deploy/kubernetes.md) and an official guide on how to do production deployment on k8s.
-* [Training dataset export](cli.md#training-the-model) for further hyper-parameter tuning.
+* [Training dataset export](cli.md#training-the-model) for further hyperparameter tuning.
 
 ## 0.5.5
 Notable features:
 * [Rate normalization](configuration/features/counters.md#rate-normalization) support, so having 1 click over 2 
 impressions is not resulting in a 50% CTR anymore.
-* [Position de-biasing](configuration/features/relevancy.md#position) based on a dynamic position feature.
+* [Position debiasing](configuration/features/relevancy.md#position) based on a dynamic position feature.
 
 ## 0.5.4
 Most notable improvements:

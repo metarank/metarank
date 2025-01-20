@@ -202,7 +202,7 @@ java -jar metarank.jar train <config file> xgboost
 
 ### 3. Inference
 
-Run Metarank REST API service to process feedback events and re-rank in real-time. 
+Run Metarank REST API service to process feedback events and rerank in real-time. 
 By default Metarank will be available on `localhost:8080` and you can send feedback events to `http://<ip>:8080/feedback` 
 and get personalized ranking from `http://<ip>:8080/rank/<MODEL_NAME>`. 
 ```shell

@@ -162,6 +162,6 @@ object TrendingRecommender {
       TrendingConfig(weights, selector.getOrElse(Selector.AcceptSelector()))
     }
   )
-  implicit val trendongConfigEncoder: Encoder[TrendingConfig] = deriveEncoder
-  implicit val trendingConfigCodec: Codec[TrendingConfig]     = Codec.from(trendingConfigDecoder, trendongConfigEncoder)
+  implicit val trendingConfigEncoder: Encoder[TrendingConfig] = deriveEncoder
+  implicit val trendingConfigCodec: Codec[TrendingConfig]     = Codec.from(trendingConfigDecoder, trendingConfigEncoder)
 }

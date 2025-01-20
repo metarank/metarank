@@ -1,7 +1,7 @@
 # Personalizing recommendations
 
 This tutorial describes how to make personalized recommendations based on a [Ranklens](https://github.com/metarank/ranklens) dataset.
-The dataset itself is a repackaged version of famous Movielens dataset with recorded real human clitkthroughts on movies.
+The dataset itself is a repackaged version of famous Movielens dataset with recorded real human clickthroughs on movies.
 
 This tutorial reproduces the system running on [demo.metarank.ai](https://demo.metarank.ai).
 
@@ -178,10 +178,10 @@ features:
     periods: [7,30]
  ```
 
-### 1. Data Bootstraping
+### 1. Data Bootstrapping
 
 The bootstrap job will process your incoming events based on a config file and produce a couple of output parts:
-1. `dataset` - backend-agnostic numerical feature values for all the clickhroughs in the dataset
+1. `dataset` - backend-agnostic numerical feature values for all the clickthroughs in the dataset
 2. `features` - snapshot of the latest feature values, which should be used in the inference phase later
 3. `savepoint` - an Apache Flink savepoint to seamlessly continue processing online events after the bootstrap job
 
@@ -202,7 +202,7 @@ java -jar metarank.jar train <config file> xgboost
 
 ### 3. Inference
 
-Run Metarank REST API service to process feedback events and re-rank in real-time. 
+Run Metarank REST API service to process feedback events and rerank in real-time. 
 By default Metarank will be available on `localhost:8080` and you can send feedback events to `http://<ip>:8080/feedback` 
 and get personalized ranking from `http://<ip>:8080/rank/<MODEL_NAME>`. 
 ```shell

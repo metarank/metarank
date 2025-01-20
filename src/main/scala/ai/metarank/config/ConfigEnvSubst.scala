@@ -9,12 +9,12 @@ import cats.implicits._
 
 object ConfigEnvSubst extends Logging {
   type Subst = (Config, Map[String, String]) => IO[Config]
-  val subsitutions: List[Subst] = List(
+  val substitutions: List[Subst] = List(
     substTracking,
     substRedisCreds
   )
   def apply(config: Config, env: Map[String, String]): IO[Config] =
-    subsitutions.foldM(config) { case (next, subst) => subst(next, env) }
+    substitutions.foldM(config) { case (next, subst) => subst(next, env) }
 
   def substRedisCreds(config: Config, env: Map[String, String]): IO[Config] =
     (env.get("METARANK_REDIS_USER"), env.get("METARANK_REDIS_PASSWORD")) match {

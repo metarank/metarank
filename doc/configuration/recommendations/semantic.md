@@ -33,7 +33,7 @@ Metarank has quite limited support for embeddings:
 
 A dictionary should be a comma-separated CSV-formatted file, where:
 * 1st column is product id
-* 2 till N+1 columns - float values for N-dimentional embedding
+* 2 till N+1 columns - float values for N-dimensional embedding
 
 Example:
 ```

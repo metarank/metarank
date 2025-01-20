@@ -41,7 +41,7 @@ ENV JAVA_OPTS="-Xmx1g -Dlogback.configurationFile=/app/logback.xml -Dlogback.deb
 
 ```
 
-Such a custom image will successfully load the custom conviguration with non-default appender:
+Such a custom image will successfully load the custom configuration with non-default appender:
 
 ```
 + OPTS='-Xmx1g -Dlogback.configurationFile=/app/logback.xml -Dlogback.debug=true'

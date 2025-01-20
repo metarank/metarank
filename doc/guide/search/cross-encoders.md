@@ -1,4 +1,4 @@
-# Search re-ranking with cross-encoder LLMs
+# Search reranking with cross-encoder LLMs
 
 In this guide we will set up Metarank as a simple inference server for cross-encoder LLMs (Large Language Models). In other words, we will use an open-source cross-encoder model to reorder your search results in a zero-shot manner, without collecting any visitor feedback data. We will use a pre-trained `MS-MARCO MiniLM-L6-v2` cross-encoder from the [sentence-transformers](https://sbert.net) package. 
 
@@ -20,7 +20,7 @@ For typical reranking scenarios, cross-encoders (even in zero-shot modes) are mu
 
 Let's imagine you already have a traditional search engine running (like Elasticsearch, OpenSearch or SOLR), which already has a good [recall](https://en.wikipedia.org/wiki/Precision_and_recall) level - it retrieves all the relevant products, but it sometimes struggles with precision: there can be some false-positives, and the ranking is not perfect.
 
-In this guide we will take top-N matching documents from your search engine, and re-rank them according to their semantic similarity with the query.
+In this guide we will take top-N matching documents from your search engine, and rerank them according to their semantic similarity with the query.
 
 ![reranking flow](../../img/reranking.png)
 

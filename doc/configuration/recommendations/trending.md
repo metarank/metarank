@@ -1,6 +1,6 @@
 # Trending items
 
-`trending` recommendation model is used to highlight the trending (or in other workds, most popular) items in your application. But it's not just about sorting items by popularity! 
+`trending` recommendation model is used to highlight the trending (or in other words, most popular) items in your application. But it's not just about sorting items by popularity! 
 
 Metarank can:
 * combine multiple types of interactions: you can mix clicks, likes and purchases with different weights.
@@ -32,7 +32,7 @@ models:
 The config above defines a trending model, accessible over the `/recommend/yolo-trending` [API endpoint](../../api.md):
 * the final item score combines click, like and purchase events
 * purchase has 3x more weight than click, like has 1.5x more weight than click
-* purchase has less agressive time decay
+* purchase has less aggressive time decay
 * only the last 30 days of data are used for clicks and purchases, but 60 days are used for likes
 
 ## Time decay and weight

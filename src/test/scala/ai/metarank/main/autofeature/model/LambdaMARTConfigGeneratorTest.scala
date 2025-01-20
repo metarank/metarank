@@ -36,7 +36,7 @@ class LambdaMARTConfigGeneratorTest extends AnyFlatSpec with Matchers {
     conf should be(empty)
   }
 
-  it should "accept explicit relevance judgments" in {
+  it should "accept explicit relevance judgements" in {
     val event = TestRankingEvent(List("p1")).copy(items =
       NonEmptyList.of(
         RankItem(ItemId("p1"), label = Some(1)),

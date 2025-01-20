@@ -137,7 +137,7 @@ Supported reducers are:
 * `vectorN` - take first N items from the sequence, and pad remaining with zeroes. So `vector10` means a vector of 10 dimensions.
 
 The `vectorN` reducer can also be useful if you compute embeddings (fields with constant predefined size) for your user/items as you can wrap them as ranking features directly. 
-For example, when your item has a field `als_embedding: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`, you can define a `vector` feature with `reduce: vector10` and the raw embedding will be short-cirquited as a set of 10 separate numerical features for the ranking model.
+For example, when your item has a field `als_embedding: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]`, you can define a `vector` feature with `reduce: vector10` and the raw embedding will be short-circuited as a set of 10 separate numerical features for the ranking model.
 
 ## String extractors
 

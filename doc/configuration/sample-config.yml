@@ -7,7 +7,7 @@
 
 # These features can be shared between multiple models, so if you have a model A using features 1-2-3 and
 # a model B using features 1-2, then all three features will be computed only once. 
-# You need to explicitely include a feature in the model configuration for Metarank to use it.
+# You need to explicitly include a feature in the model configuration for Metarank to use it.
 features:
   - name: popularity
     type: number
@@ -41,7 +41,7 @@ models:
     type: lambdamart # model type
     backend:
       type: xgboost # supported values: xgboost, lightgbm for lambdamart model
-      iterations: 100 # optional (default 100), number of interations while training the model
+      iterations: 100 # optional (default 100), number of interactions while training the model
       seed: 0 # optional (default = random), a seed to make training deterministic
     weights: # types and weights of interactions used in the model training
       click: 1 # you can increase the weight of some events to hint model to optimize more for them
@@ -49,7 +49,7 @@ models:
       - popularity
       - genre
   # You can specify several models at once. 
-  # This can be useful for A\B test scenarious or while testing different sets of features.
+  # This can be useful for A/B test scenarios or while testing different sets of features.
 
   #random:
   #  type: shuffle # shuffle model type produces random results

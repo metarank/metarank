@@ -8,7 +8,7 @@ setup instructions.
 
 Metarank has multiple running modes:
 * `import` - import historical clickthroughs to the store
-* `train` - run traing the machine learning model using the imported data
+* `train` - run training the machine learning model using the imported data
 * `serve` - start the ranking inference API
 * `standalone` - which is a shortcut for `import`, `train` and `serve` jobs run together.
 * `validate` - a set of sanity checks on your configuration file and event dataset.
@@ -44,7 +44,7 @@ Another option is to run Metarank standalone mode from a docker container:
 $ docker run -v /data/:<path to data dir> metarank/metarank:latest standalone --data /data/events.json --config /data/config.yml
 ```
 
-The follwing options are used for the docker container:
+The following options are used for the docker container:
 * `-v /data:<path to data dir>` to map a directory with input files and configuration into the container
 * `--data /data/events.json` to pass the name of [input events file](../event-schema.md), from the mapped volume
 * `--config /data/config.yml` to pass the [configuration file](../configuration/overview.md)
@@ -52,7 +52,7 @@ The follwing options are used for the docker container:
 During the startup process Metarank will:
 * import your dataset and compute all historical event statistics useful for machine learning model training
 * train the machine learning model you defined in the configuration file
-* start the inference API for real-time personaization.
+* start the inference API for real-time personalization.
 
 ![import and training process](../quickstart/img/training.gif)
 

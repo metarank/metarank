@@ -7,7 +7,7 @@ These are general recommendations on running Metarank in a production environmen
 ## Persistence
 
 Metarank provides several [Persistence](../configuration/persistence.md) options, however for production setup we recommend
-using only [Redis persistance](../configuration/persistence.md#redis-persistence) as it operates separately from running Metarank instances.
+using only [Redis persistence](../configuration/persistence.md#redis-persistence) as it operates separately from running Metarank instances.
 
 Redis does not depend on Metarank instances being re-deployed and should be configured with [disc backup](https://redis.io/docs/manual/persistence/).
 

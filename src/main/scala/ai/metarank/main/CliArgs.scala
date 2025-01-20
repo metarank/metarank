@@ -310,7 +310,7 @@ object CliArgs extends Logging {
       val catThreshold = opt[Double](
         name = "cat-threshold",
         required = false,
-        descr = "min threshold of category frequency, when its considered a catergory (optional, default=0.003)",
+        descr = "min threshold of category frequency, when its considered a category (optional, default=0.003)",
         default = Some(0.003)
       )
 

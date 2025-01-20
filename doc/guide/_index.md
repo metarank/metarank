@@ -6,7 +6,7 @@
   * Explicit and implicit feedback 
 * Generating configuration
 * Setting up ranking model (supported model types and options)
-  * Tuning model hyper-parameters 
+  * Tuning model hyperparameters 
 * Importing data
 * Deploying in Kubernetes
   * Model retraining 

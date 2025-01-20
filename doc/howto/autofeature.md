@@ -32,7 +32,7 @@ Subcommand: autofeature - generate reference config based on existing data
   -r, --ruleset  <arg>   set of rules to generate config: stable, all (optional,
                          default=stable, values: [stable, all])
   -c, --cat-threshold  <arg>   min threshold of category frequency, when its
-                               considered a catergory (optional, default=0.003)
+                               considered a category (optional, default=0.003)
   -h, --help             Show help message
 
 For all other tricks, consult the docs on https://docs.metarank.ai
@@ -77,12 +77,12 @@ Process finished with exit code 0
 ## Supported heuristics
 
 Metarank has multiple sets of heuristics to generate feature configuration, toggled by the `--ruleset` CLI option:
-* stable: a default one, ruleset with less agressive heuristics, proven to be safe in production use.
+* stable: a default one, ruleset with less aggressive heuristics, proven to be safe in production use.
 * all: generates all features it can, even the problematic ones (like CTR, which may introduce biases).
 
 The following `stable` heuristics are supported:
 * **Numeric**: all numerical item fields are encoded as a [number](../configuration/features/scalar.md#numerical-extractor) feature.
-So for a numeric field `budget` describing a movie budget in dollars, it will generate the following feature extractor defitition:
+So for a numeric field `budget` describing a movie budget in dollars, it will generate the following feature extractor definition:
 ```yaml
 - source: item.budget
   type: number

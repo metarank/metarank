@@ -11,11 +11,11 @@ models:
 ## LambdaMART
 
 LambdaMART is a Learn-to-Rank model, optimizing the [NDCG metric](https://en.wikipedia.org/wiki/Discounted_cumulative_gain). 
-There is a [Lambdamart in Depth](https://softwaredoug.com/blog/2022/01/17/lambdamart-in-depth.html)
+There is a [LambdaMART in Depth](https://softwaredoug.com/blog/2022/01/17/lambdamart-in-depth.html)
 article by [Doug Turnbull](https://softwaredoug.com) describing all the details about how it works. In a simplified way,
 LambdaMART in the scope of Metarank does the following:
 1. Takes a ranking and some relevancy judgements over items as an input (judgements can be implicit, like clicks, or 
-implicit like stars in movie recommendations)
+explicit like stars in movie recommendations)
 2. All items in the ranking have a set of characteristics (ML features, like genre or CTR as an example)
 3. A pair of items from the ranking is sampled.
 4. ML model must be able to guess which item in this pair may have higher relevancy judgement.

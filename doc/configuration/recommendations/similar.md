@@ -4,7 +4,7 @@
 
 Common use-cases for this model are:
 * you-may-also-like recommendations on item page: the context of the recommendation is a single item you're viewing now.
-* also-purchased widget on the cart page: the context of the recommendation is the contents of your card.
+* also-purchased widget on the cart page: the context of the recommendation is the contents of your cart.
 
 ## Configuration
 

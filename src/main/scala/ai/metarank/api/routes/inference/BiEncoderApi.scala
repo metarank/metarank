@@ -18,23 +18,22 @@ import org.http4s.circe._
 import cats.implicits._
 
 case class BiEncoderApi(encoders: Map[String, OnnxBiEncoder]) {
-  val routes = HttpRoutes.of[IO] {
-    { case post @ POST -> Root / "inference" / "encoder" / model =>
-      for {
-        request <- post.as[BiencoderRequest]
-        encoder <- IO.fromOption(encoders.get(model))(
-          new Exception(s"encoder $model is not defined in config (defined: ${encoders.keys.toList})")
-        )
-        start    <- IO(System.currentTimeMillis())
-        encoded  <- IO(encoder.embed(request.texts.toArray))
-        response <- IO(BiencoderResponse(encoded.toList, took = System.currentTimeMillis() - start))
-      } yield {
-        Response[IO](
-          entity = Entity.strict(JsonChunk(response)),
-          headers = Headers(`Content-Type`(MediaType.application.json))
-        )
-      }
+  val routes = HttpRoutes.of[IO] { { case post @ POST -> Root / "inference" / "encoder" / model =>
+    for {
+      request <- post.as[BiencoderRequest]
+      encoder <- IO.fromOption(encoders.get(model))(
+        new Exception(s"encoder $model is not defined in config (defined: ${encoders.keys.toList})")
+      )
+      start    <- IO(System.currentTimeMillis())
+      encoded  <- IO(encoder.embed(request.texts.toArray))
+      response <- IO(BiencoderResponse(encoded.toList, took = System.currentTimeMillis() - start))
+    } yield {
+      Response[IO](
+        entity = Entity.strict(JsonChunk(response)),
+        headers = Headers(`Content-Type`(MediaType.application.json))
+      )
     }
+  }
   }
 }
 

@@ -1,6 +1,6 @@
 # Trending items
 
-`trending` recommendation model is used to highlight the trending (or in other workds, most popular) items in your application. But it's not just about sorting items by popularity! 
+`trending` recommendation model is used to highlight the trending (or in other words, most popular) items in your application. But it's not just about sorting items by popularity! 
 
 Metarank can:
 * combine multiple types of interactions: you can mix clicks, likes and purchases with different weights.

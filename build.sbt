@@ -64,7 +64,7 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
-      "io.lettuce"             % "lettuce-core"             % "6.3.2.RELEASE",
+      "io.lettuce"             % "lettuce-core"             % "6.5.4.RELEASE",
       "com.google.guava"       % "guava"                    % "33.2.1-jre",
       "commons-io"             % "commons-io"               % "2.16.1",
       "io.sentry"              % "sentry-logback"           % "7.11.0",

@@ -74,17 +74,15 @@ object Train extends Logging {
       predictor: Predictor[_ <: ModelConfig, _, _ <: Model[_ <: Context]]
   ): IO[TrainResult] = for {
     model <- predictor.fit(cts.getall().filter(c => predictor.config.selector.accept(c)))
-    _     <- store.models.put(model)
-    _     <- store.sync
-    _     <- info(s"model uploaded to store")
-  } yield {
-    val weights = (model, predictor) match {
+    weights = (model, predictor) match {
       case (m: LambdaMARTModel, p: LambdaMARTPredictor) =>
-        m.weights(p.desc).map { case (name, w) =>
-          FeatureStatus(name, w)
-        }
+        m.weights(p.desc).map { case (name, w) => FeatureStatus(name, w) }
       case _ => Nil
     }
+    _ <- store.models.put(model)
+    _ <- store.sync
+    _ <- info(s"model uploaded to store")
+  } yield {
     weights.foreach(fs => logger.info(fs.asPrintString))
     TrainResult(weights.toList)
   }

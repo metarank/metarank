@@ -159,7 +159,7 @@ define which model to invoke.
 - `items`: which particular items were displayed to the visitor.
 - `items.id`: id of the content item. Should match the `item` property from item metadata event.
 - `items.fields`: an optional set of per-item fields, for example BM25 scores coming from ES. See [how to use BM25 scores](configuration/features/relevancy.md#ranking) in ranking.
-- `items.label`: an optional field for explicit relevance judgments.
+- `items.label`: an optional field for explicit relevance judgements.
 
 ### Response format
 
@@ -177,7 +177,7 @@ define which model to invoke.
 - `took`: number of millis spend processing request
 - `items.id`: id of the content item. Will match `item` property from the item metadata event.
 - `items.score`: a score calculated by personalization model
-- `items.features`: an array of feature values calculated by pesonaliization model. This field will be returned if `explain` field is set to `true` in the request. The structure of this object will vary depending on the feature type.
+- `items.features`: an array of feature values calculated by personalization model. This field will be returned if `explain` field is set to `true` in the request. The structure of this object will vary depending on the feature type.
 
 ## Recommendations
 

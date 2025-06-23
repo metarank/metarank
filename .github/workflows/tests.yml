@@ -8,6 +8,7 @@ on:
 
 env:
   METARANK_TRACKING: false
+  LD_LIBRARY_PATH: /usr/local/lib
 
 jobs:
   build:
@@ -34,7 +35,7 @@ jobs:
 
     steps:
     - name: install libomp
-      run: brew install libomp && sudo ln -s /opt/homebrew/opt/libomp/lib/libomp.dylib /usr/lib/libomp.dylib
+      run: brew install libomp && sudo mkdir -p /usr/local/lib/ && sudo ln -s /opt/homebrew/opt/libomp/lib/libomp.dylib /usr/local/lib/libomp.dylib
       if: runner.os == 'macOS'
 
     - uses: actions/checkout@v2
@@ -69,7 +70,7 @@ jobs:
       run: cat /proc/sys/kernel/random/entropy_avail && sudo dmesg
       if: runner.os == 'Linux'
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@v2
       with:
         path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
         key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}

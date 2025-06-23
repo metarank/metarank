@@ -37,19 +37,22 @@ jobs:
         run: mkdir -p .github/tls && .github/generate_keys.sh .github/tls
 
       - name:  Run docker-compose
-        run: docker-compose -f .github/compose-connectors.yaml up -d
+        run: docker compose -f .github/compose-connectors.yaml up -d
 
       - name: Run integration tests
         run: sbt -mem 5000 IntegrationTest/test
 
       - name:  Stop docker-compose
-        run: docker-compose -f .github/compose-connectors.yaml down
+        run: docker compose -f .github/compose-connectors.yaml down
 
       - name: Make docker image
         run: sbt -mem 5000 assembly docker
 
       - name: Run docker image tests
         run: .github/test_docker.sh
+
+      - name: Run java version test
+        run: .github/test_java_version.sh
 
       - name: Run quickstart test
         run: ./run_quickstart.sh target/scala-2.13/metarank.jar

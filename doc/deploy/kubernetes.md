@@ -15,7 +15,7 @@ For a distributed K8S deployment, metarank requires the following external servi
 ## Data Import
 
 Metarank supports multiple ways of ingesting training data into the system:
-* event file can be HTTT POSTed to the `/feedback` endpoint using the [REST API](../api.md). Metarank does not do any in-memory buffering, so if your dataset is below 1GiB in size, this may be the simplest way to ingest.
+* event file can be HTTP POSTed to the `/feedback` endpoint using the [REST API](../api.md). Metarank does not do any in-memory buffering, so if your dataset is below 1GiB in size, this may be the simplest way to ingest.
 * event can be imported from a Kafka/Pulsar/Kinesis topic or read from files **locally**. Note that distributed import is not yet supported.
 
 We suggest to start with a HTTP-based event import, and switch to offline local import if you have any issues with it.
@@ -94,10 +94,10 @@ The Metarank docker container accepts a `JAVA_OPTS` environment variable to cont
 
 ## Installing the chart
 
-The chart itself is agnostic to the Metarank version, and has separate versioning. For the latest Metarank `0.7.9` release, use the following command to install the chart:
+The chart itself is agnostic to the Metarank version, and has separate versioning. For the latest Metarank `0.7.10` release, use the following command to install the chart:
 
 ```shell
-helm install metarank . --set-file config=metarank.conf --set image.tag=0.7.9
+helm install metarank . --set-file config=metarank.conf --set image.tag=0.7.10
 
 NAME: metarank
 LAST DEPLOYED: Tue Oct  4 15:32:47 2022

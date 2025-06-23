@@ -30,6 +30,8 @@ import org.http4s.server.Router
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 import fs2.Stream
+import org.http4s.Request
+import org.http4s.server.middleware.{ErrorAction, Logger}
 
 import scala.concurrent.duration._
 
@@ -96,7 +98,14 @@ object Serve extends Logging {
       )
       routes =
         health <+> rank <+> feedback <+> train <+> metricsApi <+> rec <+> inferenceCross.routes <+> inferenceEncoder.routes
-      httpApp = Router("/" -> routes).orNotFound
+      routesWithError <- IO(
+        ErrorAction.httpRoutes(routes, (req: Request[IO], err: Throwable) => error(err.toString, err))
+      )
+      routesWithLog <- IO(
+        Logger.httpRoutes(logBody = false, logHeaders = false, logAction = Some(info(_)))(routesWithError)
+      )
+
+      httpApp = Router("/" -> routesWithLog).orNotFound
       host <- IO.fromOption(Hostname.fromString(conf.host.value))(
         new Exception(s"cannot parse hostname '${conf.host.value}'")
       )

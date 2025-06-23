@@ -32,7 +32,7 @@ models:
 The config above defines a trending model, accessible over the `/recommend/yolo-trending` [API endpoint](../../api.md):
 * the final item score combines click, like and purchase events
 * purchase has 3x more weight than click, like has 1.5x more weight than click
-* purchase has less agressive time decay
+* purchase has less aggressive time decay
 * only the last 30 days of data are used for clicks and purchases, but 60 days are used for likes
 
 ## Time decay and weight

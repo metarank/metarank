@@ -53,7 +53,7 @@ Check our [blog](https://blog.metarank.ai) for more detailed updates.
 * `field_match` support for [BM25](configuration/features/text.md#bm25-score)
 * `field_match` support for [LLM bi-encoders](configuration/features/text.md#llm-bi-encoders)
 * `field_match` support for [LLM cross-encoders](configuration/features/text.md#llm-cross-encoders)
-* Relevance judgments can now also [be explicit](event-schema.md#ranking-event)
+* Relevance judgements can now also [be explicit](event-schema.md#ranking-event)
 
 
 ## 0.6.4
@@ -125,7 +125,7 @@ Upgrading: note that redis state format has a non backwards compatible change, s
 
 * [`interacted_with`](configuration/features/user-session.md#interacted-with) feature now has much less overhead in Redis, and supports multiple fields in a single visitor profile.
 * [click-through events now can be stored in a file](configuration/overview.md#training), and not inside Redis, also reducing the overall costs of running Metarank
-* it is now possible to [export lightgbm/xgboost-compatible](cli.md#dataset-export) datasets for further hyper-parameter optimization.
+* it is now possible to [export lightgbm/xgboost-compatible](cli.md#dataset-export) datasets for further hyperparameter optimization.
 
 ## 0.5.8
 
@@ -145,13 +145,13 @@ Upgrading: note that redis state format has a non backwards compatible change, s
 * [Binary state serialization format](configuration/persistence.md#state-encoding-formats), which is 2x faster and 4x more compact than JSON
 * [Multi-arch docker images](deploy/docker.md), so metarank can now be run natively on Mac M1/M2.
 * [Kubernetes Helm chart](deploy/kubernetes.md) and an official guide on how to do production deployment on k8s.
-* [Training dataset export](cli.md#training-the-model) for further hyper-parameter tuning.
+* [Training dataset export](cli.md#training-the-model) for further hyperparameter tuning.
 
 ## 0.5.5
 Notable features:
 * [Rate normalization](configuration/features/counters.md#rate-normalization) support, so having 1 click over 2 
 impressions is not resulting in a 50% CTR anymore.
-* [Position de-biasing](configuration/features/relevancy.md#position) based on a dynamic position feature.
+* [Position debiasing](configuration/features/relevancy.md#position) based on a dynamic position feature.
 
 ## 0.5.4
 Most notable improvements:
@@ -169,7 +169,7 @@ Highlights of this release are:
 ## 0.5.1
 
 Highlights of this release are:
-* Flink is rermoved. As a result only `memory` and `redis` [persistance](configuration/persistence.md) modes are supported now.
+* Flink is removed. As a result only `memory` and `redis` [persistence](configuration/persistence.md) modes are supported now.
 * [Configuration file](configuration/sample-config.yml) now has updated structure and is not compatible with previous format.
 * CLI is updated, most of the options are moved to [configuration](configuration/overview.md).
   * We have updated the [`validate`](cli.md#validation) mode of the CLI, so you can use it to validate your data and configuration.
@@ -181,14 +181,14 @@ Highlights of this release are:
 * Kinesis source: on par with Kafka and Pulsar
 * Custom connector options pass-through
 
-### Kunernetes support
+### Kubernetes support
 
 Metarank is a multi-stage and multi-component system, and now it's possible to get it deployed
 in minutes inside a Kubernetes cluster:
 * Inference API is just a regular [Deployment](https://github.com/metarank/metarank/blob/master/deploy/kubernetes/deployment.yaml)
 * Bootstrap, Upload and Update jobs can be run both locally (to simplify things up for small datasets) and
 inside the cluster in a distributed mode.
-* Job mabagement is done with [flink-kubernetes-operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/)
+* Job management is done with [flink-kubernetes-operator](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/)
 
 See [this doc section](https://docs.metarank.ai/deployment/kubernetes) for details.
 

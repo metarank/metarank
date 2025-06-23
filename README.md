@@ -62,10 +62,10 @@ Meetups and conference talks:
 ## Main features
 
 * Semantic neural search: [TODO]
-* Recommendations: [trending](configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/similar.md) (MF ALS).
-* Personalization: [secondary reranking](quickstart/quickstart.md) (LambdaMART)
-* AutoML: [automatic feature generation](howto/autofeature.md) and [model re-training](howto/model-retraining.md)
-* A/B testing: [multiple model serving](configuration/overview.md#models)
+* Recommendations: [trending](doc/configuration/recommendations/trending.md) and [similar-items](configuration/recommendations/similar.md) (MF ALS).
+* Personalization: [secondary reranking](doc/quickstart/quickstart.md) (LambdaMART)
+* AutoML: [automatic feature generation](doc/howto/autofeature.md) and [model re-training](howto/model-retraining.md)
+* A/B testing: [multiple model serving](doc/configuration/overview.md#models)
 
 ## Demo
 
@@ -154,7 +154,7 @@ curl http://localhost:8080/feedback \
 }'
 ```
 
-> Now, let's intereact with the items `93363`
+> Now, let's interact with the items `93363`
 
 ```bash
 # click on the item with id 93363

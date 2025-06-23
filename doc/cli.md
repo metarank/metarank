@@ -81,7 +81,7 @@ Subcommand: sort - sort the dataset by timestamp
 
 Subcommand: autofeature - generate reference config based on existing data
   -c, --cat-threshold  <arg>   min threshold of category frequency, when its
-                               considered a catergory (optional, default=0.003)
+                               considered a category (optional, default=0.003)
   -d, --data  <arg>            path to an input file
   -f, --format  <arg>          input file format: json, snowplow, snowplow:tsv,
                                snowplow:json (optional, default=json)
@@ -134,7 +134,7 @@ Metarank CLI has a set of different running modes:
 * [`validate`](#validation): validates data nd configuration files.
 * [`sort`](#historical-data-sorting): pre-sorts the dataset by timestamp.
 * [`autofeature`](#auto-feature-generation): automatically generates feature configuration based on your data.
-* [`export`](#dataset-export): export the training dataset for further hyperparam optimization.
+* [`export`](#dataset-export): export the training dataset for further hyperparameter optimization.
 * [`termfreq`](): compute term frequency dictionary for [BM25 field_match extractor](configuration/features/text.md#text-based-extractors)
 
 ### Validation
@@ -226,7 +226,7 @@ The format of split strategy CLI flag is `--strategy name=ratio%`. For example:
 
 ### Dataset export
 
-Metarank can emit CSV/LibSVM formatted datasets and corresponding config files for LightGBM and XGBoost, so you can later perform a hyper-parameter optimization using your favourite tool:
+Metarank can emit CSV/LibSVM formatted datasets and corresponding config files for LightGBM and XGBoost, so you can later perform a hyperparameter optimization using your favourite tool:
 
 ```shell
 java -jar metarank.jar export --config /path/to/config.yaml --model <modelname> --out /export/dir
@@ -345,7 +345,7 @@ To use the BM25 score in the [field_match](configuration/features/text.md#fieldm
 To do so, run the `termfreq` subcommand:
 ```shell
 
-$> java -jar meratank.jar termfreq --data <path-to-data>\
+$> java -jar metarank.jar termfreq --data <path-to-data>\
      --out /term-freq.json --fields title,description --language en
      
 

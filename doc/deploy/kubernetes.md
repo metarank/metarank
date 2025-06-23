@@ -15,7 +15,7 @@ For a distributed K8S deployment, metarank requires the following external servi
 ## Data Import
 
 Metarank supports multiple ways of ingesting training data into the system:
-* event file can be HTTT POSTed to the `/feedback` endpoint using the [REST API](../api.md). Metarank does not do any in-memory buffering, so if your dataset is below 1GiB in size, this may be the simplest way to ingest.
+* event file can be HTTP POSTed to the `/feedback` endpoint using the [REST API](../api.md). Metarank does not do any in-memory buffering, so if your dataset is below 1GiB in size, this may be the simplest way to ingest.
 * event can be imported from a Kafka/Pulsar/Kinesis topic or read from files **locally**. Note that distributed import is not yet supported.
 
 We suggest to start with a HTTP-based event import, and switch to offline local import if you have any issues with it.

@@ -42,9 +42,9 @@ class KafkaEventSourceTest extends AnyFlatSpec with Matchers with Logging {
     logger.info("Message sent, sleeping")
     Thread.sleep(1000)
     logger.info("Pulling single event from topic")
-    val recieved = KafkaSource(sourceConfig).stream.take(1).compile.toList.unsafeRunSync()
+    val received = KafkaSource(sourceConfig).stream.take(1).compile.toList.unsafeRunSync()
     logger.info("Pull done")
-    recieved shouldBe List(event)
+    received shouldBe List(event)
 
   }
 

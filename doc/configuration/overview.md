@@ -174,7 +174,7 @@ models:
     - popularity
     - genre
   # You can specify several models at once.
-  # This can be useful for A\B test scenarios or while testing different sets of features.
+  # This can be useful for A/B test scenarios or while testing different sets of features.
 
   #random:
   #  type: shuffle # shuffle model type produces random results
@@ -203,7 +203,7 @@ models:
 
 ## Inference
 
-The "inference" section describes inference model configuration for search results re-ranking. Check the [inference models](inference-models.md) section for more information.
+The "inference" section describes inference model configuration for search results reranking. Check the [inference models](inference-models.md) section for more information.
 
 ```yaml
 inference:

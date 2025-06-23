@@ -210,7 +210,7 @@ object S3TrainStore extends Logging {
           StaticCredentialsProvider.create(AwsBasicCredentials.create(key, secret))
         )
       case _ =>
-        info("Using default AWS credentials chain") *> IO.pure(DefaultCredentialsProvider.create())
+        info("Using default AWS credentials chain") *> IO.pure(DefaultCredentialsProvider.builder().build())
     }
   }
 

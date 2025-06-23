@@ -1,8 +1,8 @@
 # Performance
 
-Metarank is a secondary re-ranker: it's an extra **non-free** step in your retrieval process. In a typical scenario, you should expect the following extras:
+Metarank is a secondary reranker: it's an extra **non-free** step in your retrieval process. In a typical scenario, you should expect the following extras:
  
-* Re-ranking latency: 10-30 ms
+* Reranking latency: 10-30 ms
 * Redis memory usage: 1-10 GiB
 * Data import throughput: 1000-3000 events/second.
 
@@ -14,8 +14,8 @@ On a [RankLens](https://github.com/metarank/ranklens) dataset in a [synthetic la
 
 Each Metarank installation is unique, but there are common things affecting the overall latency:
 * [**State encoding format**](configuration/persistence.md#state-encoding-formats): `binary` is faster than `json` due to its compact representation.
-* **Metarank-Redis network latency**: Metarank pulls all features for all re-ranked items in a single large batch. There are no multiple network calls and only a constant overhead. 
-* **Request size**: the more items you ask to re-rank, the more data needs to be loaded.
+* **Metarank-Redis network latency**: Metarank pulls all features for all reranked items in a single large batch. There are no multiple network calls and only a constant overhead. 
+* **Request size**: the more items you ask to rerank, the more data needs to be loaded.
 * [**A number of feature extractors**](configuration/feature-extractors.md): the more per-item features are defined in the config, the more data is loaded during the request processing.
 
 So while planning your installation, expect Metarank to be within **20-30 ms** latency budget.
@@ -37,7 +37,7 @@ Using the same reference [RankLens](https://github.com/metarank/ranklens) datase
 | 2M    | 100K  | 4M       | 8M     | 14.3M        | 3.5GiB            |
 | 4M    | 100K  | 8M       | 16M    | 28.6M        | 7.1GiB            |
 
-Metarank only tracks aggregated data required for the re-ranking and does not store raw events. Therefore, memory usage depends on the following characteristics of your dataset:
+Metarank only tracks aggregated data required for the reranking and does not store raw events. Therefore, memory usage depends on the following characteristics of your dataset:
 
 * **A number of unique users**: per-user click-through events are used as input for the ML model training.
 * **A number of items**: if you define per-item feature extractors (like [`string`](configuration/features/scalar.md#string-extractors) or [`number`](configuration/features/scalar.md#numerical-extractor)), current point-in-time values of used fields are persisted.

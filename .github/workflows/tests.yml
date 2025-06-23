@@ -34,7 +34,7 @@ jobs:
 
     steps:
     - name: install libomp
-      run: brew install libomp && sudo mkdir -p /usr/local/lib/ && sudo ln -s /opt/homebrew/opt/libomp/lib/libomp.dylib /usr/local/lib/libomp.dylib
+      run: brew install libomp && sudo ln -s /opt/homebrew/opt/libomp/lib/libomp.dylib /usr/lib/libomp.dylib
       if: runner.os == 'macOS'
 
     - uses: actions/checkout@v2

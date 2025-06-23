@@ -23,7 +23,7 @@ jobs:
         with:
           lfs: 'true'
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v4
         with:
           path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
           key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}

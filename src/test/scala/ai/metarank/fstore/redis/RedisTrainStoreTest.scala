@@ -20,7 +20,7 @@ class RedisTrainStoreTest extends AnyFlatSpec with Matchers with RedisTest {
     result shouldBe Nil
   }
 
-  it should "write and read clickthrougts" in {
+  it should "write and read clickthroughs" in {
     lazy val stream = RedisTrainStore(client, "b", JsonStoreFormat, 90.days)
     val ct          = List(ClickthroughValues(TestClickthrough(List("p1", "p2", "p3"), List("p2")), Nil))
     stream.put(ct).unsafeRunSync()

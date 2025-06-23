@@ -136,7 +136,7 @@ curl http://localhost:8080/feedback \
 }'
 ```
 
-> Now, let's intereact with the items `93363`
+> Now, let's interact with the items `93363`
 
 ```bash
 # click on the item with id 93363

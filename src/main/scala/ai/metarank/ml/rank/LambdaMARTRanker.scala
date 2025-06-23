@@ -286,7 +286,7 @@ object LambdaMARTRanker extends Logging {
             """
               |Cannot train model on an empty dataset. Maybe you forgot to do 'metarank import'?
               |Possible options:
-              |1. You have only interaction or only ranking events. Re-ranking model needs a complete click-throught information. Try running `metarank validate` over your config file and dataset?
+              |1. You have only interaction or only ranking events. Reranking model needs a complete click-through information. Try running `metarank validate` over your config file and dataset?
               |2. Dataset inconsistency. To check for consistency issues, run 'metarank validate --config conf.yml --data data.jsonl.gz',
               |3. You've used an in-memory persistence for import, and after restart the data was lost. Maybe try setting 'state.type=redis'?
               |""".stripMargin

@@ -50,11 +50,14 @@ case class S3TrainStore(
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream
       .eval(for {
-        file     <- IO(Path.of(tmpdir, key))
-        _        <- IO(Files.createDirectories(file.getParent))
-        request  <- IO(GetObjectRequest.builder().bucket(conf.bucket).key(key).build())
-        response <- IO.fromCompletableFuture(IO(client.getObject(request, file)))
-        _        <- info(s"read part $key size=${FileUtils.byteCountToDisplaySize(response.contentLength())}")
+        file    <- IO(Path.of(tmpdir, key))
+        _       <- IO(Files.createDirectories(file.getParent))
+        request <- IO(GetObjectRequest.builder().bucket(conf.bucket).key(key).build())
+        responseSize <- IO(file.toFile.exists()).flatMap {
+          case true  => info(s"skipped existing file $key") *> IO(file.toFile.getTotalSpace)
+          case false => IO.fromCompletableFuture(IO(client.getObject(request, file))).map[Long](_.contentLength())
+        }
+        _ <- info(s"read part $key size=${FileUtils.byteCountToDisplaySize(responseSize)}")
       } yield {
         file
       })

@@ -3,6 +3,10 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.7.11
+
+* see GH release notes at https://github.com/metarank/metarank/releases
+
 ## 0.7.10
 
 * logging fix to not ignore error messages in console

@@ -5,8 +5,8 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.{FeatureSchema, FieldName, Key, Schema}
-import ai.metarank.model.ScopeType.{ItemScopeType, UserScopeType}
-import ai.metarank.model.FieldName.EventType.{Interaction, Item, User}
+import ai.metarank.model.ScopeType.{ItemScopeType, RankingScopeType, UserScopeType}
+import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking, User}
 import ai.metarank.model.Field.{NumberField, StringField}
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key.FeatureName
@@ -106,6 +106,23 @@ class NumberFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
         .copy(items = NonEmptyList.one(RankItem(ItemId("p1"), List(NumberField("popularity", 100)))))
     )
     values shouldBe List(List(SingleValue(FeatureName("popularity"), 100.0)))
+  }
+
+  it should "compute value with ranking events" in {
+    val feature = NumberFeature(
+      NumberFeatureSchema(
+        name = FeatureName("weather_temp"),
+        field = FieldName(Ranking, "temp"),
+        scope = RankingScopeType
+      )
+    )
+    val values = process(
+      Nil,
+      feature.schema,
+      TestRankingEvent(List("p1")).copy(fields = List(NumberField("temp", 10)))
+    )
+    values shouldBe List(List(SingleValue(FeatureName("weather_temp"), 10.0)))
+
   }
 
 }

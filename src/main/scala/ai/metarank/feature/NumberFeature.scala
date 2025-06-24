@@ -13,6 +13,7 @@ import ai.metarank.model.Field.NumberField
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SDouble
+import ai.metarank.model.ScopeType.RankingScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -72,17 +73,27 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
       features: Map[Key, FeatureValue],
       mode: BaseFeature.ValueMode
   ): List[MValue] = {
-    request.items.toList.map { item =>
-      {
-        val fromField = item.fields.collectFirst {
-          case NumberField(name, value) if name == schema.field.field => value
+    schema.scope match {
+      case RankingScopeType =>
+        request.fieldsMap.get(schema.field.field) match {
+          case Some(NumberField(_, value)) =>
+            request.items.toList.map(_ => SingleValue(schema.name, value))
+          case _ => request.items.toList.map(_ => SingleValue.missing(schema.name))
         }
-        fromField match {
-          case Some(fieldOverride) => SingleValue(schema.name, fieldOverride)
-          case None                => value(request, features, item)
+      case _ =>
+        request.items.toList.map { item =>
+          {
+            val fromField = item.fields.collectFirst {
+              case NumberField(name, value) if name == schema.field.field => value
+            }
+            fromField match {
+              case Some(fieldOverride) => SingleValue(schema.name, fieldOverride)
+              case None                => value(request, features, item)
+            }
+          }
         }
-      }
     }
+
   }
 
 }

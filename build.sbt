@@ -3,7 +3,7 @@ import Deps._
 lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / scalaVersion := "2.13.16"
 ThisBuild / version      := "0.7.10"
 
 lazy val root = (project in file("."))
@@ -30,20 +30,20 @@ lazy val root = (project in file("."))
       "11"
     ),
     libraryDependencies ++= Seq(
-      "org.typelevel"        %% "cats-effect"          % "3.5.4",
+      "org.typelevel"        %% "cats-effect"          % "3.6.1",
       "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
       "org.scalatestplus"    %% "scalacheck-1-16"      % "3.2.14.0"       % "test,it",
-      "ch.qos.logback"        % "logback-classic"      % "1.5.6",
+      "ch.qos.logback"        % "logback-classic"      % "1.5.18",
       "io.circe"             %% "circe-yaml"           % circeYamlVersion,
       "io.circe"             %% "circe-core"           % circeVersion,
       "io.circe"             %% "circe-generic"        % circeVersion,
       "io.circe"             %% "circe-generic-extras" % circeGenericExtrasVersion,
       "io.circe"             %% "circe-parser"         % circeVersion,
       "com.github.pathikrit" %% "better-files"         % "3.9.2",
-      "org.rogach"           %% "scallop"              % "5.1.0",
+      "org.rogach"           %% "scallop"              % "5.2.0",
       "com.github.blemale"   %% "scaffeine"            % "5.3.0",
-      "org.apache.kafka"      % "kafka-clients"        % "3.7.1",
+      "org.apache.kafka"      % "kafka-clients"        % "3.9.1",
       "org.apache.pulsar"     % "pulsar-client"        % pulsarVersion excludeAll (
         ExclusionRule("org.bouncycastle", "bcprov-ext-jdk18on")
       ),
@@ -52,11 +52,12 @@ lazy val root = (project in file("."))
       "org.http4s"            %% "http4s-ember-server"      % http4sVersion,
       "org.http4s"            %% "http4s-ember-client"      % http4sVersion,
       "org.http4s"            %% "http4s-circe"             % http4sVersion,
-      "org.typelevel"         %% "log4cats-core"            % "2.7.0",
-      "org.typelevel"         %% "log4cats-slf4j"           % "2.7.0",
+      "org.typelevel"         %% "log4cats-core"            % "2.7.1",
+      "org.typelevel"         %% "log4cats-slf4j"           % "2.7.1",
       "io.github.metarank"    %% "ltrlib"                   % "0.2.6",
+      "io.github.metarank"     % "lightgbm4j"               % "4.6.0-1",
       "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
-      "com.snowplowanalytics" %% "scala-referer-parser"     % "2.0.0",
+      "com.snowplowanalytics" %% "scala-referer-parser"     % "2.1.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-common"   % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-icu"      % luceneVersion,
@@ -64,17 +65,17 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
-      "io.lettuce"             % "lettuce-core"             % "6.3.2.RELEASE",
-      "com.google.guava"       % "guava"                    % "33.2.1-jre",
-      "commons-io"             % "commons-io"               % "2.16.1",
-      "io.sentry"              % "sentry-logback"           % "7.11.0",
+      "io.lettuce"             % "lettuce-core"             % "6.7.1.RELEASE",
+      "com.google.guava"       % "guava"                    % "33.4.8-jre",
+      "commons-io"             % "commons-io"               % "2.19.0",
+      "io.sentry"              % "sentry-logback"           % "8.14.0",
       "com.fasterxml.util"     % "java-merge-sort"          % "1.1.0",
       "io.prometheus"          % "simpleclient"             % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
       "io.prometheus"          % "simpleclient_httpserver"  % prometheusVersion,
       "software.amazon.awssdk" % "s3"                       % awsVersion,
-      "org.apache.commons"     % "commons-rng-sampling"     % "1.5",
-      "org.apache.commons"     % "commons-rng-simple"       % "1.5",
+      "org.apache.commons"     % "commons-rng-sampling"     % "1.6",
+      "org.apache.commons"     % "commons-rng-simple"       % "1.6",
       "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (
         ExclusionRule("org.nd4j", "guava"),
         ExclusionRule("org.nd4j", "protobuf"),
@@ -82,11 +83,11 @@ lazy val root = (project in file("."))
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk8"),
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
-      "org.rocksdb"               % "rocksdbjni"     % "9.4.0",
+      "org.rocksdb"               % "rocksdbjni"     % "10.2.1",
       "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
-      "com.github.jelmerk"        % "hnswlib-core"   % "1.1.2",
-      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.13", // librec uses commons-logging, which is JCL
-      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.18.0",
+      "com.github.jelmerk"        % "hnswlib-core"   % "1.2.1",
+      "org.slf4j"                 % "jcl-over-slf4j" % "2.0.17", // librec uses commons-logging, which is JCL
+      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.22.0",
       "ai.djl"                    % "api"            % djlVersion,
       "ai.djl.huggingface"        % "tokenizers"     % djlVersion,
       "co.fs2"                   %% "fs2-core"       % fs2Version,

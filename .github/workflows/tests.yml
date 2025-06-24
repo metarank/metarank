@@ -24,7 +24,7 @@ jobs:
             platform: ubuntu-22.04
             architecture: x64
           - jvm: 11
-            platform: macos-14
+            platform: macos-13
             architecture: x64
           - jvm: 11
             platform: macos-14

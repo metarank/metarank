@@ -20,7 +20,7 @@ import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class WordCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
+class WordCountFeatureItemTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = WordCountFeature(
     WordCountSchema(
       name = FeatureName("title_words"),

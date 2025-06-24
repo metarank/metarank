@@ -8,7 +8,6 @@ on:
 
 env:
   METARANK_TRACKING: false
-  LD_LIBRARY_PATH: /usr/local/lib
 
 jobs:
   build:

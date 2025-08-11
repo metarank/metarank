@@ -74,6 +74,7 @@ lazy val root = (project in file("."))
       "io.prometheus"          % "simpleclient_hotspot"     % prometheusVersion,
       "io.prometheus"          % "simpleclient_httpserver"  % prometheusVersion,
       "software.amazon.awssdk" % "s3"                       % awsVersion,
+      "software.amazon.awssdk" % "sts"                      % awsVersion,
       "org.apache.commons"     % "commons-rng-sampling"     % "1.6",
       "org.apache.commons"     % "commons-rng-simple"       % "1.6",
       "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (

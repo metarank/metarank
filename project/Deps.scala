@@ -12,7 +12,7 @@ object Deps {
   lazy val pulsarVersion             = "4.0.5"
   lazy val awsVersion                = "2.31.70"
   lazy val prometheusVersion         = "0.16.0"
-  lazy val djlVersion                = "0.28.0"
+  lazy val djlVersion                = "0.34.0"
 
   val httpsDeps = Seq(
     "org.http4s" %% "http4s-dsl"          % http4sVersion,

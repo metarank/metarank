@@ -4,6 +4,7 @@ import ai.metarank.fstore.codec.VCodec
 import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream}
+import ai.metarank.util.Logging
 
 import java.io.{
   BufferedInputStream,
@@ -17,7 +18,7 @@ import java.io.{
 }
 import scala.util.{Failure, Success, Try}
 
-case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCodec[T] {
+case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCodec[T] with Logging {
   override def decode(bytes: Array[Byte]): Either[Throwable, T] = {
     val stream = if (compress) {
       new DataInputStream(new BufferedInputStream(new ZstdInputStream(new ByteArrayInputStream(bytes)), 1024 * 32))
@@ -54,6 +55,9 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
     Try(in.readInt()) match {
+      case Success(size) if size < 0 =>
+        logger.warn(s"Skipped invalid record size=$size")
+        Right(None)
       case Success(size) =>
         val buf = new Array[Byte](size)
         Try(in.readFully(buf)) match {
@@ -62,7 +66,5 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
         }
       case Failure(ex) => Right(None)
     }
-
   }
-
 }

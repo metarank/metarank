@@ -30,15 +30,24 @@ case class FeatureValueFlow(
         writes.map(write => commitWrite(write).map(_ => write)).sequence
       })
       .evalMap(writes =>
-        writes
-          .map(w =>
-            shouldRefresh(w).flatMap {
-              case true  => makeValue(w)
-              case false => IO.pure(Nil)
-            }
-          )
-          .sequence
-          .map(_.flatten)
+        // Force buffered writes to land in Redis BEFORE we read them back
+        // via makeValue. Without this sync, RedisBoundedListFeature.computeValue
+        // (and the other computeValue implementations) can do an LRANGE/GET on
+        // their reader connection while the matching LPUSH/SET is still in the
+        // writer's pipeline buffer, returning empty and silently dropping the
+        // materialised v/ value.
+        for {
+          _ <- IO.whenA(writes.nonEmpty)(store.sync)
+          result <- writes
+            .map(w =>
+              shouldRefresh(w).flatMap {
+                case true  => makeValue(w)
+                case false => IO.pure(Nil)
+              }
+            )
+            .sequence
+            .map(_.flatten)
+        } yield result
       )
 
   def commitWrite(write: Write): IO[Unit] = write match {

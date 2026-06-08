@@ -125,14 +125,19 @@ case class RedisClient(
     }
 
   def doFlush[T](last: () => CompletableFuture[T]): IO[Unit] = {
+    // Always await the last write's response. This guarantees that any
+    // subsequent read sees the writes, regardless of whether pipelining
+    // is enabled. Without this, the IO chain proceeds before Lettuce has
+    // received Redis's response, creating a read-after-write race against
+    // any independent reader connection (e.g. RedisBoundedListFeature
+    // doing LRANGE on its reader connection right after LPUSH on the
+    // writer connection).
     for {
       _ <- bufferSize.set(0)
-      _ <- IO.whenA(conf.enabled)(
-        IO.fromCompletableFuture(IO {
-          writerConn.flushCommands()
-          last()
-        }).void
-      )
+      _ <- IO.fromCompletableFuture(IO {
+        if (conf.enabled) writerConn.flushCommands()
+        last()
+      }).void
     } yield {}
 
   }

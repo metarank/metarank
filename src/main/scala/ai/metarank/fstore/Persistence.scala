@@ -40,6 +40,15 @@ trait Persistence {
   def models: ModelStore
   def healthcheck(): IO[Unit]
   def sync: IO[Unit]
+
+  /** Flush only the state pipeline. Used by FeatureValueFlow on the
+    * write→read boundary, where we only need s/ writes to land before
+    * computeValue reads them — flushing the values and models pipelines
+    * here is wasted work (we’re not reading from them at this point).
+    * Defaults to [[sync]] for backends without a separate state pipeline
+    * (FilePersistence, MemPersistence).
+    */
+  def syncState: IO[Unit] = sync
 }
 
 object Persistence extends Logging {

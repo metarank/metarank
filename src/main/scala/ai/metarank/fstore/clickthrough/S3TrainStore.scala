@@ -21,7 +21,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model.{GetObjectRequest, ListObjectsRequest, PutObjectRequest}
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
-import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream, OutputStream}
+import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream}
 import java.net.URI
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration._
@@ -96,8 +96,10 @@ case class S3TrainStore(
   def makeFileName(now: Long): String = format.format(Instant.ofEpochMilli(now)) + conf.compress.ext
 
   def flushPart(): IO[Unit] = for {
-    buffer <- bufferRef.get
-    _      <- bufferRef.set(Buffer(conf.compress, conf.format.ctv))
+    // getAndSet atomically claims the current buffer and installs a fresh one, so the claimed
+    // buffer is owned solely by this fiber: no concurrent put can append to it, and a second
+    // flush observes the empty replacement instead of re-uploading the same part.
+    buffer <- bufferRef.getAndSet(Buffer(conf.compress, conf.format.ctv))
     _ <- IO.whenA(buffer.nonEmpty)(for {
       key <- IO(conf.prefix + "/" + makeFileName(System.currentTimeMillis()))
       _ <- info(
@@ -137,45 +139,53 @@ object S3TrainStore extends Logging {
 
   val format = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS").withZone(ZoneId.systemDefault())
 
+  // Immutable accumulator: holds the already-encoded, delimited bytes of each put as plain
+  // (uncompressed) chunks. Keeping no live OutputStream means a Buffer can be safely shared
+  // across fibers and recomputed on a Ref.update CAS retry without corrupting a deflater or
+  // hitting "write beyond end of stream" when a concurrent flush replaces the buffer.
   case class Buffer(
-      stream: ByteArrayOutputStream,
-      wrap: OutputStream,
-      out: DataOutputStream,
+      chunks: Vector[Array[Byte]],
       eventCount: Int,
       byteSize: Int,
       codec: VCodec[TrainValues],
+      compress: CompressionType,
       start: Long
   ) {
     def isEmpty  = eventCount == 0
     def nonEmpty = !isEmpty
 
-    def put(event: TrainValues): Buffer = {
-      val extraBytes = codec.encodeDelimited(event, out)
-      copy(eventCount = eventCount + 1, byteSize = byteSize + extraBytes)
-    }
+    def put(event: TrainValues): Buffer = put(List(event))
 
-    def put(events: List[TrainValues]): Buffer = {
-      val extraBytes = events.foldLeft(0)((size, next) => size + codec.encodeDelimited(next, out))
-      copy(eventCount = eventCount + events.size, byteSize = byteSize + extraBytes)
-    }
+    def put(events: List[TrainValues]): Buffer =
+      if (events.isEmpty) this
+      else {
+        val bytes      = new ByteArrayOutputStream()
+        val out        = new DataOutputStream(bytes)
+        val extraBytes = events.foldLeft(0)((size, next) => size + codec.encodeDelimited(next, out))
+        out.close()
+        copy(
+          chunks = chunks :+ bytes.toByteArray,
+          eventCount = eventCount + events.size,
+          byteSize = byteSize + extraBytes
+        )
+      }
 
-    def toByteArray() = {
-      out.close()
-      stream.toByteArray
-    }
-    def close() = wrap.close()
-  }
-
-  object Buffer {
-    def apply(compress: CompressionType, codec: VCodec[TrainValues]): Buffer = {
+    def toByteArray(): Array[Byte] = {
       val stream = new ByteArrayOutputStream()
       val wrap = compress match {
         case CompressionType.GzipCompressionType => new GZIPOutputStream(stream)
         case CompressionType.ZstdCompressionType => new ZstdOutputStream(stream)
         case CompressionType.NoCompressionType   => stream
       }
-      new Buffer(stream, wrap, new DataOutputStream(wrap), 0, 0, codec, System.currentTimeMillis())
+      chunks.foreach(chunk => wrap.write(chunk))
+      wrap.close()
+      stream.toByteArray
     }
+  }
+
+  object Buffer {
+    def apply(compress: CompressionType, codec: VCodec[TrainValues]): Buffer =
+      new Buffer(Vector.empty, 0, 0, codec, compress, System.currentTimeMillis())
   }
 
   def create(conf: S3TrainConfig): Resource[IO, S3TrainStore] = {

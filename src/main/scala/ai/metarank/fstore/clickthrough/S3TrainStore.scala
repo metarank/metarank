@@ -45,7 +45,15 @@ case class S3TrainStore(
   } yield {}
 
   override def getall(): fs2.Stream[IO, TrainValues] =
-    fs2.Stream.evalSeq(listKeys()).flatMap(key => getPart(key))
+    fs2.Stream.evalSeq(listKeys()).flatMap(key =>
+      // A single truncated/corrupt part (e.g. left behind by an interrupted or
+      // concurrent write) must not abort the whole training run: log it and skip
+      // the rest of that part, keeping the records already read from it and every
+      // other part.
+      getPart(key).handleErrorWith(e =>
+        fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
+      )
+    )
 
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream

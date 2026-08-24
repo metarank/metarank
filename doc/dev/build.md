@@ -9,7 +9,7 @@ It can be built on Windows, Linux and MacOS in the following way:
 ```bash
 $ sbt assembly
 
-[info] welcome to sbt 1.7.1 (Eclipse Adoptium Java 11.0.15)
+[info] welcome to sbt 1.11.7 (Eclipse Adoptium Java 21.0.8)
 [info] loading global plugins from /home/code/.sbt/1.0/plugins
 [info] loading settings for project metarank-build from plugins.sbt ...
 [info] loading project definition from /home/code/metarank/project
@@ -27,7 +27,7 @@ Docker image can be built the same way as the JAR bundle, with the following SBT
 ```bash
 $ sbt docker
 
-[info] welcome to sbt 1.7.1 (Eclipse Adoptium Java 11.0.15)
+[info] welcome to sbt 1.11.7 (Eclipse Adoptium Java 21.0.8)
 [info] loading global plugins from /home/code/.sbt/1.0/plugins
 [info] loading settings for project metarank-build from plugins.sbt ...
 [info] loading project definition from /home/code/metarank/project
@@ -36,12 +36,11 @@ $ sbt docker
 [info] compiling 20 Scala sources to /home/code/metarank/target/scala-2.13/classes ...
 [info] Assembly up to date: /home/code/metarank/target/scala-2.13/metarank.jar
 [info] Sending build context to Docker daemon  154.5MB
-[info] Step 1/6 : FROM adoptopenjdk:11.0.11_9-jdk-hotspot-focal
-[info] 11.0.11_9-jdk-hotspot-focal: Pulling from library/adoptopenjdk
-[info] Digest: sha256:4030cc79415a4afc721e5ab8382b93673e118ac6af77ee0eaa02d0a666b88758
-[info] Status: Image is up to date for adoptopenjdk:11.0.11_9-jdk-hotspot-focal
+[info] Step 1/6 : FROM --platform=amd64 ubuntu:jammy
+[info] jammy: Pulling from library/ubuntu
+[info] Status: Image is up to date for ubuntu:jammy
 [info]  ---> fd22b5791853
-[info] Step 2/6 : RUN apt-get update && apt-get -y install htop procps curl inetutils-ping libgomp1
+[info] Step 2/6 : RUN apt-get update && apt-get install -y --no-install-recommends openjdk-21-jdk-headless htop procps curl inetutils-ping libgomp1 locales
 [info]  ---> Using cache
 [info]  ---> ad63a8b493f1
 [info] Step 3/6 : ADD 0/metarank.sh /metarank.sh

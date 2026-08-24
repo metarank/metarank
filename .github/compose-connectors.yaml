@@ -22,7 +22,7 @@ services:
       - '16379:16379'
 
   redistls:
-    image: 'bitnami/redis:7.2.4'
+    image: 'bitnamilegacy/redis:7.2.4'
     volumes:
       - "./tls:/tls"
     ports:
@@ -45,7 +45,7 @@ services:
       - '4567:4567'
 
   kafka:
-    image: docker.io/bitnami/kafka:3.3.2
+    image: docker.io/bitnamilegacy/kafka:3.3.2
     ports:
       - "9092:9092"
     environment:

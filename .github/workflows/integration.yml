@@ -16,22 +16,29 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [ubuntu-22.04]
+        platform: [ubuntu-24.04]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
         with:
           lfs: 'true'
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
-          path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
+          path: |
+            ~/.sbt
+            ~/.m2
+            ~/.ivy2
+            ~/.cache
           key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v6
         with:
-          distribution: 'adopt-hotspot'
-          java-version: '11'
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
 
       - name: Generate TLS certificates
         run: mkdir -p .github/tls && .github/generate_keys.sh .github/tls
@@ -40,13 +47,13 @@ jobs:
         run: docker compose -f .github/compose-connectors.yaml up -d
 
       - name: Run integration tests
-        run: sbt -mem 5000 IntegrationTest/test
+        run: sbt -mem 5000 It/test
 
       - name:  Stop docker-compose
         run: docker compose -f .github/compose-connectors.yaml down
 
       - name: Make docker image
-        run: sbt -mem 5000 assembly docker
+        run: sbt -mem 5000 Docker/publishLocal
 
       - name: Run docker image tests
         run: .github/test_docker.sh
@@ -55,4 +62,4 @@ jobs:
         run: .github/test_java_version.sh
 
       - name: Run quickstart test
-        run: ./run_quickstart.sh target/scala-2.13/metarank.jar
+        run: ./run_quickstart.sh target/out/jvm/scala-2.13.18/metarank/metarank.jar

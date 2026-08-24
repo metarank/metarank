@@ -4,10 +4,10 @@ MV=`javap -v target/scala-2.13/classes/ai/metarank/util/VarNum.class|grep "major
 
 echo "$MV"
 
-if [[ $MV = "  major version: 55" ]]
+if [[ $MV = "  major version: 65" ]]
 then
   echo "JVM version check - PASS"
 else
-  echo "Build with JDK 12+ target, it should be 11"
+  echo "Build with wrong JDK target, it should be 21"
   exit -1
 fi

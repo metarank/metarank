@@ -21,13 +21,11 @@ lazy val root = (project in file("."))
       "-feature",
       "-deprecation",
       "-Xfatal-warnings",
-      "-release:11"
+      "-release:21"
     ),
     javacOptions ++= Seq(
-      "-source",
-      "11",
-      "-target",
-      "11"
+      "--release",
+      "21"
     ),
     libraryDependencies ++= Seq(
       "org.typelevel"        %% "cats-effect"          % "3.7.1",

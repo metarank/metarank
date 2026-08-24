@@ -54,7 +54,7 @@ jobs:
       if: runner.os == 'Linux'
 
     - name: Start Redis on Mac
-      run: brew install redis sbt && brew services start redis
+      run: brew install redis && brew services start redis
       if: runner.os == 'macOS'
 
     - name: Start Redis on Windows
@@ -80,6 +80,11 @@ jobs:
         java-version: ${{ matrix.jvm }}
         architecture: ${{ matrix.architecture }}
         distribution: 'temurin'
+
+    - name: Set up sbt
+      uses: sbt/setup-sbt@v1
+      with:
+        sbt-runner-version: 1.11.7 # sbt 2.x runner refuses to start on JDK 11
 
     - name: Run tests
       run: sbt -mem 3000 test

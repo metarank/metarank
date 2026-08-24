@@ -33,6 +33,11 @@ jobs:
           distribution: 'adopt-hotspot'
           java-version: '11'
 
+      - name: Set up sbt
+        uses: sbt/setup-sbt@v1
+        with:
+          sbt-runner-version: 1.11.7 # sbt 2.x runner refuses to start on JDK 11
+
       - name: Generate TLS certificates
         run: mkdir -p .github/tls && .github/generate_keys.sh .github/tls
 

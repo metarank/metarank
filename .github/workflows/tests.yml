@@ -16,20 +16,17 @@ jobs:
     strategy:
       matrix:
         include:
-          - jvm: 11
-            platform: ubuntu-22.04
+          - jvm: 21
+            platform: ubuntu-24.04
+            architecture: x64
+          - jvm: 25
+            platform: ubuntu-24.04
             architecture: x64
           - jvm: 21
-            platform: ubuntu-22.04
-            architecture: x64
-          - jvm: 11
-            platform: macos-13
-            architecture: x64
-          - jvm: 11
-            platform: macos-14
+            platform: macos-15
             architecture: aarch64
-          - jvm: 11
-            platform: windows-2022
+          - jvm: 21
+            platform: windows-2025
             architecture: x64
 
     steps:
@@ -37,49 +34,40 @@ jobs:
       run: brew install libomp && sudo mkdir -p /usr/local/lib/ && sudo ln -s /opt/homebrew/opt/libomp/lib/libomp.dylib /usr/local/lib/libomp.dylib
       if: runner.os == 'macOS'
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
       with:
         lfs: 'true'
 
-    - name: Set FBCDN ubuntu mirror for archive
-      run: "sudo sed -i -e 's/azure.archive.ubuntu.com/mirror.facebook.net/g' /etc/apt/sources.list"
-      if: runner.os == 'Linux'
-
-    - name: cat sources.list
-      run: "sudo cat /etc/apt/sources.list"
-      if: runner.os == 'Linux'
-
     - name: Start Redis on Linux
-      run: sudo apt-get update && sudo apt-get install redis-server haveged
+      run: sudo apt-get update && sudo apt-get install redis-server
       if: runner.os == 'Linux'
 
     - name: Start Redis on Mac
-      run: brew install redis sbt && brew services start redis
+      run: brew install redis && brew services start redis
       if: runner.os == 'macOS'
 
     - name: Start Redis on Windows
       run: choco install memurai-developer
       if: runner.os == 'Windows'
 
-    - name: start haveged
-      run: docker run --privileged -d hortonworks/haveged:1.1.0
-      if: runner.os == 'Linux'
-
-    - name: check enthropy
-      run: cat /proc/sys/kernel/random/entropy_avail && sudo dmesg
-      if: runner.os == 'Linux'
-
-    - uses: actions/cache@v4
+    - uses: actions/cache@v6
       with:
-        path: ~/.sbt ~/.m2 ~/.ivy2 ~/.cache
+        path: |
+          ~/.sbt
+          ~/.m2
+          ~/.ivy2
+          ~/.cache
         key: ${{ runner.os }}-build-${{ hashFiles('build.sbt', 'api/build.sbt', 'ingest/build.sbt', 'core/build.sbt', 'project/Deps.scala') }}
 
     - name: Set up JDK
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v6
       with:
         java-version: ${{ matrix.jvm }}
         architecture: ${{ matrix.architecture }}
         distribution: 'temurin'
+
+    - name: Set up sbt
+      uses: sbt/setup-sbt@v1
 
     - name: Run tests
       run: sbt -mem 3000 test

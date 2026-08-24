@@ -2,15 +2,8 @@
 
 set -euxo pipefail
 
-V=$1
-
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-PLATFORM=amd64 VERSION=$V sbt -mem 5000 dockerBuildAndPush
-PLATFORM=arm64 VERSION=$V sbt -mem 5000 dockerBuildAndPush
-
-docker manifest create metarank/metarank:$V metarank/metarank:$V-arm64 metarank/metarank:$V-amd64
-docker manifest rm metarank/metarank:latest
-docker manifest create metarank/metarank:latest metarank/metarank:$V-arm64 metarank/metarank:$V-amd64
-docker manifest push metarank/metarank:$V
-docker manifest push metarank/metarank:latest
+# buildx builds and pushes amd64+arm64 images with a multi-arch manifest,
+# tagged from the version in build.sbt: :<version>, :latest and :snapshot
+sbt -mem 5000 Docker/publish

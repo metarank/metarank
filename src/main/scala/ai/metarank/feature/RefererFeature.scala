@@ -20,18 +20,8 @@ import ai.metarank.model.Write.{Put, PutTuple}
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.Logging
 import better.files.{File, Resource}
-import cats.Id
 import cats.effect.IO
-import com.snowplowanalytics.refererparser.{
-  CreateParser,
-  EmailMedium,
-  InternalMedium,
-  PaidMedium,
-  Parser,
-  SearchMedium,
-  SocialMedium,
-  UnknownMedium
-}
+import com.snowplowanalytics.refererparser.{CreateParser, ExternalReferer, InternalReferer, Parser, UnknownReferer}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
@@ -48,12 +38,12 @@ case class RefererFeature(schema: RefererSchema, parser: Parser) extends Ranking
   )
 
   val possibleValues = Map(
-    UnknownMedium.value  -> 0,
-    SearchMedium.value   -> 1,
-    InternalMedium.value -> 2,
-    SocialMedium.value   -> 3,
-    EmailMedium.value    -> 4,
-    PaidMedium.value     -> 5
+    "unknown"  -> 0,
+    "search"   -> 1,
+    "internal" -> 2,
+    "social"   -> 3,
+    "email"    -> 4,
+    "paid"     -> 5
   )
 
   override val dim = SingleDim
@@ -86,8 +76,14 @@ case class RefererFeature(schema: RefererSchema, parser: Parser) extends Ranking
           None
       }
       parsed <- parser.parse(ref)
+      medium <- parsed match {
+        case ExternalReferer(medium, _, _) => Some(medium)
+        case InternalReferer               => Some("internal")
+        case UnknownReferer                => Some("unknown")
+        case _                             => None
+      }
     } yield {
-      Put(key, event.timestamp, SString(parsed.medium.value))
+      Put(key, event.timestamp, SString(medium))
     }
   }
 

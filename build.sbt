@@ -1,16 +1,17 @@
 import Deps._
-
-lazy val PLATFORM = Option(System.getenv("PLATFORM")).getOrElse("amd64")
+import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "2.13.18"
 ThisBuild / version      := "0.7.11"
 
+lazy val It = config("it").extend(Test)
+
 lazy val root = (project in file("."))
   .enablePlugins(DockerPlugin)
-  .configs(IntegrationTest extend Test)
+  .configs(It)
   .settings(
-    Defaults.itSettings,
+    inConfig(It)(Defaults.testSettings),
     name := "metarank",
     resolvers ++= Seq(
       ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
@@ -42,7 +43,7 @@ lazy val root = (project in file("."))
       "org.rogach"           %% "scallop"              % "6.0.0",
       "com.github.blemale"   %% "scaffeine"            % "5.3.0",
       "org.apache.kafka"      % "kafka-clients"        % "4.3.1",
-      "org.apache.pulsar"     % "pulsar-client"        % pulsarVersion excludeAll (
+      ("org.apache.pulsar" % "pulsar-client" % pulsarVersion).excludeAll(
         ExclusionRule("org.bouncycastle", "bcprov-ext-jdk18on")
       ),
       "org.apache.pulsar"      % "pulsar-client-admin"      % pulsarVersion % "test",
@@ -76,7 +77,7 @@ lazy val root = (project in file("."))
       "software.amazon.awssdk" % "sts"                      % awsVersion,
       "org.apache.commons"     % "commons-rng-sampling"     % "1.7",
       "org.apache.commons"     % "commons-rng-simple"       % "1.7",
-      "io.github.metarank"     % "librec-core"              % "3.0.0-1" excludeAll (
+      ("io.github.metarank" % "librec-core" % "3.0.0-1").excludeAll(
         ExclusionRule("org.nd4j", "guava"),
         ExclusionRule("org.nd4j", "protobuf"),
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-jdk7"),
@@ -84,7 +85,7 @@ lazy val root = (project in file("."))
         ExclusionRule("org.jetbrains.kotlin", "kotlin-stdlib-common")
       ),
       "org.rocksdb"               % "rocksdbjni"     % "10.10.1.1",
-      "org.mapdb"                 % "mapdb"          % "3.1.0" exclude ("net.jpountz.lz4", "lz4"),
+      ("org.mapdb" % "mapdb" % "3.1.0").exclude("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.2.1",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.18", // librec uses commons-logging, which is JCL
       "com.microsoft.onnxruntime" % "onnxruntime"    % "1.29.0",
@@ -98,40 +99,32 @@ lazy val root = (project in file("."))
     ),
     Compile / mainClass             := Some("ai.metarank.main.Main"),
     Compile / discoveredMainClasses := Seq(),
-    docker / dockerfile := {
-      val artifact: File     = assembly.value
-      val artifactTargetPath = s"/app/${artifact.name}"
-
-      new Dockerfile {
-        from(s"--platform=$PLATFORM ubuntu:jammy-20240227")
-        runRaw(
-          List(
-            "apt-get update",
-            "apt-get install -y --no-install-recommends openjdk-21-jdk-headless htop procps curl inetutils-ping libgomp1 locales",
-            "sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen",
-            "rm -rf /var/lib/apt/lists/*"
-          ).mkString(" && ")
-        )
-        env(
-          Map(
-            "LANG"     -> "en_US.UTF-8  ",
-            "LANGUAGE" -> "en_US:en ",
-            "LC_ALL"   -> "en_US.UTF-8  "
-          )
-        )
-        add(new File("deploy/metarank.sh"), "/metarank.sh")
-        add(artifact, artifactTargetPath)
-        entryPoint("/metarank.sh")
-        cmd("--help")
-      }
-    },
-    docker / imageNames := Seq(
-      ImageName(s"metarank/metarank:${version.value}-$PLATFORM"),
-      ImageName(s"metarank/metarank:snapshot")
+    Docker / packageName := "metarank",
+    dockerRepository      := Some("metarank"),
+    dockerUpdateLatest    := true,
+    dockerAliases += dockerAlias.value.withTag(Some("snapshot")),
+    dockerBuildxPlatforms := Seq("linux/amd64", "linux/arm64"),
+    Docker / mappings := Seq(
+      assembly.value -> "app/metarank.jar",
+      fileConverter.value.toVirtualFile((baseDirectory.value / "deploy" / "metarank.sh").toPath) -> "metarank.sh"
     ),
-    docker / buildOptions := BuildOptions(
-      removeIntermediateContainers = BuildOptions.Remove.Always,
-      pullBaseImage = BuildOptions.Pull.Always
+    dockerCommands := Seq(
+      Cmd("FROM", "ubuntu:jammy-20240227"),
+      Cmd(
+        "RUN",
+        List(
+          "apt-get update",
+          "apt-get install -y --no-install-recommends openjdk-21-jdk-headless htop procps curl inetutils-ping libgomp1 locales",
+          "sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen",
+          "rm -rf /var/lib/apt/lists/*"
+        ).mkString(" && ")
+      ),
+      Cmd("ENV", "LANG=en_US.UTF-8", "LANGUAGE=en_US:en", "LC_ALL=en_US.UTF-8"),
+      Cmd("COPY", "metarank.sh", "/metarank.sh"),
+      Cmd("COPY", "app/metarank.jar", "/app/metarank.jar"),
+      Cmd("RUN", "chmod +x /metarank.sh"),
+      ExecCmd("ENTRYPOINT", "/metarank.sh"),
+      ExecCmd("CMD", "--help")
     ),
     ThisBuild / assemblyMergeStrategy := {
       case PathList("module-info.class")                                         => MergeStrategy.discard

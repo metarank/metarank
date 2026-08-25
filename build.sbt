@@ -2,7 +2,7 @@ import Deps._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.7.4"
 ThisBuild / version      := "0.7.11"
 
 lazy val It = config("it").extend(Test)
@@ -21,7 +21,7 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
-      "-Xfatal-warnings",
+      "-Werror",
       "-release:21"
     ),
     javacOptions ++= Seq(
@@ -30,6 +30,7 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies ++= Seq(
       "org.typelevel"        %% "cats-effect"          % "3.7.1",
+      "org.typelevel"        %% "shapeless3-typeable"  % "3.5.0",
       "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
       "org.scalatestplus"    %% "scalacheck-1-18"      % "3.2.19.0"       % "test,it",

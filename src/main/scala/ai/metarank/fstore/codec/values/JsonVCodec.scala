@@ -9,7 +9,7 @@ import java.io.{DataInput, DataOutput}
 import scala.util.{Failure, Success, Try}
 
 case class JsonVCodec[T](c: Codec[T]) extends VCodec[T] {
-  override def encode(value: T): Array[Byte] = value.asJson(c).noSpaces.getBytes
+  override def encode(value: T): Array[Byte] = value.asJson(using c).noSpaces.getBytes
 
   override def encodeDelimited(value: T, output: DataOutput): Int = {
     val bytes = encode(value)
@@ -18,14 +18,14 @@ case class JsonVCodec[T](c: Codec[T]) extends VCodec[T] {
     bytes.length + 1
   }
 
-  override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))(c)
+  override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))(using c)
 
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
     val line = in.readLine()
     if (line == null) {
       Right(None)
     } else {
-      cdecode[T](line)(c).map(Option.apply)
+      cdecode[T](line)(using c).map(Option.apply)
     }
   }
 

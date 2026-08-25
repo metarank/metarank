@@ -34,14 +34,14 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
 case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeature with Logging {
-  override val dim = VectorDim(schema.field.size)
+  override val dim: VectorDim = VectorDim(schema.field.size)
 
   // stores last interactions of customer
   val interactions = BoundedListConfig(

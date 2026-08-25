@@ -29,7 +29,7 @@ class RedisTLSConfigTest extends AnyFlatSpec with Matchers {
          |ca: /non/existent.ca
          |""".stripMargin
     val decoded = parse(yaml).flatMap(_.as[RedisTLS])
-    decoded shouldBe a[Left[_, _]]
+    decoded shouldBe a[Left[?, ?]]
   }
 
   it should "decode verify type" in {

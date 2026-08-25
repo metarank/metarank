@@ -5,7 +5,7 @@ import ai.metarank.fstore.TrainStore
 import ai.metarank.model.TrainValues
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemTrainStore(
     cache: Cache[String, AnyRef] = Scaffeine().build[String, AnyRef]()

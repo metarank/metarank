@@ -80,7 +80,6 @@ case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends 
         case ExternalReferer(medium, _, _) => Some(medium)
         case InternalReferer               => Some("internal")
         case UnknownReferer                => Some("unknown")
-        case _                             => None
       }
     } yield {
       Put(key, event.timestamp, SString(medium))

@@ -20,7 +20,7 @@ import ai.metarank.model.Write.Put
 import cats.effect.IO
 
 import scala.concurrent.duration._
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with Logging {
   override def dim = SingleDim

@@ -12,7 +12,7 @@ import scala.concurrent.duration._
 case class RedisModelStore(client: RedisClient, prefix: String)(implicit kc: KCodec[ModelName], vc: VCodec[Array[Byte]])
     extends ModelStore
     with Logging {
-  override def put(value: Model[_]): IO[Unit] = for {
+  override def put(value: Model[?]): IO[Unit] = for {
     bytesOption <- IO(value.save())
     _           <- info(s"serialized model ${value.name}, size=${bytesOption.map(_.length)}")
     _ <- bytesOption match {

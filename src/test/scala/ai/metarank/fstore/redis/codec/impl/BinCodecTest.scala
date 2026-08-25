@@ -5,7 +5,7 @@ import com.google.common.io.ByteStreams
 import org.scalatest.Suite
 import org.scalatest.matchers.should.Matchers
 
-trait BinCodecTest { this: Suite with Matchers =>
+trait BinCodecTest { this: Suite & Matchers =>
   def roundtrip[T](codec: BinaryCodec[T], value: T) = {
     val out = ByteStreams.newDataOutput()
     codec.write(value, out)

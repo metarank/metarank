@@ -81,7 +81,7 @@ object HnswJavaIndex extends Logging {
         .map { case (embedding, id) => Embedding(id, embedding) }
         .compile
         .toList
-      _ <- IO(index.addAll(util.Arrays.asList(emb: _*), 1, new LoggerListener(), 256))
+      _ <- IO(index.addAll(util.Arrays.asList(emb*), 1, new LoggerListener(), 256))
     } yield {
       HnswIndexReader(index)
     }

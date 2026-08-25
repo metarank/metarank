@@ -16,7 +16,7 @@ import io.circe.{Codec, Decoder, Encoder}
 
 import scala.annotation.switch
 
-sealed trait Scope extends {
+sealed trait Scope {
   def asString: String
   def getType: ScopeType
 }

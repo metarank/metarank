@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, conf}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig

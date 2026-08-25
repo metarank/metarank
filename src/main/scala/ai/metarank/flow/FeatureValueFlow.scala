@@ -10,7 +10,7 @@ import ai.metarank.model.Write._
 import ai.metarank.model.{Event, Feature, FeatureKey, FeatureValue, Key, Timestamp, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.{Pipe, Stream}
+import fs2.{Chunk, Pipe, Stream}
 import cats.implicits._
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
@@ -29,17 +29,18 @@ case class FeatureValueFlow(
       .evalMapChunk(writes => {
         writes.map(write => commitWrite(write).map(_ => write)).sequence
       })
-      .evalMap(writes =>
-        writes
-          .map(w =>
-            shouldRefresh(w).flatMap {
-              case true  => makeValue(w)
-              case false => IO.pure(Nil)
-            }
-          )
-          .sequence
-          .map(_.flatten)
+      .chunks
+      .evalMap(chunk =>
+        // syncState is a write-read barrier: makeValue reads back the state written by commitWrite above, and without
+        // the barrier a pipelined redis backend can serve the read before the buffered write lands. One barrier per
+        // chunk is enough as all commits of the chunk are done by this point.
+        for {
+          marked <- chunk.toList.traverse(_.traverse(w => shouldRefresh(w).map(_ -> w)))
+          _      <- IO.whenA(marked.exists(_.exists(_._1)))(store.syncState)
+          values <- marked.traverse(_.collect { case (true, w) => w }.traverse(makeValue).map(_.flatten))
+        } yield Chunk.from(values)
       )
+      .unchunks
 
   def commitWrite(write: Write): IO[Unit] = write match {
     case w: Put               => commitWrite(w, store.scalars.get(FeatureKey(w.key)))

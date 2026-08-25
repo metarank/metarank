@@ -13,7 +13,7 @@ class KeyTest extends AnyFlatSpec with Matchers {
   }
 
   it should "fail on broken input" in {
-    Key.fromString("user=123") shouldBe a[Left[_, _]]
+    Key.fromString("user=123") shouldBe a[Left[?, ?]]
   }
 
 }

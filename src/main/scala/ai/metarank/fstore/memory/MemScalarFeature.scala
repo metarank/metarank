@@ -7,7 +7,7 @@ import ai.metarank.model.Write.Put
 import ai.metarank.model.{Key, Scalar, Timestamp}
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemScalarFeature(config: ScalarConfig, cache: Cache[Key, AnyRef] = Scaffeine().build())
     extends ScalarFeature {

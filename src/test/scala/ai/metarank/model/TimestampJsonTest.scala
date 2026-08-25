@@ -20,10 +20,10 @@ class TimestampJsonTest extends AnyFlatSpec with Matchers {
   }
 
   it should "fail on broken string" in {
-    decode[Timestamp]("\"foo\"") shouldBe a[Left[_, _]]
+    decode[Timestamp]("\"foo\"") shouldBe a[Left[?, ?]]
   }
 
   it should "fail on broken number" in {
-    decode[Timestamp]("16712000490") shouldBe a[Left[_, _]]
+    decode[Timestamp]("16712000490") shouldBe a[Left[?, ?]]
   }
 }

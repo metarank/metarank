@@ -80,7 +80,6 @@ case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends 
         case ExternalReferer(medium, _, _) => Some(medium)
         case InternalReferer               => Some("internal")
         case UnknownReferer                => Some("unknown")
-        case _                             => None
       }
     } yield {
       Put(key, event.timestamp, SString(medium))
@@ -123,7 +122,7 @@ object RefererFeature {
     override def create(): IO[BaseFeature] = createParser().map(p => RefererFeature(this, p))
 
     def createParser() = for {
-      json   <- IO(Resource.my.getAsString("/referers.json"))
+      json   <- IO(Resource.getAsString("referers.json"))
       _      <- info("loaded referers.json from resources")
       parser <- IO.fromEither(RefererParser.fromString(json))
     } yield {

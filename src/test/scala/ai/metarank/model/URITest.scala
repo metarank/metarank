@@ -32,7 +32,7 @@ class URITest extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks {
   it should "fail on errors things" in {
     forAll(invalidCases) { (source: String) =>
       val parsed = URI.parse(source)
-      parsed shouldBe a[Left[_, _]]
+      parsed shouldBe a[Left[?, ?]]
     }
   }
 }

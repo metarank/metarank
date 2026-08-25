@@ -18,7 +18,7 @@ object ScalaIntSerializer extends SerializerFourByte[Int] {
   override def valueArraySearch(keys: Any, key: Int): Int =
     java.util.Arrays.binarySearch(keys.asInstanceOf[Array[Int]], key)
 
-  override def valueArrayBinarySearch(key: Int, input: DataInput2, keysLen: Int, comparator: Comparator[_]): Int = {
+  override def valueArrayBinarySearch(key: Int, input: DataInput2, keysLen: Int, comparator: Comparator[?]): Int = {
     nested.valueArrayBinarySearch(key, input, keysLen, comparator)
   }
 }

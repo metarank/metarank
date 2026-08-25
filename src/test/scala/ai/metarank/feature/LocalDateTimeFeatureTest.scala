@@ -30,7 +30,7 @@ class LocalDateTimeFeatureTest extends AnyFlatSpec with Matchers {
 
   it should "complain on improper source event type" in {
     val decoded = parse("name: foo\nsource: metadata.foo\nparse: time_of_day").flatMap(_.as[LocalDateTimeSchema])
-    decoded shouldBe a[Left[_, _]]
+    decoded shouldBe a[Left[?, ?]]
   }
 
   it should "decode ranking as source event type" in {

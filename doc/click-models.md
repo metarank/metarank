@@ -98,23 +98,9 @@ When you presented a list of 100 items to the visitor, and the visitor clicked o
 examined? According to the cascade model - it's unlikely, so CTR value may be significantly off for items rarely ranked
 in the top.
 
-To overcome this issue, Metarank can emit a synthetic impression event for items which were definitely examined by
-the visitor:
-```yaml
-bootstrap:
-  syntheticImpression:
-    enabled: true
-    eventName: impression # can be customized
-```
-
-It is enabled by default and generates interactions of type=impression after the clickthrough is finalized. You can
-disable it in a case when you're able to generate impression events on the application side.
-
-For example using *viewport tracking* in browser/mobile:
-* When an item goes into the viewport, you emit the impression event manually 
-* Specify the name of the event in `eventName` parameter and don't rely on Metarank heuristics.
-
-Synthetic *impression* event generation can also be disabled if you're not using an impression anywhere across your feature set.
+To overcome this issue, Metarank automatically emits a synthetic interaction event of type `impression` for items
+which were definitely examined by the visitor: when a clickthrough is finalized, every item ranked at or above the
+lowest-clicked position gets an impression event.
 
 Interactions are generated properly even for multiple clicks that happened for a single ranking:
 * ranking shown items A-B-C-D-E-F

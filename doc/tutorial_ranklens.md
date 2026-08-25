@@ -7,8 +7,8 @@ This tutorial reproduces the system running on [demo.metarank.ai](https://demo.m
 
 ### Prerequisites
 
-- [JVM 11](https://www.oracle.com/java/technologies/downloads/) installed on your local machine
-- a running [Redis](https://redis.io/download) instance
+- [JDK 21+](https://adoptium.net/installation/) installed on your local machine
+- a running [Redis](https://redis.io/download) instance (optional: Metarank stores state in memory by default)
 - latest [release jar file](https://github.com/metarank/metarank/releases) of Metarank
 
 For the data input, we are using a repackaged copy of the ranklens dataset [available here](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events). 
@@ -20,26 +20,18 @@ item/user/interaction/ranking [event format](./event-schema.md).
 An example ranklens-compatible config file is available [here](https://github.com/metarank/metarank/blob/master/src/test/resources/ranklens/config.yml),
 but you can write your own based on that template:
 ```yaml
-bootstrap:
-  source:
-    type: file
-    path: src/test/resources/ranklens/events/
-  workdir: /tmp/bootstrap
-
-inference:
+api:
   port: 8080
   host: "0.0.0.0"
-  source:
-    type: rest
-  state:
-    type: redis
-    host: localhost
-    format: json
+
+state:
+  type: redis
+  host: localhost
+  port: 6379
 
 models:
   xgboost:
     type: lambdamart
-    path: /tmp/xgboost.model
     backend:
       type: xgboost
       iterations: 10
@@ -178,26 +170,22 @@ features:
     periods: [7,30]
  ```
 
-### 1. Data Bootstrapping
+### 1. Importing historical data
 
-The bootstrap job will process your incoming events based on a config file and produce a couple of output parts:
-1. `dataset` - backend-agnostic numerical feature values for all the clickthroughs in the dataset
-2. `features` - snapshot of the latest feature values, which should be used in the inference phase later
-3. `savepoint` - an Apache Flink savepoint to seamlessly continue processing online events after the bootstrap job
-
-Run the following command with Metarank CLI and provide the [`events.json.gz`](https://github.com/metarank/metarank/tree/master/src/test/resources/ranklens/events) and `config.yml` files locations as it's parameters:
+The import job will process your historical events based on the config file, compute all the feature values and
+click-through joins, and write them to the state store:
 
 ```shell
-java -jar metarank.jar bootstrap <config file>
+java -jar metarank.jar import --config config.yml --data src/test/resources/ranklens/events/
 ```
 
 ### 2. Training the Machine Learning model
 
-When the Bootstrap job is finished, you can train the model using the `config.yml` and the output of the Bootstrap job. 
-The Training job will parse the input data, do the actual training and produce the model file:
+When the import is finished, you can train the model using the same `config.yml`. The training job will build the
+dataset from the imported click-throughs, do the actual training and store the model in the state store:
 
 ```shell
-java -jar metarank.jar train <config file> xgboost
+java -jar metarank.jar train --config config.yml --model xgboost
 ```
 
 ### 3. Inference
@@ -206,7 +194,12 @@ Run Metarank REST API service to process feedback events and rerank in real-time
 By default Metarank will be available on `localhost:8080` and you can send feedback events to `http://<ip>:8080/feedback` 
 and get personalized ranking from `http://<ip>:8080/rank/<MODEL_NAME>`. 
 ```shell
-java -jar metarank.jar standalone <config file>
+java -jar metarank.jar serve --config config.yml
+```
+
+You can also run all three stages at once with the `standalone` mode:
+```shell
+java -jar metarank.jar standalone --config config.yml --data src/test/resources/ranklens/events/
 ```
 
 ## Playing with it

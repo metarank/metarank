@@ -22,6 +22,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           lfs: 'true'
+          # sbt-dynver derives the version from `git describe`, which needs tags + history
+          fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/cache@v6
         with:

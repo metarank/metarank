@@ -3,7 +3,9 @@ import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "3.7.4"
-ThisBuild / version      := "0.7.11"
+// version is derived from the latest git tag by sbt-dynver
+ThisBuild / dynverVTagPrefix := false // tags are "0.8.0", not "v0.8.0"
+ThisBuild / dynverSeparator  := "-"   // dynver's default "+" is not allowed in docker tags
 
 lazy val It = config("it").extend(Test)
 
@@ -145,3 +147,10 @@ lazy val root = (project in file("."))
     },
     assembly / assemblyJarName := "metarank.jar"
   )
+
+// release guard: fails when the dynver version is not an exact clean git tag (extra
+// commits on top of the tag, dirty working tree, or tags missing from the checkout)
+lazy val assertTagVersion = taskKey[Unit]("assert that version is derived from an exact git tag")
+assertTagVersion := {
+  if (isSnapshot.value) sys.error(s"version ${version.value} is not an exact git tag version")
+}

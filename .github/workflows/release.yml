@@ -1,0 +1,72 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+*' # 0.7.12, 0.7.12-M1, 0.7.12-RC1 — no v prefix
+
+permissions:
+  contents: write # create release + upload assets
+
+env:
+  METARANK_TRACKING: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # sbt-dynver derives the version from `git describe`, which needs tags + history
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/cache@v6
+        with:
+          path: |
+            ~/.sbt
+            ~/.m2
+            ~/.ivy2
+            ~/.cache
+          key: release-deps-${{ hashFiles('build.sbt', 'project/**') }}
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: sbt/setup-sbt@v1
+
+      # fails if sbt-dynver did not resolve the version to an exact tag (e.g. broken
+      # tag fetch), so we never publish artifacts with a garbage version
+      - name: Verify version is derived from the tag
+        run: sbt -mem 5000 assertTagVersion
+
+      # multi-arch buildx: qemu for the arm64 layers, buildx builder for sbt's
+      # `docker buildx build --platform linux/amd64,linux/arm64 --push`
+      - uses: docker/setup-qemu-action@v4
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_HUB_USER }}
+          password: ${{ secrets.DOCKER_HUB_KEY }}
+
+      - name: Build jar
+        run: sbt -mem 5000 assembly
+
+      - name: Publish docker image
+        run: sbt -mem 5000 Docker/publish
+
+      # keep the original metarank.jar in place — the docker image mapping expects it
+      - name: Rename jar with version suffix
+        run: cp target/out/jvm/scala-3.7.4/metarank/metarank.jar "metarank-${GITHUB_REF_NAME}.jar"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v3
+        with:
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }} # 0.7.12-M1 → pre-release
+          files: metarank-${{ github.ref_name }}.jar

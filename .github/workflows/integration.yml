@@ -65,4 +65,4 @@ jobs:
         run: .github/test_java_version.sh
 
       - name: Run quickstart test
-        run: ./run_quickstart.sh target/out/jvm/scala-3.7.4/metarank/metarank.jar
+        run: ./run_quickstart.sh target/out/jvm/scala-3.8.4/metarank/metarank.jar

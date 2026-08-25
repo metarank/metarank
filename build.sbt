@@ -2,7 +2,7 @@ import Deps._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "3.7.4"
+ThisBuild / scalaVersion := "3.8.4"
 // version is derived from the latest git tag by sbt-dynver
 ThisBuild / dynverVTagPrefix := false // tags are "0.8.0", not "v0.8.0"
 ThisBuild / dynverSeparator  := "-"   // dynver's default "+" is not allowed in docker tags

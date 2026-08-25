@@ -8,7 +8,7 @@ import cats.effect.IO
 import io.circe.{Decoder, Encoder, Json}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor}
 
-import scala.util.{Failure, Random, Success}
+import scala.util.Random
 
 sealed trait SplitStrategy extends Logging {
   def split(desc: DatasetDescriptor, queries: List[QueryMetadata]): IO[Split]

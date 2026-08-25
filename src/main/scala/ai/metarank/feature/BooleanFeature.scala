@@ -8,12 +8,12 @@ import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.Field.{BooleanField, NumberField}
+import ai.metarank.model.Field.BooleanField
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.util.Logging
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.deriveEncoder
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SBoolean
 import ai.metarank.model.Write.Put
@@ -68,7 +68,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
 }
 
 object BooleanFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class BooleanFeatureSchema(
       name: FeatureName,
       field: FieldName,

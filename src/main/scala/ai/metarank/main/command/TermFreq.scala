@@ -1,20 +1,12 @@
 package ai.metarank.main.command
 
-import ai.metarank.FeatureMapping
-import ai.metarank.config.Config
 import ai.metarank.config.InputConfig.FileInputConfig
-import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
-import ai.metarank.feature.FieldMatchFeature.FieldMatcherType.BM25MatcherType
 import ai.metarank.feature.matcher.BM25Matcher.TermFreqDic
-import ai.metarank.fstore.TrainStore
-import ai.metarank.main.CliArgs.{ExportArgs, TermFreqArgs}
-import ai.metarank.model.Event.ItemEvent
-import ai.metarank.model.{Event, Field, FieldName}
-import ai.metarank.model.FieldName.EventType.Item
+import ai.metarank.main.CliArgs.TermFreqArgs
+import ai.metarank.model.Event
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.{Logging, TextAnalyzer}
 import cats.effect.IO
-import cats.implicits.*
 import fs2.io.file.{Files, Path}
 import fs2.{Chunk, Stream}
 import io.circe.syntax.*

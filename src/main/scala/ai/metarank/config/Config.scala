@@ -7,7 +7,6 @@ import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderS
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
-import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.IO
 import io.circe.Decoder
 import io.circe.yaml.parser.{parse as parseYaml}

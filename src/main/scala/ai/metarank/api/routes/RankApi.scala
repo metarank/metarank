@@ -11,7 +11,7 @@ import io.circe.parser.*
 import org.http4s.*
 import org.http4s.dsl.io.*
 import org.http4s.headers.`Content-Type`
-import ai.metarank.model.Identifier.{*, given}
+import ai.metarank.model.Identifier.*
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
 import ai.metarank.model.{FeatureValue, MValue}
 import ai.metarank.util.analytics.Metrics
@@ -19,8 +19,8 @@ import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
 case class RankApi(ranker: Ranker) extends Logging {
-  import RankApi.{*, given}
-  import ai.metarank.model.Event.EventCodecs.{*, given}
+  import RankApi.*
+  import ai.metarank.model.Event.EventCodecs.given
 
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {

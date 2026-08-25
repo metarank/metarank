@@ -3,7 +3,6 @@ package ai.metarank.api.routes.inference
 import ai.metarank.ml.onnx.sbert.{OnnxBiEncoder, OnnxSession}
 import ai.metarank.api.JsonChunk
 import ai.metarank.api.routes.inference.BiEncoderApi.{BiencoderRequest, BiencoderResponse}
-import ai.metarank.api.routes.inference.CrossEncoderApi.info
 import ai.metarank.feature.FieldMatchBiencoderFeature
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig

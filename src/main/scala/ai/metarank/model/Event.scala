@@ -4,7 +4,7 @@ import ai.metarank.model.Field.NumberField
 import cats.data.NonEmptyList
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
 import io.circe.generic.semiauto.*
-import ai.metarank.model.Identifier.{*, given}
+import ai.metarank.model.Identifier.*
 
 import java.time.format.DateTimeFormatter
 import scala.util.Try

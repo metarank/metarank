@@ -3,8 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.ml.onnx.{EmbeddingCache, Normalize, ScoreCache}
-import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
+import ai.metarank.ml.onnx.{Normalize, ScoreCache}
 import ai.metarank.ml.onnx.Normalize.NoopNormalize
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
@@ -117,7 +116,7 @@ case class FieldMatchCrossEncoderFeature(
 }
 
 object FieldMatchCrossEncoderFeature extends Logging {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   case class FieldMatchCrossEncoderSchema(
       name: FeatureName,

@@ -3,25 +3,23 @@ package ai.metarank.ml.rank
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{BoosterConfig, ModelConfig, Selector, WarmupConfig}
-import ai.metarank.flow.{ClickthroughQuery, PrintProgress}
-import ai.metarank.flow.PrintProgress.ProgressPeriod
-import ai.metarank.main.command.Train.info
+import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.train.SplitStrategy.{Split, splitDecoder}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
 import ai.metarank.ml.rank.LambdaMARTRanker.EvalMetricName.{MapMetric, MrrMetric, NdcgMetric}
-import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.ml.Model
 import ai.metarank.model.Event.{RankItem, RankingEvent}
 import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{FeatureWeight, Field, QueryMetadata, TrainValues}
+import ai.metarank.model.{FeatureWeight, QueryMetadata, TrainValues}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{Logging, RankingEventFormat}
 import cats.data.NonEmptyList
 import cats.effect.std.Queue
-import cats.effect.{IO, ParallelF, Ref}
+import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
@@ -33,12 +31,10 @@ import cats.implicits.*
 import fs2.Pipe
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.util
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.Random
 
 object LambdaMARTRanker extends Logging {
 
-  import ai.metarank.util.DurationJson.{*, given}
 
   case class LambdaMARTConfig(
       backend: BoosterConfig,

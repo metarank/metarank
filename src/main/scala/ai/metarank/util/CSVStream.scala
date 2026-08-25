@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import cats.effect.{IO, Resource}
-import com.opencsv.{AbstractCSVParser, CSVParser, CSVParserBuilder, CSVReader, CSVReaderBuilder, RFC4180ParserBuilder}
+import com.opencsv.{AbstractCSVParser, CSVParserBuilder, CSVReaderBuilder, RFC4180ParserBuilder}
 import fs2.Stream
 
 import scala.jdk.CollectionConverters.*

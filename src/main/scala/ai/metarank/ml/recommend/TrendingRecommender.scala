@@ -10,11 +10,10 @@ import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
 import cats.data.NonEmptyList
 import cats.effect.IO
-import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
+import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Codec, Decoder, Encoder}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import scala.collection.mutable
 import scala.concurrent.duration.*
 
 object TrendingRecommender {
@@ -133,7 +132,7 @@ object TrendingRecommender {
     }
   }
 
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   given intWeightDecoder: Decoder[InteractionWeight] = Decoder.instance(c =>
     for {
       tpe    <- c.downField("interaction").as[String]

@@ -4,7 +4,7 @@ import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType.{SortByName, SortByTime}
 import ai.metarank.source.format.JsonFormat
 import cats.data.NonEmptyList
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
+import io.circe.{Decoder, DecodingFailure}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
@@ -12,7 +12,7 @@ import scala.concurrent.duration.*
 sealed trait InputConfig
 
 object InputConfig {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   sealed trait SourceOffset
   object SourceOffset {
     case object Latest                                    extends SourceOffset

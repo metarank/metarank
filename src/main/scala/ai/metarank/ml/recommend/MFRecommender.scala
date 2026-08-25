@@ -4,7 +4,7 @@ import ai.metarank.ml.Model
 import ai.metarank.ml.Model.{RecommendModel, Response}
 import ai.metarank.ml.Predictor.RecommendPredictor
 import ai.metarank.ml.recommend.embedding.KnnIndex.KnnIndexReader
-import ai.metarank.ml.recommend.embedding.{EmbeddingMap, HnswJavaIndex, KnnIndex}
+import ai.metarank.ml.recommend.embedding.KnnIndex
 import ai.metarank.ml.recommend.mf.MFRecImpl
 import ai.metarank.ml.recommend.mf.MFRecImpl.MFModelConfig
 import ai.metarank.model.Clickthrough.TypedInteraction

@@ -8,9 +8,7 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.ml.Model.RecommendModel
 import ai.metarank.ml.Predictor.{RankPredictor, RecommendPredictor}
-import ai.metarank.ml.recommend.RandomRecommender.{RandomModel, RandomPredictor}
 import ai.metarank.ml.recommend.RecommendRequest
-import ai.metarank.ml.recommend.TrendingRecommender.{TrendingModel, TrendingPredictor}
 import ai.metarank.util.Logging
 import cats.effect.IO
 

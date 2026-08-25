@@ -60,7 +60,7 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
 }
 
 object InteractionCountFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class InteractionCountSchema(
       name: FeatureName,
       interaction: String,

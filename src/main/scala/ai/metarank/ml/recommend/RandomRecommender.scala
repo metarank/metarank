@@ -3,12 +3,12 @@ import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model.{ItemScore, RecommendModel, Response}
 import ai.metarank.ml.Predictor.RecommendPredictor
-import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.ml.Model
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.TrainValues
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.Logging
-import cats.data.{NonEmptyList, NonEmptyVector}
+import cats.data.NonEmptyList
 import cats.effect.IO
 import org.apache.commons.rng.sampling.PermutationSampler
 import org.apache.commons.rng.simple.RandomSource

@@ -10,10 +10,10 @@ import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCo
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{PeriodicCounterValue, ScalarValue}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.Identifier.{ItemId, RankingId}
+import ai.metarank.model.Identifier.RankingId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.Scalar.{SString, SStringList}
+import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.{GlobalScope, ItemFieldScope, ItemScope, RankingFieldScope, RankingScope}
 import ai.metarank.model.ScopeType.{
   GlobalScopeType,
@@ -28,8 +28,6 @@ import ai.metarank.model.{
   FeatureKey,
   FeatureSchema,
   FeatureValue,
-  Field,
-  FieldName,
   Key,
   MValue,
   Scope,
@@ -39,7 +37,7 @@ import ai.metarank.model.{
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
-import io.circe.generic.semiauto.{deriveCodec, deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
 import shapeless3.typeable.syntax.typeable.*
 
 import scala.concurrent.duration.*
@@ -347,7 +345,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
 }
 
 object RateFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class RateFeatureSchema(
       name: FeatureName,
       top: String,

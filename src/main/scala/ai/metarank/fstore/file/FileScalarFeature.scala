@@ -1,13 +1,13 @@
 package ai.metarank.fstore.file
 
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.{FileClient, HashDB}
+import ai.metarank.fstore.file.client.HashDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.State.ScalarState
-import ai.metarank.model.{FeatureValue, Key, State, Timestamp, Write}
+import ai.metarank.model.{FeatureValue, Key, Timestamp, Write}
 import cats.effect.IO
 
 case class FileScalarFeature(config: ScalarConfig, db: HashDB[Array[Byte]], format: StoreFormat) extends ScalarFeature {

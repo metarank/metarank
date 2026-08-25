@@ -1,7 +1,7 @@
 package ai.metarank.model
 
 import ai.metarank.model.FieldName.EventType
-import ai.metarank.model.FieldName.EventType.{*, given}
+import ai.metarank.model.FieldName.EventType.*
 import io.circe.{Codec, Decoder, Encoder}
 
 import scala.util.{Failure, Success}

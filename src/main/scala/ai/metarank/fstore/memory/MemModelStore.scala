@@ -1,7 +1,7 @@
 package ai.metarank.fstore.memory
 
 import ai.metarank.config.ModelConfig
-import ai.metarank.fstore.Persistence.{KVStore, ModelName, ModelStore}
+import ai.metarank.fstore.Persistence.{ModelName, ModelStore}
 import ai.metarank.ml.{Context, Model, Predictor}
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}

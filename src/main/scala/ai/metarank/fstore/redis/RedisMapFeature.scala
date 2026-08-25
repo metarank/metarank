@@ -1,7 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.Persistence.KVCodec
-import ai.metarank.fstore.codec.{KCodec, StoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -9,7 +8,7 @@ import ai.metarank.model.Feature.MapFeature
 import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.FeatureValue.MapValue
 import ai.metarank.model.State.MapState
-import ai.metarank.model.{Key, Scalar, Timestamp}
+import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutTuple
 import cats.effect.IO
 import cats.implicits.*

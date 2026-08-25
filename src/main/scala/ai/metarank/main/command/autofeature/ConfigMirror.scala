@@ -1,6 +1,5 @@
 package ai.metarank.main.command.autofeature
 
-import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.*
 import ai.metarank.main.command.autofeature.model.{
   LambdaMARTConfigGenerator,
@@ -9,12 +8,10 @@ import ai.metarank.main.command.autofeature.model.{
   TrendingRecsConfigGenerator
 }
 import ai.metarank.main.command.autofeature.rules.RuleSet
-import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.FeatureSchema
-import cats.data.NonEmptyList
 import cats.effect.IO
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.deriveEncoder
+import io.circe.Encoder
 
 case class ConfigMirror(
     features: List[FeatureSchema],

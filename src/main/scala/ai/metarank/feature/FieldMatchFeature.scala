@@ -10,7 +10,7 @@ import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldName.EventType.{*, given}
+import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SStringList
@@ -93,7 +93,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema, matcher: FieldMatcher) ex
 }
 
 object FieldMatchFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class FieldMatchSchema(
       name: FeatureName,
       rankingField: FieldName,

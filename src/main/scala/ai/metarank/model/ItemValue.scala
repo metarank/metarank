@@ -4,7 +4,6 @@ import ai.metarank.FeatureMapping
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature, ValueMode}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
-import cats.data.NonEmptyList
 import io.circe.Codec
 import io.circe.generic.semiauto.*
 

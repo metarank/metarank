@@ -3,10 +3,8 @@ package ai.metarank.util
 import org.apache.commons.io.IOUtils
 
 import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
 import java.util.jar.Attributes.Name
 import scala.util.Try
-import scala.jdk.CollectionConverters.*
 
 object Version {
   def apply(resourceName: String = "/META-INF/MANIFEST.MF") = for {

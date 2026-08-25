@@ -1,38 +1,19 @@
 package ai.metarank
 
 import ai.metarank.config.ModelConfig
-import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
-import ai.metarank.feature.DiversityFeature.DiversitySchema
-import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
-import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
-import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
-import ai.metarank.feature.LocalDateTimeFeature.LocalDateTimeSchema
-import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
-import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.feature.PositionFeature.PositionFeatureSchema
-import ai.metarank.feature.RandomFeature.RandomFeatureSchema
-import ai.metarank.feature.RateFeature.RateFeatureSchema
-import ai.metarank.feature.RefererFeature.RefererSchema
-import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.feature.StringFeature.EncoderName.IndexEncoderName
-import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.feature.UserAgentFeature.UserAgentSchema
-import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
-import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.feature.*
 import ai.metarank.ml.{Context, Model, Predictor}
-import ai.metarank.model.{Dimension, FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
-import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
-import ai.metarank.ml.rank.NoopRanker.{NoopConfig, NoopModel, NoopPredictor}
-import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShuffleModel, ShufflePredictor}
+import ai.metarank.model.{Dimension, FeatureSchema, Schema}
+import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
+import ai.metarank.ml.rank.NoopRanker.{NoopConfig, NoopPredictor}
+import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShufflePredictor}
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
 import ai.metarank.ml.recommend.MFRecommender.MFPredictor
 import ai.metarank.ml.recommend.TrendingRecommender.{TrendingConfig, TrendingPredictor}
 import ai.metarank.ml.recommend.mf.ALSRecImpl
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import ai.metarank.util.Logging
-import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.IO
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}

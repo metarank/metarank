@@ -1,6 +1,5 @@
 package ai.metarank.ml.onnx
 
-import ai.metarank.model.Identifier.ItemId
 import ai.metarank.flow.PrintProgress
 import ai.metarank.util.CSVStream
 import cats.effect.IO

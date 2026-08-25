@@ -4,7 +4,7 @@ import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.RankPredictor
-import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.ml.Model
 import ai.metarank.model.TrainValues
 import cats.effect.IO
 import io.circe.generic.semiauto.*

@@ -3,7 +3,7 @@ package ai.metarank.source
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.KafkaSource.Consumer
-import ai.metarank.source.KafkaSource.Consumer.{*, given}
+import ai.metarank.source.KafkaSource.Consumer.*
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists

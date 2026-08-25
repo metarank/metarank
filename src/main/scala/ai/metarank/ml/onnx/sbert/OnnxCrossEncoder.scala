@@ -1,21 +1,13 @@
 package ai.metarank.ml.onnx.sbert
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import ai.djl.modality.nlp.DefaultVocabulary
-import ai.djl.modality.nlp.bert.BertFullTokenizer
 import ai.djl.util.PairList
-import ai.metarank.ml.onnx.sbert.OnnxCrossEncoder.{SentencePair, TokenTypeMask}
+import ai.metarank.ml.onnx.sbert.OnnxCrossEncoder.SentencePair
 import ai.metarank.util.Logging
-import ai.onnxruntime.OrtSession.SessionOptions
-import ai.onnxruntime.OrtSession.SessionOptions.OptLevel
-import ai.onnxruntime.{OnnxTensor, OrtEnvironment, OrtSession, TensorInfo}
-import org.apache.commons.io.{FileUtils, IOUtils}
+import ai.onnxruntime.{OnnxTensor, OrtEnvironment, OrtSession}
 
-import java.io.InputStream
 import java.nio.LongBuffer
-import java.nio.charset.StandardCharsets
 import scala.jdk.CollectionConverters.*
-import scala.collection.mutable.ArrayBuffer
 
 case class OnnxCrossEncoder(env: OrtEnvironment, session: OrtSession, tokenizer: HuggingFaceTokenizer) {
 

@@ -11,7 +11,7 @@ import ai.metarank.model.FeatureValue.PeriodicCounterValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Write.PeriodicIncrement
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Key, MValue, ScopeType, Write}
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -65,7 +65,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
 }
 
 object WindowInteractionCountFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class WindowInteractionCountSchema(
       name: FeatureName,
       interaction: String,

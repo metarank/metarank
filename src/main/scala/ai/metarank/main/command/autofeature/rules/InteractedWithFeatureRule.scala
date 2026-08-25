@@ -1,7 +1,6 @@
 package ai.metarank.main.command.autofeature.rules
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.command.autofeature.EventModel
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.{FeatureSchema, FieldName}

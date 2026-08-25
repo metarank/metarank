@@ -1,12 +1,10 @@
 package ai.metarank.ml.onnx.sbert
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import ai.djl.modality.nlp.bert.BertFullTokenizer
 import ai.onnxruntime.{OnnxTensor, OrtEnvironment, OrtSession}
 
 import scala.jdk.CollectionConverters.*
 import java.nio.LongBuffer
-import scala.collection.mutable.ArrayBuffer
 
 case class OnnxBiEncoder(env: OrtEnvironment, session: OrtSession, tokenizer: HuggingFaceTokenizer, dim: Int) {
 

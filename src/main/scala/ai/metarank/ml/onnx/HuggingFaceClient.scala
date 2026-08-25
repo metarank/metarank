@@ -8,7 +8,7 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.circe.Codec
-import io.circe.generic.semiauto.{deriveCodec, deriveDecoder}
+import io.circe.generic.semiauto.deriveCodec
 import org.http4s.{EntityDecoder, Request, Uri}
 import org.http4s.client.Client
 import org.http4s.circe.*

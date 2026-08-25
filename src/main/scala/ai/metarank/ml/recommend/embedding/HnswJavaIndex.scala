@@ -5,7 +5,7 @@ import ai.metarank.ml.recommend.embedding.KnnIndex.{KnnIndexReader, KnnIndexWrit
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.util.Logging
 import cats.effect.IO
-import com.github.jelmerk.hnswlib.core.{DistanceFunctions, Index, Item, ProgressListener, SearchResult}
+import com.github.jelmerk.hnswlib.core.{DistanceFunctions, ProgressListener}
 import com.github.jelmerk.hnswlib.core.hnsw.HnswIndex
 
 import scala.jdk.CollectionConverters.*

@@ -1,6 +1,6 @@
 package ai.metarank.fstore.cache
 
-import ai.metarank.model.Feature.{*, given}
+import ai.metarank.model.Feature.*
 import ai.metarank.model.FeatureValue.{
   BoundedListValue,
   CounterValue,

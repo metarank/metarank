@@ -4,12 +4,12 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.{RankItem, eventCodec}
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.NumberField
-import ai.metarank.model.FieldName.EventType.{*, given}
+import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Timestamp}
 import ai.metarank.model.MValue.SingleValue
@@ -85,7 +85,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
 }
 
 object ItemAgeFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class ItemAgeSchema(
       name: FeatureName,
       source: FieldName,

@@ -3,18 +3,15 @@ package ai.metarank.fstore.redis
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
-import ai.metarank.fstore.cache.{CachedKVStore, CachedModelStore, CachedTrainStore}
+import ai.metarank.fstore.Persistence.{ModelName, ModelStore}
+import ai.metarank.fstore.cache.CachedModelStore
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.memory.MemModelStore
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.ml.Model
-import ai.metarank.model.{FeatureValue, Key, Schema}
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import com.github.benmanes.caffeine.cache.RemovalCause
 import com.github.blemale.scaffeine.Scaffeine
 import io.lettuce.core.TrackingArgs
 import io.lettuce.core.api.push.{PushListener, PushMessage}
@@ -22,9 +19,7 @@ import io.lettuce.core.api.push.{PushListener, PushMessage}
 import java.nio.ByteBuffer
 import java.util
 import scala.jdk.CollectionConverters.*
-import shapeless3.typeable.syntax.typeable.*
 
-import scala.concurrent.duration.*
 
 case class RedisPersistence(
     schema: Schema,
@@ -36,7 +31,7 @@ case class RedisPersistence(
     format: StoreFormat
 ) extends Persistence
     with Logging {
-  import RedisPersistence.{*, given}
+  import RedisPersistence.*
 
   stateClient.readerConn.addListener(new PushListener {
     override def onPushMessage(message: PushMessage): Unit = if (message.getType == "invalidate") {

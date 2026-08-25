@@ -2,8 +2,6 @@ package ai.metarank.main.command.autofeature.model
 
 import ai.metarank.main.command.autofeature.EventModel
 import ai.metarank.main.command.autofeature.model.ModelGenerator.ModelConfigMirror
-import ai.metarank.main.command.autofeature.model.SimilarRecsConfigGenerator.logger
-import ai.metarank.ml.recommend.TrendingRecommender.{InteractionWeight, TrendingConfig}
 import ai.metarank.model.FeatureSchema
 import ai.metarank.util.Logging
 

@@ -2,10 +2,8 @@ package ai.metarank.fstore.file.client.rocksdb
 
 import ai.metarank.fstore.file.client.HashDB
 import ai.metarank.fstore.file.client.rocksdb.RocksDB.Codec
-import com.github.blemale.scaffeine.{Cache, Scaffeine}
 import org.rocksdb.{RocksDB as RDB}
 
-import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.*
 
 case class RocksHashDB(db: RDB) extends RocksDB[Array[Byte]] with HashDB[Array[Byte]] {

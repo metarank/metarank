@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.Persistence.{KVCodec, KVStore}
+import ai.metarank.fstore.Persistence.KVStore
 import ai.metarank.fstore.codec.{KCodec, VCodec}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink

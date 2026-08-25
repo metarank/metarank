@@ -13,7 +13,6 @@ import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.{Event, FeatureSchema, FieldName}
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankingEvent, UserEvent}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking, User}
-import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.validate.EventValidation
 import ai.metarank.validate.EventValidation.ValidationError
 

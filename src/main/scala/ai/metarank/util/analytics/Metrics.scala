@@ -1,6 +1,6 @@
 package ai.metarank.util.analytics
 
-import io.prometheus.client.{Counter, Gauge, Histogram, Summary}
+import io.prometheus.client.{Counter, Summary}
 
 object Metrics {
   lazy val requests =

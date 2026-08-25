@@ -5,15 +5,13 @@ import ai.metarank.config.InputConfig.FileInputConfig.SortingType.SortByName
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.config.InputConfig.SourceOffset.Earliest
 import ai.metarank.config.SourceFormat
-import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType
 import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType.{AllRuleSet, StableRuleSet}
 import ai.metarank.main.command.train.SplitStrategy
-import ai.metarank.main.command.train.SplitStrategy.TimeSplit
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
-import org.rogach.scallop.{*, given}
+import org.rogach.scallop.*
 
 import java.nio.file.Path
 import scala.concurrent.duration.FiniteDuration

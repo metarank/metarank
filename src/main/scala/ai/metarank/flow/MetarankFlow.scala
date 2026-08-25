@@ -1,7 +1,6 @@
 package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.{Config, CoreConfig}
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.{Event, TrainValues}
 import ai.metarank.util.analytics.Metrics

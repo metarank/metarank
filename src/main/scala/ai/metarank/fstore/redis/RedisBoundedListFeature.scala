@@ -1,7 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.Persistence.KVCodec
-import ai.metarank.fstore.codec.{KCodec, StoreFormat, VCodec}
+import ai.metarank.fstore.codec.{StoreFormat, VCodec}
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -15,8 +14,6 @@ import ai.metarank.model.{Key, Scalar, Timestamp}
 import ai.metarank.model.Write.Append
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.syntax.*
-import io.circe.parser.*
 import cats.implicits.*
 
 case class RedisBoundedListFeature(

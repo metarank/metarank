@@ -4,7 +4,6 @@ import org.mapdb.{DataInput2, DataOutput2}
 import org.mapdb.serializer.SerializerFourByte
 
 import java.util
-import java.util.Arrays
 
 object ScalaFloatSerializer extends SerializerFourByte[Float] {
   override def pack(l: Float): Int = java.lang.Float.floatToIntBits(l)

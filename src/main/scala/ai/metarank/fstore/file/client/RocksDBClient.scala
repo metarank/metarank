@@ -6,10 +6,9 @@ import ai.metarank.fstore.file.client.rocksdb.{RocksHashDB, RocksSortedDB}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import fs2.io.file.{Files, Path}
-import org.rocksdb.{BlockBasedTableConfig, CompressionType, Filter, LRUCache, Options, ReadOptions, RocksDB}
+import fs2.io.file.Files
+import org.rocksdb.{BlockBasedTableConfig, LRUCache, Options}
 
-import java.util
 import scala.collection.mutable.ArrayBuffer
 import org.rocksdb.{RocksDB as RDB}
 

@@ -4,11 +4,8 @@ import ai.metarank.FeatureMapping
 import ai.metarank.api.JsonChunk
 import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.command.Train
-import ai.metarank.main.command.train.SplitStrategy
-import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.Chunk
 import org.http4s.dsl.io.*
 import org.http4s.{Entity, HttpRoutes, Response, Status}
 import scodec.bits.ByteVector

@@ -7,7 +7,6 @@ import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.api.routes.RankApi.{ModelError, RankResponse}
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.api.routes.RankApi.RankResponse.{ItemScoreValues, StateValues}
-import ai.metarank.config.ModelConfig
 import ai.metarank.feature.BaseFeature.ValueMode
 import ai.metarank.ml.Model.RankModel
 import ai.metarank.ml.Predictor.{RankPredictor, RecommendPredictor}
@@ -19,7 +18,6 @@ import ai.metarank.ml.rank.QueryRequest
 import ai.metarank.ml.rank.ShuffleRanker.{ShuffleModel, ShufflePredictor}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.{KendallCorrelation, Logging}
-import cats.data.NonEmptyList
 import cats.effect.IO
 import io.github.metarank.ltrlib.model.{DatasetDescriptor, Query}
 

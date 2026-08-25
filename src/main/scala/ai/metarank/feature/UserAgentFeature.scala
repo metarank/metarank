@@ -8,14 +8,13 @@ import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.Identifier.SessionId
+import ai.metarank.model.Field.StringField
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.SessionScope
-import ai.metarank.model.ScopeType.{SessionScopeType, UserScopeType}
+import ai.metarank.model.ScopeType.SessionScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.OneHotEncoder
 import cats.effect.IO
@@ -70,7 +69,7 @@ case class UserAgentFeature(schema: UserAgentSchema, parser: Parser) extends Ran
 }
 
 object UserAgentFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   case class UserAgentSchema(
       name: FeatureName,

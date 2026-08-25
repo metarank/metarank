@@ -1,29 +1,21 @@
 package ai.metarank.config
 
-import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.ml.rank.{LambdaMARTRanker, NoopRanker, ShuffleRanker}
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
-import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
-import ai.metarank.ml.recommend.{BertSemanticRecommender, MFRecommender, TrendingRecommender}
+import ai.metarank.ml.recommend.{BertSemanticRecommender, TrendingRecommender}
 import ai.metarank.ml.recommend.TrendingRecommender.TrendingConfig
 import ai.metarank.ml.recommend.mf.ALSRecImpl
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
-import ai.metarank.model.Key.FeatureName
-import cats.data.{NonEmptyList, NonEmptyMap}
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto.*
+import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
-import scala.concurrent.duration.*
-import scala.util.Random
 
 trait ModelConfig {
   def selector: Selector
 }
 
 object ModelConfig {
-  import ai.metarank.util.DurationJson.{*, given}
 
   given modelConfigEncoder: Encoder[ModelConfig] = Encoder.instance {
     case lm: LambdaMARTConfig => LambdaMARTRanker.lmEncoder(lm).deepMerge(withType("lambdamart"))

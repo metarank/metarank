@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.codec.{KCodec, StoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -13,7 +13,6 @@ import ai.metarank.model.Write.Increment
 import ai.metarank.util.Logging
 import cats.effect.IO
 
-import scala.util.Try
 
 case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefix: String, format: StoreFormat)
     extends CounterFeature

@@ -1,9 +1,9 @@
 package ai.metarank.config
 
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{Clickthrough, FieldName, TrainValues}
+import ai.metarank.model.{Clickthrough, TrainValues}
 import cats.data.NonEmptyList
-import io.circe.{ACursor, Codec, Decoder, DecodingFailure, Encoder, HCursor, Json}
+import io.circe.{ACursor, Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.*
 
 import scala.util.Random

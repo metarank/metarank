@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim

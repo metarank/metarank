@@ -3,7 +3,6 @@ package ai.metarank.fstore.codec.values
 import ai.metarank.fstore.codec.VCodec
 import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
-import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream}
 import ai.metarank.util.Logging
 
 import java.io.{

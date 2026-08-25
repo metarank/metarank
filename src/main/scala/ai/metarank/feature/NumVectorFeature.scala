@@ -13,7 +13,7 @@ import ai.metarank.model.Field.{NumberField, NumberListField}
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.Scalar.{SDouble, SDoubleList}
+import ai.metarank.model.Scalar.SDoubleList
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -206,7 +206,7 @@ object NumVectorFeature {
     }
   }
 
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   case class VectorFeatureSchema(
       name: FeatureName,

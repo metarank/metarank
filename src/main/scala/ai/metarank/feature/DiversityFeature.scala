@@ -7,7 +7,7 @@ import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
+import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
@@ -133,7 +133,7 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
 }
 
 object DiversityFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   case class DiversitySchema(
       name: FeatureName,

@@ -2,7 +2,7 @@ package ai.metarank.fstore.file
 
 import ai.metarank.fstore.Persistence.KVStore
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.{FileClient, HashDB}
+import ai.metarank.fstore.file.client.HashDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.{FeatureValue, Key}
 import cats.effect.IO

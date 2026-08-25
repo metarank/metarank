@@ -1,9 +1,8 @@
 package ai.metarank.model
 
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
-import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, RedisStateConfig}
-import ai.metarank.config.{Config, ModelConfig, StateStoreConfig}
+import ai.metarank.config.Config
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
@@ -48,13 +47,10 @@ import ai.metarank.util.Version
 import com.google.common.hash.Hashing
 import io.circe.Codec
 import io.circe.generic.semiauto.*
-import org.apache.commons.io.IOUtils
 
-import java.io.ByteArrayInputStream
 import scala.jdk.CollectionConverters.*
 import java.net.NetworkInterface
 import java.util.stream.Collectors
-import scala.util.Try
 
 case class AnalyticsPayload(
     state: String,

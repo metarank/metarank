@@ -2,18 +2,12 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.flow.PrintProgress
 import ai.metarank.fstore.TrainStore
-import ai.metarank.fstore.Persistence.KVCodec
-import ai.metarank.fstore.codec.{KCodec, StoreFormat, VCodec}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
-import ai.metarank.model.Clickthrough.TypedInteraction
-import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{Clickthrough, Event, EventId, Identifier, ItemValue, Timestamp, TrainValues}
+import ai.metarank.model.TrainValues
 import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.{Chunk, Stream}
-import cats.implicits.*
-import io.circe.{Codec, Decoder, Encoder}
-import io.circe.generic.semiauto.deriveCodec
+import fs2.Stream
 import cats.implicits.*
 
 import scala.concurrent.duration.FiniteDuration

@@ -25,6 +25,7 @@ lazy val root = (project in file("."))
       "-feature",
       "-deprecation",
       "-Werror",
+      "-Wunused:imports",
       "-release:21"
     ),
     javacOptions ++= Seq(

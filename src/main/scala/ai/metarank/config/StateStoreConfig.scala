@@ -1,11 +1,11 @@
 package ai.metarank.config
 
-import ai.metarank.config.StateStoreConfig.FileStateConfig.{FileBackend, MapDBBackend, RocksDBBackend}
+import ai.metarank.config.StateStoreConfig.FileStateConfig.FileBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.Logging
-import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+import io.circe.{Decoder, DecodingFailure}
 import io.lettuce.core.SslVerifyMode
 
 import java.io.File
@@ -30,7 +30,7 @@ object StateStoreConfig extends Logging {
   ) extends StateStoreConfig
 
   object RedisStateConfig {
-    import ai.metarank.util.DurationJson.{*, given}
+    import ai.metarank.util.DurationJson.given
     case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, models: Int = 3)
     given dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
 
@@ -69,7 +69,7 @@ object StateStoreConfig extends Logging {
   case class RedisCredentials(user: Option[String] = None, password: String)
   given redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
 
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class RedisTimeouts(
       socket: FiniteDuration = 1.second,
       connect: FiniteDuration = 1.second,

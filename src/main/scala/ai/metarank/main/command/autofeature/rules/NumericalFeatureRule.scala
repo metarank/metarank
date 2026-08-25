@@ -3,7 +3,7 @@ import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.main.command.autofeature.EventModel
 import ai.metarank.main.command.autofeature.FieldStat.NumericFieldStat
 import ai.metarank.model.FieldName.EventType.Item
-import ai.metarank.model.{FeatureSchema, FieldName, ScopeType}
+import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.Logging

@@ -3,20 +3,18 @@ package ai.metarank.ml.recommend
 import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Predictor.RecommendPredictor
-import ai.metarank.ml.onnx.EmbeddingCache
-import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
 import ai.metarank.ml.onnx.sbert.{OnnxBiEncoder, OnnxSession}
 import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.ml.recommend.MFRecommender.EmbeddingSimilarityModel
-import ai.metarank.ml.recommend.embedding.{EmbeddingMap, HnswJavaIndex, KnnIndex}
+import ai.metarank.ml.recommend.embedding.{EmbeddingMap, KnnIndex}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.{FieldName, TrainValues}
+import ai.metarank.model.TrainValues
 import ai.metarank.model.TrainValues.ItemValues
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.Decoder
 
 object BertSemanticRecommender {
   case class BertSemanticPredictor(name: String, config: BertSemanticModelConfig)

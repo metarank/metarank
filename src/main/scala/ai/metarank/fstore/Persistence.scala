@@ -1,8 +1,8 @@
 package ai.metarank.fstore
 
-import ai.metarank.config.CoreConfig.{ImportCacheConfig, ImportConfig}
+import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.{ModelConfig, StateStoreConfig}
-import ai.metarank.fstore.Persistence.{KVStore, ModelName, ModelStore}
+import ai.metarank.fstore.Persistence.{KVStore, ModelStore}
 import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.fstore.codec.impl.ScopeCodec
 import ai.metarank.fstore.file.FilePersistence
@@ -19,7 +19,7 @@ import ai.metarank.model.Feature.{
   StatsEstimatorFeature
 }
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec

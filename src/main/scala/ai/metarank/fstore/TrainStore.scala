@@ -7,7 +7,7 @@ import ai.metarank.config.TrainConfig.{
   RedisTrainConfig,
   S3TrainConfig
 }
-import ai.metarank.config.{StateStoreConfig, TrainConfig}
+import ai.metarank.config.TrainConfig
 import ai.metarank.fstore.clickthrough.{DiscardTrainStore, FileTrainStore, S3TrainStore}
 import ai.metarank.fstore.memory.MemTrainStore
 import ai.metarank.fstore.redis.{RedisPersistence, RedisTrainStore}
@@ -15,7 +15,6 @@ import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.TrainValues
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import scala.concurrent.duration.*
 
 trait TrainStore {
   def put(cts: List[TrainValues]): IO[Unit]

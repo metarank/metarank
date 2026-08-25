@@ -15,7 +15,7 @@
   */
 package ai.metarank.util
 
-import ai.metarank.util.RefererParser.{*, given}
+import ai.metarank.util.RefererParser.*
 import cats.implicits.*
 import io.circe.{ACursor, Decoder, Json}
 

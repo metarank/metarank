@@ -1,7 +1,6 @@
 package ai.metarank.ml.onnx.distance
 
 import io.circe.Decoder
-import io.netty.channel.socket.DuplexChannelConfig
 
 import scala.util.{Failure, Success}
 

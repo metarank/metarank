@@ -12,7 +12,7 @@ import ai.metarank.model.TrainValues.{ClickthroughValues, ItemValues, UserValues
 import ai.metarank.model.{Clickthrough, Event, FeatureValue, ItemValue, Key, TrainValues}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import com.github.benmanes.caffeine.cache.{RemovalCause, Ticker}
+import com.github.benmanes.caffeine.cache.RemovalCause
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 import com.google.common.collect.Queues
 import com.google.common.util.concurrent.MoreExecutors

@@ -3,7 +3,7 @@ package ai.metarank.fstore.codec.impl
 import java.io.{DataInput, DataOutput}
 
 class ListCodec[T](ec: BinaryCodec[T]) extends BinaryCodec[List[T]] {
-  import CodecOps.{*, given}
+  import CodecOps.*
   override def read(in: DataInput): List[T] = {
     val size  = in.readVarInt()
     val items = (0 until size).map(_ => ec.read(in))

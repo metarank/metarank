@@ -1,7 +1,6 @@
 package ai.metarank.main.command
 
 import ai.metarank.config.InputConfig.FileInputConfig
-import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.flow.PrintProgress
 import ai.metarank.main.CliArgs.AutoFeatureArgs
 import ai.metarank.main.command.autofeature.{ConfigMirror, EventModel}

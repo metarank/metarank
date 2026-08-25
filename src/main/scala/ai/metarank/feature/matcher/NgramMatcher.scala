@@ -2,7 +2,7 @@ package ai.metarank.feature.matcher
 
 import ai.metarank.util.TextAnalyzer
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.{Decoder, DecodingFailure, Encoder}
+import io.circe.{Decoder, Encoder}
 
 import scala.collection.mutable.ArrayBuffer
 

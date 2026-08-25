@@ -9,10 +9,10 @@ import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.Field.{NumberField, StringField, StringListField}
+import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
+import ai.metarank.model.MValue.{CategoryValue, VectorValue}
 import ai.metarank.model.Scalar.SStringList
 import ai.metarank.model.Write.Put
 import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
@@ -109,7 +109,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
 }
 
 object StringFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   sealed trait CategoricalEncoder {
     def dim: Dimension

@@ -1,9 +1,8 @@
 package ai.metarank.fstore.memory
 
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.Persistence.{KVCodec, ModelName, ModelStore}
+import ai.metarank.fstore.Persistence.ModelStore
 import ai.metarank.fstore.memory.MemPersistence.FeatureStateExpiry
-import ai.metarank.ml.Model
 import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.util.Logging
 import cats.effect.IO

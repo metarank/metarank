@@ -6,7 +6,6 @@ import org.http4s.HttpRoutes
 import org.http4s.dsl.io.*
 import fs2.{Chunk, Stream}
 import io.prometheus.client.exporter.common.TextFormat
-import io.prometheus.client.hotspot.DefaultExports
 
 import java.io.{ByteArrayOutputStream, OutputStreamWriter}
 import java.nio.ByteBuffer

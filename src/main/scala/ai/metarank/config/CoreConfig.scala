@@ -2,8 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.CoreConfig.{ClickthroughJoinConfig, ImportConfig, TrackingConfig}
 import cats.effect.IO
-import io.circe.generic.semiauto.deriveEncoder
-import io.circe.{Decoder, Encoder}
+import io.circe.Decoder
 
 import scala.concurrent.duration.*
 
@@ -14,7 +13,7 @@ case class CoreConfig(
 )
 
 object CoreConfig {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class TrackingConfig(analytics: Boolean = true, errors: Boolean = true)
   object TrackingConfig {
     def fromEnv(env: Map[String, String]): IO[TrackingConfig] = ConfigEnvSubst.substTracking(TrackingConfig(), env)

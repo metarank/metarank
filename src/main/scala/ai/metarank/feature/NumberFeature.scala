@@ -18,7 +18,7 @@ import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.deriveEncoder
 
 import scala.concurrent.duration.*
 
@@ -99,7 +99,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
 }
 
 object NumberFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   case class NumberFeatureSchema(
       name: FeatureName,
       field: FieldName,

@@ -8,27 +8,16 @@ import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodicCounterConfig, 
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
-import ai.metarank.model.Write.{*, given}
-import ai.metarank.model.FeatureValue.{*, given}
+import ai.metarank.model.Write.*
+import ai.metarank.model.FeatureValue.*
 import ai.metarank.model.Identifier.RankingId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.{GlobalScope, ItemScope, RankingFieldScope, RankingScope, SessionScope, UserScope}
-import ai.metarank.model.State.{
-  BoundedListState,
-  CounterState,
-  FreqEstimatorState,
-  MapState,
-  PeriodicCounterState,
-  ScalarState,
-  StatsEstimatorState
-}
+import ai.metarank.model.Scope.{GlobalScope, ItemScope, RankingScope, SessionScope, UserScope}
 import cats.effect.IO
 import com.google.common.math.Quantiles
 import it.unimi.dsi.fastutil.{Arrays, Swapper}
 import it.unimi.dsi.fastutil.ints.IntComparator
 
-import java.util
-import java.util.Comparator
 import scala.concurrent.duration.*
 import scala.util.Random
 

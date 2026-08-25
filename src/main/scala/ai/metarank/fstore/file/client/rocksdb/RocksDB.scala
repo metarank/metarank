@@ -1,5 +1,5 @@
 package ai.metarank.fstore.file.client.rocksdb
-import ai.metarank.fstore.file.client.{CloseableIterator, DB, HashDB}
+import ai.metarank.fstore.file.client.{CloseableIterator, DB}
 import ai.metarank.fstore.file.client.rocksdb.RocksDB.Codec
 import org.rocksdb.{ReadOptions, RocksDB as RDB}
 

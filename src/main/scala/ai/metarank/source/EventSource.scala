@@ -1,7 +1,7 @@
 package ai.metarank.source
 
 import ai.metarank.config.InputConfig
-import ai.metarank.config.InputConfig.{*, given}
+import ai.metarank.config.InputConfig.*
 import ai.metarank.model.Event
 import ai.metarank.util.Logging
 import cats.effect.IO

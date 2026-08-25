@@ -1,19 +1,18 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.{Config, CoreConfig}
+import ai.metarank.config.Config
 import ai.metarank.config.InputConfig.FileInputConfig
 import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.config.StateStoreConfig.FileStateConfig.MapDBBackend
 import ai.metarank.flow.MetarankFlow.ProcessResult
 import ai.metarank.flow.{CheckOrderingPipe, TrainBuffer, MetarankFlow}
 import ai.metarank.fstore.file.FilePersistence
-import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.fstore.redis.RedisPersistence
 import ai.metarank.fstore.transfer.FileRedisTransfer
 import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.ImportArgs
-import ai.metarank.model.{Event, Schema, Timestamp}
+import ai.metarank.model.Event
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
 import ai.metarank.validate.EventValidation.ValidationError

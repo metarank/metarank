@@ -1,6 +1,6 @@
 package ai.metarank.ml.recommend.mf
 
-import ai.metarank.config.{ModelConfig, Selector}
+import ai.metarank.config.Selector
 import ai.metarank.ml.recommend.KnnConfig
 import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.ml.recommend.embedding.EmbeddingMap

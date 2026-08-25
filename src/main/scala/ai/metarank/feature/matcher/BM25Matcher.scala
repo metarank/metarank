@@ -8,9 +8,9 @@ import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.util.TextAnalyzer
 import cats.effect.IO
 import io.circe.{Decoder, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.deriveDecoder
 import org.apache.commons.io.IOUtils
-import fs2.{Chunk, Stream}
+import fs2.Stream
 
 import java.io.{File, FileInputStream, FileReader, InputStreamReader, Reader}
 import io.circe.parser.*

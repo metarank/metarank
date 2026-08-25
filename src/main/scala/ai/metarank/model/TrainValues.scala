@@ -1,8 +1,7 @@
 package ai.metarank.model
 import ai.metarank.model.Event.{ItemEvent, UserEvent}
 import ai.metarank.model.Identifier.{ItemId, UserId}
-import cats.data.NonEmptyList
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, FailedCursor, HCursor, Json, JsonObject}
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import io.circe.generic.semiauto.*
 
 sealed trait TrainValues {

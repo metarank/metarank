@@ -1,7 +1,7 @@
 package ai.metarank.fstore.redis.client
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
-import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, PipelineConfig}
+import ai.metarank.config.StateStoreConfig.RedisStateConfig.PipelineConfig
 import ai.metarank.fstore.redis.client.RedisClient.ScanCursor
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
@@ -25,8 +25,6 @@ import io.lettuce.core.{
 }
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{ByteArrayCodec, RedisCodec, StringCodec}
-import io.netty.handler.ssl.SslContextBuilder
-import org.apache.commons.io.IOUtils
 import reactor.core.publisher.Mono
 
 import java.io.FileInputStream
@@ -35,7 +33,7 @@ import java.security.KeyStore
 import java.security.cert.{CertificateFactory, X509Certificate}
 import java.util.concurrent.CompletableFuture
 import javax.naming.ldap.LdapName
-import javax.net.ssl.{SSLContext, SSLHandshakeException, TrustManagerFactory}
+import javax.net.ssl.{SSLHandshakeException, TrustManagerFactory}
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 import scala.concurrent.duration.*

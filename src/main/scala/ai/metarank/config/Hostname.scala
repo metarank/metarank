@@ -1,6 +1,6 @@
 package ai.metarank.config
 
-import io.circe.{Codec, Decoder, Encoder}
+import io.circe.{Decoder, Encoder}
 
 import scala.util.{Failure, Success}
 

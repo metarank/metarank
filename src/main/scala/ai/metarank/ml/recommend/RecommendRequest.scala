@@ -2,7 +2,7 @@ package ai.metarank.ml.recommend
 
 import ai.metarank.ml.Context
 import ai.metarank.model.Identifier
-import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.model.Identifier.{ItemId, UserId}
 import io.circe.Decoder
 
 case class RecommendRequest(count: Int, user: Option[UserId] = None, items: List[ItemId] = Nil) extends Context {}

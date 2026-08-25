@@ -4,20 +4,20 @@ import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.FeatureValue.{MapValue, ScalarValue}
+import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
-import ai.metarank.model.FieldName.EventType.{AnyEvent, Interaction, Ranking, User}
+import ai.metarank.model.FieldName.EventType.{AnyEvent, Interaction, Ranking}
 import ai.metarank.model.Identifier.{SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.{CategoryValue, VectorValue}
-import ai.metarank.model.Scalar.{SBoolean, SString}
+import ai.metarank.model.MValue.CategoryValue
+import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.{SessionScope, UserScope}
-import ai.metarank.model.Write.{Put, PutTuple}
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.Write.Put
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.{Logging, RefererParser}
 import ai.metarank.util.RefererParser.{ExternalReferer, InternalReferer, UnknownReferer}
 import better.files.Resource
@@ -109,7 +109,7 @@ case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends 
 }
 
 object RefererFeature {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   case class RefererSchema(
       name: FeatureName,

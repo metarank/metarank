@@ -2,15 +2,11 @@ package ai.metarank.flow
 
 import ai.metarank.FeatureMapping
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.Identifier.SessionId
-import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.SessionScope
-import ai.metarank.model.Write.{*, given}
+import ai.metarank.model.Write.*
 import ai.metarank.model.{Event, Feature, FeatureKey, FeatureValue, Key, Timestamp, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.{Chunk, Pipe, Stream}
+import fs2.{Chunk, Pipe}
 import cats.implicits.*
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 

@@ -1,6 +1,5 @@
 package ai.metarank.fstore.codec
 
-import ai.metarank.model.Key
 
 trait KCodec[T] {
   def encode(prefix: String, value: T): String

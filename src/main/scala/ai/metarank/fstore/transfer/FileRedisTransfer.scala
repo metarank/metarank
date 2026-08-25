@@ -1,7 +1,5 @@
 package ai.metarank.fstore.transfer
 
-import ai.metarank.FeatureMapping
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
 import ai.metarank.fstore.file.{
   FileBoundedListFeature,
@@ -14,7 +12,6 @@ import ai.metarank.fstore.file.{
   FileScalarFeature,
   FileStatsEstimatorFeature
 }
-import ai.metarank.fstore.memory.MemKVStore
 import ai.metarank.fstore.redis.{
   RedisBoundedListFeature,
   RedisCounterFeature,
@@ -39,10 +36,8 @@ import ai.metarank.model.State.{
 }
 import ai.metarank.util.Logging
 import cats.effect.IO
-import fs2.Stream
 import cats.implicits.*
 
-import scala.annotation.tailrec
 
 object FileRedisTransfer extends Logging {
   def copy(source: FilePersistence, dest: RedisPersistence) = for {

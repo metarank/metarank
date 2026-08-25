@@ -2,11 +2,10 @@ package ai.metarank.model
 
 import ai.metarank.model.Dimension.{SingleDim, VectorDim}
 import ai.metarank.model.Key.FeatureName
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import cats.implicits.*
 
 import java.util
-import scala.util.hashing.{Hashing, MurmurHash3}
 
 sealed trait MValue {
   def name: FeatureName

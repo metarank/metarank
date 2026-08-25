@@ -8,7 +8,7 @@ import scala.concurrent.duration.*
 case class WarmupConfig(sampledRequests: Int = 100, duration: FiniteDuration = 10.seconds)
 
 object WarmupConfig {
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
   given warmupEncoder: Encoder[WarmupConfig] = deriveEncoder
 
   given warmupDecoder: Decoder[WarmupConfig] = Decoder.instance(c =>

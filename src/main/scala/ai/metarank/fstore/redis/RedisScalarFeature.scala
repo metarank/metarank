@@ -1,7 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.Persistence.KVCodec
-import ai.metarank.fstore.codec.{KCodec, StoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -9,7 +8,7 @@ import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.State.ScalarState
-import ai.metarank.model.{Key, Scalar, Timestamp}
+import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO

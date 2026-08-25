@@ -1,7 +1,6 @@
 package ai.metarank.model
 
 import ai.metarank.fstore.codec.impl.ScopeCodec
-import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, RankingId, SessionId, UserId}
 import ai.metarank.model.ScopeType.{
   GlobalScopeType,
@@ -14,7 +13,6 @@ import ai.metarank.model.ScopeType.{
 }
 import io.circe.{Codec, Decoder, Encoder}
 
-import scala.annotation.switch
 
 sealed trait Scope {
   def asString: String

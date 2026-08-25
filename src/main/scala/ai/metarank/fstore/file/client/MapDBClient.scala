@@ -3,9 +3,9 @@ package ai.metarank.fstore.file.client
 import ai.metarank.config.StateStoreConfig.FileStateConfig.MapDBBackend
 import ai.metarank.fstore.file.client.mapdb.{MapdbHashDB, MapdbSortedDB, ScalaFloatSerializer, ScalaIntSerializer}
 import cats.effect.{IO, Resource}
-import org.mapdb.{BTreeMap, DB, DBMaker, HTreeMap, Serializer}
+import org.mapdb.{DB, DBMaker, Serializer}
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.Path
 
 class MapDBClient(db: DB, opts: MapDBBackend) extends FileClient {
   override def hashDB(name: String): HashDB[Array[Byte]] = {

@@ -5,9 +5,8 @@ import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import cats.effect.IO
 import fs2.Pipe
-import io.circe.{Codec, Decoder, Json}
+import io.circe.Decoder
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import scala.util.{Failure, Success}
 
 trait SourceFormat {

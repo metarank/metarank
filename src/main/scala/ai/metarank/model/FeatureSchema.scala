@@ -23,7 +23,7 @@ import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountS
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Key.FeatureName
 import cats.effect.IO
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
 import scala.concurrent.duration.FiniteDuration
 

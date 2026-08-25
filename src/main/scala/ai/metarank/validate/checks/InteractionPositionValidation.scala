@@ -1,7 +1,6 @@
 package ai.metarank.validate.checks
 
 import ai.metarank.config.Config
-import ai.metarank.ml.Predictor.EmptyDatasetException
 import ai.metarank.model.Event
 import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.validate.EventValidation

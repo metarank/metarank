@@ -3,13 +3,13 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RelevancyFeature.RelevancySchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.model.Dimension.{SingleDim, VectorDim}
+import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType}
-import ai.metarank.model.MValue.{SingleValue, VectorValue}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Key, MValue, ScopeType}
+import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import cats.effect.IO

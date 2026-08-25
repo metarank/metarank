@@ -6,7 +6,7 @@ import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Identifier.{ItemId, RankingId}
 import ai.metarank.model.Scope.{GlobalScope, ItemScope, RankingScope, SessionScope, UserScope}
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
-import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, Key, MValue, ScopeType, Write}
 import cats.effect.IO
 
 sealed trait BaseFeature {

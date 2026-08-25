@@ -2,7 +2,7 @@ package ai.metarank.ml
 
 import ai.metarank.config.ModelConfig
 import ai.metarank.ml.Model.{RankModel, RecommendModel}
-import ai.metarank.ml.rank.{QueryRequest, RankRequest}
+import ai.metarank.ml.rank.QueryRequest
 import ai.metarank.ml.recommend.RecommendRequest
 import ai.metarank.model.TrainValues
 import cats.effect.IO

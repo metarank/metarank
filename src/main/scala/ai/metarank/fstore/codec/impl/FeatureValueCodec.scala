@@ -1,6 +1,5 @@
 package ai.metarank.fstore.codec.impl
 
-import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import ai.metarank.model.FeatureValue.{
   BoundedListValue,
@@ -29,7 +28,7 @@ import java.io.{DataInput, DataOutput}
 import java.util.concurrent.TimeUnit
 
 object FeatureValueCodec extends BinaryCodec[FeatureValue] {
-  import CodecOps.{*, given}
+  import CodecOps.*
 
   val mapIntDoubleCodec       = new MapCodec(BinaryCodec.int, BinaryCodec.double)
   val mapStringScalarCodec    = new MapCodec(BinaryCodec.string, ScalarCodec)

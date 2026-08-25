@@ -48,7 +48,7 @@ object FeatureValue {
     case class TimeValue(ts: Timestamp, value: Scalar)
   }
 
-  import ai.metarank.util.DurationJson.{*, given}
+  import ai.metarank.util.DurationJson.given
 
   given scalarCodec: Codec[ScalarValue]                        = deriveCodec
   given freqCodec: Codec[FrequencyValue]                       = deriveCodec

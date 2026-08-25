@@ -3,7 +3,7 @@ import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
 ThisBuild / organization := "ai.metarank"
 ThisBuild / scalaVersion := "3.7.4"
-ThisBuild / version      := "0.7.11"
+ThisBuild / version      := "0.8.0"
 
 lazy val It = config("it").extend(Test)
 

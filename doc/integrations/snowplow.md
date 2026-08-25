@@ -225,15 +225,12 @@ the same HOCON definition:
 To make metarank connect to this stream, configure the 
 [kinesis source](../configuration/data-sources.md#aws-kinesis-streams) in the following way:
 ```yaml
-inference:
-  port: 8080
-  host: "0.0.0.0"
-  source:
-    type: kinesis
-    region: us-east-1
-    topic: enriched
-    offset: latest
-    format: snowplow:tsv
+input:
+  type: kinesis
+  region: us-east-1
+  topic: enriched
+  offset: latest
+  format: snowplow:tsv
 ```
 
 All the supported Metarank sources have an optional `format` field, which defines the
@@ -287,15 +284,14 @@ Given the following [sample S3 Loader config snippet](https://github.com/snowplo
 }
 ```
 
-You can instrument Metarank to load these GZIP-compressed event dumps for the bootstrapping
-process with the [file source](../configuration/data-sources.md) in the following way:
+You can instrument Metarank to load these GZIP-compressed event dumps during the historical data
+import with the [file source](../configuration/data-sources.md) in the following way:
 ```yaml
-bootstrap:
-  source:
-    type: file
-    path: "s3://acme-snowplow-output/enriched/"
-    offset: earliest
-    format: snowplow:tsv
+input:
+  type: file
+  path: "s3://acme-snowplow-output/enriched/"
+  offset: earliest
+  format: snowplow:tsv
 ```
 
 ## Validating the setup

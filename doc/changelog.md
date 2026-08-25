@@ -3,6 +3,16 @@
 In a human-readable format. For a technical changelog for robots, see [github releases page](https://github.com/metarank/metarank/releases).
 Check our [blog](https://blog.metarank.ai) for more detailed updates.
 
+## 0.8.0
+
+A big platform-upgrade release. No config or API changes, but note the new runtime requirement:
+
+* Metarank is now built with Scala 3 and requires JDK 21+ to run. Docker users are unaffected — the image ships a compatible JDK.
+* Fixed a race condition in the Redis state backend that could silently drop feature values during import.
+* Fixed crashes and data corruption in the S3 click-through store under concurrent writes.
+* AWS credentials can now be loaded via WebIdentityTokenCredentialsProvider (e.g. IRSA on EKS).
+* Major dependency bumps: Lucene 10, kafka-clients 4.0, pulsar-client 4.0.5, AWS SDK.
+
 ## 0.7.11
 
 * see GH release notes at https://github.com/metarank/metarank/releases

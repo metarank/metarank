@@ -37,7 +37,7 @@ lazy val root = (project in file("."))
       "org.typelevel"        %% "shapeless3-typeable" % "3.5.0",
       "org.scalatest"        %% "scalatest"           % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"           % scalatestVersion % "test,it",
-      "org.scalatestplus"    %% "scalacheck-1-18"     % "3.2.19.0"       % "test,it",
+      "org.scalatestplus"    %% "scalacheck-1-19"     % "3.2.20.0"       % "test,it",
       "ch.qos.logback"        % "logback-classic"     % "1.6.3",
       "io.circe"             %% "circe-yaml"          % circeYamlVersion,
       "io.circe"             %% "circe-core"          % circeVersion,

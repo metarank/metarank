@@ -122,7 +122,7 @@ object RefererFeature {
     override def create(): IO[BaseFeature] = createParser().map(p => RefererFeature(this, p))
 
     def createParser() = for {
-      json   <- IO(Resource.my.getAsString("/referers.json"))
+      json   <- IO(Resource.getAsString("referers.json"))
       _      <- info("loaded referers.json from resources")
       parser <- IO.fromEither(RefererParser.fromString(json))
     } yield {

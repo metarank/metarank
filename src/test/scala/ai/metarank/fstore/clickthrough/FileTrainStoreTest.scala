@@ -3,6 +3,7 @@ package ai.metarank.fstore.clickthrough
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.TestClickthroughValues
 import cats.effect.unsafe.implicits.global
+import cats.implicits._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -48,6 +49,21 @@ class FileTrainStoreTest extends AnyFlatSpec with Matchers {
     val read = store2.getall().compile.toList.unsafeRunSync()
     read shouldBe List(ctv, ctv, ctv, ctv, ctv, ctv)
 
+  }
+
+  it should "not corrupt records on concurrent writes" in {
+    val dir = Files.createTempDirectory("meta-cts")
+    val (store, close) = FileTrainStore
+      .create(dir.toString, BinaryStoreFormat)
+      .allocated
+      .unsafeRunSync()
+    val events  = (0 until 1000).map(i => TestClickthroughValues(List(s"a$i", s"b$i"))).toList
+    val batches = events.grouped(10).toList
+    batches.parTraverse_(batch => store.put(batch)).unsafeRunSync()
+    store.flush().unsafeRunSync()
+    val read = store.getall().compile.toList.unsafeRunSync()
+    read should contain theSameElementsAs events
+    close.unsafeRunSync()
   }
 
   it should "skip file with wrong ext" in {

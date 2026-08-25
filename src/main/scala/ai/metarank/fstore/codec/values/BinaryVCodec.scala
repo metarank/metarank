@@ -56,15 +56,17 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
   override def decodeDelimited(in: DataInput): Either[Throwable, Option[T]] = {
     Try(in.readInt()) match {
       case Success(size) if size < 0 =>
-        logger.warn(s"Skipped invalid record size=$size")
+        logger.warn(s"corrupted stream: record size=$size is negative")
         Right(None)
       case Success(size) =>
         val buf = new Array[Byte](size)
         Try(in.readFully(buf)) match {
-          case Success(_)  => decode(buf).map(Option.apply)
-          case Failure(ex) => Right(None)
+          case Success(_) => decode(buf).map(Option.apply)
+          case Failure(ex) =>
+            logger.warn(s"truncated stream: expected record of $size bytes, got EOF ($ex)")
+            Right(None)
         }
-      case Failure(ex) => Right(None)
+      case Failure(_) => Right(None)
     }
   }
 }

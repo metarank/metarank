@@ -68,7 +68,7 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
       "software.amazon.awssdk" % "kinesis"                  % awsVersion,
       // lettuce 7.x is built on netty 4.2, which conflicts with netty 4.1 pulled by pulsar/awssdk in the fat jar
-      "io.lettuce"             % "lettuce-core"            % "6.8.2.RELEASE",
+      "io.lettuce"             % "lettuce-core"            % "7.7.0.RELEASE",
       "com.google.guava"       % "guava"                   % "33.7.1-jre",
       "commons-io"             % "commons-io"              % "2.22.0",
       "io.sentry"              % "sentry-logback"          % "8.53.0",

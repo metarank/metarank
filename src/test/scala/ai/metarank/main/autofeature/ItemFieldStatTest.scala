@@ -2,7 +2,7 @@ package ai.metarank.main.autofeature
 
 import ai.metarank.main.command.autofeature.FieldStat.{NumericFieldStat, NumericListFieldStat, StringFieldStat}
 import ai.metarank.main.command.autofeature.ItemFieldStat
-import ai.metarank.model.Field.{NumberField, NumberListField, StringField, StringListField}
+import ai.metarank.model.Field.{NumberField, NumberListField, StringListField}
 import ai.metarank.util.TestItemEvent
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

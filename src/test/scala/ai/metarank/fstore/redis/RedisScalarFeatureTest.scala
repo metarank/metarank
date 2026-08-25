@@ -2,11 +2,9 @@ package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.ScalarFeatureSuite
 import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
-import ai.metarank.model.Feature.ScalarFeature
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.State.ScalarState
-import ai.metarank.model.Write.Put
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 

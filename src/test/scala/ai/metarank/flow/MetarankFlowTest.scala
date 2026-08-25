@@ -12,11 +12,11 @@ import ai.metarank.fstore.memory.{MemPersistence, MemTrainStore}
 import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.{Clickthrough, EventId, FeatureKey, FieldName, ItemValue, Key, MValue, Timestamp}
+import ai.metarank.model.{Clickthrough, EventId, FieldName, ItemValue, Key, MValue, Timestamp}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scalar.{SDouble, SString, SStringList}
+import ai.metarank.model.Scalar.{SDouble, SStringList}
 import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
 import ai.metarank.ml.Ranker
@@ -148,7 +148,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
         )
       )
     )
-    import ai.metarank.util.DoubleNaNEquality.{*, given}
+    import ai.metarank.util.DoubleNaNEquality.given
     q.query.values.toList should contain theSameElementsInOrderAs List(
       10.0,
       1.0,
@@ -203,7 +203,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
         )
       )
     )
-    import ai.metarank.util.DoubleNaNEquality.{*, given}
+    import ai.metarank.util.DoubleNaNEquality.given
     q.query.values.toList should contain theSameElementsInOrderAs List(
       10.0,
       1.0,

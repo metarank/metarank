@@ -2,7 +2,6 @@ package ai.metarank.feature
 
 import ai.metarank.feature.FieldMatchFeature.FieldMatchSchema
 import ai.metarank.feature.FieldMatchFeature.FieldMatcherType.{NgramMatcherType, TermMatcherType}
-import ai.metarank.feature.matcher.{FieldMatcher, NgramMatcher, TermMatcher}
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, Key, Schema, Timestamp}
@@ -13,7 +12,7 @@ import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SStringList
 import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.Write.Put
-import ai.metarank.util.{TestItemEvent, TestRankingEvent, TextAnalyzer}
+import ai.metarank.util.{TestItemEvent, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -11,7 +11,7 @@ import io.circe.parser.decode
 import io.circe.{Codec, Decoder}
 import io.circe.syntax.*
 
-import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.UUID
 import scala.concurrent.duration.*

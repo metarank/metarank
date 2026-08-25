@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
 import io.lettuce.core.SslVerifyMode
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 
 class RedisTLSConfigTest extends AnyFlatSpec with Matchers {
   it should "decode tls with enabled=true" in {

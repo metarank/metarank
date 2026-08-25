@@ -1,8 +1,7 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.NumVectorFeature.Reducer.{*, given}
+import ai.metarank.feature.NumVectorFeature.Reducer.*
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.NumberListField
 import ai.metarank.model.{FieldName, Key, Schema}

@@ -2,7 +2,7 @@ package ai.metarank.util
 
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.{EventId, Field, Timestamp}
-import ai.metarank.model.Identifier.{*, given}
+import ai.metarank.model.Identifier.*
 
 import java.util.UUID
 

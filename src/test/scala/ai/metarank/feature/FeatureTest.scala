@@ -8,7 +8,7 @@ import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.{Event, FeatureSchema, MValue}
-import cats.data.{NonEmptyList, NonEmptyMap}
+import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import com.github.blemale.scaffeine.Scaffeine
 import fs2.Stream

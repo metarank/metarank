@@ -12,11 +12,9 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import org.http4s.{
   AuthScheme,
   Credentials,
-  Entity,
   EntityDecoder,
   EntityEncoder,
   Header,
-  Headers,
   MediaType,
   Method,
   Request,

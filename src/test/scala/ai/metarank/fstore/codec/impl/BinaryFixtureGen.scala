@@ -8,7 +8,7 @@ import java.nio.file.{Files, Paths}
   */
 object BinaryFixtureGen {
   def main(args: Array[String]): Unit = {
-    import BinaryCodecFixtureTest.{*, given}
+    import BinaryCodecFixtureTest.*
     val dir = Paths.get("src/test/resources/codec")
     Files.write(dir.resolve("fv-v2.bin"), encodeAll(FeatureValueCodec, featureValues))
     Files.write(dir.resolve("scalar-v1.bin"), encodeAll(ScalarCodec, scalars))

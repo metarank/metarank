@@ -1,7 +1,6 @@
 package ai.metarank.util
 
 import ai.metarank.ml.onnx.{HuggingFaceClient, ModelHandle}
-import ai.metarank.ml.onnx.HuggingFaceClient.ModelResponse
 import ai.metarank.ml.onnx.HuggingFaceClient.ModelResponse.Sibling
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec

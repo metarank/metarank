@@ -3,7 +3,7 @@ package ai.metarank.main.autofeature.model
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
 import ai.metarank.main.command.autofeature.model.ModelGenerator.ModelConfigMirror
 import ai.metarank.main.command.autofeature.{EventCountStat, EventModel, InteractionStat}
-import ai.metarank.main.command.autofeature.model.{SimilarRecsConfigGenerator, TrendingRecsConfigGenerator}
+import ai.metarank.main.command.autofeature.model.SimilarRecsConfigGenerator
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item

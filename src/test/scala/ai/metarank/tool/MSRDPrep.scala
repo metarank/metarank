@@ -10,7 +10,7 @@ import cats.data.NonEmptyList
 import cats.effect.{ExitCode, IO, IOApp}
 import com.opencsv.{CSVParserBuilder, CSVReaderBuilder}
 import io.circe.syntax.*
-import java.io.{FileReader, InputStreamReader}
+import java.io.InputStreamReader
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 

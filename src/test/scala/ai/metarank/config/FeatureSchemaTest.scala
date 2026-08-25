@@ -2,12 +2,11 @@ package ai.metarank.config
 
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
+import ai.metarank.feature.StringFeature.EncoderName.OnehotEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.ScopeType.ItemScopeType
-import ai.metarank.model.FieldName.EventType.{*, given}
+import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
 import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse

@@ -6,7 +6,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model.{Clickthrough, EventId, ItemValue}
-import ai.metarank.util.{TestClickthrough, TestInteractionEvent, TestRankingEvent}
+import ai.metarank.util.TestClickthrough
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

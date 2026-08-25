@@ -2,13 +2,13 @@ package ai.metarank.main
 
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.SourceOffset
-import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TermFreqArgs, TrainArgs}
+import ai.metarank.main.CliArgs.{ImportArgs, ServeArgs, TrainArgs}
 import ai.metarank.main.command.train.SplitStrategy.HoldLastStrategy
 import ai.metarank.source.format.JsonFormat
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.Files
 import scala.Left
 
 class CliArgsTest extends AnyFlatSpec with Matchers {

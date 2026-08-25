@@ -4,7 +4,6 @@ import ai.metarank.fstore.PeriodicCounterSuite
 import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Feature.PeriodicCounterFeature.PeriodicCounterConfig
 import ai.metarank.model.State.PeriodicCounterState
-import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 

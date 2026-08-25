@@ -5,7 +5,7 @@ import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.fstore.memory.{MemPersistence, MemTrainStore}
-import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName

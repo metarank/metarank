@@ -1,7 +1,6 @@
 package ai.metarank.ml.recommend
 
 import ai.metarank.config.ModelConfig
-import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
 import ai.metarank.ml.onnx.{EmbeddingCache, ModelHandle}
 import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
@@ -15,7 +14,6 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.nio.charset.StandardCharsets
 
 class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
   it should "train the model" in {

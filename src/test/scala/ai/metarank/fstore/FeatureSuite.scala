@@ -2,8 +2,7 @@ package ai.metarank.fstore
 
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.FeatureConfig
-import ai.metarank.model.{Feature, FeatureValue, State, Timestamp, Write}
-import cats.effect.IO
+import ai.metarank.model.{Feature, FeatureValue, Timestamp, Write}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

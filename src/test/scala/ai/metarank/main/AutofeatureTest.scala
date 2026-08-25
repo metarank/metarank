@@ -10,7 +10,7 @@ import ai.metarank.main.command.autofeature.ConfigMirror
 import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.FieldName.EventType.Item
-import ai.metarank.model.{Event, FeatureSchema, FieldName}
+import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.RanklensEvents

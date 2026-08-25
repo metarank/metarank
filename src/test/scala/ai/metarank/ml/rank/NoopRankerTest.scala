@@ -2,8 +2,6 @@ package ai.metarank.ml.rank
 
 import ai.metarank.ml.{Predictor, PredictorSuite}
 import ai.metarank.ml.rank.NoopRanker.{NoopConfig, NoopModel, NoopPredictor}
-import ai.metarank.model.Event.RankItem
-import ai.metarank.model.Identifier.ItemId
 import ai.metarank.util.TestQueryRequest
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global

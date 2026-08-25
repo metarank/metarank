@@ -3,7 +3,6 @@ package ai.metarank.config
 import ai.metarank.config.StateStoreConfig.RedisStateConfig
 import ai.metarank.config.TrainConfig.{FileTrainConfig, RedisTrainConfig}
 import ai.metarank.fstore.TrainStore
-import ai.metarank.fstore.clickthrough.FileTrainStore
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

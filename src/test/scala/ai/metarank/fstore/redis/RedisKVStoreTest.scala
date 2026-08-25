@@ -1,8 +1,8 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.codec.values.StringVCodec
-import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat, idEncoder}
-import ai.metarank.fstore.codec.{KCodec, VCodec}
+import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
+import ai.metarank.fstore.codec.KCodec
 import ai.metarank.model.{FeatureValue, Key, Timestamp}
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Key.FeatureName

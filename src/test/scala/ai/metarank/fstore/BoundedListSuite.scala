@@ -4,15 +4,11 @@ import ai.metarank.model.Feature.BoundedListFeature
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
-import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
-import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.ItemScopeType
-import ai.metarank.model.State.BoundedListState
 import ai.metarank.model.Write.Append
 import ai.metarank.util.TestKey
-import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration.*
 

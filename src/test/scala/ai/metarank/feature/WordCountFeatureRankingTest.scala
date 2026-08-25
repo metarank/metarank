@@ -3,17 +3,12 @@ package ai.metarank.feature
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.FieldName.EventType.{Item, Ranking}
-import ai.metarank.model.Identifier.ItemId
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.Scalar.SDouble
-import ai.metarank.model.Scope.ItemScope
-import ai.metarank.model.ScopeType.{ItemScopeType, RankingScopeType}
-import ai.metarank.model.Write.Put
-import ai.metarank.model.{FeatureSchema, FieldName, Key, Schema}
-import ai.metarank.util.{TestItemEvent, TestRankingEvent}
-import cats.effect.unsafe.implicits.global
+import ai.metarank.model.ScopeType.RankingScopeType
+import ai.metarank.model.{FeatureSchema, FieldName, Schema}
+import ai.metarank.util.TestRankingEvent
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

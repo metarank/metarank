@@ -5,7 +5,6 @@ import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.State.CounterState
-import ai.metarank.model.Write.Increment
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 

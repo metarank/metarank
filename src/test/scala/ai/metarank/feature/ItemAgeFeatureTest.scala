@@ -1,7 +1,6 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.FeatureValue.ScalarValue

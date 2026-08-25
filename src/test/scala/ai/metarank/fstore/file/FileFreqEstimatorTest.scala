@@ -4,11 +4,10 @@ import ai.metarank.fstore.FreqEstimatorSuite
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.State.FreqEstimatorState
 import ai.metarank.model.Write.PutFreqSample
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
-import org.scalatest.concurrent.{Eventually, IntegrationPatience}
+import org.scalatest.concurrent.Eventually
 
 import scala.util.Random
 

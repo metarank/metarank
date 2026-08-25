@@ -1,13 +1,9 @@
 package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
-import ai.metarank.api.routes.RankApi.RankResponse
 import ai.metarank.config.Config
 import ai.metarank.flow.TrainBuffer
-import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
-import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
-import ai.metarank.util.RanklensEvents
 import cats.effect.unsafe.implicits.global
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
@@ -15,7 +11,6 @@ import org.scalatest.matchers.should.Matchers
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.ml.Recommender
 import ai.metarank.ml.recommend.MFRecommender.MFPredictor

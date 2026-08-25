@@ -6,11 +6,8 @@ import ai.metarank.fstore.Persistence.{ModelName, ModelStore}
 import ai.metarank.fstore.cache.CachedModelStore
 import ai.metarank.fstore.cached.CachedModelStoreTest.AlwaysAllocateModelStore
 import ai.metarank.fstore.memory.MemModelStore
-import ai.metarank.fstore.redis.RedisModelStore
-import ai.metarank.fstore.redis.RedisPersistence.Prefix
 import ai.metarank.ml.Model.RankModel
 import ai.metarank.ml.rank.QueryRequest
-import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShuffleModel}
 import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.model.Timestamp
 import cats.effect.IO

@@ -6,7 +6,7 @@ import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.State.MapState
-import ai.metarank.model.Write.{Put, PutTuple}
+import ai.metarank.model.Write.PutTuple
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 

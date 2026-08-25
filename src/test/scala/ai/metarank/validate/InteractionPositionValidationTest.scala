@@ -1,7 +1,6 @@
 package ai.metarank.validate
 
 import ai.metarank.model.EventId
-import ai.metarank.model.Identifier.ItemId
 import ai.metarank.util.{TestConfig, TestInteractionEvent, TestRankingEvent}
 import ai.metarank.validate.checks.InteractionPositionValidation
 import org.scalatest.flatspec.AnyFlatSpec

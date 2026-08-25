@@ -5,7 +5,6 @@ import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Export, Import}
-import ai.metarank.model.Timestamp
 import ai.metarank.util.{RandomDataset, TestConfig}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec

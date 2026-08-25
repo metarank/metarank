@@ -1,11 +1,10 @@
 package ai.metarank.main.api
 
 import ai.metarank.api.routes.{FeedbackApi, TrainApi}
-import ai.metarank.config.CoreConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
-import ai.metarank.model.{Timestamp, TrainResult}
+import ai.metarank.model.TrainResult
 import ai.metarank.util.RandomDataset
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global

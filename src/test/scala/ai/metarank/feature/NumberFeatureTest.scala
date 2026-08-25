@@ -1,20 +1,19 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.{FeatureSchema, FieldName, Key, Schema}
 import ai.metarank.model.ScopeType.{ItemScopeType, RankingScopeType, UserScopeType}
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking, User}
-import ai.metarank.model.Field.{NumberField, StringField}
+import ai.metarank.model.Field.NumberField
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.{SingleValue, VectorValue}
+import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SDouble
 import ai.metarank.model.Scope.{ItemScope, UserScope}
 import ai.metarank.model.Write.Put
-import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestSchema, TestUserEvent}
+import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent, TestUserEvent}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import io.circe.yaml.parser.parse

@@ -3,7 +3,7 @@ package ai.metarank.fstore.codec.impl
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.{ItemFieldScope, ItemScope, RankingFieldScope, UserScope}
+import ai.metarank.model.Scope.{ItemFieldScope, ItemScope, UserScope}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

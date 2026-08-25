@@ -1,19 +1,18 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.RefererFeature.RefererSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.model.ScopeType.{*, given}
+import ai.metarank.model.ScopeType.*
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{FieldName, Key, Schema, Timestamp}
-import ai.metarank.model.FieldName.EventType.{Ranking, User}
+import ai.metarank.model.{FieldName, Key, Schema}
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.{CategoryValue, VectorValue}
+import ai.metarank.model.MValue.CategoryValue
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.UserScope
-import ai.metarank.model.Write.{Put, PutTuple}
-import ai.metarank.util.{TestRankingEvent, TestUserEvent}
+import ai.metarank.model.Write.Put
+import ai.metarank.util.TestRankingEvent
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

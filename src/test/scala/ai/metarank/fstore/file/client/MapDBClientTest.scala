@@ -2,7 +2,7 @@ package ai.metarank.fstore.file.client
 
 import ai.metarank.config.StateStoreConfig.FileStateConfig.MapDBBackend
 
-import java.nio.file.{Files, Paths}
+import java.nio.file.Files
 import scala.util.Random
 
 class MapDBClientTest extends FileTestSuite {

@@ -11,7 +11,6 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.generic.semiauto.*
 import io.circe.yaml.parser.{parse as parseYaml}
-import io.circe.parser.*
 
 import scala.concurrent.duration.*
 

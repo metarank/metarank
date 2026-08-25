@@ -1,7 +1,6 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.RateFeature.{NormalizeSchema, RateFeatureSchema}
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName

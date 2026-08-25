@@ -1,8 +1,7 @@
 package ai.metarank.main.autofeature.rule
 
 import ai.metarank.feature.InteractedWithFeature.InteractedWithSchema
-import ai.metarank.main.command.autofeature.FieldStat.StringFieldStat
-import ai.metarank.main.command.autofeature.rules.{StringFeatureRule, InteractedWithFeatureRule}
+import ai.metarank.main.command.autofeature.rules.InteractedWithFeatureRule
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName

@@ -4,11 +4,10 @@ import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.config.Selector.FieldSelector
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
-import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.{EventId, Timestamp}
+import ai.metarank.model.EventId
 import ai.metarank.util.{RandomDataset, TestClickthroughValues, TestConfig}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec

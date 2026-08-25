@@ -1,7 +1,7 @@
 package ai.metarank.validate
 
-import ai.metarank.model.{EventId, Timestamp}
-import ai.metarank.util.{TestConfig, TestInteractionEvent, TestItemEvent, TestRankingEvent}
+import ai.metarank.model.Timestamp
+import ai.metarank.util.{TestConfig, TestInteractionEvent, TestItemEvent}
 import ai.metarank.validate.checks.InteractionMetadataValidation
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

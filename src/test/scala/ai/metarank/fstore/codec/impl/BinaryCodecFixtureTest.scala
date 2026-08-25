@@ -38,7 +38,7 @@ import scala.concurrent.duration.*
   * be read back anymore: never regenerate the fixtures to make the test pass, fix the codec instead.
   */
 class BinaryCodecFixtureTest extends AnyFlatSpec with Matchers {
-  import BinaryCodecFixtureTest.{*, given}
+  import BinaryCodecFixtureTest.*
 
   it should "encode feature values into the reference bytes" in {
     encodeAll(FeatureValueCodec, featureValues) should contain theSameElementsInOrderAs

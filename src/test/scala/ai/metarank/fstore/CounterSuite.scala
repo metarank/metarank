@@ -3,15 +3,10 @@ package ai.metarank.fstore
 import ai.metarank.model.Feature.CounterFeature
 import ai.metarank.model.Feature.CounterFeature.CounterConfig
 import ai.metarank.model.FeatureValue.CounterValue
-import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.Key
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.ItemScopeType
-import ai.metarank.model.State.CounterState
 import ai.metarank.model.Write.Increment
 import ai.metarank.util.TestKey
-import cats.effect.unsafe.implicits.global
 
 import scala.concurrent.duration.*
 import scala.util.Random

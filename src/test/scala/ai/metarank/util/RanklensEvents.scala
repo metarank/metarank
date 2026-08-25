@@ -1,6 +1,5 @@
 package ai.metarank.util
 
-import ai.metarank.flow.PrintProgress
 import ai.metarank.model.Event
 import better.files.Resource
 import cats.effect.IO

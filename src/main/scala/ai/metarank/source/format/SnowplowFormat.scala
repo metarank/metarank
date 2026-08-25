@@ -13,9 +13,9 @@ object SnowplowFormat {
   case class UnstructuredData(schema: String, data: MetarankEvent)
   case class SnowplowEnrichedEvent(unstruct_event: UnstructuredData)
 
-  implicit lazy val snowplowEnrichedEventCodec: Codec[SnowplowEnrichedEvent] = deriveCodec[SnowplowEnrichedEvent]
-  implicit val unstructuredDataCodec: Codec[UnstructuredData]                = deriveCodec[UnstructuredData]
-  implicit val metarankEventCodec: Codec[MetarankEvent]                      = deriveCodec[MetarankEvent]
+  implicit val metarankEventCodec: Codec[MetarankEvent]                 = deriveCodec[MetarankEvent]
+  implicit val unstructuredDataCodec: Codec[UnstructuredData]           = deriveCodec[UnstructuredData]
+  implicit val snowplowEnrichedEventCodec: Codec[SnowplowEnrichedEvent] = deriveCodec[SnowplowEnrichedEvent]
 
   val supportedSchemas = Set(
     "iglu:ai.metarank/item/jsonschema/1-0-0",

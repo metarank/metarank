@@ -87,7 +87,7 @@ object QdrantIndex extends Logging {
         .map(x => Embedding(x._1, x._2))
         .groupWithin(128, 1.second)
         .evalMap(batch => putBatch(client, uri, batch.toList))
-        .flatMap(list => fs2.Stream(list: _*))
+        .flatMap(list => fs2.Stream(list*))
         .compile
         .toList
       _ <- info(s"uploaded ${ids.size} vectors")

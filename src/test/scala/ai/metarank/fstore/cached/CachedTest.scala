@@ -4,7 +4,7 @@ import ai.metarank.fstore.FeatureSuite
 import ai.metarank.model.{Feature, FeatureValue, Write}
 import cats.effect.unsafe.implicits.global
 
-trait CachedTest[W <: Write, F <: Feature[W, _ <: FeatureValue]] { this: FeatureSuite[W, _, F] =>
+trait CachedTest[W <: Write, F <: Feature[W, ? <: FeatureValue]] { this: FeatureSuite[W, ?, F] =>
   def feature: F
   def write(values: List[W]): Option[FeatureValue] = {
     val f = feature()

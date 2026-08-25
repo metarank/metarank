@@ -53,7 +53,7 @@ class ModelConfigTest extends AnyFlatSpec with Matchers {
         |type: lambdamart
         |features: [state]""".stripMargin
     val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[ModelConfig])
-    decoded shouldBe a[Left[_, _]]
+    decoded shouldBe a[Left[?, ?]]
   }
 
   it should "clip xgboost weights for lmart" in {

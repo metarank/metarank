@@ -15,7 +15,7 @@ class ShuffleRankerTest extends PredictorSuite[ShuffleConfig, QueryRequest, Shuf
 
   override def request(n: Int): QueryRequest = TestQueryRequest(n)
 
-  lazy val rec = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+  lazy val rec = predictor.fit(fs2.Stream(cts*)).unsafeRunSync()
 
   it should "return same items" in {
     val r      = request(100)

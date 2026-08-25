@@ -6,6 +6,7 @@ import ai.metarank.ml.Predictor.EmptyDatasetException
 import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
 import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{TestClickthroughValues, TestQueryRequest}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
@@ -22,14 +23,15 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
   )
   val desc = DatasetDescriptor(List(SingularFeature("foo")))
 
-  override def cts = (0 until 100).map(_ => TestClickthroughValues.random(List("p1", "p2", "p3"))).toList
+  override def cts: List[ClickthroughValues] =
+    (0 until 100).map(_ => TestClickthroughValues.random(List("p1", "p2", "p3"))).toList
 
   override def predictor = LambdaMARTPredictor("foo", conf, desc)
 
   override def request(n: Int): QueryRequest = TestQueryRequest(n)
 
   it should "fail on ct with no mvalues" in {
-    val err = Try(predictor.fit(fs2.Stream(cts.map(_.copy(values = Nil)): _*)).unsafeRunSync())
+    val err = Try(predictor.fit(fs2.Stream(cts.map(_.copy(values = Nil))*)).unsafeRunSync())
     err should matchPattern { case Failure(ex: EmptyDatasetException) => // yep
     }
   }
@@ -45,7 +47,7 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
         )
         .unsafeRunSync()
     )
-    result shouldBe a[Failure[_]]
+    result shouldBe a[Failure[?]]
   }
 
   it should "fail roundtrip the model on feature mismatch" in {
@@ -56,7 +58,7 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     )
     val desc   = DatasetDescriptor(List(SingularFeature("bar")))
     val pred2  = LambdaMARTPredictor("foo", conf, desc)
-    val model  = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val model  = predictor.fit(fs2.Stream(cts*)).unsafeRunSync()
     val blob   = model.save()
     val result = Try(pred2.load(blob).unsafeRunSync())
     result.isSuccess shouldBe false
@@ -71,7 +73,7 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     )
     val desc   = DatasetDescriptor(List(SingularFeature("bar")))
     val pred2  = LambdaMARTPredictor("foo", conf, desc)
-    val model  = pred2.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val model  = pred2.fit(fs2.Stream(cts*)).unsafeRunSync()
     val blob   = model.save()
     val result = Try(pred2.load(blob).unsafeRunSync())
     result.map(_.warmupRequests.size) shouldBe Success(10)

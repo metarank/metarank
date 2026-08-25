@@ -8,6 +8,7 @@ import ai.metarank.model.TrainValues
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
+import cats.effect.std.Mutex
 import fs2.Stream
 
 import java.io.{
@@ -26,18 +27,24 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
-case class FileTrainStore(file: File, output: DataOutput, stream: OutputStream, fmt: StoreFormat, dir: File)
-    extends TrainStore
+case class FileTrainStore(
+    file: File,
+    output: DataOutput,
+    stream: OutputStream,
+    fmt: StoreFormat,
+    dir: File,
+    lock: Mutex[IO]
+) extends TrainStore
     with Logging {
 
-  override def put(cts: List[TrainValues]): IO[Unit] = IO {
+  override def put(cts: List[TrainValues]): IO[Unit] = lock.lock.surround(IO {
     cts.foreach(fmt.ctv.encodeDelimited(_, output))
-  }
+  })
 
-  override def flush(): IO[Unit] = IO(stream.flush())
+  override def flush(): IO[Unit] = lock.lock.surround(IO(stream.flush()))
 
   override def getall(): fs2.Stream[IO, TrainValues] = {
-    Stream(dir.listFiles().toList.sortBy(_.getName): _*)
+    Stream(dir.listFiles().toList.sortBy(_.getName)*)
       .evalFilter(f =>
         IO {
           if (f.getName.endsWith(FILE_EXT)) {
@@ -97,7 +104,8 @@ object FileTrainStore extends Logging {
       stream <- Resource.make(IO { new BufferedOutputStream(new FileOutputStream(file), FILE_BUFFER_SIZE) })(stream =>
         IO(stream.close())
       )
+      lock <- Resource.eval(Mutex[IO])
     } yield {
-      FileTrainStore(file, new DataOutputStream(stream), stream, fmt, dir)
+      FileTrainStore(file, new DataOutputStream(stream), stream, fmt, dir, lock)
     }
 }

@@ -98,7 +98,7 @@ object Persistence extends Logging {
   }
 
   trait ModelStore {
-    def put(value: Model[_]): IO[Unit]
+    def put(value: Model[?]): IO[Unit]
     def get[C <: ModelConfig, T <: Context, M <: Model[T]](key: ModelName, pred: Predictor[C, T, M]): IO[Option[M]]
   }
 

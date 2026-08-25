@@ -7,7 +7,7 @@ import ai.metarank.model.Write.PutStatSample
 import ai.metarank.model.{Feature, Key, Timestamp}
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemStatsEstimator(config: StatsEstimatorConfig, cache: Cache[Key, AnyRef] = Scaffeine().build())
     extends StatsEstimatorFeature {

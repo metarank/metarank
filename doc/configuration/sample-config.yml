@@ -124,10 +124,10 @@ state: # a place to store the feature values for the ML inference and the traine
   # path: /path/to/file   # path to a file which will be written during import, and read during training
   # format: json          # options are: json, binary
 
-# The "source" section describes the source of the data. This parameter is optional.
+# The "input" section describes the source of the data. This parameter is optional.
 # Check https://docs.metarank.ai/reference/overview/data-sources for more information
-source:
-  type: file # source type, available options: file, kafka, pulsar, kinesis
+#input:
+  #type: file # source type, available options: file, kafka, pulsar, kinesis
   #path: /home/user/ranklens/events/ # path to events file, alternatively you can use CLI to provide file location
   #offset: earliest|latest|ts=<unixtime>|last=<duration> #default: earliest
   #format: <json|snowplow:tsv|snowplow:json> # file format, default: json

@@ -60,7 +60,7 @@ class SortTest extends AnyFlatSpec with Matchers {
 
   it should "complain on same in+out file" in {
     val dir = Files.createTempDirectory("events_in")
-    Try(Sort.run(SortArgs(dir, dir)).unsafeRunSync()) shouldBe a[Failure[_]]
+    Try(Sort.run(SortArgs(dir, dir)).unsafeRunSync()) shouldBe a[Failure[?]]
   }
 
   it should "emit compressed files" in {

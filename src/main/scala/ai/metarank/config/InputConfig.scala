@@ -4,9 +4,7 @@ import ai.metarank.config.InputConfig.FileInputConfig.SortingType
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType.{SortByName, SortByTime}
 import ai.metarank.source.format.JsonFormat
 import cats.data.NonEmptyList
-import io.circe.{Codec, Decoder, Encoder, Json}
-import io.circe.generic.extras.Configuration
-import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
@@ -85,15 +83,86 @@ object InputConfig {
       format: SourceFormat = JsonFormat
   ) extends InputConfig
 
-  implicit val conf: Configuration = Configuration.default
-    .withDiscriminator("type")
-    .withDefaults
-    .copy(transformConstructorNames = {
-      case "FileInputConfig"    => "file"
-      case "KafkaInputConfig"   => "kafka"
-      case "PulsarInputConfig"  => "pulsar"
-      case "KinesisInputConfig" => "kinesis"
-    })
-  implicit val eventSourceDecoder: Decoder[InputConfig] = deriveConfiguredDecoder
+  implicit val kafkaDecoder: Decoder[KafkaInputConfig] = Decoder.instance(c =>
+    for {
+      brokers <- c.downField("brokers").as[NonEmptyList[String]]
+      topic   <- c.downField("topic").as[String]
+      groupId <- c.downField("groupId").as[String]
+      offset  <- c.downField("offset").as[Option[SourceOffset]]
+      options <- c.downField("options").as[Option[Map[String, String]]]
+      format  <- c.getOrElse[SourceFormat]("format")(JsonFormat)
+    } yield KafkaInputConfig(
+      brokers = brokers,
+      topic = topic,
+      groupId = groupId,
+      offset = offset,
+      options = options,
+      format = format
+    )
+  )
+
+  implicit val fileDecoder: Decoder[FileInputConfig] = Decoder.instance(c =>
+    for {
+      path   <- c.downField("path").as[String]
+      offset <- c.getOrElse[SourceOffset]("offset")(SourceOffset.Earliest)
+      format <- c.getOrElse[SourceFormat]("format")(JsonFormat)
+      sort   <- c.getOrElse[SortingType]("sort")(SortByName)
+    } yield FileInputConfig(path = path, offset = offset, format = format, sort = sort)
+  )
+
+  implicit val pulsarDecoder: Decoder[PulsarInputConfig] = Decoder.instance(c =>
+    for {
+      serviceUrl       <- c.downField("serviceUrl").as[String]
+      adminUrl         <- c.downField("adminUrl").as[String]
+      topic            <- c.downField("topic").as[String]
+      subscriptionName <- c.downField("subscriptionName").as[String]
+      subscriptionType <- c.downField("subscriptionType").as[String]
+      offset           <- c.downField("offset").as[Option[SourceOffset]]
+      options          <- c.downField("options").as[Option[Map[String, String]]]
+      format           <- c.getOrElse[SourceFormat]("format")(JsonFormat)
+    } yield PulsarInputConfig(
+      serviceUrl = serviceUrl,
+      adminUrl = adminUrl,
+      topic = topic,
+      subscriptionName = subscriptionName,
+      subscriptionType = subscriptionType,
+      offset = offset,
+      options = options,
+      format = format
+    )
+  )
+
+  implicit val kinesisDecoder: Decoder[KinesisInputConfig] = Decoder.instance(c =>
+    for {
+      topic                <- c.downField("topic").as[String]
+      offset               <- c.downField("offset").as[SourceOffset]
+      region               <- c.downField("region").as[String]
+      endpoint             <- c.downField("endpoint").as[Option[String]]
+      skipCertVerification <- c.getOrElse[Boolean]("skipCertVerification")(false)
+      getRecordsPeriod     <- c.getOrElse[FiniteDuration]("getRecordsPeriod")(200.millis)
+      sleepOnEmptyPeriod   <- c.getOrElse[FiniteDuration]("sleepOnEmptyPeriod")(1.second)
+      format               <- c.getOrElse[SourceFormat]("format")(JsonFormat)
+    } yield KinesisInputConfig(
+      topic = topic,
+      offset = offset,
+      region = region,
+      endpoint = endpoint,
+      skipCertVerification = skipCertVerification,
+      getRecordsPeriod = getRecordsPeriod,
+      sleepOnEmptyPeriod = sleepOnEmptyPeriod,
+      format = format
+    )
+  )
+
+  implicit val eventSourceDecoder: Decoder[InputConfig] = Decoder.instance(c =>
+    c.downField("type").as[String] match {
+      case Left(_)          => Left(DecodingFailure("required field 'type' missing in input config", c.history))
+      case Right("file")    => fileDecoder.tryDecode(c)
+      case Right("kafka")   => kafkaDecoder.tryDecode(c)
+      case Right("pulsar")  => pulsarDecoder.tryDecode(c)
+      case Right("kinesis") => kinesisDecoder.tryDecode(c)
+      case Right(other)     => Left(DecodingFailure(s"input type '$other' is not supported", c.history))
+    }
+  )
 
 }

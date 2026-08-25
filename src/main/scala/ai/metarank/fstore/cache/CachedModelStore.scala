@@ -12,7 +12,7 @@ import com.github.blemale.scaffeine.Scaffeine
 import scala.concurrent.duration._
 
 case class CachedModelStore(fast: ModelStore, slow: ModelStore) extends ModelStore {
-  override def put(value: Model[_]): IO[Unit] = fast.put(value) *> slow.put(value)
+  override def put(value: Model[?]): IO[Unit] = fast.put(value) *> slow.put(value)
 
   override def get[C <: ModelConfig, T <: Context, M <: Model[T]](
       key: Persistence.ModelName,
@@ -34,9 +34,9 @@ object CachedModelStore extends Logging {
     .maximumSize(size)
     .expireAfterAccess(expire)
     .removalListener(disposeModel)
-    .build[ModelName, Model[_]]()
+    .build[ModelName, Model[?]]()
 
-  def disposeModel(key: ModelName, model: Model[_], reason: RemovalCause): Unit = {
+  def disposeModel(key: ModelName, model: Model[?], reason: RemovalCause): Unit = {
     logger.info(s"removing model $key due to $reason")
     model.close()
   }

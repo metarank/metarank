@@ -15,12 +15,12 @@ import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MV
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import shapeless.syntax.typeable.typeableOps
+import shapeless3.typeable.syntax.typeable.*
 
 import scala.concurrent.duration._
 
 case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) extends ItemFeature {
-  override val dim = VectorDim(schema.periods.size)
+  override val dim: VectorDim = VectorDim(schema.periods.size)
 
   val conf = PeriodicCounterConfig(
     scope = schema.scope,

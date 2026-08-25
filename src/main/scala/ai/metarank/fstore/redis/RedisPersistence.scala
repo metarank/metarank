@@ -22,7 +22,7 @@ import io.lettuce.core.api.push.{PushListener, PushMessage}
 import java.nio.ByteBuffer
 import java.util
 import scala.jdk.CollectionConverters._
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 import scala.concurrent.duration._
 
@@ -106,11 +106,11 @@ case class RedisPersistence(
 
   override lazy val models: ModelStore = CachedModelStore(
     fast = MemModelStore(modelCache),
-    slow = RedisModelStore(modelClient, Prefix.MODELS)(format.modelName, format.model)
+    slow = RedisModelStore(modelClient, Prefix.MODELS)(using format.modelName, format.model)
   )
 
   override lazy val values: RedisKVStore[Key, FeatureValue] =
-    RedisKVStore[Key, FeatureValue](valuesClient, Prefix.VALUES, _.expire)(format.key, format.featureValue)
+    RedisKVStore[Key, FeatureValue](valuesClient, Prefix.VALUES, _.expire)(using format.key, format.featureValue)
 
 //  override lazy val cts: Persistence.ClickthroughStore = RedisClickthroughStore(rankingsClient, Prefix.CT, format)
 

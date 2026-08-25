@@ -27,7 +27,7 @@ import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 case class UserAgentFeature(schema: UserAgentSchema, parser: Parser) extends RankingFeature {
-  override def dim = schema.field.dim
+  override def dim: VectorDim = schema.field.dim
 
   val conf = ScalarConfig(
     scope = SessionScopeType,

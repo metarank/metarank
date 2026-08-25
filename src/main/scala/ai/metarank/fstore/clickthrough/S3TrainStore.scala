@@ -8,6 +8,7 @@ import ai.metarank.model.TrainValues
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
+import cats.effect.std.Mutex
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import org.apache.commons.io.FileUtils
 import software.amazon.awssdk.auth.credentials.{
@@ -18,12 +19,18 @@ import software.amazon.awssdk.auth.credentials.{
 }
 import software.amazon.awssdk.core.async.AsyncRequestBody
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.s3.model.{GetObjectRequest, ListObjectsRequest, PutObjectRequest}
+import software.amazon.awssdk.services.s3.model.{
+  GetObjectRequest,
+  HeadObjectRequest,
+  ListObjectsRequest,
+  PutObjectRequest
+}
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
 import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream, OutputStream}
 import java.net.URI
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, StandardCopyOption}
+import java.util.UUID
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import java.time.{Instant, ZoneId}
@@ -34,37 +41,59 @@ case class S3TrainStore(
     conf: S3TrainConfig,
     client: S3AsyncClient,
     bufferRef: Ref[IO, Buffer],
+    lock: Mutex[IO],
     tickCancel: IO[Unit]
 ) extends TrainStore
     with Logging {
   val tmpdir = System.getProperty("java.io.tmpdir")
 
-  override def put(cts: List[TrainValues]): IO[Unit] = for {
-    _ <- bufferRef.update(_.put(cts))
-    _ <- maybeFlush()
-  } yield {}
+  override def put(cts: List[TrainValues]): IO[Unit] = lock.lock.surround(for {
+    buffer <- putUnsafe(cts)
+    flush  <- shouldFlush(buffer)
+    _      <- IO.whenA(flush)(flushPartUnsafe())
+  } yield {})
 
   override def getall(): fs2.Stream[IO, TrainValues] =
-    fs2.Stream.evalSeq(listKeys()).flatMap(key => getPart(key))
+    fs2.Stream
+      .evalSeq(listKeys())
+      .evalFilter(key =>
+        CompressionType.fromKey(key) match {
+          case Some(_) => IO.pure(true)
+          case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
+        }
+      )
+      .flatMap(key => getPart(key))
 
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream
       .eval(for {
-        file    <- IO(Path.of(tmpdir, key))
-        _       <- IO(Files.createDirectories(file.getParent))
-        request <- IO(GetObjectRequest.builder().bucket(conf.bucket).key(key).build())
-        responseSize <- IO(file.toFile.exists()).flatMap {
-          case true  => info(s"skipped existing file $key") *> IO(file.toFile.getTotalSpace)
-          case false => IO.fromCompletableFuture(IO(client.getObject(request, file))).map[Long](_.contentLength())
-        }
-        _ <- info(s"read part $key size=${FileUtils.byteCountToDisplaySize(responseSize)}")
+        file <- IO(Path.of(tmpdir, key))
+        _    <- IO(Files.createDirectories(file.getParent))
+        head <- IO.fromCompletableFuture(
+          IO(client.headObject(HeadObjectRequest.builder().bucket(conf.bucket).key(key).build()))
+        )
+        remoteSize <- IO(head.contentLength().longValue())
+        cached     <- IO(Files.exists(file) && Files.size(file) == remoteSize)
+        _ <-
+          if (cached) info(s"found part $key in local cache, size=${FileUtils.byteCountToDisplaySize(remoteSize)}")
+          else downloadPart(key, file, remoteSize)
       } yield {
         file
       })
       .flatMap(path =>
-        fs2.Stream.bracket(IO(new FileInputStream(path.toFile)))(s => IO(s.close())).flatMap(s => read(s))
+        fs2.Stream.bracket(IO(new FileInputStream(path.toFile)))(s => IO(s.close())).flatMap(s => read(s, key))
       )
   }
+
+  def downloadPart(key: String, file: Path, size: Long): IO[Unit] = for {
+    tmp     <- IO(file.resolveSibling(file.getFileName.toString + ".tmp." + UUID.randomUUID().toString.take(8)))
+    request <- IO(GetObjectRequest.builder().bucket(conf.bucket).key(key).build())
+    _ <- IO
+      .fromCompletableFuture(IO(client.getObject(request, tmp)))
+      .guaranteeCase(outcome => IO.whenA(!outcome.isSuccess)(IO(Files.deleteIfExists(tmp)).void))
+    _ <- IO(Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE))
+    _ <- info(s"downloaded part $key size=${FileUtils.byteCountToDisplaySize(size)}")
+  } yield {}
 
   def listKeys(): IO[List[String]] = for {
     request  <- IO(ListObjectsRequest.builder().bucket(conf.bucket).prefix(conf.prefix).build())
@@ -77,7 +106,7 @@ case class S3TrainStore(
 
   def tick(): IO[Unit] = for {
     _ <- IO.sleep(conf.partInterval)
-    _ <- maybeFlush()
+    _ <- maybeFlush().handleErrorWith(ex => error(s"periodic flush failed: ${ex.getMessage}", ex))
     _ <- tick()
   } yield {}
 
@@ -85,32 +114,52 @@ case class S3TrainStore(
 
   override def flush(): IO[Unit] = info("forced flush") *> flushPart()
 
-  def maybeFlush(): IO[Unit] = for {
+  def maybeFlush(): IO[Unit] = lock.lock.surround(for {
     buffer <- bufferRef.get
-    isEventOverflow = buffer.eventCount > conf.partSizeEvents
-    isBytesOverflow = buffer.byteSize > conf.partSizeBytes
-    isTimeUp <- IO(System.currentTimeMillis() - buffer.start > conf.partInterval.toMillis)
-    _        <- IO.whenA(isEventOverflow || isBytesOverflow || isTimeUp)(flushPart())
-  } yield {}
+    flush  <- shouldFlush(buffer)
+    _      <- IO.whenA(flush)(flushPartUnsafe())
+  } yield {})
 
-  def makeFileName(now: Long): String = format.format(Instant.ofEpochMilli(now)) + conf.compress.ext
+  def flushPart(): IO[Unit] = lock.lock.surround(flushPartUnsafe())
 
-  def flushPart(): IO[Unit] = for {
-    buffer <- bufferRef.get
-    _      <- bufferRef.set(Buffer(conf.compress, conf.format.ctv))
-    _ <- IO.whenA(buffer.nonEmpty)(for {
-      key <- IO(conf.prefix + "/" + makeFileName(System.currentTimeMillis()))
-      _ <- info(
-        s"flushing part key=$key size=(${FileUtils.byteCountToDisplaySize(buffer.byteSize)}, ${buffer.eventCount} events)"
-      )
-      request  <- IO(PutObjectRequest.builder().bucket(conf.bucket).key(key).build())
-      body     <- IO(AsyncRequestBody.fromBytes(buffer.toByteArray()))
-      response <- IO.fromCompletableFuture(IO(client.putObject(request, body)))
-    } yield {})
-  } yield {}
+  // must be called under the lock: writes to the shared output stream of the current buffer
+  private def putUnsafe(cts: List[TrainValues]): IO[Buffer] = for {
+    buffer  <- bufferRef.get
+    updated <- IO(buffer.put(cts))
+    _       <- bufferRef.set(updated)
+  } yield {
+    updated
+  }
 
-  def read(stream: InputStream): fs2.Stream[IO, TrainValues] = {
-    val raw = conf.compress match {
+  private def shouldFlush(buffer: Buffer): IO[Boolean] = IO(
+    (buffer.eventCount > conf.partSizeEvents) ||
+      (buffer.byteSize > conf.partSizeBytes) ||
+      (System.currentTimeMillis() - buffer.start > conf.partInterval.toMillis)
+  )
+
+  // must be called under the lock: closes the current buffer, replaces it with a fresh one and
+  // uploads the closed one to S3
+  private def flushPartUnsafe(): IO[Unit] = bufferRef.get.flatMap {
+    case buffer if buffer.isEmpty => IO.unit
+    case buffer =>
+      for {
+        _   <- bufferRef.set(Buffer(conf.compress, conf.format.ctv))
+        key <- IO(conf.prefix + "/" + makeFileName(System.currentTimeMillis()))
+        _ <- info(
+          s"flushing part key=$key size=(${FileUtils.byteCountToDisplaySize(buffer.byteSize)}, ${buffer.eventCount} events)"
+        )
+        request <- IO(PutObjectRequest.builder().bucket(conf.bucket).key(key).build())
+        body    <- IO(AsyncRequestBody.fromBytes(buffer.toByteArray()))
+        _       <- IO.fromCompletableFuture(IO(client.putObject(request, body)))
+      } yield {}
+  }
+
+  def makeFileName(now: Long): String =
+    format.format(Instant.ofEpochMilli(now)) + "_" + UUID.randomUUID().toString.take(8) + conf.compress.ext
+
+  def read(stream: InputStream, key: String): fs2.Stream[IO, TrainValues] = {
+    val compress = CompressionType.fromKey(key).getOrElse(conf.compress)
+    val raw = compress match {
       case CompressionType.GzipCompressionType => new GZIPInputStream(stream)
       case CompressionType.ZstdCompressionType => new ZstdInputStream(stream)
       case CompressionType.NoCompressionType   => stream
@@ -122,7 +171,10 @@ case class S3TrainStore(
         .continually(conf.format.ctv.decodeDelimited(in))
         .takeWhile {
           case Right(Some(_)) => true
-          case _              => false
+          case Right(None)    => false
+          case Left(ex) =>
+            logger.warn(s"failed to decode a record in part $key, skipping the rest of the part", ex)
+            false
         }
         .collect { case Right(Some(value)) =>
           value
@@ -193,10 +245,12 @@ object S3TrainStore extends Logging {
         case None           => clientBuilder.build()
       }
       buffer <- Ref.of[IO, Buffer](Buffer(conf.compress, conf.format.ctv))
+      lock   <- Mutex[IO]
       store = S3TrainStore(
         conf = conf,
         client = client,
         bufferRef = buffer,
+        lock = lock,
         tickCancel = IO.unit
       )
       ticker <- store.tick().background.allocated

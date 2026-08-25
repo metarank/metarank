@@ -22,7 +22,7 @@ class SortedGroupByTest extends AnyFlatSpec with Matchers {
 
   def make[T, K](source: List[T], by: T => K): List[List[T]] = {
     fs2
-      .Stream(source: _*)
+      .Stream(source*)
       .through(SortedGroupBy.groupBy(by))
       .compile
       .toList

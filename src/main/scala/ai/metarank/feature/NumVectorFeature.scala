@@ -25,8 +25,8 @@ import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.util.{Failure, Success}
 
 case class NumVectorFeature(schema: VectorFeatureSchema) extends ItemFeature with Logging {
-  val reducers     = schema.reduce.getOrElse(List(Min, Max, Size, Avg))
-  override val dim = VectorDim(reducers.map(_.dim).sum)
+  val reducers                = schema.reduce.getOrElse(List(Min, Max, Size, Avg))
+  override val dim: VectorDim = VectorDim(reducers.map(_.dim).sum)
 
   private val conf = ScalarConfig(
     scope = schema.scope,

@@ -56,7 +56,6 @@ lazy val root = (project in file("."))
       "io.github.metarank"    %% "ltrlib"                   % "0.2.6",
       "io.github.metarank"     % "lightgbm4j"               % "4.6.0-2",
       "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
-      "com.snowplowanalytics" %% "scala-referer-parser"     % "4.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-common"   % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-icu"      % luceneVersion,

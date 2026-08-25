@@ -4,7 +4,6 @@ import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
 import io.circe._
 import io.circe.generic.semiauto._
-import shapeless.Lazy
 
 import java.util
 import scala.concurrent.duration.FiniteDuration

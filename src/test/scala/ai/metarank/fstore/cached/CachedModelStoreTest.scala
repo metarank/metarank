@@ -49,7 +49,7 @@ object CachedModelStoreTest {
     }
   }
   case class AlwaysAllocateModelStore(var allocated: Int = 0) extends ModelStore {
-    override def put(value: Model[_]): IO[Unit] = ???
+    override def put(value: Model[?]): IO[Unit] = ???
     override def get[C <: ModelConfig, T <: Context, M <: Model[T]](
         key: Persistence.ModelName,
         pred: Predictor[C, T, M]

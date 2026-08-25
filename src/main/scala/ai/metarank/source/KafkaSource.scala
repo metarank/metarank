@@ -100,14 +100,14 @@ object KafkaSource {
         )
       def endOffsets2(topicPartitions: List[TopicPartition]): Map[TopicPartition, Long] =
         client
-          .endOffsets(Lists.newArrayList(topicPartitions: _*), KAFKA_TIMEOUT)
+          .endOffsets(Lists.newArrayList(topicPartitions*), KAFKA_TIMEOUT)
           .asScala
           .map { case (tp, off) => tp -> off.longValue() }
           .toMap
 
       def beginningOffsets2(topicPartitions: List[TopicPartition]): Map[TopicPartition, Long] =
         client
-          .beginningOffsets(Lists.newArrayList(topicPartitions: _*), KAFKA_TIMEOUT)
+          .beginningOffsets(Lists.newArrayList(topicPartitions*), KAFKA_TIMEOUT)
           .asScala
           .map { case (tp, off) => tp -> off.longValue() }
           .toMap

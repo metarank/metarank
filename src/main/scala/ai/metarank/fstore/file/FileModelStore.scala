@@ -8,7 +8,7 @@ import ai.metarank.ml.{Context, Model, Predictor}
 import cats.effect.IO
 
 case class FileModelStore(db: HashDB[Array[Byte]]) extends ModelStore {
-  override def put(value: Model[_]): IO[Unit] = IO {
+  override def put(value: Model[?]): IO[Unit] = IO {
     value.save() match {
       case None        => IO.unit
       case Some(bytes) => IO(db.put(value.name, bytes))

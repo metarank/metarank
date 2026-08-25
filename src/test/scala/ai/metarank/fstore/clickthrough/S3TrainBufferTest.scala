@@ -26,7 +26,7 @@ class S3TrainBufferTest extends AnyFlatSpec with Matchers {
     val conf  = S3TrainConfig(bucket = "b", region = "eu-west-1", prefix = "p", compress = compress)
     val read = S3TrainStore
       .create(conf)
-      .use(store => store.read(new ByteArrayInputStream(bytes)).compile.toList)
+      .use(store => store.read(new ByteArrayInputStream(bytes), "part" + compress.ext).compile.toList)
       .unsafeRunSync()
     read shouldBe events
   }

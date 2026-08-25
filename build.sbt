@@ -2,7 +2,7 @@ import Deps._
 import com.typesafe.sbt.packager.docker.{Cmd, ExecCmd}
 
 ThisBuild / organization := "ai.metarank"
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.7.4"
 ThisBuild / version      := "0.7.11"
 
 lazy val It = config("it").extend(Test)
@@ -21,7 +21,7 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
-      "-Xfatal-warnings",
+      "-Werror",
       "-release:21"
     ),
     javacOptions ++= Seq(
@@ -30,6 +30,7 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies ++= Seq(
       "org.typelevel"        %% "cats-effect"          % "3.7.1",
+      "org.typelevel"        %% "shapeless3-typeable"  % "3.5.0",
       "org.scalatest"        %% "scalatest"            % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"            % scalatestVersion % "test,it",
       "org.scalatestplus"    %% "scalacheck-1-18"      % "3.2.19.0"       % "test,it",
@@ -37,7 +38,6 @@ lazy val root = (project in file("."))
       "io.circe"             %% "circe-yaml"           % circeYamlVersion,
       "io.circe"             %% "circe-core"           % circeVersion,
       "io.circe"             %% "circe-generic"        % circeVersion,
-      "io.circe"             %% "circe-generic-extras" % circeGenericExtrasVersion,
       "io.circe"             %% "circe-parser"         % circeVersion,
       "com.github.pathikrit" %% "better-files"         % "3.9.2",
       "org.rogach"           %% "scallop"              % "6.0.0",
@@ -56,7 +56,6 @@ lazy val root = (project in file("."))
       "io.github.metarank"    %% "ltrlib"                   % "0.2.6",
       "io.github.metarank"     % "lightgbm4j"               % "4.6.0-2",
       "com.github.ua-parser"   % "uap-java"                 % "1.6.1",
-      "com.snowplowanalytics" %% "scala-referer-parser"     % "4.0.0",
       "org.apache.lucene"      % "lucene-core"              % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-common"   % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-icu"      % luceneVersion,

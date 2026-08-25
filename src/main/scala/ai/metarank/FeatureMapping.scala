@@ -41,7 +41,7 @@ import cats.implicits._
 case class FeatureMapping(
     features: List[BaseFeature],
     schema: Schema,
-    models: Map[String, Predictor[_ <: ModelConfig, _ <: Context, _ <: Model[_ <: Context]]]
+    models: Map[String, Predictor[? <: ModelConfig, ? <: Context, ? <: Model[? <: Context]]]
 ) extends Logging {
   def hasRankingModel = {
     models.values.exists {
@@ -61,7 +61,7 @@ object FeatureMapping extends Logging {
       features <- schema.map(s => s.create()).sequence
     } yield {
       val featurySchema = Schema(features.flatMap(_.states))
-      val m: List[(String, Predictor[_ <: ModelConfig, _ <: Context, _ <: Model[_ <: Context]])] = models.toList.map {
+      val m: List[(String, Predictor[? <: ModelConfig, ? <: Context, ? <: Model[? <: Context]])] = models.toList.map {
         case (name, conf: LambdaMARTConfig) =>
           val modelFeatures = for {
             featureName <- conf.features.toList
@@ -76,6 +76,7 @@ object FeatureMapping extends Logging {
         case (name, conf: TrendingConfig)          => name -> TrendingPredictor(name, conf)
         case (name, conf: ALSConfig)               => name -> MFPredictor(name, conf, ALSRecImpl(conf))
         case (name, conf: BertSemanticModelConfig) => name -> BertSemanticPredictor(name, conf)
+        case (name, other) => throw new IllegalArgumentException(s"model $name has unsupported config $other")
       }
 
       new FeatureMapping(

@@ -39,7 +39,7 @@ object CoherePrecompute extends IOApp with Logging {
     case token :: Nil =>
       for {
         items <- fs2
-          .Stream(RanklensEvents(): _*)
+          .Stream(RanklensEvents()*)
           .collect { case e: ItemEvent => e }
           .flatMap(e => fs2.Stream.fromOption[IO](parse(e)))
           .compile
@@ -47,7 +47,7 @@ object CoherePrecompute extends IOApp with Logging {
         _ <- info(s"loaded ${items.size}")
         _ <- makeClient().use(client =>
           fs2
-            .Stream(items: _*)
+            .Stream(items*)
             .evalMap { case (item, text) => info(s"${item.value}: $text") *> query(token, client, item, text) }
             .map { case (id, emb) => (List(id.value) ++ emb.map(_.toString)).mkString("", ",", "\n") }
             .through(fs2.text.utf8.encode)

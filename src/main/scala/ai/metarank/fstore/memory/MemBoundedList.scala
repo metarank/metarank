@@ -10,7 +10,7 @@ import ai.metarank.model.Write.Append
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemBoundedList(config: BoundedListConfig, cache: Cache[Key, AnyRef] = Scaffeine().build())
     extends BoundedListFeature

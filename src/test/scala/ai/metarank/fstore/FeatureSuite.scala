@@ -8,7 +8,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-trait FeatureSuite[W <: Write, C <: FeatureConfig, F <: Feature[W, _ <: FeatureValue]]
+trait FeatureSuite[W <: Write, C <: FeatureConfig, F <: Feature[W, ? <: FeatureValue]]
     extends AnyFlatSpec
     with Matchers {
   lazy val now = Timestamp.date(2021, 6, 1, 0, 0, 1)

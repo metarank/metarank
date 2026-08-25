@@ -28,6 +28,12 @@ object TrainConfig {
     case object NoCompressionType extends CompressionType {
       def ext = ".bin"
     }
+
+    def fromKey(key: String): Option[CompressionType] =
+      if (key.endsWith(GzipCompressionType.ext)) Some(GzipCompressionType)
+      else if (key.endsWith(ZstdCompressionType.ext)) Some(ZstdCompressionType)
+      else if (key.endsWith(NoCompressionType.ext)) Some(NoCompressionType)
+      else None
   }
 
   implicit val compressEncoder: Encoder[CompressionType] = Encoder.instance {

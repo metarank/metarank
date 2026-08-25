@@ -76,12 +76,12 @@ class CliArgsTest extends AnyFlatSpec with Matchers {
       Map.empty
     )
     f.delete()
-    result shouldBe a[Left[_, _]]
+    result shouldBe a[Left[?, ?]]
   }
 
   it should "parse sort and fail if data=out" in {
     val result = CliArgs.parse(List("sort", "-d", "/a", "--out", "/a"), Map.empty)
-    result shouldBe a[Left[_, _]]
+    result shouldBe a[Left[?, ?]]
   }
 
 }

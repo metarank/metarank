@@ -18,17 +18,17 @@ import ai.metarank.model.Scalar.{SBoolean, SString}
 import ai.metarank.model.Scope.{SessionScope, UserScope}
 import ai.metarank.model.Write.{Put, PutTuple}
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
-import ai.metarank.util.Logging
-import better.files.{File, Resource}
+import ai.metarank.util.{Logging, RefererParser}
+import ai.metarank.util.RefererParser.{ExternalReferer, InternalReferer, UnknownReferer}
+import better.files.Resource
 import cats.effect.IO
-import com.snowplowanalytics.refererparser.{CreateParser, ExternalReferer, InternalReferer, Parser, UnknownReferer}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
-case class RefererFeature(schema: RefererSchema, parser: Parser) extends RankingFeature with Logging {
+case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends RankingFeature with Logging {
 
   val conf = ScalarConfig(
     scope = schema.scope,
@@ -80,7 +80,6 @@ case class RefererFeature(schema: RefererSchema, parser: Parser) extends Ranking
         case ExternalReferer(medium, _, _) => Some(medium)
         case InternalReferer               => Some("internal")
         case UnknownReferer                => Some("unknown")
-        case _                             => None
       }
     } yield {
       Put(key, event.timestamp, SString(medium))
@@ -123,12 +122,9 @@ object RefererFeature {
     override def create(): IO[BaseFeature] = createParser().map(p => RefererFeature(this, p))
 
     def createParser() = for {
-      json         <- IO(Resource.my.getAsString("/referers.json"))
-      file         <- IO(File.newTemporaryFile("referers", ".json").deleteOnExit())
-      _            <- IO(file.write(json))
-      _            <- info("loaded referers.json from resources")
-      parserEither <- CreateParser[IO].create(file.toString())
-      parser       <- IO.fromEither(parserEither)
+      json   <- IO(Resource.getAsString("referers.json"))
+      _      <- info("loaded referers.json from resources")
+      parser <- IO.fromEither(RefererParser.fromString(json))
     } yield {
       parser
     }

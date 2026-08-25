@@ -339,7 +339,7 @@ object LambdaMARTRanker extends Logging {
   case class LambdaMARTModel(
       name: String,
       conf: LambdaMARTConfig,
-      booster: Booster[_],
+      booster: Booster[?],
       warmupRequests: List[RankingEvent] = Nil
   ) extends RankModel
       with Logging
@@ -348,7 +348,7 @@ object LambdaMARTRanker extends Logging {
       IO(booster.predictMat(request.query.values, request.query.rows, request.query.columns).toList).flatMap {
         case head :: tail =>
           for {
-            items <- IO(request.items.zip(NonEmptyList.of(head, tail: _*)).map { case (item, score) =>
+            items <- IO(request.items.zip(NonEmptyList.of(head, tail*)).map { case (item, score) =>
               ItemScore(item.id, score)
             })
           } yield {

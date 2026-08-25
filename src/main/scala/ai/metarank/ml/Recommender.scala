@@ -44,10 +44,9 @@ case class Recommender(mapping: FeatureMapping, store: Persistence) extends Logg
     )
   }
 
-  def loadModel(pred: RecommendPredictor[_ <: ModelConfig, _ <: RecommendModel], name: String): IO[RecommendModel] = {
+  def loadModel(pred: RecommendPredictor[? <: ModelConfig, ? <: RecommendModel], name: String): IO[RecommendModel] = {
     store.models.get(ModelName(name), pred).flatMap {
       case Some(s: RecommendModel) => IO.pure(s)
-      case Some(other)             => IO.raiseError(ModelError(s"model $name has wrong type $other"))
       case None                    => IO.raiseError(ModelError(s"model scorer $name is not yet trained"))
     }
 

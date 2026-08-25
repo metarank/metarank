@@ -91,9 +91,6 @@ object Selector {
   implicit val maxPositionCodec: Codec[InteractionPositionSelector] =
     Codec.from(maxPositionDecoder, maxPositionEncoder)
 
-  implicit val andSelectorCodec: Codec[AndSelector]       = deriveCodec
-  implicit val orSelectorCodec: Codec[OrSelector]         = deriveCodec
-  implicit val notSelectorCodec: Codec[NotSelector]       = deriveCodec
   implicit val acceptSelectorCodec: Codec[AcceptSelector] = deriveCodec
 
   implicit val selectorDecoder: Decoder[Selector] = Decoder.instance(c =>
@@ -112,7 +109,7 @@ object Selector {
     )
   )
 
-  def decodeChain[A](c: ACursor, decoders: NonEmptyList[Decoder[_ <: A]]): Either[DecodingFailure, A] = {
+  def decodeChain[A](c: ACursor, decoders: NonEmptyList[Decoder[? <: A]]): Either[DecodingFailure, A] = {
     NonEmptyList.fromList(decoders.tail) match {
       case None => decoders.head.tryDecode(c)
       case Some(tail) =>
@@ -134,4 +131,8 @@ object Selector {
     case r: RankingLengthSelector       => rankingLengthCodec(r)
   }
   implicit val selectorCodec: Codec[Selector] = Codec.from(selectorDecoder, selectorEncoder)
+
+  implicit val andSelectorCodec: Codec[AndSelector] = deriveCodec
+  implicit val orSelectorCodec: Codec[OrSelector]   = deriveCodec
+  implicit val notSelectorCodec: Codec[NotSelector] = deriveCodec
 }

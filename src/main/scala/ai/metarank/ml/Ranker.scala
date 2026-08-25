@@ -82,11 +82,10 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
       )
     }
 
-  def loadModel(pred: Predictor[_, _, _], name: String): IO[RankModel] = pred match {
+  def loadModel(pred: Predictor[?, ?, ?], name: String): IO[RankModel] = pred match {
     case lm: LambdaMARTPredictor =>
       store.models.get(ModelName(name), lm).flatMap {
         case Some(s: LambdaMARTModel) => IO.pure(s)
-        case Some(other)              => IO.raiseError(ModelError(s"model $name has wrong type $other"))
         case None                     => IO.raiseError(ModelError(s"model scorer $name is not yet trained"))
       }
     case p: NoopPredictor    => IO.pure(NoopModel(pred.name, p.config))

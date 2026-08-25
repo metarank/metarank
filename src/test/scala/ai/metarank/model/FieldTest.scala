@@ -13,7 +13,7 @@ class FieldTest extends AnyFlatSpec with Matchers {
     decode[Field]("""{"name":"field", "value": 1.0}""") shouldBe Right(NumberField("field", 1.0))
   }
   it should "not fail on nans" in {
-    decode[Field]("""{"name":"field", "value": NaN}""") shouldBe a[Left[_, _]]
+    decode[Field]("""{"name":"field", "value": NaN}""") shouldBe a[Left[?, ?]]
   }
   it should "decode bool fields" in {
     decode[Field]("""{"name":"field", "value": true}""") shouldBe Right(BooleanField("field", true))
@@ -29,15 +29,15 @@ class FieldTest extends AnyFlatSpec with Matchers {
     )
   }
   it should "decode num list fields with nans" in {
-    decode[Field]("""{"name":"field", "value": [1,2,3,NaN]}""") shouldBe a[Left[_, _]]
+    decode[Field]("""{"name":"field", "value": [1,2,3,NaN]}""") shouldBe a[Left[?, ?]]
   }
   it should "fail on null fields" in {
-    decode[Field]("""{"name":"title", "value": null}""") shouldBe a[Left[_, _]]
+    decode[Field]("""{"name":"title", "value": null}""") shouldBe a[Left[?, ?]]
   }
   it should "fail on missing fields" in {
-    decode[Field]("""{"name":"title"}""") shouldBe a[Left[_, _]]
+    decode[Field]("""{"name":"title"}""") shouldBe a[Left[?, ?]]
   }
   it should "fail on wrong list types fields" in {
-    decode[Field]("""{"name":"title", "value": [true, false]}""") shouldBe a[Left[_, _]]
+    decode[Field]("""{"name":"title", "value": [true, false]}""") shouldBe a[Left[?, ?]]
   }
 }

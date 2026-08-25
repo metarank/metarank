@@ -126,11 +126,7 @@ case class RedisPersistence(
     logger.info(s"redis pipeline flushed, took ${System.currentTimeMillis() - start}ms")
   }
 
-  /** Flush only the state client. FeatureValueFlow calls this between
-    * commitWrite (s/ LPUSH/SET/) and makeValue (s/ LRANGE/GET/),
-    * where the read can only race against the state writer. Flushing
-    * values and models here would be 3 round trips for no semantic gain.
-    */
+  // flushes only the state pipeline: values and models are not read on the write-read boundary
   override def syncState: IO[Unit] =
     stateClient.doFlush { stateClient.writer.ping().toCompletableFuture }
 }

@@ -13,7 +13,7 @@ import ai.metarank.model.{Event, EventId, FieldName, Timestamp}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.Random
 
 case class RandomDataset(mapping: FeatureMapping, events: List[Event])

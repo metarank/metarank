@@ -2,7 +2,6 @@ package ai.metarank.ml.onnx.sbert
 
 import ai.metarank.ml.onnx.ModelHandle.HuggingFaceHandle
 import ai.metarank.ml.onnx.sbert.OnnxCrossEncoder.SentencePair
-import better.files.File
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

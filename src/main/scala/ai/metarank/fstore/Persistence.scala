@@ -1,8 +1,8 @@
 package ai.metarank.fstore
 
-import ai.metarank.config.CoreConfig.{ImportCacheConfig, ImportConfig}
+import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.{ModelConfig, StateStoreConfig}
-import ai.metarank.fstore.Persistence.{KVStore, ModelName, ModelStore}
+import ai.metarank.fstore.Persistence.{KVStore, ModelStore}
 import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.fstore.codec.impl.ScopeCodec
 import ai.metarank.fstore.file.FilePersistence
@@ -19,7 +19,7 @@ import ai.metarank.model.Feature.{
   StatsEstimatorFeature
 }
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema, Scope}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import ai.metarank.util.Logging
 import cats.effect.{IO, Resource}
 import io.circe.Codec
@@ -57,19 +57,19 @@ object Persistence extends Logging {
   }
 
   object KVCodec {
-    import io.circe.syntax._
-    import io.circe.parser.{decode => cdecode}
-    implicit def jsonCodec[T](implicit codec: Codec[T]): KVCodec[T] = new KVCodec[T] {
+    import io.circe.syntax.*
+    import io.circe.parser.{decode as cdecode}
+    given jsonCodec[T](using codec: Codec[T]): KVCodec[T] = new KVCodec[T] {
       override def encode(value: T)                                 = value.asJson.noSpaces.getBytes()
       override def decode(bytes: Array[Byte]): Either[Throwable, T] = cdecode[T](new String(bytes))
     }
 
-    implicit val stringCodec: KVCodec[String] = new KVCodec[String] {
+    given stringCodec: KVCodec[String] = new KVCodec[String] {
       override def decode(bytes: Array[Byte]): Either[Throwable, String] = Right(new String(bytes))
       override def encode(value: String): Array[Byte]                    = value.getBytes()
     }
 
-    implicit val keyCodec: KVCodec[Key] = new KVCodec[Key] {
+    given keyCodec: KVCodec[Key] = new KVCodec[Key] {
       override def decode(bytes: Array[Byte]): Either[Throwable, Key] = {
         val str = new String(bytes)
         str.split("/").toList match {
@@ -81,7 +81,7 @@ object Persistence extends Logging {
       override def encode(value: Key): Array[Byte] = s"${value.scope.asString}/${value.feature.value}".getBytes()
     }
 
-    implicit val modelKeyCodec: KVCodec[ModelName] = new KVCodec[ModelName] {
+    given modelKeyCodec: KVCodec[ModelName] = new KVCodec[ModelName] {
       override def encode(value: ModelName) = value.name.getBytes()
 
       override def decode(bytes: Array[Byte]): Either[Throwable, ModelName] = Right(ModelName(new String(bytes)))

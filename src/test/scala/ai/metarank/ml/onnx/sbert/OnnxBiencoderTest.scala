@@ -1,6 +1,6 @@
 package ai.metarank.ml.onnx.sbert
 
-import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
+import ai.metarank.ml.onnx.ModelHandle.HuggingFaceHandle
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec

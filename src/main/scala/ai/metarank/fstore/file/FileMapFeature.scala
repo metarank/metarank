@@ -1,7 +1,7 @@
 package ai.metarank.fstore.file
 
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.{FileClient, SortedDB}
+import ai.metarank.fstore.file.client.SortedDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.MapFeature
 import ai.metarank.model.Feature.MapFeature.MapConfig
@@ -10,7 +10,6 @@ import ai.metarank.model.State.MapState
 import ai.metarank.model.{FeatureValue, Key, Scalar, Timestamp, Write}
 import ai.metarank.util.SortedGroupBy
 import cats.effect.IO
-import org.apache.commons.lang3.ArrayUtils
 import fs2.Stream
 
 import scala.annotation.tailrec
@@ -62,7 +61,7 @@ case class FileMapFeature(config: MapConfig, db: SortedDB[Array[Byte]], format: 
 
 object FileMapFeature {
   case class KKV(key: Key, mapKey: String, value: Scalar)
-  implicit val mapStateSource: StateSource[MapState, FileMapFeature] = new StateSource[MapState, FileMapFeature] {
+  given mapStateSource: StateSource[MapState, FileMapFeature] = new StateSource[MapState, FileMapFeature] {
     override def source(f: FileMapFeature): fs2.Stream[IO, MapState] =
       Stream
         .fromBlockingIterator[IO](f.db.all(), 128)

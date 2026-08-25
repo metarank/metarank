@@ -12,7 +12,7 @@ import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Timestamp
 import ai.metarank.util.TestClickthroughValues
 import cats.effect.unsafe.implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class TrendingRecommenderTest extends PredictorSuite[TrendingConfig, RecommendRequest, TrendingModel] {
   val conf = TrendingConfig(weights =

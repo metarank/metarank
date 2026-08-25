@@ -1,7 +1,6 @@
 package ai.metarank.config
 
 import ai.metarank.config.Selector.{
-  AcceptSelector,
   AndSelector,
   FieldSelector,
   InteractionPositionSelector,

@@ -1,21 +1,21 @@
 package ai.metarank.config
 
-import ai.metarank.config.StateStoreConfig.FileStateConfig.{FileBackend, MapDBBackend, RocksDBBackend}
+import ai.metarank.config.StateStoreConfig.FileStateConfig.FileBackend
 import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.Logging
-import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+import io.circe.{Decoder, DecodingFailure}
 import io.lettuce.core.SslVerifyMode
 
 import java.io.File
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success}
 
 sealed trait StateStoreConfig
 
 object StateStoreConfig extends Logging {
-  import io.circe.generic.semiauto._
+  import io.circe.generic.semiauto.*
 
   case class RedisStateConfig(
       host: Hostname,
@@ -30,12 +30,12 @@ object StateStoreConfig extends Logging {
   ) extends StateStoreConfig
 
   object RedisStateConfig {
-    import ai.metarank.util.DurationJson._
+    import ai.metarank.util.DurationJson.given
     case class DBConfig(state: Int = 0, values: Int = 1, rankings: Int = 2, models: Int = 3)
-    implicit val dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
+    given dbDecoder: Decoder[DBConfig] = deriveDecoder[DBConfig]
 
     case class PipelineConfig(maxSize: Int = 128, flushPeriod: FiniteDuration = 1.second, enabled: Boolean = true)
-    implicit val pipelineConfigDecoder: Decoder[PipelineConfig] = Decoder.instance(c =>
+    given pipelineConfigDecoder: Decoder[PipelineConfig] = Decoder.instance(c =>
       for {
         enabled     <- c.downField("enabled").as[Option[Boolean]]
         maxSize     <- c.downField("maxSize").as[Option[Int]]
@@ -51,7 +51,7 @@ object StateStoreConfig extends Logging {
 
     case class CacheConfig(maxSize: Int = 4096, ttl: FiniteDuration = 1.hour, clientTracking: Boolean = true)
 
-    implicit val cacheConfigDecoder: Decoder[CacheConfig] = Decoder.instance(c =>
+    given cacheConfigDecoder: Decoder[CacheConfig] = Decoder.instance(c =>
       for {
         maxSize    <- c.downField("maxSize").as[Option[Int]]
         ttl        <- c.downField("ttl").as[Option[FiniteDuration]]
@@ -67,15 +67,15 @@ object StateStoreConfig extends Logging {
   }
 
   case class RedisCredentials(user: Option[String] = None, password: String)
-  implicit val redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
+  given redisCredentialsDecoder: Decoder[RedisCredentials] = deriveDecoder[RedisCredentials]
 
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class RedisTimeouts(
       socket: FiniteDuration = 1.second,
       connect: FiniteDuration = 1.second,
       command: FiniteDuration = 1.second
   )
-  implicit val timeoutDecoder: Decoder[RedisTimeouts] = Decoder.instance(c => {
+  given timeoutDecoder: Decoder[RedisTimeouts] = Decoder.instance(c => {
     val default = RedisTimeouts()
     for {
       socket  <- c.downField("socket").as[Option[FiniteDuration]].map(_.getOrElse(default.socket))
@@ -87,11 +87,11 @@ object StateStoreConfig extends Logging {
   })
 
   case class RedisTLS(enabled: Boolean, ca: Option[File] = None, verify: SslVerifyMode = SslVerifyMode.FULL)
-  implicit val fileDecoder: Decoder[File] = Decoder.decodeString.emapTry(path => {
+  given fileDecoder: Decoder[File] = Decoder.decodeString.emapTry(path => {
     val file = new File(path)
     if (file.exists()) Success(file) else Failure(new Exception(s"path $path does not exist"))
   })
-  implicit val redisTLSDecoder: Decoder[RedisTLS] = Decoder.instance(c =>
+  given redisTLSDecoder: Decoder[RedisTLS] = Decoder.instance(c =>
     for {
       ca     <- c.downField("ca").as[Option[File]]
       verify <- c.downField("verify").as[Option[String]]
@@ -119,7 +119,7 @@ object StateStoreConfig extends Logging {
     case class RocksDBBackend(lruCacheSize: Long = 1024 * 1024 * 1024L, blockSize: Int = 8 * 1024) extends FileBackend
     case class MapDBBackend(mmap: Boolean = true, maxNodeSize: Int = 16)                           extends FileBackend
 
-    implicit val fileBackendDecoder: Decoder[FileBackend] = Decoder.instance(c =>
+    given fileBackendDecoder: Decoder[FileBackend] = Decoder.instance(c =>
       c.as[String] match {
         case Right("mapdb")   => Right(MapDBBackend())
         case Right("rocksdb") => Right(RocksDBBackend())
@@ -134,7 +134,7 @@ object StateStoreConfig extends Logging {
       }
     )
 
-    implicit val rocksDbBackendDecoder: Decoder[RocksDBBackend] = Decoder.instance(c =>
+    given rocksDbBackendDecoder: Decoder[RocksDBBackend] = Decoder.instance(c =>
       for {
         lruCacheSize <- c.downField("lruCacheSize").as[Option[Long]].map(_.getOrElse(1024 * 1024 * 1024L))
         blockSize    <- c.downField("blockSize").as[Option[Int]].map(_.getOrElse(8 * 1024))
@@ -143,7 +143,7 @@ object StateStoreConfig extends Logging {
       }
     )
 
-    implicit val mapDBBackendDecoder: Decoder[MapDBBackend] = Decoder.instance(c =>
+    given mapDBBackendDecoder: Decoder[MapDBBackend] = Decoder.instance(c =>
       for {
         mmap        <- c.downField("mmap").as[Option[Boolean]].map(_.getOrElse(true))
         maxNodeSize <- c.downField("maxNodeSize").as[Option[Int]].map(_.getOrElse(16))
@@ -152,7 +152,7 @@ object StateStoreConfig extends Logging {
       }
     )
 
-    implicit val fileStateDecoder: Decoder[FileStateConfig] = Decoder.instance(c =>
+    given fileStateDecoder: Decoder[FileStateConfig] = Decoder.instance(c =>
       for {
         path   <- c.downField("path").as[String]
         format <- c.downField("format").as[Option[StoreFormat]].map(_.getOrElse(BinaryStoreFormat))
@@ -163,7 +163,7 @@ object StateStoreConfig extends Logging {
     )
   }
 
-  implicit val redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
+  given redisConfigDecoder: Decoder[RedisStateConfig] = Decoder.instance(c =>
     for {
       host    <- c.downField("host").as[Hostname]
       port    <- c.downField("port").as[Port]
@@ -189,9 +189,9 @@ object StateStoreConfig extends Logging {
     }
   )
 
-  implicit val memConfigDecoder: Decoder[MemoryStateConfig] = Decoder.instance(c => Right(MemoryStateConfig()))
+  given memConfigDecoder: Decoder[MemoryStateConfig] = Decoder.instance(c => Right(MemoryStateConfig()))
 
-  implicit val stateStoreConfigDecoder: Decoder[StateStoreConfig] = Decoder.instance(c =>
+  given stateStoreConfigDecoder: Decoder[StateStoreConfig] = Decoder.instance(c =>
     c.downField("type").as[String].flatMap {
       case "redis"  => redisConfigDecoder(c)
       case "memory" => memConfigDecoder(c)

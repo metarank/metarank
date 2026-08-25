@@ -14,12 +14,12 @@ import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s.{Entity, EntityDecoder, Method, Request, Uri}
 import org.http4s.client.Client
 import scodec.bits.ByteVector
-import io.circe.syntax._
-import cats.implicits._
+import io.circe.syntax.*
+import cats.implicits.*
 
 import java.util.UUID
-import scala.concurrent.duration._
-import org.http4s.circe._
+import scala.concurrent.duration.*
+import org.http4s.circe.*
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
@@ -27,7 +27,7 @@ import org.typelevel.log4cats.slf4j.Slf4jFactory
 object StaticScoreTool extends IOApp with Logging {
   // loads the dataset and emits static scores
 
-  implicit val responseJson: EntityDecoder[IO, RankResponse] = jsonOf[IO, RankResponse]
+  given responseJson: EntityDecoder[IO, RankResponse] = jsonOf[IO, RankResponse]
 
   override def run(args: List[String]): IO[ExitCode] = args match {
     case eventPath :: outPath :: endpoint :: _ =>
@@ -68,7 +68,7 @@ object StaticScoreTool extends IOApp with Logging {
   }
 
   def makeClient(): Resource[IO, Client[IO]] = {
-    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     EmberClientBuilder
       .default[IO]
       .withTimeout(10.second)

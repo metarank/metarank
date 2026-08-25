@@ -1,6 +1,6 @@
 package ai.metarank.flow
 
-import ai.metarank.model.{Event, Timestamp}
+import ai.metarank.model.Event
 import cats.effect.IO
 import fs2.{Pipe, Pull, Stream}
 

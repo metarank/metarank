@@ -3,19 +3,18 @@ package ai.metarank.api.routes.inference
 import ai.metarank.ml.onnx.sbert.{OnnxBiEncoder, OnnxSession}
 import ai.metarank.api.JsonChunk
 import ai.metarank.api.routes.inference.BiEncoderApi.{BiencoderRequest, BiencoderResponse}
-import ai.metarank.api.routes.inference.CrossEncoderApi.info
 import ai.metarank.feature.FieldMatchBiencoderFeature
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.ml.onnx.encoder.EncoderConfig.BiEncoderConfig
 import ai.metarank.util.Logging
-import cats.effect._
-import org.http4s._
-import org.http4s.dsl.io._
+import cats.effect.*
+import org.http4s.*
+import org.http4s.dsl.io.*
 import org.http4s.headers.`Content-Type`
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
-import org.http4s.circe._
-import cats.implicits._
+import org.http4s.circe.*
+import cats.implicits.*
 
 case class BiEncoderApi(encoders: Map[String, OnnxBiEncoder]) {
   val routes = HttpRoutes.of[IO] {
@@ -42,11 +41,11 @@ object BiEncoderApi extends Logging {
   case class BiencoderRequest(texts: List[String])
   case class BiencoderResponse(embeddings: List[Array[Float]], took: Long)
 
-  implicit val biRequestCodec: Codec[BiencoderRequest]   = deriveCodec
-  implicit val biResponseCodec: Codec[BiencoderResponse] = deriveCodec
+  given biRequestCodec: Codec[BiencoderRequest]   = deriveCodec
+  given biResponseCodec: Codec[BiencoderResponse] = deriveCodec
 
-  implicit val biRequestJson: EntityDecoder[IO, BiencoderRequest]   = jsonOf[IO, BiencoderRequest]
-  implicit val biResponseJson: EntityEncoder[IO, BiencoderResponse] = jsonEncoderOf[BiencoderResponse]
+  given biRequestJson: EntityDecoder[IO, BiencoderRequest]   = jsonOf[IO, BiencoderRequest]
+  given biResponseJson: EntityEncoder[IO, BiencoderResponse] = jsonEncoderOf[BiencoderResponse]
 
   def create(models: Map[String, EncoderConfig], existing: List[FieldMatchBiencoderFeature]): IO[BiEncoderApi] = for {
     bi <- IO(models.collect { case (name, c: BiEncoderConfig) =>

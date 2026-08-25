@@ -8,12 +8,12 @@ import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.util.TextAnalyzer
 import cats.effect.IO
 import io.circe.{Decoder, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.deriveDecoder
 import org.apache.commons.io.IOUtils
-import fs2.{Chunk, Stream}
+import fs2.Stream
 
 import java.io.{File, FileInputStream, FileReader, InputStreamReader, Reader}
-import io.circe.parser._
+import io.circe.parser.*
 
 import java.util.zip.GZIPInputStream
 
@@ -96,7 +96,7 @@ object BM25Matcher {
       }
     }
   }
-  implicit val termDicEncoder: Encoder[TermFreqDic] = Encoder.instance(dic =>
+  given termDicEncoder: Encoder[TermFreqDic] = Encoder.instance(dic =>
     Json.fromJsonObject(
       JsonObject.fromMap(
         Map(
@@ -113,6 +113,6 @@ object BM25Matcher {
       )
     )
   )
-  implicit val termDicDecoder: Decoder[TermFreqDic] = deriveDecoder[TermFreqDic]
+  given termDicDecoder: Decoder[TermFreqDic] = deriveDecoder[TermFreqDic]
 
 }

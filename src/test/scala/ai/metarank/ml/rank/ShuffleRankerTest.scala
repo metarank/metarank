@@ -2,12 +2,9 @@ package ai.metarank.ml.rank
 
 import ai.metarank.ml.{Predictor, PredictorSuite}
 import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShuffleModel, ShufflePredictor}
-import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.Timestamp
 import ai.metarank.util.TestQueryRequest
 import cats.effect.unsafe.implicits.global
-import io.github.metarank.ltrlib.model.Query
 
 class ShuffleRankerTest extends PredictorSuite[ShuffleConfig, QueryRequest, ShuffleModel] {
   override def predictor: Predictor[ShuffleConfig, QueryRequest, ShuffleModel] =

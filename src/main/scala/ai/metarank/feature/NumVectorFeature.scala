@@ -1,7 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.BaseFeature.ItemFeature
-import ai.metarank.feature.NumVectorFeature.Reducer._
+import ai.metarank.feature.NumVectorFeature.Reducer.{*, given}
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
@@ -13,7 +13,7 @@ import ai.metarank.model.Field.{NumberField, NumberListField}
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.Scalar.{SDouble, SDoubleList}
+import ai.metarank.model.Scalar.SDoubleList
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -190,9 +190,9 @@ object NumVectorFeature {
     }
 
     val reducers = List(First, Last, Min, Max, Avg, Random, Sum, Size, EuclideanDistance).map(r => r.name -> r).toMap
-    val vectorPattern                             = "vector([0-9]+)".r
-    implicit val reducerEncoder: Encoder[Reducer] = Encoder.instance(r => Json.fromString(r.name))
-    implicit val reducerDecoder: Decoder[Reducer] = Decoder.decodeString.emapTry { s =>
+    val vectorPattern                      = "vector([0-9]+)".r
+    given reducerEncoder: Encoder[Reducer] = Encoder.instance(r => Json.fromString(r.name))
+    given reducerDecoder: Decoder[Reducer] = Decoder.decodeString.emapTry { s =>
       reducers.get(s) match {
         case Some(value) => Success(value)
         case None =>
@@ -206,7 +206,7 @@ object NumVectorFeature {
     }
   }
 
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
 
   case class VectorFeatureSchema(
       name: FeatureName,
@@ -219,5 +219,5 @@ object NumVectorFeature {
     override def create(): IO[BaseFeature] = IO.pure(NumVectorFeature(this))
   }
 
-  implicit val vectorSchemaCodec: Codec[VectorFeatureSchema] = deriveCodec
+  given vectorSchemaCodec: Codec[VectorFeatureSchema] = deriveCodec
 }

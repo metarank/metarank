@@ -8,10 +8,10 @@ import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
 import better.files.Resource
-import cats.data.{NonEmptyList, NonEmptyMap}
+import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec

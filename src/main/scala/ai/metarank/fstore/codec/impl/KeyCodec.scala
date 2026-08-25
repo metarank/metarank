@@ -2,7 +2,7 @@ package ai.metarank.fstore.codec.impl
 
 import ai.metarank.fstore.codec.KCodec
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Key, Scope}
+import ai.metarank.model.Key
 
 object KeyCodec extends KCodec[Key] {
   override def encode(prefix: String, value: Key): String = s"$prefix/${encodeNoPrefix(value)}"

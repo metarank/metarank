@@ -3,7 +3,7 @@ package ai.metarank.fstore.file
 import ai.metarank.config.ModelConfig
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.ModelStore
-import ai.metarank.fstore.file.client.{HashDB, SortedDB}
+import ai.metarank.fstore.file.client.HashDB
 import ai.metarank.ml.{Context, Model, Predictor}
 import cats.effect.IO
 

@@ -1,31 +1,22 @@
 package ai.metarank.config
 
-import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.ml.rank.{LambdaMARTRanker, NoopRanker, ShuffleRanker}
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
 import ai.metarank.ml.rank.ShuffleRanker.ShuffleConfig
-import ai.metarank.ml.recommend.BertSemanticRecommender.{BertSemanticModelConfig, BertSemanticPredictor}
-import ai.metarank.ml.recommend.{BertSemanticRecommender, MFRecommender, TrendingRecommender}
+import ai.metarank.ml.recommend.{BertSemanticRecommender, TrendingRecommender}
 import ai.metarank.ml.recommend.TrendingRecommender.TrendingConfig
 import ai.metarank.ml.recommend.mf.ALSRecImpl
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
-import ai.metarank.model.Key.FeatureName
-import cats.data.{NonEmptyList, NonEmptyMap}
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto._
-
-import scala.concurrent.duration._
-import scala.util.Random
+import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
 trait ModelConfig {
   def selector: Selector
 }
 
 object ModelConfig {
-  import ai.metarank.util.DurationJson._
 
-  implicit val modelConfigEncoder: Encoder[ModelConfig] = Encoder.instance {
+  given modelConfigEncoder: Encoder[ModelConfig] = Encoder.instance {
     case lm: LambdaMARTConfig => LambdaMARTRanker.lmEncoder(lm).deepMerge(withType("lambdamart"))
     case s: ShuffleConfig     => ShuffleRanker.shuffleEncoder(s).deepMerge(withType("shuffle"))
     case n: NoopConfig        => NoopRanker.noopEncoder(n).deepMerge(withType("noop"))
@@ -33,7 +24,7 @@ object ModelConfig {
     case n: ALSConfig         => ALSRecImpl.alsConfigEncoder(n).deepMerge(withType("als"))
   }
 
-  implicit val modelConfigDecoder: Decoder[ModelConfig] = Decoder.instance(c =>
+  given modelConfigDecoder: Decoder[ModelConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Right("lambdamart") => LambdaMARTRanker.lmDecoder.tryDecode(c)
       case Right("shuffle")    => ShuffleRanker.shuffleDecoder.tryDecode(c)

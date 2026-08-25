@@ -10,7 +10,7 @@ import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SStringList
@@ -23,7 +23,7 @@ import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder, deriveEncoder}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class FieldMatchFeature(schema: FieldMatchSchema, matcher: FieldMatcher) extends ItemFeature with Logging {
   override def dim = SingleDim
@@ -93,7 +93,7 @@ case class FieldMatchFeature(schema: FieldMatchSchema, matcher: FieldMatcher) ex
 }
 
 object FieldMatchFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class FieldMatchSchema(
       name: FeatureName,
       rankingField: FieldName,
@@ -143,11 +143,11 @@ object FieldMatchFeature {
 
   }
 
-  implicit val ngramCodec: Codec[NgramMatcherType] = deriveCodec[NgramMatcherType]
-  implicit val termCodec: Codec[TermMatcherType]   = deriveCodec[TermMatcherType]
-  implicit val bm25Codec: Codec[BM25MatcherType]   = deriveCodec[BM25MatcherType]
+  given ngramCodec: Codec[NgramMatcherType] = deriveCodec[NgramMatcherType]
+  given termCodec: Codec[TermMatcherType]   = deriveCodec[TermMatcherType]
+  given bm25Codec: Codec[BM25MatcherType]   = deriveCodec[BM25MatcherType]
 
-  implicit val fieldMatcherTypeDecoder: Decoder[FieldMatcherType] = Decoder.instance(c =>
+  given fieldMatcherTypeDecoder: Decoder[FieldMatcherType] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Left(err)      => Left(err)
       case Right("ngram") => ngramCodec.apply(c)
@@ -157,20 +157,20 @@ object FieldMatchFeature {
     }
   )
 
-  implicit val fieldMatcherTypeEncoder: Encoder[FieldMatcherType] = Encoder.instance {
+  given fieldMatcherTypeEncoder: Encoder[FieldMatcherType] = Encoder.instance {
     case x: NgramMatcherType => ngramCodec(x).deepMerge(withType("ngram"))
     case x: TermMatcherType  => termCodec(x).deepMerge(withType("term"))
     case x: BM25MatcherType  => bm25Codec(x).deepMerge(withType("bm25"))
   }
 
-  implicit val fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema]
+  given fieldMatchDecoder: Decoder[FieldMatchSchema] = deriveDecoder[FieldMatchSchema]
     .ensure(
       pred = x => (x.rankingField.event == Ranking) && (x.itemField.event == Item),
       message = "ranking field can only be read from ranking event, and item field - only from metadata"
     )
     .withErrorMessage("cannot parse a feature definition of type 'field_match'")
 
-  implicit val fieldMatchEncoder: Encoder[FieldMatchSchema] = deriveEncoder[FieldMatchSchema]
+  given fieldMatchEncoder: Encoder[FieldMatchSchema] = deriveEncoder[FieldMatchSchema]
 
   def withType(t: String) = Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(t))))
 }

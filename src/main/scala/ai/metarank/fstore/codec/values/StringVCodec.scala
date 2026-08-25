@@ -2,7 +2,6 @@ package ai.metarank.fstore.codec.values
 
 import ai.metarank.fstore.codec.VCodec
 import java.io.{DataInput, DataOutput}
-import scala.util.{Failure, Success, Try}
 
 object StringVCodec extends VCodec[String] {
   override def decode(bytes: Array[Byte]): Either[Throwable, String] = Right(new String(bytes))

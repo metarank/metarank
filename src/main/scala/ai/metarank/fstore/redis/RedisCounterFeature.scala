@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.codec.{KCodec, StoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -12,8 +12,6 @@ import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.Increment
 import ai.metarank.util.Logging
 import cats.effect.IO
-
-import scala.util.Try
 
 case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefix: String, format: StoreFormat)
     extends CounterFeature
@@ -35,7 +33,7 @@ case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefi
 }
 
 object RedisCounterFeature {
-  implicit val counterSink: StateSink[CounterState, RedisCounterFeature] =
+  given counterSink: StateSink[CounterState, RedisCounterFeature] =
     new StateSink[CounterState, RedisCounterFeature] {
       override def sink(f: RedisCounterFeature, state: fs2.Stream[IO, CounterState]): IO[TransferResult] =
         state

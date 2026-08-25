@@ -9,7 +9,7 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.util.TestKey
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait PeriodicCounterSuite extends FeatureSuite[PeriodicIncrement, PeriodicCounterConfig, PeriodicCounterFeature] {
   val config = PeriodicCounterConfig(

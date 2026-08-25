@@ -1,9 +1,8 @@
 package ai.metarank.model
 import ai.metarank.model.Event.{ItemEvent, UserEvent}
 import ai.metarank.model.Identifier.{ItemId, UserId}
-import cats.data.NonEmptyList
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, FailedCursor, HCursor, Json, JsonObject}
-import io.circe.generic.semiauto._
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.generic.semiauto.*
 
 sealed trait TrainValues {
   def id: EventId
@@ -22,11 +21,11 @@ object TrainValues {
     def apply(e: UserEvent) = new UserValues(e.id, e.user, e.timestamp, e.fields)
   }
 
-  implicit val ctvJsonCodec: Codec[ClickthroughValues] = deriveCodec[ClickthroughValues]
-  implicit val itemJsonCodec: Codec[ItemValues]        = deriveCodec[ItemValues]
-  implicit val userValuesCodec: Codec[UserValues]      = deriveCodec[UserValues]
+  given ctvJsonCodec: Codec[ClickthroughValues] = deriveCodec[ClickthroughValues]
+  given itemJsonCodec: Codec[ItemValues]        = deriveCodec[ItemValues]
+  given userValuesCodec: Codec[UserValues]      = deriveCodec[UserValues]
 
-  implicit val trainEncoder: Encoder[TrainValues] = Encoder.instance {
+  given trainEncoder: Encoder[TrainValues] = Encoder.instance {
     case t: ClickthroughValues => ctvJsonCodec.apply(t).deepMerge(withType("ct"))
     case t: ItemValues         => itemJsonCodec.apply(t).deepMerge(withType("item"))
     case t: UserValues         => userValuesCodec.apply(t).deepMerge(withType("user"))
@@ -34,7 +33,7 @@ object TrainValues {
 
   def withType(tpe: String) = Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(tpe))))
 
-  implicit val trainDecoder: Decoder[TrainValues] = Decoder.instance(c =>
+  given trainDecoder: Decoder[TrainValues] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Left(error)   => Left(error)
       case Right("ct")   => ctvJsonCodec.tryDecode(c)
@@ -44,5 +43,5 @@ object TrainValues {
     }
   )
 
-  implicit val trainCodec: Codec[TrainValues] = Codec.from(trainDecoder, trainEncoder)
+  given trainCodec: Codec[TrainValues] = Codec.from(trainDecoder, trainEncoder)
 }

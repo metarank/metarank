@@ -12,10 +12,10 @@ import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType}
-import cats.data.{NonEmptyList, NonEmptyMap}
+import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object TestFeatureMapping {
   def apply() = {

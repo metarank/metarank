@@ -25,7 +25,7 @@ object ScopeType {
   case object UserScopeType                       extends ScopeType
   case object SessionScopeType                    extends ScopeType
 
-  implicit val scopeEncoder: Encoder[ScopeType] = Encoder.encodeString.contramap {
+  given scopeEncoder: Encoder[ScopeType] = Encoder.encodeString.contramap {
     case GlobalScopeType              => "global"
     case ItemScopeType                => "item"
     case ItemFieldScopeType(field)    => s"item.$field"
@@ -37,7 +37,7 @@ object ScopeType {
 
   val itemFieldFormat      = "item\\.([a-zA-Z0-9\\-_]+)".r
   val fieldItemFieldFormat = "ranking\\.([a-zA-Z0-9\\-_]+)".r
-  implicit val scopeDecoder: Decoder[ScopeType] = Decoder.decodeString.emapTry {
+  given scopeDecoder: Decoder[ScopeType] = Decoder.decodeString.emapTry {
     case "global"                    => Success(GlobalScopeType)
     case "item"                      => Success(ItemScopeType)
     case itemFieldFormat(field)      => Success(ItemFieldScopeType(field))

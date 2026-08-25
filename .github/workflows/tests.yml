@@ -69,5 +69,9 @@ jobs:
     - name: Set up sbt
       uses: sbt/setup-sbt@v1
 
+    - name: Check formatting
+      run: sbt -mem 3000 "scalafmtCheckAll;It/scalafmtCheck"
+      if: runner.os == 'Linux' && matrix.jvm == 21
+
     - name: Run tests
       run: sbt -mem 3000 test

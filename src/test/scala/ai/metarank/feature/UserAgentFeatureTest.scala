@@ -4,7 +4,7 @@ import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.ua.PlatformField
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, Timestamp}
-import ai.metarank.model.FieldName.EventType.{Item, Ranking}
+import ai.metarank.model.FieldName.EventType.Ranking
 import ai.metarank.model.Identifier.SessionId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue

@@ -5,11 +5,11 @@ import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.{Event, EventId, Timestamp}
 import cats.data.NonEmptyList
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.io.{BufferedOutputStream, File, FileOutputStream}
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.Random
 
 object SyntheticRanklensDataset {

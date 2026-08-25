@@ -7,7 +7,8 @@ import better.files.Resource
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.parser._
+import io.circe.parser.*
+import io.circe.syntax.*
 
 class EventJsonTest extends AnyFlatSpec with Matchers {
   it should "decode item metadata" in {
@@ -153,10 +154,63 @@ class EventJsonTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode timestamp as long/string/iso" in {
-    import Event.EventCodecs._
+    import Event.EventCodecs.given
     decode[Timestamp]("123") shouldBe Right(Timestamp(123L))
     decode[Timestamp]("\"123\"") shouldBe Right(Timestamp(123L))
     decode[Timestamp]("\"2022-06-22T11:21:39Z\"") shouldBe Right(Timestamp(1655896899000L))
+  }
+
+  // encode snapshots: the JSON shape is consumed by external clients and persisted event files, so it must stay stable
+  it should "encode item events into the reference json" in {
+    val event: Event = ItemEvent(
+      id = EventId("e1"),
+      item = ItemId("p1"),
+      timestamp = Timestamp(1599391467000L),
+      fields = List(StringField("title", "Nice jeans"), NumberField("price", 25.0))
+    )
+    val expected = parse(
+      """{"id":"e1","item":"p1","timestamp":"1599391467000",
+        |"fields":[{"name":"title","value":"Nice jeans"},{"name":"price","value":25.0}],
+        |"event":"item"}""".stripMargin
+    )
+    Right(event.asJson) shouldBe expected
+  }
+
+  it should "encode interaction events into the reference json" in {
+    val event: Event = InteractionEvent(
+      id = EventId("e2"),
+      item = ItemId("p1"),
+      timestamp = Timestamp(1599391467000L),
+      ranking = Some(EventId("e1")),
+      user = Some(UserId("u1")),
+      session = Some(SessionId("s1")),
+      `type` = "click",
+      fields = List(NumberField("count", 2.0))
+    )
+    val expected = parse(
+      """{"id":"e2","item":"p1","timestamp":"1599391467000","ranking":"e1","user":"u1","session":"s1",
+        |"type":"click","fields":[{"name":"count","value":2.0}],
+        |"event":"interaction"}""".stripMargin
+    )
+    Right(event.asJson) shouldBe expected
+  }
+
+  it should "encode ranking events into the reference json" in {
+    val event: Event = RankingEvent(
+      id = EventId("e3"),
+      timestamp = Timestamp(1599391467000L),
+      user = Some(UserId("u1")),
+      session = None,
+      fields = List(StringField("query", "jeans")),
+      items = NonEmptyList.of(RankItem(ItemId("p1"), 1.0))
+    )
+    val expected = parse(
+      """{"id":"e3","timestamp":"1599391467000","user":"u1","session":null,
+        |"fields":[{"name":"query","value":"jeans"}],
+        |"items":[{"id":"p1","fields":[{"name":"relevancy","value":1.0}],"label":null}],
+        |"event":"ranking"}""".stripMargin
+    )
+    Right(event.asJson) shouldBe expected
   }
 
   it should "decode japanese in field values" in {

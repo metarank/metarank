@@ -1,6 +1,6 @@
 package ai.metarank.fstore.codec.impl
 
-import ai.metarank.fstore.codec.impl.CodecOps.{DataInputOps, DataOutputOps}
+import ai.metarank.fstore.codec.impl.CodecOps.*
 
 import java.io.{DataInput, DataOutput}
 

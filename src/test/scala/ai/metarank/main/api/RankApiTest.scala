@@ -7,12 +7,11 @@ import ai.metarank.ml.Ranker
 import ai.metarank.util.{TestFeatureMapping, TestRankingEvent}
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
-import fs2.Chunk
-import org.http4s.{Entity, Method, Request, Response, Uri}
+import org.http4s.{Entity, Method, Request, Uri}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
-import io.circe.parser._
+import io.circe.syntax.*
+import io.circe.parser.*
 import scodec.bits.ByteVector
 
 class RankApiTest extends AnyFlatSpec with Matchers {

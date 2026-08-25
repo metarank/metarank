@@ -6,7 +6,7 @@ import ai.metarank.fstore.clickthrough.FileTrainStore.{FILE_BUFFER_SIZE, FILE_EX
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.model.TrainValues
 import ai.metarank.util.Logging
-import cats.effect.{IO, Ref}
+import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.effect.std.Mutex
 import fs2.Stream

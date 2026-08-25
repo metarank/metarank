@@ -1,6 +1,6 @@
 package ai.metarank.fstore.codec.impl
 
-import ai.metarank.fstore.codec.impl.CodecOps.{DataInputOps, DataOutputOps}
+import ai.metarank.fstore.codec.impl.CodecOps.*
 import ai.metarank.model.Dimension.VectorDim
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue

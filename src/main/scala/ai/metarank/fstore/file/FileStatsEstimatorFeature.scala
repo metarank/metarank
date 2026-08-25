@@ -31,7 +31,7 @@ case class FileStatsEstimatorFeature(config: StatsEstimatorConfig, db: SortedDB[
 
 object FileStatsEstimatorFeature {
   case class NumSample(key: Key, num: Double)
-  implicit val statsSource: StateSource[StatsEstimatorState, FileStatsEstimatorFeature] =
+  given statsSource: StateSource[StatsEstimatorState, FileStatsEstimatorFeature] =
     new StateSource[StatsEstimatorState, FileStatsEstimatorFeature] {
       override def source(f: FileStatsEstimatorFeature): fs2.Stream[IO, StatsEstimatorState] =
         Stream

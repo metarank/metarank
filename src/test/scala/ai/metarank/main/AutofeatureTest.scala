@@ -10,7 +10,7 @@ import ai.metarank.main.command.autofeature.ConfigMirror
 import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.FieldName.EventType.Item
-import ai.metarank.model.{Event, FeatureSchema, FieldName}
+import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.RanklensEvents
@@ -19,7 +19,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import fs2.Stream
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.nio.file.Paths
 

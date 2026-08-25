@@ -13,7 +13,7 @@ import fs2.io.readInputStream
 
 import java.io.{File, FileInputStream}
 import java.util.zip.GZIPInputStream
-import cats.implicits._
+import cats.implicits.*
 
 case class FileEventSource(conf: FileInputConfig) extends EventSource with Logging {
   val decompressors = List("gz", "gzip", "zst")

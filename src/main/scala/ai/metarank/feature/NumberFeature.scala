@@ -18,9 +18,9 @@ import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.deriveEncoder
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with Logging {
   override def dim = SingleDim
@@ -99,7 +99,7 @@ case class NumberFeature(schema: NumberFeatureSchema) extends ItemFeature with L
 }
 
 object NumberFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class NumberFeatureSchema(
       name: FeatureName,
       field: FieldName,
@@ -110,7 +110,7 @@ object NumberFeature {
     override def create(): IO[BaseFeature] = IO.pure(NumberFeature(this))
   }
 
-  implicit val nfDecoder: Decoder[NumberFeatureSchema] = Decoder
+  given nfDecoder: Decoder[NumberFeatureSchema] = Decoder
     .instance(c =>
       for {
         name <- c.downField("name").as[FeatureName]
@@ -127,5 +127,5 @@ object NumberFeature {
     )
     .withErrorMessage("cannot parse a feature definition of type 'number'")
 
-  implicit val nfEncoder: Encoder[NumberFeatureSchema] = deriveEncoder
+  given nfEncoder: Encoder[NumberFeatureSchema] = deriveEncoder
 }

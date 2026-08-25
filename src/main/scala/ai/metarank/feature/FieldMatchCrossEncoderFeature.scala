@@ -3,8 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchCrossEncoderFeature.FieldMatchCrossEncoderSchema
 import ai.metarank.fstore.Persistence
-import ai.metarank.ml.onnx.{EmbeddingCache, Normalize, ScoreCache}
-import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
+import ai.metarank.ml.onnx.{Normalize, ScoreCache}
 import ai.metarank.ml.onnx.Normalize.NoopNormalize
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
@@ -30,7 +29,7 @@ import cats.effect.IO
 import io.circe.{Decoder, DecodingFailure}
 
 import java.io.File
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class FieldMatchCrossEncoderFeature(
     schema: FieldMatchCrossEncoderSchema,
@@ -117,7 +116,7 @@ case class FieldMatchCrossEncoderFeature(
 }
 
 object FieldMatchCrossEncoderFeature extends Logging {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
 
   case class FieldMatchCrossEncoderSchema(
       name: FeatureName,
@@ -148,7 +147,7 @@ object FieldMatchCrossEncoderFeature extends Logging {
     }
   }
 
-  implicit val crossSchemaDecoder: Decoder[FieldMatchCrossEncoderSchema] = Decoder.instance(c =>
+  given crossSchemaDecoder: Decoder[FieldMatchCrossEncoderSchema] = Decoder.instance(c =>
     for {
       name <- c.downField("name").as[FeatureName]
       rankingField <- c.downField("rankingField").as[FieldName].flatMap {

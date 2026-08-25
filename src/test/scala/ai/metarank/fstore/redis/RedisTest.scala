@@ -6,7 +6,7 @@ import ai.metarank.fstore.redis.client.RedisClient
 import cats.effect.unsafe.implicits.global
 import org.scalatest.{BeforeAndAfterAll, Suite}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait RedisTest extends BeforeAndAfterAll { this: Suite =>
   def cache    = CacheConfig(0, 0.seconds)

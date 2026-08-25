@@ -1,8 +1,8 @@
 package ai.metarank.fstore.redis
 
 import ai.metarank.fstore.codec.values.StringVCodec
-import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat, idEncoder}
-import ai.metarank.fstore.codec.{KCodec, VCodec}
+import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
+import ai.metarank.fstore.codec.KCodec
 import ai.metarank.model.{FeatureValue, Key, Timestamp}
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Key.FeatureName
@@ -11,7 +11,7 @@ import ai.metarank.model.Scope.GlobalScope
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
   val now = Timestamp.now

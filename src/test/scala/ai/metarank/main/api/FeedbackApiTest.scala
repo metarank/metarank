@@ -1,20 +1,17 @@
 package ai.metarank.main.api
 
 import ai.metarank.api.routes.FeedbackApi
-import ai.metarank.config.CoreConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
 import ai.metarank.model.Event
 import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
 import cats.effect.IO
-import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
-import fs2.Chunk
 import io.circe.Encoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.http4s.{Entity, Method, Request, Response, Uri}
 import scodec.bits.ByteVector
 

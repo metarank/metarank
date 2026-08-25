@@ -90,12 +90,12 @@ object TextAnalyzer {
     TextAnalyzer(new JapaneseAnalyzer(), "ja", "japanese")
   )
 
-  implicit val analyzerDecoder: Decoder[TextAnalyzer] = Decoder.decodeString.emapTry(string =>
+  given analyzerDecoder: Decoder[TextAnalyzer] = Decoder.decodeString.emapTry(string =>
     analyzers.find(_.names.toList.contains(string)) match {
       case Some(found) => Success(found)
       case None        => Failure(new IllegalArgumentException(s"language $string is not supported"))
     }
   )
 
-  implicit val analyzerEncoder: Encoder[TextAnalyzer] = Encoder.encodeString.contramap(_.names.head)
+  given analyzerEncoder: Encoder[TextAnalyzer] = Encoder.encodeString.contramap(_.names.head)
 }

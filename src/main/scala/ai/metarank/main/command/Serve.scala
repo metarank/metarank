@@ -4,7 +4,7 @@ import ai.metarank.FeatureMapping
 import ai.metarank.api.routes
 import ai.metarank.api.routes.inference.{BiEncoderApi, CrossEncoderApi}
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, RecommendApi, TrainApi}
-import ai.metarank.config.{ApiConfig, Config, InputConfig}
+import ai.metarank.config.{ApiConfig, Config}
 import ai.metarank.feature.{FieldMatchBiencoderFeature, FieldMatchCrossEncoderFeature}
 import ai.metarank.flow.{MetarankFlow, PrintProgress, TrainBuffer}
 import ai.metarank.fstore.Persistence.ModelName
@@ -18,12 +18,10 @@ import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.Timestamp
 import ai.metarank.source.EventSource
 import ai.metarank.util.Logging
-import ai.metarank.util.analytics.Metrics
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.implicits._
+import cats.implicits.*
 import com.comcast.ip4s.{Hostname, Port}
-import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
@@ -32,8 +30,6 @@ import org.typelevel.log4cats.slf4j.Slf4jFactory
 import fs2.Stream
 import org.http4s.Request
 import org.http4s.server.middleware.{ErrorAction, Logger}
-
-import scala.concurrent.duration._
 
 object Serve extends Logging {
   def run(
@@ -77,7 +73,7 @@ object Serve extends Logging {
       buffer: TrainBuffer,
       inference: Map[String, EncoderConfig]
   ): IO[Unit] = {
-    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     for {
 
       health     <- IO.pure(HealthApi(store).routes)

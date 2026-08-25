@@ -7,7 +7,7 @@ import ai.metarank.model.Dimension.SingleDim
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.Field.{BooleanField, NumberField, StringField, StringListField}
+import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{Dimension, Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
@@ -19,7 +19,7 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
 import io.circe.{Decoder, DecodingFailure, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import cats.effect.IO
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
 
@@ -133,7 +133,7 @@ case class DiversityFeature(schema: DiversitySchema) extends ItemFeature with Lo
 }
 
 object DiversityFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
 
   case class DiversitySchema(
       name: FeatureName,
@@ -147,8 +147,8 @@ object DiversityFeature {
     override def create(): IO[BaseFeature] = IO.pure(DiversityFeature(this))
   }
 
-  implicit val diversitySchemaEncoder: Encoder[DiversitySchema] = deriveEncoder
-  implicit val diversitySchemaDecoder: Decoder[DiversitySchema] = Decoder
+  given diversitySchemaEncoder: Encoder[DiversitySchema] = deriveEncoder
+  given diversitySchemaDecoder: Decoder[DiversitySchema] = Decoder
     .instance(c =>
       for {
         name   <- c.downField("name").as[FeatureName]

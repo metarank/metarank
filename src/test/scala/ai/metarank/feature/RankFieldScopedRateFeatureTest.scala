@@ -3,21 +3,21 @@ package ai.metarank.feature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.StringField
-import ai.metarank.model.Identifier.{ItemId, RankingId}
+import ai.metarank.model.Identifier.RankingId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.{EventId, FeatureSchema, Key, Schema}
-import ai.metarank.model.Scope.{ItemScope, RankingScope}
-import ai.metarank.model.ScopeType.{ItemFieldScopeType, RankingFieldScopeType}
+import ai.metarank.model.Scope.RankingScope
+import ai.metarank.model.ScopeType.RankingFieldScopeType
 import ai.metarank.model.Write.Put
-import ai.metarank.util.{TestInteractionEvent, TestItemEvent, TestRankingEvent}
+import ai.metarank.util.{TestInteractionEvent, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class RankFieldScopedRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf =

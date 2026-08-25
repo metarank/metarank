@@ -19,9 +19,9 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.circe.yaml.parser.parse
-import io.circe.syntax._
+import io.circe.syntax.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class InteractedWithFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf = InteractedWithSchema(

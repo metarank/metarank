@@ -4,7 +4,7 @@ import ai.metarank.main.Constants
 import ai.metarank.util.{Logging, Version}
 import cats.effect.IO
 import io.sentry.SentryOptions.{BeforeBreadcrumbCallback, BeforeSendCallback}
-import io.sentry.{Breadcrumb, Hint, Sentry, SentryEvent, SentryOptions}
+import io.sentry.{Sentry, SentryOptions}
 
 object ErrorReporter extends Logging {
   def init(enabled: Boolean) = IO {

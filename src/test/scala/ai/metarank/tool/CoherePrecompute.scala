@@ -9,29 +9,17 @@ import cats.effect.{ExitCode, IO, IOApp}
 import fs2.io.file.{Files, Path}
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.http4s.{
-  AuthScheme,
-  Credentials,
-  Entity,
-  EntityDecoder,
-  EntityEncoder,
-  Header,
-  Headers,
-  MediaType,
-  Method,
-  Request,
-  Uri
-}
+import org.http4s.{AuthScheme, Credentials, EntityDecoder, EntityEncoder, Header, MediaType, Method, Request, Uri}
 import org.http4s.client.Client
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
-import org.http4s.circe.CirceEntityEncoder._
+import org.http4s.circe.CirceEntityEncoder.*
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.headers.`Content-Type`
 import org.typelevel.log4cats.LoggerFactory
 import org.typelevel.log4cats.slf4j.Slf4jFactory
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object CoherePrecompute extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = args match {
@@ -75,7 +63,7 @@ object CoherePrecompute extends IOApp with Logging {
       .map(resp => id -> resp.embeddings(0).toArray)
 
   def makeClient(): Resource[IO, Client[IO]] = {
-    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     EmberClientBuilder
       .default[IO]
       .withTimeout(10.second)
@@ -93,10 +81,10 @@ object CoherePrecompute extends IOApp with Logging {
   }
 
   case class CohereRequest(model: String, texts: List[String])
-  implicit val requestEncoder: Encoder[CohereRequest]        = deriveEncoder
-  implicit val requestJson: EntityEncoder[IO, CohereRequest] = jsonEncoderOf[CohereRequest]
+  given requestEncoder: Encoder[CohereRequest]        = deriveEncoder
+  given requestJson: EntityEncoder[IO, CohereRequest] = jsonEncoderOf[CohereRequest]
 
   case class CohereResponse(id: String, texts: List[String], embeddings: List[List[Float]])
-  implicit val responseDecoder: Decoder[CohereResponse]        = deriveDecoder
-  implicit val responseJson: EntityDecoder[IO, CohereResponse] = jsonOf[IO, CohereResponse]
+  given responseDecoder: Decoder[CohereResponse]        = deriveDecoder
+  given responseJson: EntityDecoder[IO, CohereResponse] = jsonOf[IO, CohereResponse]
 }

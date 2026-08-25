@@ -1,7 +1,7 @@
 package ai.metarank.model
 
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
-import cats.implicits._
+import cats.implicits.*
 
 sealed trait Scalar
 
@@ -32,28 +32,28 @@ object Scalar {
     }
   }
 
-  implicit val stringCodec: Codec[SString] =
+  given stringCodec: Codec[SString] =
     Codec.from(Decoder.decodeString.map(SString.apply), Encoder.encodeString.contramap[SString](_.value))
 
-  implicit val doubleCodec: Codec[SDouble] =
+  given doubleCodec: Codec[SDouble] =
     Codec.from(Decoder.decodeDouble.map(SDouble.apply), Encoder.encodeDouble.contramap[SDouble](_.value))
 
-  implicit val stringListCodec: Codec[SStringList] =
+  given stringListCodec: Codec[SStringList] =
     Codec.from(
       decodeA = Decoder.decodeList[String].map(SStringList.apply),
       encodeA = Encoder.encodeList[String].contramap(_.value.toList)
     )
 
-  implicit val doubleListCodec: Codec[SDoubleList] =
+  given doubleListCodec: Codec[SDoubleList] =
     Codec.from(
       decodeA = Decoder.decodeList[Double].map(x => SDoubleList(x.toArray)),
       encodeA = Encoder.encodeList[Double].contramap(_.value.toList)
     )
 
-  implicit val booleanCodec: Codec[SBoolean] =
+  given booleanCodec: Codec[SBoolean] =
     Codec.from(Decoder.decodeBoolean.map(SBoolean.apply), Encoder.encodeBoolean.contramap[SBoolean](_.value))
 
-  implicit val scalarEncoder: Encoder[Scalar] = Encoder.instance {
+  given scalarEncoder: Encoder[Scalar] = Encoder.instance {
     case s: SString      => stringCodec(s)
     case d: SDouble      => doubleCodec(d)
     case b: SBoolean     => booleanCodec(b)
@@ -61,7 +61,7 @@ object Scalar {
     case dl: SDoubleList => doubleListCodec(dl)
   }
 
-  implicit val scalarDecoder: Decoder[Scalar] = Decoder.instance(c =>
+  given scalarDecoder: Decoder[Scalar] = Decoder.instance(c =>
     c.value.fold(
       jsonNull = Left(DecodingFailure("null is not supported", c.history)),
       jsonBoolean = b => Right(SBoolean(b)),
@@ -78,6 +78,6 @@ object Scalar {
     )
   )
 
-  implicit val scalarJsonCodec: Codec[Scalar] = Codec.from(scalarDecoder, scalarEncoder)
+  given scalarJsonCodec: Codec[Scalar] = Codec.from(scalarDecoder, scalarEncoder)
 
 }

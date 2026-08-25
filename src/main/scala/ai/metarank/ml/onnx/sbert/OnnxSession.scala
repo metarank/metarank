@@ -1,21 +1,17 @@
 package ai.metarank.ml.onnx.sbert
 
 import ai.djl.huggingface.tokenizers.HuggingFaceTokenizer
-import ai.djl.modality.nlp.DefaultVocabulary
-import ai.djl.modality.nlp.bert.BertFullTokenizer
 import ai.metarank.ml.onnx.{HuggingFaceClient, ModelHandle}
 import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
 import ai.metarank.util.{LocalCache, Logging}
-import ai.onnxruntime.{OrtEnvironment, OrtSession, TensorInfo}
+import ai.onnxruntime.{OrtEnvironment, OrtSession}
 import ai.onnxruntime.OrtSession.SessionOptions
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel
 import cats.effect.IO
 import org.apache.commons.io.{FileUtils, IOUtils}
 
 import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
-import java.nio.charset.StandardCharsets
-import java.nio.file.Paths
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: HuggingFaceTokenizer, dim: Int) {
   def close(): Unit = {

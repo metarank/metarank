@@ -10,15 +10,12 @@ import ai.metarank.fstore.codec.impl.{
   TrainValuesCodec
 }
 import ai.metarank.fstore.codec.values.{BinaryVCodec, JsonVCodec}
-import ai.metarank.ml.Model
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
-import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{EventId, FeatureValue, Key, Scalar, Scope, TrainValues}
+import ai.metarank.model.{EventId, FeatureValue, Key, Scalar, TrainValues}
 import ai.metarank.util.DelimitedPair.SlashDelimitedPair
 import io.circe.{Codec, Decoder, Encoder, Json}
 import org.apache.commons.codec.binary.Base64
 
-import java.io.{DataInput, DataOutput}
 import scala.util.{Failure, Success}
 
 sealed trait StoreFormat {
@@ -67,7 +64,7 @@ object StoreFormat {
     }
   }
 
-  implicit val formatCodec: Codec[StoreFormat] = Codec.from[StoreFormat](
+  given formatCodec: Codec[StoreFormat] = Codec.from[StoreFormat](
     decodeA = Decoder.decodeString.emapTry {
       case "json"   => Success(JsonStoreFormat)
       case "binary" => Success(BinaryStoreFormat)
@@ -79,7 +76,7 @@ object StoreFormat {
     }
   )
 
-  implicit val byteArrayCodec: Codec[Array[Byte]] = Codec.from[Array[Byte]](
+  given byteArrayCodec: Codec[Array[Byte]] = Codec.from[Array[Byte]](
     decodeA = Decoder.decodeString.map(str => Base64.decodeBase64(str)),
     encodeA = Encoder.encodeString.contramap(b => Base64.encodeBase64String(b))
   )

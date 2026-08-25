@@ -6,18 +6,15 @@ import ai.metarank.fstore.Persistence.{ModelName, ModelStore}
 import ai.metarank.fstore.cache.CachedModelStore
 import ai.metarank.fstore.cached.CachedModelStoreTest.AlwaysAllocateModelStore
 import ai.metarank.fstore.memory.MemModelStore
-import ai.metarank.fstore.redis.RedisModelStore
-import ai.metarank.fstore.redis.RedisPersistence.Prefix
 import ai.metarank.ml.Model.RankModel
 import ai.metarank.ml.rank.QueryRequest
-import ai.metarank.ml.rank.ShuffleRanker.{ShuffleConfig, ShuffleModel}
 import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.model.Timestamp
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class CachedModelStoreTest extends AnyFlatSpec with Matchers {
   lazy val ticker                   = new EventTicker

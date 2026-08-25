@@ -4,7 +4,7 @@ import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.RankPredictor
-import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.ml.Model
 import ai.metarank.model.TrainValues
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
@@ -36,7 +36,7 @@ object ShuffleRanker {
     override def save(): Option[Array[Byte]] = None
   }
 
-  implicit val shuffleDecoder: Decoder[ShuffleConfig] = Decoder.instance(c =>
+  given shuffleDecoder: Decoder[ShuffleConfig] = Decoder.instance(c =>
     for {
       mpc      <- c.downField("maxPositionChange").as[Int]
       selector <- c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector()))
@@ -44,6 +44,6 @@ object ShuffleRanker {
       ShuffleConfig(mpc, selector)
     }
   )
-  implicit val shuffleEncoder: Encoder[ShuffleConfig] = deriveEncoder[ShuffleConfig]
+  given shuffleEncoder: Encoder[ShuffleConfig] = deriveEncoder[ShuffleConfig]
 
 }

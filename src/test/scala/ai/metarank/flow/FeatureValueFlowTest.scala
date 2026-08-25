@@ -13,7 +13,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import fs2.Stream
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FeatureValueFlowTest extends AnyFlatSpec with Matchers {
   val mapping = TestFeatureMapping()

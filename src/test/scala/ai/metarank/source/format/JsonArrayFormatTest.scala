@@ -5,7 +5,7 @@ import ai.metarank.util.TestInteractionEvent
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import scala.util.Try
 

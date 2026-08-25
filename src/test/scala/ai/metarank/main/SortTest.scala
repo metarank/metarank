@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import java.io.{BufferedOutputStream, FileOutputStream}
 import java.nio.file.{Files, Path}
 import scala.util.{Failure, Random, Try}
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.util.zip.GZIPOutputStream
 

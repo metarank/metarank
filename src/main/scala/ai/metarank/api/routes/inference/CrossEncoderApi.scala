@@ -2,21 +2,20 @@ package ai.metarank.api.routes.inference
 
 import ai.metarank.ml.onnx.sbert.{OnnxCrossEncoder, OnnxSession}
 import ai.metarank.api.JsonChunk
-import ai.metarank.api.routes.inference.BiEncoderApi.{BiencoderRequest, BiencoderResponse}
 import ai.metarank.api.routes.inference.CrossEncoderApi.{CrossEncoderRequest, CrossEncoderResponse}
 import ai.metarank.feature.FieldMatchCrossEncoderFeature
 import ai.metarank.ml.onnx.encoder.EncoderConfig
 import ai.metarank.ml.onnx.encoder.EncoderConfig.CrossEncoderConfig
 import ai.metarank.ml.onnx.sbert.OnnxCrossEncoder.SentencePair
 import ai.metarank.util.Logging
-import cats.effect._
-import org.http4s._
-import org.http4s.dsl.io._
+import cats.effect.*
+import org.http4s.*
+import org.http4s.dsl.io.*
 import org.http4s.headers.`Content-Type`
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
-import org.http4s.circe._
-import cats.implicits._
+import org.http4s.circe.*
+import cats.implicits.*
 
 case class CrossEncoderApi(encoders: Map[String, OnnxCrossEncoder]) {
   val routes = HttpRoutes.of[IO] {
@@ -45,12 +44,12 @@ object CrossEncoderApi extends Logging {
   case class CrossEncoderRequest(input: List[QueryDocumentPair])
   case class CrossEncoderResponse(scores: Array[Float], took: Long)
 
-  implicit val qdpCodec: Codec[QueryDocumentPair]              = deriveCodec[QueryDocumentPair]
-  implicit val crossRequestCodec: Codec[CrossEncoderRequest]   = deriveCodec[CrossEncoderRequest]
-  implicit val crossResponseCodec: Codec[CrossEncoderResponse] = deriveCodec[CrossEncoderResponse]
+  given qdpCodec: Codec[QueryDocumentPair]              = deriveCodec[QueryDocumentPair]
+  given crossRequestCodec: Codec[CrossEncoderRequest]   = deriveCodec[CrossEncoderRequest]
+  given crossResponseCodec: Codec[CrossEncoderResponse] = deriveCodec[CrossEncoderResponse]
 
-  implicit val crossRequestJson: EntityDecoder[IO, CrossEncoderRequest]   = jsonOf[IO, CrossEncoderRequest]
-  implicit val crossResponseJson: EntityEncoder[IO, CrossEncoderResponse] = jsonEncoderOf[CrossEncoderResponse]
+  given crossRequestJson: EntityDecoder[IO, CrossEncoderRequest]   = jsonOf[IO, CrossEncoderRequest]
+  given crossResponseJson: EntityEncoder[IO, CrossEncoderResponse] = jsonEncoderOf[CrossEncoderResponse]
 
   def create(models: Map[String, EncoderConfig], existing: List[FieldMatchCrossEncoderFeature]): IO[CrossEncoderApi] =
     for {

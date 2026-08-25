@@ -2,17 +2,16 @@ package ai.metarank.fstore.file
 
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.file.FileBoundedListFeature.KeyTimeValue
-import ai.metarank.fstore.file.client.{FileClient, SortedDB}
+import ai.metarank.fstore.file.client.SortedDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.BoundedListFeature
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.FeatureValue.BoundedListValue
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.State.BoundedListState
-import ai.metarank.model.{FeatureValue, Key, Scalar, State, Timestamp, Write}
+import ai.metarank.model.{FeatureValue, Key, Scalar, Timestamp, Write}
 import ai.metarank.util.SortedGroupBy
 import cats.effect.IO
-import org.apache.commons.lang3.ArrayUtils
 import fs2.Stream
 
 import scala.annotation.tailrec
@@ -82,7 +81,7 @@ case class FileBoundedListFeature(
 object FileBoundedListFeature {
   case class KeyTimeValue(key: Key, ts: Timestamp, s: Scalar)
 
-  implicit val fileListSource: StateSource[BoundedListState, FileBoundedListFeature] =
+  given fileListSource: StateSource[BoundedListState, FileBoundedListFeature] =
     new StateSource[BoundedListState, FileBoundedListFeature] {
       override def source(f: FileBoundedListFeature): fs2.Stream[IO, BoundedListState] = {
         Stream

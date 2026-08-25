@@ -2,11 +2,10 @@ package ai.metarank.fstore.codec.values
 
 import ai.metarank.fstore.codec.VCodec
 import io.circe.Codec
-import io.circe.syntax._
-import io.circe.parser.{decode => cdecode}
+import io.circe.syntax.*
+import io.circe.parser.{decode as cdecode}
 
 import java.io.{DataInput, DataOutput}
-import scala.util.{Failure, Success, Try}
 
 case class JsonVCodec[T](c: Codec[T]) extends VCodec[T] {
   override def encode(value: T): Array[Byte] = value.asJson(using c).noSpaces.getBytes

@@ -3,7 +3,6 @@ package ai.metarank.main.autofeature.rule
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
 import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.command.autofeature.FieldStat.StringFieldStat
-import ai.metarank.main.command.autofeature.{EventModel, ItemFieldStat}
 import ai.metarank.main.command.autofeature.rules.StringFeatureRule
 import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item

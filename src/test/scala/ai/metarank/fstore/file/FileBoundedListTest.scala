@@ -1,15 +1,14 @@
 package ai.metarank.fstore.file
 
-import ai.metarank.fstore.{BoundedListSuite, ScalarFeatureSuite}
+import ai.metarank.fstore.BoundedListSuite
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.model.Feature.BoundedListFeature.BoundedListConfig
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
-import ai.metarank.model.Scope.{GlobalScope, ItemScope}
+import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.Write.Append
-import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
 import scala.util.Random

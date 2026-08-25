@@ -4,7 +4,7 @@ import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
-import io.circe.parser._
+import io.circe.parser.*
 
 class FieldNameTest extends AnyFlatSpec with Matchers with TableDrivenPropertyChecks {
   val positive = Table(

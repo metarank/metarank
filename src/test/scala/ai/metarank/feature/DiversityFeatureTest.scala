@@ -1,9 +1,8 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.DiversityFeature.DiversitySchema
-import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
-import ai.metarank.model.{FieldName, Schema}
+import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue

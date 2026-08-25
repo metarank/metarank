@@ -1,7 +1,6 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.InteractionCountFeature.InteractionCountSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Identifier.{ItemId, SessionId}
 import ai.metarank.model.Key.FeatureName

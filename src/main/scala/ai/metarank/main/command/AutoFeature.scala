@@ -1,7 +1,6 @@
 package ai.metarank.main.command
 
 import ai.metarank.config.InputConfig.FileInputConfig
-import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.flow.PrintProgress
 import ai.metarank.main.CliArgs.AutoFeatureArgs
 import ai.metarank.main.command.autofeature.{ConfigMirror, EventModel}
@@ -11,7 +10,7 @@ import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Stream
-import io.circe.syntax._
+import io.circe.syntax.*
 import io.circe.yaml.Printer
 
 import java.io.FileOutputStream

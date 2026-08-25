@@ -4,12 +4,12 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.ItemAgeFeature.ItemAgeSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.{RankItem, eventCodec}
+import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.NumberField
-import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Timestamp}
 import ai.metarank.model.MValue.SingleValue
@@ -24,7 +24,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
 
 case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Logging {
@@ -85,7 +85,7 @@ case class ItemAgeFeature(schema: ItemAgeSchema) extends ItemFeature with Loggin
 }
 
 object ItemAgeFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class ItemAgeSchema(
       name: FeatureName,
       source: FieldName,
@@ -97,10 +97,10 @@ object ItemAgeFeature {
     override def create(): IO[BaseFeature] = IO.pure(ItemAgeFeature(this))
   }
 
-  implicit val itemAgeDecoder: Decoder[ItemAgeSchema] =
+  given itemAgeDecoder: Decoder[ItemAgeSchema] =
     deriveDecoder[ItemAgeSchema]
       .ensure(_.source.event == Item, "can only work with fields from metadata events")
       .withErrorMessage("cannot parse a feature definition of type 'item_age'")
 
-  implicit val itemAgeEncoder: Encoder[ItemAgeSchema] = deriveEncoder
+  given itemAgeEncoder: Encoder[ItemAgeSchema] = deriveEncoder
 }

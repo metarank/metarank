@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.BaseFeature.{ItemFeature, ValueMode}
+import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
@@ -13,7 +13,7 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import cats.effect.IO
 import io.circe.Codec
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
@@ -44,6 +44,6 @@ object RandomFeature {
     override def create(): IO[BaseFeature] = IO.pure(RandomFeature(this))
   }
 
-  implicit val positionSchemaCodec: Codec[RandomFeatureSchema] = deriveCodec
+  given positionSchemaCodec: Codec[RandomFeatureSchema] = deriveCodec
 
 }

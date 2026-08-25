@@ -5,10 +5,10 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.ml.Recommender
 import ai.metarank.ml.recommend.RecommendRequest
 import ai.metarank.util.Logging
-import cats.effect._
-import io.circe.parser._
-import org.http4s._
-import org.http4s.dsl.io._
+import cats.effect.*
+import io.circe.parser.*
+import org.http4s.*
+import org.http4s.dsl.io.*
 import org.http4s.headers.`Content-Type`
 
 case class RecommendApi(rec: Recommender, state: Persistence) extends Logging {

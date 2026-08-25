@@ -11,11 +11,11 @@ import ai.metarank.source.format.JsonFormat
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk
-import org.http4s.dsl.io._
+import org.http4s.dsl.io.*
 import org.http4s.{Entity, HttpRoutes, Response, Status}
-import cats.implicits._
+import cats.implicits.*
 import io.circe.Codec
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: TrainBuffer) extends Logging {
   val routes = HttpRoutes.of[IO] {
@@ -69,5 +69,5 @@ case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: Trai
 
 object FeedbackApi {
   case class FeedbackResponse(status: String, accepted: Long, updated: Long, tookMillis: Long)
-  implicit val feedbackResponseCodec: Codec[FeedbackResponse] = deriveCodec[FeedbackResponse]
+  given feedbackResponseCodec: Codec[FeedbackResponse] = deriveCodec[FeedbackResponse]
 }

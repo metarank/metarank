@@ -1,19 +1,18 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
-import ai.metarank.config.{BoosterConfig, Config, ModelConfig}
+import ai.metarank.config.{Config, ModelConfig}
 import ai.metarank.fstore.{TrainStore, Persistence}
-import ai.metarank.fstore.Persistence.ModelName
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.main.CliArgs.{ServeArgs, TrainArgs}
+import ai.metarank.main.CliArgs.TrainArgs
 import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTModel, LambdaMARTPredictor}
-import ai.metarank.model.{FeatureWeight, TrainResult}
-import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
+import ai.metarank.model.TrainResult
+import ai.metarank.model.TrainResult.FeatureStatus
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.implicits._
+import cats.implicits.*
 
 object Train extends Logging {
   def run(

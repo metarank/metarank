@@ -4,7 +4,6 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.ml.onnx.{EmbeddingCache, Normalize}
-import ai.metarank.ml.onnx.ModelHandle.{HuggingFaceHandle, LocalModelHandle}
 import ai.metarank.ml.onnx.Normalize.NoopNormalize
 import ai.metarank.ml.onnx.distance.DistanceFunction
 import ai.metarank.ml.onnx.distance.DistanceFunction.CosineDistance
@@ -25,11 +24,11 @@ import ai.metarank.model.Scope.ItemScope
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.Put
 import ai.metarank.util.Logging
-import cats.effect.{IO, Ref}
+import cats.effect.IO
 import io.circe.{Decoder, DecodingFailure}
 
 import java.io.File
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.duration.FiniteDuration
 
 case class FieldMatchBiencoderFeature(
@@ -110,7 +109,7 @@ case class FieldMatchBiencoderFeature(
 }
 
 object FieldMatchBiencoderFeature extends Logging {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class FieldMatchBiencoderSchema(
       name: FeatureName,
       rankingField: FieldName,
@@ -148,7 +147,7 @@ object FieldMatchBiencoderFeature extends Logging {
   }
 
   object FieldMatchBiencoderSchema {
-    implicit val biencSchemaDecoder: Decoder[FieldMatchBiencoderSchema] = Decoder.instance(c =>
+    given biencSchemaDecoder: Decoder[FieldMatchBiencoderSchema] = Decoder.instance(c =>
       for {
         name <- c.downField("name").as[FeatureName]
         rankingField <- c.downField("rankingField").as[FieldName].flatMap {

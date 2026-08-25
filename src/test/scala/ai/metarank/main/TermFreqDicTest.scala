@@ -2,8 +2,6 @@ package ai.metarank.main
 
 import ai.metarank.feature.matcher.BM25Matcher.TermFreqDic
 import ai.metarank.main.command.TermFreq
-import ai.metarank.model.Event
-import ai.metarank.model.Event.ItemEvent
 import ai.metarank.model.Field.StringField
 import ai.metarank.util.{RanklensEvents, TestItemEvent}
 import better.files.File

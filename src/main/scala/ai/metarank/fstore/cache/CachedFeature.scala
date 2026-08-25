@@ -1,6 +1,6 @@
 package ai.metarank.fstore.cache
 
-import ai.metarank.model.Feature._
+import ai.metarank.model.Feature.*
 import ai.metarank.model.FeatureValue.{
   BoundedListValue,
   CounterValue,
@@ -11,7 +11,7 @@ import ai.metarank.model.FeatureValue.{
   ScalarValue
 }
 import ai.metarank.model.Write.{Append, Increment, PeriodicIncrement, Put, PutFreqSample, PutStatSample, PutTuple}
-import ai.metarank.model._
+import ai.metarank.model.*
 import ai.metarank.util.Logging
 import cats.effect.IO
 

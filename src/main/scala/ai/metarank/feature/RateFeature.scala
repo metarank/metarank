@@ -10,10 +10,10 @@ import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCo
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.{PeriodicCounterValue, ScalarValue}
 import ai.metarank.model.Field.{StringField, StringListField}
-import ai.metarank.model.Identifier.{ItemId, RankingId}
+import ai.metarank.model.Identifier.RankingId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.Scalar.{SString, SStringList}
+import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.{GlobalScope, ItemFieldScope, ItemScope, RankingFieldScope, RankingScope}
 import ai.metarank.model.ScopeType.{
   GlobalScopeType,
@@ -23,26 +23,14 @@ import ai.metarank.model.ScopeType.{
   RankingScopeType
 }
 import ai.metarank.model.Write.{PeriodicIncrement, Put}
-import ai.metarank.model.{
-  Event,
-  FeatureKey,
-  FeatureSchema,
-  FeatureValue,
-  Field,
-  FieldName,
-  Key,
-  MValue,
-  Scope,
-  ScopeType,
-  Write
-}
+import ai.metarank.model.{Event, FeatureKey, FeatureSchema, FeatureValue, Key, MValue, Scope, ScopeType, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
-import io.circe.generic.semiauto.{deriveCodec, deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.{deriveCodec, deriveEncoder}
 import shapeless3.typeable.syntax.typeable.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.duration.FiniteDuration
 
 case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Logging {
@@ -347,7 +335,7 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
 }
 
 object RateFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class RateFeatureSchema(
       name: FeatureName,
       top: String,
@@ -364,9 +352,9 @@ object RateFeature {
 
   case class NormalizeSchema(weight: Double)
 
-  implicit val normalizeSchemaCodec: Codec[NormalizeSchema] = deriveCodec
+  given normalizeSchemaCodec: Codec[NormalizeSchema] = deriveCodec
 
-  implicit val rateSchemaDecoder: Decoder[RateFeatureSchema] = Decoder
+  given rateSchemaDecoder: Decoder[RateFeatureSchema] = Decoder
     .instance(c =>
       for {
         name   <- c.downField("name").as[FeatureName]
@@ -401,6 +389,6 @@ object RateFeature {
     )
     .withErrorMessage("cannot parse a feature definition of type 'rate'")
 
-  implicit val rateSchemaEncoder: Encoder[RateFeatureSchema] = deriveEncoder
+  given rateSchemaEncoder: Encoder[RateFeatureSchema] = deriveEncoder
 
 }

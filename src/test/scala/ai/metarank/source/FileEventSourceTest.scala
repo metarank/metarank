@@ -9,10 +9,10 @@ import better.files.File
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
+import io.circe.syntax.*
 import fs2.io.file.Path
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FileEventSourceTest extends AnyFlatSpec with Matchers {
   lazy val events = RanklensEvents(100)

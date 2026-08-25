@@ -4,14 +4,14 @@ import ai.metarank.config.CoreConfig.ImportCacheConfig
 import ai.metarank.config.StateStoreConfig.FileStateConfig
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.Persistence.KVStore
-import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
+import ai.metarank.fstore.cache.CachedKVStore
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.file.FilePersistence.FeatureSize
 import ai.metarank.fstore.file.client.FileClient.PrefixSize
 import ai.metarank.fstore.file.client.{FileClient, MapDBClient, RocksDBClient}
-import ai.metarank.fstore.memory.{MemKVStore, MemModelStore, MemPeriodicCounter}
+import ai.metarank.fstore.memory.MemKVStore
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Feature, FeatureKey, FeatureValue, Key, Schema}
+import ai.metarank.model.{FeatureKey, FeatureValue, Key, Schema}
 import cats.effect.{IO, Resource}
 import com.github.blemale.scaffeine.Scaffeine
 

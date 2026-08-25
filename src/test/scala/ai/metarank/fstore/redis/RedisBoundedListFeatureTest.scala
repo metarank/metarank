@@ -7,7 +7,6 @@ import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SString
 import ai.metarank.model.State.BoundedListState
-import ai.metarank.model.Write.Append
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 

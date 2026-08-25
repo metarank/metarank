@@ -1,7 +1,5 @@
 package ai.metarank.model
 
-import io.lettuce.core.RedisURI
-
 import java.nio.file.Paths
 import scala.util.{Failure, Success, Try}
 

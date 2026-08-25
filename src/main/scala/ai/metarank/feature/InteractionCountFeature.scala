@@ -17,7 +17,7 @@ import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemFeature with Logging {
   override def dim = SingleDim
@@ -60,7 +60,7 @@ case class InteractionCountFeature(schema: InteractionCountSchema) extends ItemF
 }
 
 object InteractionCountFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class InteractionCountSchema(
       name: FeatureName,
       interaction: String,
@@ -71,10 +71,10 @@ object InteractionCountFeature {
     override def create(): IO[BaseFeature] = IO.pure(InteractionCountFeature(this))
   }
 
-  implicit val interCountDecoder: Decoder[InteractionCountSchema] =
+  given interCountDecoder: Decoder[InteractionCountSchema] =
     deriveDecoder[InteractionCountSchema].withErrorMessage(
       "cannot parse a feature definition of type 'interaction_count'"
     )
 
-  implicit val interCountEncoder: Encoder[InteractionCountSchema] = deriveEncoder
+  given interCountEncoder: Encoder[InteractionCountSchema] = deriveEncoder
 }

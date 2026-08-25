@@ -3,7 +3,7 @@ package ai.metarank.model
 import ai.metarank.model.Field.{BooleanField, NumberField, NumberListField, StringField, StringListField}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.parser._
+import io.circe.parser.*
 
 class FieldTest extends AnyFlatSpec with Matchers {
   it should "decode string fields" in {

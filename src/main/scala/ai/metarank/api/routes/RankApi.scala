@@ -6,12 +6,12 @@ import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.Field
 import ai.metarank.ml.Ranker
 import ai.metarank.util.Logging
-import cats.effect._
-import io.circe.parser._
-import org.http4s._
-import org.http4s.dsl.io._
+import cats.effect.*
+import io.circe.parser.*
+import org.http4s.*
+import org.http4s.dsl.io.*
 import org.http4s.headers.`Content-Type`
-import ai.metarank.model.Identifier._
+import ai.metarank.model.Identifier.*
 import ai.metarank.model.ScopeType.{GlobalScopeType, ItemScopeType, SessionScopeType, UserScopeType}
 import ai.metarank.model.{FeatureValue, MValue}
 import ai.metarank.util.analytics.Metrics
@@ -19,8 +19,8 @@ import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
 case class RankApi(ranker: Ranker) extends Logging {
-  import RankApi._
-  import ai.metarank.model.Event.EventCodecs._
+  import RankApi.*
+  import ai.metarank.model.Event.EventCodecs.given
 
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
@@ -78,9 +78,9 @@ object RankApi {
 
     case class ItemScoreValues(item: ItemId, score: Double, features: Option[List[MValue]])
 
-    implicit val itemScoreCodec: Codec[ItemScoreValues] = deriveCodec
-    implicit val stateValuesCodec: Codec[StateValues]   = deriveCodec
-    implicit val rankResponseCodec: Codec[RankResponse] = deriveCodec
+    given itemScoreCodec: Codec[ItemScoreValues] = deriveCodec
+    given stateValuesCodec: Codec[StateValues]   = deriveCodec
+    given rankResponseCodec: Codec[RankResponse] = deriveCodec
   }
 
 }

@@ -8,7 +8,7 @@ trait BinaryCodec[T] {
 }
 
 object BinaryCodec {
-  import CodecOps._
+  import CodecOps.*
   val int = new BinaryCodec[Int] {
     override def read(in: DataInput): Int                 = in.readVarInt()
     override def write(value: Int, out: DataOutput): Unit = out.writeVarInt(value)

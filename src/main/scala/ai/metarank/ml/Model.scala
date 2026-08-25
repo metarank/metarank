@@ -1,12 +1,11 @@
 package ai.metarank.ml
 
 import ai.metarank.ml.Model.Response
-import ai.metarank.ml.rank.{LambdaMARTRanker, NoopRanker, QueryRequest, RankRequest, ShuffleRanker}
-import ai.metarank.ml.recommend.{RandomRecommender, RecommendRequest}
+import ai.metarank.ml.rank.QueryRequest
+import ai.metarank.ml.recommend.RecommendRequest
 import ai.metarank.model.Identifier.ItemId
 import cats.data.NonEmptyList
 import cats.effect.IO
-import io.circe.Encoder
 
 sealed trait Model[T <: Context] {
   def name: String

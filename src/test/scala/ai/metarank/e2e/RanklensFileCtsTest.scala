@@ -5,8 +5,8 @@ import ai.metarank.config.Config
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.clickthrough.FileTrainStore
-import ai.metarank.fstore.codec.StoreFormat.{BinaryStoreFormat, JsonStoreFormat}
-import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
+import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
+import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.main.command.{Import, Train}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTPredictor}
 import ai.metarank.util.RanklensEvents

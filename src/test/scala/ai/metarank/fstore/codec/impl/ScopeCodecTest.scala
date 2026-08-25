@@ -1,7 +1,6 @@
 package ai.metarank.fstore.codec.impl
 
 import ai.metarank.fstore.codec.impl.FeatureValueCodec.ScopeCodec
-import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Scope.ItemFieldScope
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

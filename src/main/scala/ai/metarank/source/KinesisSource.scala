@@ -18,10 +18,9 @@ import software.amazon.awssdk.services.kinesis.model.{
 }
 import software.amazon.awssdk.utils.AttributeMap
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import java.net.URI
-import java.time.{Duration, Instant}
-import scala.concurrent.duration._
+import java.time.Instant
 
 case class KinesisSource(conf: KinesisInputConfig) extends EventSource with Logging {
   override def stream: fs2.Stream[IO, Event] =

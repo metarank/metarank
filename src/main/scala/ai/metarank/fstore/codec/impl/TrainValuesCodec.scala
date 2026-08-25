@@ -1,13 +1,12 @@
 package ai.metarank.fstore.codec.impl
 
-import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
+import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.TrainValues.{ClickthroughValues, ItemValues, UserValues}
-import ai.metarank.model.{Clickthrough, EventId, Field, ItemValue, MValue, Timestamp, TrainValues}
+import ai.metarank.model.{EventId, Timestamp, TrainValues}
 
 import java.io.{DataInput, DataOutput}
 
 object TrainValuesCodec extends BinaryCodec[TrainValues] {
-  import CodecOps._
   val VERSION        = 3
   val listFieldCodec = new ListCodec(FieldCodec)
 
@@ -78,7 +77,6 @@ object TrainValuesCodec extends BinaryCodec[TrainValues] {
   }
 
   case class ClickthroughValuesCodec(version: Int) extends BinaryCodec[ClickthroughValues] {
-    import CodecOps._
 
     val ctvCodec           = ClickthroughCodec(version)
     val listItemValueCodec = new ListCodec(ItemValueCodec)

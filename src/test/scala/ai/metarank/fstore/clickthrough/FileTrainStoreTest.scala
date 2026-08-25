@@ -3,7 +3,7 @@ package ai.metarank.fstore.clickthrough
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.TestClickthroughValues
 import cats.effect.unsafe.implicits.global
-import cats.implicits._
+import cats.implicits.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

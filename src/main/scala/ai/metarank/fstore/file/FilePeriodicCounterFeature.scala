@@ -59,7 +59,7 @@ case class FilePeriodicCounterFeature(
 
 object FilePeriodicCounterFeature {
   case class KeyTimeCount(key: Key, ts: Timestamp, cnt: Int)
-  implicit val pcState: StateSource[PeriodicCounterState, FilePeriodicCounterFeature] =
+  given pcState: StateSource[PeriodicCounterState, FilePeriodicCounterFeature] =
     new StateSource[PeriodicCounterState, FilePeriodicCounterFeature] {
       override def source(f: FilePeriodicCounterFeature): fs2.Stream[IO, PeriodicCounterState] =
         Stream

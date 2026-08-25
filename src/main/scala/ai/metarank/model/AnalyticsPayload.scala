@@ -1,9 +1,8 @@
 package ai.metarank.model
 
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
-import ai.metarank.config.StateStoreConfig.{MemoryStateConfig, RedisStateConfig}
 import ai.metarank.config.StateStoreConfig.{FileStateConfig, MemoryStateConfig, RedisStateConfig}
-import ai.metarank.config.{Config, ModelConfig, StateStoreConfig}
+import ai.metarank.config.Config
 import ai.metarank.feature.BooleanFeature.BooleanFeatureSchema
 import ai.metarank.feature.DiversityFeature.DiversitySchema
 import ai.metarank.feature.FieldMatchBiencoderFeature.FieldMatchBiencoderSchema
@@ -47,14 +46,11 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.util.Version
 import com.google.common.hash.Hashing
 import io.circe.Codec
-import io.circe.generic.semiauto._
-import org.apache.commons.io.IOUtils
+import io.circe.generic.semiauto.*
 
-import java.io.ByteArrayInputStream
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import java.net.NetworkInterface
 import java.util.stream.Collectors
-import scala.util.Try
 
 case class AnalyticsPayload(
     state: String,
@@ -80,9 +76,9 @@ object AnalyticsPayload {
 
   case class UsedFeature(name: FeatureName, `type`: String)
 
-  implicit val systemCodec: Codec[SystemParams]               = deriveCodec
-  implicit val usedFeatureCodec: Codec[UsedFeature]           = deriveCodec
-  implicit val analyticsPayloadCodec: Codec[AnalyticsPayload] = deriveCodec
+  given systemCodec: Codec[SystemParams]               = deriveCodec
+  given usedFeatureCodec: Codec[UsedFeature]           = deriveCodec
+  given analyticsPayloadCodec: Codec[AnalyticsPayload] = deriveCodec
 
   def apply(args: CliArgs): AnalyticsPayload = new AnalyticsPayload(
     state = "empty",

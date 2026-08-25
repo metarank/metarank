@@ -22,7 +22,7 @@ import ai.metarank.util.{Logging, Version}
 import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.commons.io.IOUtils
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import java.io.FileInputStream
 import java.nio.charset.StandardCharsets
 import scala.util.Try

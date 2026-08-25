@@ -2,10 +2,9 @@ package ai.metarank.e2e
 
 import ai.metarank.FeatureMapping
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
-import ai.metarank.config.{Config, CoreConfig}
+import ai.metarank.config.Config
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemPersistence, MemTrainStore}
-import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.{Import, Serve, Train}
 import ai.metarank.model.Event.{InteractionEvent, RankItem, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}

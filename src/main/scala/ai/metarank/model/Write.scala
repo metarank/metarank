@@ -1,7 +1,7 @@
 package ai.metarank.model
 
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 sealed trait Write {
   def key: Key
@@ -19,15 +19,15 @@ object Write {
   case class PutStatSample(key: Key, ts: Timestamp, value: Double) extends Write
   case class PutFreqSample(key: Key, ts: Timestamp, value: String) extends Write
 
-  implicit val putCodec: Codec[Put]                       = deriveCodec[Put]
-  implicit val putTupleCodec: Codec[PutTuple]             = deriveCodec[PutTuple]
-  implicit val incCodec: Codec[Increment]                 = deriveCodec[Increment]
-  implicit val periodicIncCodec: Codec[PeriodicIncrement] = deriveCodec[PeriodicIncrement]
-  implicit val appendCodec: Codec[Append]                 = deriveCodec[Append]
-  implicit val putStatCodec: Codec[PutStatSample]         = deriveCodec[PutStatSample]
-  implicit val putFreqCodec: Codec[PutFreqSample]         = deriveCodec[PutFreqSample]
+  given putCodec: Codec[Put]                       = deriveCodec[Put]
+  given putTupleCodec: Codec[PutTuple]             = deriveCodec[PutTuple]
+  given incCodec: Codec[Increment]                 = deriveCodec[Increment]
+  given periodicIncCodec: Codec[PeriodicIncrement] = deriveCodec[PeriodicIncrement]
+  given appendCodec: Codec[Append]                 = deriveCodec[Append]
+  given putStatCodec: Codec[PutStatSample]         = deriveCodec[PutStatSample]
+  given putFreqCodec: Codec[PutFreqSample]         = deriveCodec[PutFreqSample]
 
-  implicit val writeEncoder: Encoder[Write] = Encoder.instance {
+  given writeEncoder: Encoder[Write] = Encoder.instance {
     case w: Put               => putCodec(w).deepMerge(typeField("put"))
     case w: PutTuple          => putTupleCodec(w).deepMerge(typeField("put-tuple"))
     case w: Increment         => incCodec(w).deepMerge(typeField("inc"))
@@ -37,7 +37,7 @@ object Write {
     case w: PutFreqSample     => putFreqCodec(w).deepMerge(typeField("put-freq"))
   }
 
-  implicit val writeDecoder: Decoder[Write] = Decoder.instance(c =>
+  given writeDecoder: Decoder[Write] = Decoder.instance(c =>
     for {
       tpe <- c.downField("type").as[String]
       write <- tpe match {
@@ -55,7 +55,7 @@ object Write {
     }
   )
 
-  implicit val writeCodec: Codec[Write] = Codec.from(writeDecoder, writeEncoder)
+  given writeCodec: Codec[Write] = Codec.from(writeDecoder, writeEncoder)
 
   def typeField(tpe: String) = Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(tpe))))
 }

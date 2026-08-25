@@ -3,25 +3,23 @@ package ai.metarank.ml.rank
 import ai.metarank.config.BoosterConfig.{LightGBMConfig, XGBoostConfig}
 import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{BoosterConfig, ModelConfig, Selector, WarmupConfig}
-import ai.metarank.flow.{ClickthroughQuery, PrintProgress}
-import ai.metarank.flow.PrintProgress.ProgressPeriod
-import ai.metarank.main.command.Train.info
+import ai.metarank.flow.ClickthroughQuery
 import ai.metarank.main.command.train.SplitStrategy
 import ai.metarank.main.command.train.SplitStrategy.{Split, splitDecoder}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.{EmptyDatasetException, RankPredictor}
 import ai.metarank.ml.rank.LambdaMARTRanker.EvalMetricName.{MapMetric, MrrMetric, NdcgMetric}
-import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.ml.Model
 import ai.metarank.model.Event.{RankItem, RankingEvent}
 import ai.metarank.model.FeatureWeight.{SingularWeight, VectorWeight}
 import ai.metarank.model.Identifier.ItemId
-import ai.metarank.model.{FeatureWeight, Field, QueryMetadata, TrainValues}
+import ai.metarank.model.{FeatureWeight, QueryMetadata, TrainValues}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{Logging, RankingEventFormat}
 import cats.data.NonEmptyList
 import cats.effect.std.Queue
-import cats.effect.{IO, ParallelF, Ref}
+import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.deriveEncoder
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
@@ -29,16 +27,13 @@ import io.github.metarank.ltrlib.metric.{MAP, MRR, Metric, NDCG}
 import io.github.metarank.ltrlib.model.{Dataset, DatasetDescriptor, Feature}
 import io.github.metarank.ltrlib.ranking.pairwise.LambdaMART
 import org.apache.commons.io.FileUtils
-import cats.implicits._
+import cats.implicits.*
 import fs2.Pipe
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import java.util
-import scala.util.{Failure, Random, Success, Try}
+import scala.util.Random
 
 object LambdaMARTRanker extends Logging {
-
-  import ai.metarank.util.DurationJson._
 
   case class LambdaMARTConfig(
       backend: BoosterConfig,
@@ -84,12 +79,12 @@ object LambdaMARTRanker extends Logging {
         case other  => Left(new Exception(s"cannot decode metric $other"))
       }
 
-    implicit val evalMetricNameDecoder: Decoder[EvalMetricName] = Decoder.decodeString.emapTry {
+    given evalMetricNameDecoder: Decoder[EvalMetricName] = Decoder.decodeString.emapTry {
       case metricCutoffPattern(name, cutoff) => fromString(name, Some(cutoff.toInt)).toTry
       case metricPattern(name)               => fromString(name).toTry
     }
 
-    implicit val evalMetricNameEncoder: Encoder[EvalMetricName] = Encoder.encodeString.contramap {
+    given evalMetricNameEncoder: Encoder[EvalMetricName] = Encoder.encodeString.contramap {
       case NdcgMetric(Some(cutoff)) => s"ndcg@$cutoff"
       case NdcgMetric(None)         => "ndcg"
       case MapMetric(Some(cutoff))  => s"map@$cutoff"
@@ -447,7 +442,7 @@ object LambdaMARTRanker extends Logging {
   case class MetricValue(value: Double, noopValue: Double, randomValue: Double, took: Long)
 
   val forbiddenFeatureNames = Set("models", "state", "values")
-  implicit val lmDecoder: Decoder[LambdaMARTConfig] = Decoder
+  given lmDecoder: Decoder[LambdaMARTConfig] = Decoder
     .instance(c =>
       for {
         backendOption <- c.downField("backend").as[Option[BoosterConfig]]
@@ -469,7 +464,7 @@ object LambdaMARTRanker extends Logging {
       s"feature names ${forbiddenFeatureNames} are reserved names, you cannot use them"
     )
 
-  implicit val lmEncoder: Encoder[LambdaMARTConfig] = deriveEncoder
+  given lmEncoder: Encoder[LambdaMARTConfig] = deriveEncoder
 
   def maybeClipWeights(backend: BoosterConfig, weights: Map[String, Double]): Map[String, Double] = {
     backend match {

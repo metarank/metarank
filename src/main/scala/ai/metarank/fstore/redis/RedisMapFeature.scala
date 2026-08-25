@@ -1,7 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.Persistence.KVCodec
-import ai.metarank.fstore.codec.{KCodec, StoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -9,10 +8,10 @@ import ai.metarank.model.Feature.MapFeature
 import ai.metarank.model.Feature.MapFeature.MapConfig
 import ai.metarank.model.FeatureValue.MapValue
 import ai.metarank.model.State.MapState
-import ai.metarank.model.{Key, Scalar, Timestamp}
+import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutTuple
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 
 case class RedisMapFeature(config: MapConfig, client: RedisClient, prefix: String, format: StoreFormat)
     extends MapFeature {
@@ -40,7 +39,7 @@ case class RedisMapFeature(config: MapConfig, client: RedisClient, prefix: Strin
 }
 
 object RedisMapFeature {
-  implicit val mapSink: StateSink[MapState, RedisMapFeature] = new StateSink[MapState, RedisMapFeature] {
+  given mapSink: StateSink[MapState, RedisMapFeature] = new StateSink[MapState, RedisMapFeature] {
     override def sink(f: RedisMapFeature, state: fs2.Stream[IO, MapState]): IO[TransferResult] =
       state
         .evalMap(s =>

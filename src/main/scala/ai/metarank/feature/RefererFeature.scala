@@ -4,20 +4,20 @@ import ai.metarank.feature.BaseFeature.RankingFeature
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.SingleDim
-import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent, UserEvent}
+import ai.metarank.model.Event.{FeedbackEvent, InteractionEvent, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
-import ai.metarank.model.FeatureValue.{MapValue, ScalarValue}
+import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.FieldName.EventType
-import ai.metarank.model.FieldName.EventType.{AnyEvent, Interaction, Ranking, User}
+import ai.metarank.model.FieldName.EventType.{AnyEvent, Interaction, Ranking}
 import ai.metarank.model.Identifier.{SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.MValue.{CategoryValue, VectorValue}
-import ai.metarank.model.Scalar.{SBoolean, SString}
+import ai.metarank.model.MValue.CategoryValue
+import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.{SessionScope, UserScope}
-import ai.metarank.model.Write.{Put, PutTuple}
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.Write.Put
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.util.{Logging, RefererParser}
 import ai.metarank.util.RefererParser.{ExternalReferer, InternalReferer, UnknownReferer}
 import better.files.Resource
@@ -25,7 +25,7 @@ import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.duration.FiniteDuration
 
 case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends RankingFeature with Logging {
@@ -109,7 +109,7 @@ case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends 
 }
 
 object RefererFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
 
   case class RefererSchema(
       name: FeatureName,
@@ -131,12 +131,12 @@ object RefererFeature {
 
   }
 
-  implicit val refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
+  given refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
     .ensure(validType, "source type can be only interaction or ranking")
     .ensure(validScope, "scope can be only user or session")
     .withErrorMessage("cannot parse a feature definition of type 'referer'")
 
-  implicit val refererEncoder: Encoder[RefererSchema] = deriveEncoder
+  given refererEncoder: Encoder[RefererSchema] = deriveEncoder
 
   private def validType(schema: RefererSchema) = schema.source.event match {
     case EventType.Interaction(_) => true

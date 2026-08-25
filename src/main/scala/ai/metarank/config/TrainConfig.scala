@@ -1,48 +1,36 @@
 package ai.metarank.config
 
 import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisTLS, RedisTimeouts}
-import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, DBConfig, PipelineConfig}
+import ai.metarank.config.StateStoreConfig.RedisStateConfig.{CacheConfig, PipelineConfig}
 import ai.metarank.config.TrainConfig.CompressionType.{GzipCompressionType, NoCompressionType, ZstdCompressionType}
 import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success}
 
 sealed trait TrainConfig
 
 object TrainConfig {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
 
-  sealed trait CompressionType {
-    def ext: String
+  enum CompressionType(val ext: String) {
+    case GzipCompressionType extends CompressionType(".gz")
+    case ZstdCompressionType extends CompressionType(".zst")
+    case NoCompressionType   extends CompressionType(".bin")
   }
   object CompressionType {
-    case object GzipCompressionType extends CompressionType {
-      def ext = ".gz"
-    }
-    case object ZstdCompressionType extends CompressionType {
-      def ext = ".zst"
-    }
-    case object NoCompressionType extends CompressionType {
-      def ext = ".bin"
-    }
-
-    def fromKey(key: String): Option[CompressionType] =
-      if (key.endsWith(GzipCompressionType.ext)) Some(GzipCompressionType)
-      else if (key.endsWith(ZstdCompressionType.ext)) Some(ZstdCompressionType)
-      else if (key.endsWith(NoCompressionType.ext)) Some(NoCompressionType)
-      else None
+    def fromKey(key: String): Option[CompressionType] = CompressionType.values.find(c => key.endsWith(c.ext))
   }
 
-  implicit val compressEncoder: Encoder[CompressionType] = Encoder.instance {
+  given compressEncoder: Encoder[CompressionType] = Encoder.instance {
     case CompressionType.GzipCompressionType => Json.fromString("gzip")
     case CompressionType.ZstdCompressionType => Json.fromString("zstd")
     case CompressionType.NoCompressionType   => Json.fromString("none")
   }
 
-  implicit val compressDecoder: Decoder[CompressionType] = Decoder.decodeString.emapTry {
+  given compressDecoder: Decoder[CompressionType] = Decoder.decodeString.emapTry {
     case "gzip" | "gz"  => Success(GzipCompressionType)
     case "zstd" | "zst" => Success(ZstdCompressionType)
     case "none"         => Success(NoCompressionType)
@@ -62,7 +50,7 @@ object TrainConfig {
       endpoint: Option[String] = None,
       format: StoreFormat = BinaryStoreFormat
   ) extends TrainConfig
-  implicit val s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
+  given s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
     for {
       key             <- c.downField("key").as[Option[String]]
       secret          <- c.downField("secret").as[Option[String]]
@@ -96,7 +84,7 @@ object TrainConfig {
       path: String,
       format: StoreFormat = BinaryStoreFormat
   ) extends TrainConfig
-  implicit val fileDecoder: Decoder[FileTrainConfig] = Decoder.instance(c =>
+  given fileDecoder: Decoder[FileTrainConfig] = Decoder.instance(c =>
     for {
       path   <- c.downField("path").as[String]
       format <- c.downField("format").as[StoreFormat]
@@ -106,7 +94,7 @@ object TrainConfig {
   )
 
   case class DiscardTrainConfig() extends TrainConfig
-  implicit val discardDecoder: Decoder[DiscardTrainConfig] = Decoder.instance(_ => Right(DiscardTrainConfig()))
+  given discardDecoder: Decoder[DiscardTrainConfig] = Decoder.instance(_ => Right(DiscardTrainConfig()))
 
   case class RedisTrainConfig(
       host: Hostname,
@@ -120,7 +108,7 @@ object TrainConfig {
       timeout: RedisTimeouts = RedisTimeouts(),
       ttl: FiniteDuration = 365.days
   ) extends TrainConfig
-  implicit val redisDecoder: Decoder[RedisTrainConfig] = Decoder.instance(c =>
+  given redisDecoder: Decoder[RedisTrainConfig] = Decoder.instance(c =>
     for {
       host    <- c.downField("host").as[Hostname]
       port    <- c.downField("port").as[Port]
@@ -149,9 +137,9 @@ object TrainConfig {
   )
 
   case class MemoryTrainConfig() extends TrainConfig
-  implicit val memDecoder: Decoder[MemoryTrainConfig] = Decoder.instance(_ => Right(MemoryTrainConfig()))
+  given memDecoder: Decoder[MemoryTrainConfig] = Decoder.instance(_ => Right(MemoryTrainConfig()))
 
-  implicit val trainDecoder: Decoder[TrainConfig] = Decoder.instance(c =>
+  given trainDecoder: Decoder[TrainConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Left(err)        => Left(err)
       case Right("redis")   => redisDecoder.tryDecode(c)

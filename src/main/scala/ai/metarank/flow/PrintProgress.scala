@@ -1,18 +1,17 @@
 package ai.metarank.flow
 
 import ai.metarank.fstore.Persistence
-import ai.metarank.fstore.cache.{CachedKVStore, NegCachedKVStore}
-import ai.metarank.fstore.file.{FileKVStore, FilePersistence}
+import ai.metarank.fstore.cache.CachedKVStore
+import ai.metarank.fstore.file.FilePersistence
 import ai.metarank.fstore.memory.MemKVStore
-import ai.metarank.fstore.redis.RedisKVStore
-import ai.metarank.model.{Event, Timestamp}
+import ai.metarank.model.Timestamp
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Pipe
 
 import java.lang.management.ManagementFactory
-import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
+import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
 object PrintProgress extends Logging {
   case class ProgressPeriod(

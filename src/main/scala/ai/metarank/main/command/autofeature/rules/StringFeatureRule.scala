@@ -1,6 +1,6 @@
 package ai.metarank.main.command.autofeature.rules
 import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
-import ai.metarank.feature.StringFeature.{OnehotCategoricalEncoder, StringFeatureSchema}
+import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.main.command.autofeature.EventModel
 import ai.metarank.main.command.autofeature.FieldStat.StringFieldStat
 import ai.metarank.model.FieldName.EventType.Item

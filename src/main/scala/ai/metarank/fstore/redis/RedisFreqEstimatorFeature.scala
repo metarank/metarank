@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.codec.{KCodec, StoreFormat}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult
@@ -40,7 +40,7 @@ case class RedisFreqEstimatorFeature(
 }
 
 object RedisFreqEstimatorFeature {
-  implicit val freqSink: StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] =
+  given freqSink: StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] =
     new StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] {
       override def sink(f: RedisFreqEstimatorFeature, state: fs2.Stream[IO, FreqEstimatorState]): IO[TransferResult] =
         state

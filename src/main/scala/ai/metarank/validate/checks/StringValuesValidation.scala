@@ -5,7 +5,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.{ItemEvent, UserEvent}
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.EventType.{Item, User}
-import ai.metarank.model.{Event, FeatureSchema, Field, FieldName}
+import ai.metarank.model.{Event, FeatureSchema, FieldName}
 import ai.metarank.validate.EventValidation
 import ai.metarank.validate.EventValidation.ValidationError
 import ai.metarank.validate.checks.StringValuesValidation.StringValuesValidationError

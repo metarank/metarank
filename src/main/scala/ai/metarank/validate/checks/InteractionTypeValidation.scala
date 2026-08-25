@@ -1,6 +1,6 @@
 package ai.metarank.validate.checks
 
-import ai.metarank.config.{Config, ModelConfig}
+import ai.metarank.config.Config
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event
 import ai.metarank.model.Event.InteractionEvent

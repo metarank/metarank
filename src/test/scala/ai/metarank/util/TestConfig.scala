@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import ai.metarank.config.{ApiConfig, Config, CoreConfig, Hostname, Port}
-import ai.metarank.config.InputConfig._
+import ai.metarank.config.InputConfig.*
 import ai.metarank.config.StateStoreConfig.MemoryStateConfig
 import ai.metarank.config.TrainConfig.MemoryTrainConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema
@@ -10,7 +10,6 @@ import ai.metarank.model.FieldName
 import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
-import cats.data.{NonEmptyList, NonEmptyMap}
 
 object TestConfig {
   def apply() = new Config(

@@ -20,7 +20,7 @@ class S3TrainBufferTest extends AnyFlatSpec with Matchers {
   // then compress + decode the whole part and confirm it round-trips.
   def roundtrip(compress: CompressionType): Unit = {
     val events: List[TrainValues] = List.fill(1000)(ct)
-    val buffer                    = events.grouped(7).foldLeft(S3TrainStore.Buffer(compress, codec))((buf, b) => buf.put(b.toList))
+    val buffer = events.grouped(7).foldLeft(S3TrainStore.Buffer(compress, codec))((buf, b) => buf.put(b.toList))
     buffer.eventCount shouldBe events.size
     val bytes = buffer.toByteArray()
     val conf  = S3TrainConfig(bucket = "b", region = "eu-west-1", prefix = "p", compress = compress)

@@ -1,15 +1,8 @@
 package ai.metarank.flow
 
-import ai.metarank.FeatureMapping
-import ai.metarank.fstore.Persistence
-import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
-import ai.metarank.model.Identifier.{ItemId, SessionId}
-import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.Scope.SessionScope
-import ai.metarank.model.{Clickthrough, Event, EventId, ItemValue, Key}
+import ai.metarank.model.Event.InteractionEvent
+import ai.metarank.model.Clickthrough
 import ai.metarank.util.Logging
-import cats.effect.IO
-import fs2.{Pipe, Stream}
 
 object ImpressionInject extends Logging {
 

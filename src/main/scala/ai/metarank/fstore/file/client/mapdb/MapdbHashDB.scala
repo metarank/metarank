@@ -2,7 +2,7 @@ package ai.metarank.fstore.file.client.mapdb
 
 import ai.metarank.fstore.file.client.HashDB
 import org.mapdb.HTreeMap
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class MapdbHashDB(map: HTreeMap[String, Array[Byte]]) extends HashDB[Array[Byte]] {
   def put(key: String, value: Array[Byte]): Unit = {

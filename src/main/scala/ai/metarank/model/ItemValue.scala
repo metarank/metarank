@@ -4,9 +4,8 @@ import ai.metarank.FeatureMapping
 import ai.metarank.feature.BaseFeature.{ItemFeature, RankingFeature, ValueMode}
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
-import cats.data.NonEmptyList
 import io.circe.Codec
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 case class ItemValue(id: ItemId, values: List[MValue]) {
   // as an optimization
@@ -20,7 +19,7 @@ case class ItemValue(id: ItemId, values: List[MValue]) {
 }
 
 object ItemValue {
-  implicit val ivCodec: Codec[ItemValue] = deriveCodec[ItemValue]
+  given ivCodec: Codec[ItemValue] = deriveCodec[ItemValue]
 
   def fromState(
       ranking: Event.RankingEvent,

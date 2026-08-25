@@ -5,7 +5,7 @@ import ai.metarank.model.Event
 import ai.metarank.source.PulsarEventSource
 import ai.metarank.util.TestItemEvent
 import cats.effect.unsafe.implicits.global
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.apache.pulsar.client.admin.PulsarAdmin
 import org.apache.pulsar.client.api.PulsarClient
 import org.apache.pulsar.common.policies.data.TenantInfo
@@ -13,7 +13,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.nio.charset.StandardCharsets
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class PulsarEventSourceTest extends AnyFlatSpec with Matchers {
 

@@ -5,12 +5,10 @@ import ai.metarank.config.Config
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.{TrainStore, Persistence}
 import ai.metarank.main.CliArgs.{ImportArgs, StandaloneArgs}
-import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
-import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.implicits._
+import cats.implicits.*
 
 object Standalone extends Logging {
   def run(

@@ -19,15 +19,15 @@ import cats.effect.{ExitCode, IO, IOApp}
 import org.apache.commons.io.IOUtils
 import org.http4s.{Entity, Method, Request, Uri}
 import org.http4s.client.Client
-import cats.implicits._
+import cats.implicits.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.UUID
 import scala.util.Random
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.apache.commons.math3.stat.descriptive.rank.Percentile
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.log4cats.LoggerFactory
@@ -89,7 +89,7 @@ object LatencyBenchmark extends IOApp with Logging {
   }
 
   def start(mapping: FeatureMapping, conf: Config, confPath: String, dataPath: String) = {
-    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     for {
       store <- Persistence.fromConfig(mapping.schema, conf.state, ImportCacheConfig())
       cts   <- TrainStore.fromConfig(conf.train)

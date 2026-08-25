@@ -4,10 +4,10 @@ import ai.metarank.config.Selector.AcceptSelector
 import ai.metarank.config.{ModelConfig, Selector}
 import ai.metarank.ml.Model.{ItemScore, RankModel, Response}
 import ai.metarank.ml.Predictor.RankPredictor
-import ai.metarank.ml.{Model, Predictor}
+import ai.metarank.ml.Model
 import ai.metarank.model.TrainValues
 import cats.effect.IO
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import io.circe.{Decoder, Encoder}
 
 object NoopRanker {
@@ -26,10 +26,10 @@ object NoopRanker {
     override def save(): Option[Array[Byte]] = None
   }
 
-  implicit val noopDecoder: Decoder[NoopConfig] =
+  given noopDecoder: Decoder[NoopConfig] =
     Decoder.instance(c =>
       c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector())).map(NoopConfig.apply)
     )
-  implicit val noopEncoder: Encoder[NoopConfig] = deriveEncoder[NoopConfig]
+  given noopEncoder: Encoder[NoopConfig] = deriveEncoder[NoopConfig]
 
 }

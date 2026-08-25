@@ -1,16 +1,15 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.StringFeature.EncoderName.{IndexEncoderName, OnehotEncoderName}
+import ai.metarank.feature.StringFeature.EncoderName.OnehotEncoderName
 import ai.metarank.feature.StringFeature.StringFeatureSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.FieldName.EventType.{Interaction, Item, Ranking, User}
-import ai.metarank.model.Field.{NumberField, StringField}
+import ai.metarank.model.Field.StringField
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.{FieldName, Key, MValue, Schema}
-import ai.metarank.model.MValue.{CategoryValue, VectorValue}
+import ai.metarank.model.MValue.VectorValue
 import ai.metarank.model.Scalar.SStringList
 import ai.metarank.model.Scope.{ItemScope, UserScope}
 import ai.metarank.model.ScopeType.{ItemScopeType, SessionScopeType, UserScopeType}

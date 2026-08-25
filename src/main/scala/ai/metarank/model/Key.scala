@@ -26,9 +26,9 @@ object Key {
     override def toString = value
   }
 
-  implicit val nameCodec: Codec[FeatureName] = stringCodec(_.value, FeatureName.apply)
+  given nameCodec: Codec[FeatureName] = stringCodec(_.value, FeatureName.apply)
 
-  implicit val keyEncoder: Encoder[Key] = Encoder.instance(key =>
+  given keyEncoder: Encoder[Key] = Encoder.instance(key =>
     Json.fromJsonObject(
       JsonObject.fromMap(
         Map(
@@ -39,7 +39,7 @@ object Key {
     )
   )
 
-  implicit val keyDecoder: Decoder[Key] = Decoder.instance(c =>
+  given keyDecoder: Decoder[Key] = Decoder.instance(c =>
     for {
       scope   <- c.downField("scope").as[Scope]
       feature <- c.downField("feature").as[FeatureName]
@@ -48,7 +48,7 @@ object Key {
     }
   )
 
-  implicit val keyCodec: Codec[Key] = Codec.from(keyDecoder, keyEncoder)
+  given keyCodec: Codec[Key] = Codec.from(keyDecoder, keyEncoder)
 
   def stringCodec[T](toString: T => String, fromString: String => T) =
     Codec.from(Decoder.decodeString.map(fromString), Encoder.encodeString.contramap(toString))

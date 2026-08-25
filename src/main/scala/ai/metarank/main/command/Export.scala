@@ -10,7 +10,7 @@ import ai.metarank.main.command.util.StreamResource
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.model.BoosterConfigFile.{LightGBMConfigFile, XGBoostConfigFile}
 import ai.metarank.util.Logging
-import cats.effect.{ExitCode, IO}
+import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.github.metarank.ltrlib.model.{Dataset, Feature}
 import io.github.metarank.ltrlib.output.{CSVOutputFormat, LibSVMOutputFormat}

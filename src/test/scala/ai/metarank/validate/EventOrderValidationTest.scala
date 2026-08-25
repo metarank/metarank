@@ -5,7 +5,7 @@ import ai.metarank.util.{TestConfig, TestItemEvent}
 import ai.metarank.validate.checks.EventOrderValidation
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class EventOrderValidationTest extends AnyFlatSpec with Matchers {
   lazy val now = Timestamp.now

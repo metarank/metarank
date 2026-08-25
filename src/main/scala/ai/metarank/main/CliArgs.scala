@@ -5,15 +5,13 @@ import ai.metarank.config.InputConfig.FileInputConfig.SortingType.SortByName
 import ai.metarank.config.InputConfig.SourceOffset
 import ai.metarank.config.InputConfig.SourceOffset.Earliest
 import ai.metarank.config.SourceFormat
-import ai.metarank.main.command.autofeature.rules.RuleSet
 import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType
 import ai.metarank.main.command.autofeature.rules.RuleSet.RuleSetType.{AllRuleSet, StableRuleSet}
 import ai.metarank.main.command.train.SplitStrategy
-import ai.metarank.main.command.train.SplitStrategy.TimeSplit
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
-import org.rogach.scallop.{*, given}
+import org.rogach.scallop.*
 
 import java.nio.file.Path
 import scala.concurrent.duration.FiniteDuration
@@ -418,7 +416,7 @@ object CliArgs extends Logging {
     override protected def onError(e: Throwable): Unit = throw e
   }
 
-  implicit val offsetConverter: ValueConverter[SourceOffset] = singleArgConverter(conv = {
+  given offsetConverter: ValueConverter[SourceOffset] = singleArgConverter(conv = {
     case "earliest"                 => SourceOffset.Earliest
     case "latest"                   => SourceOffset.Earliest
     case SourceOffset.tsPattern(ts) => SourceOffset.ExactTimestamp(ts.toLong)
@@ -427,7 +425,7 @@ object CliArgs extends Logging {
     case other => throw new IllegalArgumentException(s"cannot parse offset $other")
   })
 
-  implicit val formatConverter: ValueConverter[SourceFormat] = singleArgConverter(conv = {
+  given formatConverter: ValueConverter[SourceFormat] = singleArgConverter(conv = {
     case "json"          => JsonFormat
     case "snowplow"      => SnowplowTSVFormat
     case "snowplow:tsv"  => SnowplowTSVFormat
@@ -435,25 +433,25 @@ object CliArgs extends Logging {
     case other           => throw new IllegalArgumentException(s"format $other is not supported")
   })
 
-  implicit val booleanConverter: ValueConverter[Boolean] = singleArgConverter({
+  given booleanConverter: ValueConverter[Boolean] = singleArgConverter({
     case "yes" | "true" | "on"  => true
     case "no" | "false" | "off" => false
     case other                  => throw new IllegalArgumentException(s"cannot parse $other as boolean value")
   })
 
-  implicit val ruleSetConverter: ValueConverter[RuleSetType] = singleArgConverter({
+  given ruleSetConverter: ValueConverter[RuleSetType] = singleArgConverter({
     case "all"    => AllRuleSet
     case "stable" => StableRuleSet
     case other    => throw new IllegalArgumentException(s"cannot parse $other as a ruleset")
   })
 
-  implicit val sortConverter: ValueConverter[SortingType] = singleArgConverter({
+  given sortConverter: ValueConverter[SortingType] = singleArgConverter({
     case "name"          => SortingType.SortByName
     case "last-modified" => SortingType.SortByTime
     case other           => throw new IllegalArgumentException(s"cannot parse $other as a sorting method")
   })
 
-  implicit val splitConverter: ValueConverter[SplitStrategy] = singleArgConverter(str =>
+  given splitConverter: ValueConverter[SplitStrategy] = singleArgConverter(str =>
     SplitStrategy.parse(str) match {
       case Left(error)  => throw error
       case Right(value) => value

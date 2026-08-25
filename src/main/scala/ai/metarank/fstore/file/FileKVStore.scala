@@ -2,7 +2,7 @@ package ai.metarank.fstore.file
 
 import ai.metarank.fstore.Persistence.KVStore
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.{FileClient, HashDB}
+import ai.metarank.fstore.file.client.HashDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.{FeatureValue, Key}
 import cats.effect.IO
@@ -49,7 +49,7 @@ case class FileKVStore(db: HashDB[Array[Byte]], format: StoreFormat) extends KVS
 }
 
 object FileKVStore {
-  implicit val kvStateSource: StateSource[FeatureValue, FileKVStore] = new StateSource[FeatureValue, FileKVStore] {
+  given kvStateSource: StateSource[FeatureValue, FileKVStore] = new StateSource[FeatureValue, FileKVStore] {
     override def source(f: FileKVStore): fs2.Stream[IO, FeatureValue] =
       Stream
         .fromBlockingIterator[IO](f.db.all(), 128)

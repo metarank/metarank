@@ -51,5 +51,5 @@ object PositionFeature {
     override def create(): IO[BaseFeature] = IO.pure(PositionFeature(this))
   }
 
-  implicit val positionSchemaCodec: Codec[PositionFeatureSchema] = deriveCodec
+  given positionSchemaCodec: Codec[PositionFeatureSchema] = deriveCodec
 }

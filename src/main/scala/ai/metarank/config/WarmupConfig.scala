@@ -1,17 +1,17 @@
 package ai.metarank.config
 
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class WarmupConfig(sampledRequests: Int = 100, duration: FiniteDuration = 10.seconds)
 
 object WarmupConfig {
-  import ai.metarank.util.DurationJson._
-  implicit val warmupEncoder: Encoder[WarmupConfig] = deriveEncoder
+  import ai.metarank.util.DurationJson.given
+  given warmupEncoder: Encoder[WarmupConfig] = deriveEncoder
 
-  implicit val warmupDecoder: Decoder[WarmupConfig] = Decoder.instance(c =>
+  given warmupDecoder: Decoder[WarmupConfig] = Decoder.instance(c =>
     for {
       requestsOption <- c.downField("sampledRequests").as[Option[Int]]
       durationOption <- c.downField("duration").as[Option[FiniteDuration]]

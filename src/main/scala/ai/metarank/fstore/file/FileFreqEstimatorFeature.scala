@@ -1,7 +1,7 @@
 package ai.metarank.fstore.file
 
 import ai.metarank.fstore.codec.StoreFormat
-import ai.metarank.fstore.file.client.{FileClient, SortedDB}
+import ai.metarank.fstore.file.client.SortedDB
 import ai.metarank.fstore.transfer.StateSource
 import ai.metarank.model.Feature.{FreqEstimatorFeature, shouldSample}
 import ai.metarank.model.Feature.FreqEstimatorFeature.FreqEstimatorConfig
@@ -11,7 +11,6 @@ import ai.metarank.model.{FeatureValue, Key, Timestamp, Write}
 import ai.metarank.util.SortedGroupBy
 import cats.effect.IO
 import fs2.Stream
-import org.apache.commons.lang3.ArrayUtils
 
 import scala.util.Random
 
@@ -35,7 +34,7 @@ case class FileFreqEstimatorFeature(config: FreqEstimatorConfig, db: SortedDB[St
 
 object FileFreqEstimatorFeature {
   case class FreqSample(key: Key, s: String)
-  implicit val fileFreqSource: StateSource[FreqEstimatorState, FileFreqEstimatorFeature] =
+  given fileFreqSource: StateSource[FreqEstimatorState, FileFreqEstimatorFeature] =
     new StateSource[FreqEstimatorState, FileFreqEstimatorFeature] {
       override def source(f: FileFreqEstimatorFeature): Stream[IO, FreqEstimatorState] = {
         Stream

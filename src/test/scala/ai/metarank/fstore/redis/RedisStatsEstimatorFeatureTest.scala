@@ -4,7 +4,6 @@ import ai.metarank.fstore.StatsEstimatorSuite
 import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.State.StatsEstimatorState
-import ai.metarank.model.Write.PutStatSample
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 

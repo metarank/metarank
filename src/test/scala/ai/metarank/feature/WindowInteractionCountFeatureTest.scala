@@ -1,9 +1,7 @@
 package ai.metarank.feature
 
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
-import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.{Key, Schema}
 import ai.metarank.model.Key.FeatureName
@@ -16,7 +14,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class WindowInteractionCountFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val feature = WindowInteractionCountFeature(

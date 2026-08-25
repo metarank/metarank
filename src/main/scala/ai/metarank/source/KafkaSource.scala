@@ -3,7 +3,7 @@ package ai.metarank.source
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
 import ai.metarank.model.{Event, Timestamp}
 import ai.metarank.source.KafkaSource.Consumer
-import ai.metarank.source.KafkaSource.Consumer.ConsumerOps
+import ai.metarank.source.KafkaSource.Consumer.*
 import ai.metarank.util.Logging
 import cats.effect.IO
 import com.google.common.collect.Lists
@@ -20,7 +20,7 @@ import org.apache.kafka.common.TopicPartition
 
 import java.time.Duration
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import java.util.{Collections, Properties}
 
 case class KafkaSource(conf: KafkaInputConfig) extends EventSource {
@@ -68,7 +68,7 @@ object KafkaSource {
       }
     }
 
-    implicit class ConsumerOps(client: KafkaConsumer[Array[Byte], Array[Byte]]) {
+    extension (client: KafkaConsumer[Array[Byte], Array[Byte]]) {
       def subscribe(topic: String, offset: Option[SourceOffset]): Unit =
         client.subscribe(
           Collections.singleton(topic),

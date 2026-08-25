@@ -11,7 +11,7 @@ import fs2.Chunk
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 import org.http4s.{EntityDecoder, EntityEncoder, Method, Request, Uri}
-import org.http4s.circe._
+import org.http4s.circe.*
 import org.http4s.client.Client
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.log4cats.LoggerFactory
@@ -19,7 +19,7 @@ import org.typelevel.log4cats.slf4j.Slf4jFactory
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object QdrantIndex extends Logging {
   val BITSTREAM_VERSION = 1
@@ -96,7 +96,7 @@ object QdrantIndex extends Logging {
     }
 
     def makeClient() = {
-      implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+      given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
       EmberClientBuilder
         .default[IO]
         .withTimeout(10.second)
@@ -133,30 +133,30 @@ object QdrantIndex extends Logging {
 
   case class CreateCollectionRequest(vectors: CreateCollectionVectors)
   case class CreateCollectionVectors(size: Int, distance: String)
-  implicit val vectorsCodec: Codec[CreateCollectionVectors]           = deriveCodec
-  implicit val createCodec: Codec[CreateCollectionRequest]            = deriveCodec
-  implicit val createJson: EntityEncoder[IO, CreateCollectionRequest] = jsonEncoderOf[CreateCollectionRequest]
+  given vectorsCodec: Codec[CreateCollectionVectors]           = deriveCodec
+  given createCodec: Codec[CreateCollectionRequest]            = deriveCodec
+  given createJson: EntityEncoder[IO, CreateCollectionRequest] = jsonEncoderOf[CreateCollectionRequest]
 
   case class QdrantOptions(endpoint: String, collection: String, dim: Int, distance: String)
 
   case class QdrantResponse(status: String)
-  implicit val responseCodec: Codec[QdrantResponse]            = deriveCodec
-  implicit val responseJson: EntityDecoder[IO, QdrantResponse] = jsonOf[IO, QdrantResponse]
+  given responseCodec: Codec[QdrantResponse]            = deriveCodec
+  given responseJson: EntityDecoder[IO, QdrantResponse] = jsonOf[IO, QdrantResponse]
 
   case class QdrantPointsRequest(points: List[QdrantPoint])
   case class QdrantPoint(id: UUID, vector: Array[Double])
-  implicit val pointCodec: Codec[QdrantPoint]                = deriveCodec
-  implicit val pointRequestCodec: Codec[QdrantPointsRequest] = deriveCodec
+  given pointCodec: Codec[QdrantPoint]                = deriveCodec
+  given pointRequestCodec: Codec[QdrantPointsRequest] = deriveCodec
 
-  implicit val pointRequestJson: EntityEncoder[IO, QdrantPointsRequest] = jsonEncoderOf[QdrantPointsRequest]
+  given pointRequestJson: EntityEncoder[IO, QdrantPointsRequest] = jsonEncoderOf[QdrantPointsRequest]
 
   case class SearchRequest(positive: List[UUID], limit: Int)
-  implicit val searchCodec: Codec[SearchRequest]            = deriveCodec
-  implicit val searchJson: EntityEncoder[IO, SearchRequest] = jsonEncoderOf[SearchRequest]
+  given searchCodec: Codec[SearchRequest]            = deriveCodec
+  given searchJson: EntityEncoder[IO, SearchRequest] = jsonEncoderOf[SearchRequest]
 
   case class SearchResponse(result: List[IdScore], status: String)
   case class IdScore(id: UUID, score: Double)
-  implicit val idscoreCodec: Codec[IdScore]                          = deriveCodec
-  implicit val searchResponseCodec: Codec[SearchResponse]            = deriveCodec
-  implicit val searchResponseJson: EntityDecoder[IO, SearchResponse] = jsonOf[IO, SearchResponse]
+  given idscoreCodec: Codec[IdScore]                          = deriveCodec
+  given searchResponseCodec: Codec[SearchResponse]            = deriveCodec
+  given searchResponseJson: EntityDecoder[IO, SearchResponse] = jsonOf[IO, SearchResponse]
 }

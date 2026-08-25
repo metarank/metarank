@@ -1,6 +1,6 @@
 package ai.metarank.fstore.codec.impl
 
-import ai.metarank.fstore.codec.impl.CodecOps.{DataInputOps, DataOutputOps}
+import ai.metarank.fstore.codec.impl.CodecOps.*
 import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.{Clickthrough, EventId, Timestamp}
 

@@ -5,7 +5,7 @@ import ai.metarank.config.StateStoreConfig.{RedisCredentials, RedisStateConfig}
 import ai.metarank.config.TrainConfig.RedisTrainConfig
 import ai.metarank.util.Logging
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 
 object ConfigEnvSubst extends Logging {
   type Subst = (Config, Map[String, String]) => IO[Config]

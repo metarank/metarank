@@ -8,18 +8,18 @@ import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.FeatureValue.ScalarValue
-import ai.metarank.model.Field.{BooleanField, NumberField}
+import ai.metarank.model.Field.BooleanField
 import ai.metarank.model.MValue.SingleValue
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType, Write}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, FieldName, Key, MValue, ScopeType}
 import ai.metarank.util.Logging
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.generic.semiauto.deriveEncoder
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.SBoolean
 import ai.metarank.model.Write.Put
 import cats.effect.IO
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import shapeless3.typeable.syntax.typeable.*
 
 case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with Logging {
@@ -68,7 +68,7 @@ case class BooleanFeature(schema: BooleanFeatureSchema) extends ItemFeature with
 }
 
 object BooleanFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.given
   case class BooleanFeatureSchema(
       name: FeatureName,
       field: FieldName,
@@ -79,7 +79,7 @@ object BooleanFeature {
     override def create(): IO[BaseFeature] = IO.pure(BooleanFeature(this))
   }
 
-  implicit val boolSchemaDecoder: Decoder[BooleanFeatureSchema] = Decoder
+  given boolSchemaDecoder: Decoder[BooleanFeatureSchema] = Decoder
     .instance(c =>
       for {
         name <- c.downField("name").as[FeatureName]
@@ -96,5 +96,5 @@ object BooleanFeature {
     )
     .withErrorMessage("cannot parse a feature definition of type 'boolean'")
 
-  implicit val boolSchemaEncoder: Encoder[BooleanFeatureSchema] = deriveEncoder[BooleanFeatureSchema]
+  given boolSchemaEncoder: Encoder[BooleanFeatureSchema] = deriveEncoder[BooleanFeatureSchema]
 }

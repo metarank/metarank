@@ -18,9 +18,6 @@ import ai.metarank.validate.checks.{
   InteractionTypeValidation
 }
 import cats.effect.IO
-import io.circe.syntax._
-
-import java.io.FileOutputStream
 
 object Validate extends Logging {
   def run(conf: Config, args: ValidateArgs): IO[Unit] = for {

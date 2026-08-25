@@ -1,6 +1,6 @@
 package ai.metarank.ml.recommend.mf
 
-import ai.metarank.config.{ModelConfig, Selector}
+import ai.metarank.config.Selector
 import ai.metarank.ml.recommend.KnnConfig
 import ai.metarank.ml.recommend.KnnConfig.HnswConfig
 import ai.metarank.ml.recommend.embedding.EmbeddingMap
@@ -57,7 +57,7 @@ object ALSRecImpl {
     def getItemFactors: DenseMatrix = itemFactors
   }
 
-  implicit val alsConfigDecoder: Decoder[ALSConfig] = Decoder.instance(c =>
+  given alsConfigDecoder: Decoder[ALSConfig] = Decoder.instance(c =>
     for {
       ints       <- c.downField("interactions").as[Option[List[String]]]
       iterations <- c.downField("iterations").as[Option[Int]]
@@ -80,6 +80,6 @@ object ALSRecImpl {
     }
   )
 
-  implicit val alsConfigEncoder: Encoder[ALSConfig] = deriveEncoder
+  given alsConfigEncoder: Encoder[ALSConfig] = deriveEncoder
 
 }

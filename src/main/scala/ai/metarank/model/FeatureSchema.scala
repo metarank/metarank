@@ -23,7 +23,7 @@ import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountS
 import ai.metarank.feature.WordCountFeature.WordCountSchema
 import ai.metarank.model.Key.FeatureName
 import cats.effect.IO
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -38,26 +38,26 @@ trait FeatureSchema {
 
 object FeatureSchema {
 
-  implicit val featureSchemaDecoder: Decoder[FeatureSchema] = Decoder.instance(c =>
+  given featureSchemaDecoder: Decoder[FeatureSchema] = Decoder.instance(c =>
     for {
       tpe <- c.downField("type").as[String]
       decoded <- tpe match {
-        case "number"            => implicitly[Decoder[NumberFeatureSchema]].apply(c)
-        case "boolean"           => implicitly[Decoder[BooleanFeatureSchema]].apply(c)
-        case "string"            => implicitly[Decoder[StringFeatureSchema]].apply(c)
-        case "word_count"        => implicitly[Decoder[WordCountSchema]].apply(c)
-        case "rate"              => implicitly[Decoder[RateFeatureSchema]].apply(c)
-        case "interacted_with"   => implicitly[Decoder[InteractedWithSchema]].apply(c)
-        case "interaction_count" => implicitly[Decoder[InteractionCountSchema]].apply(c)
-        case "window_count"      => implicitly[Decoder[WindowInteractionCountSchema]].apply(c)
-        case "ua"                => implicitly[Decoder[UserAgentSchema]].apply(c)
-        case "relevancy"         => implicitly[Decoder[RelevancySchema]].apply(c)
-        case "local_time"        => implicitly[Decoder[LocalDateTimeSchema]].apply(c)
-        case "item_age"          => implicitly[Decoder[ItemAgeSchema]].apply(c)
+        case "number"            => summon[Decoder[NumberFeatureSchema]].apply(c)
+        case "boolean"           => summon[Decoder[BooleanFeatureSchema]].apply(c)
+        case "string"            => summon[Decoder[StringFeatureSchema]].apply(c)
+        case "word_count"        => summon[Decoder[WordCountSchema]].apply(c)
+        case "rate"              => summon[Decoder[RateFeatureSchema]].apply(c)
+        case "interacted_with"   => summon[Decoder[InteractedWithSchema]].apply(c)
+        case "interaction_count" => summon[Decoder[InteractionCountSchema]].apply(c)
+        case "window_count"      => summon[Decoder[WindowInteractionCountSchema]].apply(c)
+        case "ua"                => summon[Decoder[UserAgentSchema]].apply(c)
+        case "relevancy"         => summon[Decoder[RelevancySchema]].apply(c)
+        case "local_time"        => summon[Decoder[LocalDateTimeSchema]].apply(c)
+        case "item_age"          => summon[Decoder[ItemAgeSchema]].apply(c)
         case "field_match" =>
-          val biEncoder    = implicitly[Decoder[FieldMatchBiencoderSchema]]
-          val crossEncoder = implicitly[Decoder[FieldMatchCrossEncoderSchema]]
-          val term         = implicitly[Decoder[FieldMatchSchema]]
+          val biEncoder    = summon[Decoder[FieldMatchBiencoderSchema]]
+          val crossEncoder = summon[Decoder[FieldMatchCrossEncoderSchema]]
+          val term         = summon[Decoder[FieldMatchSchema]]
           c.downField("method").downField("type").as[String] match {
             case Right("bi-encoder")    => biEncoder.apply(c)
             case Right("cross-encoder") => crossEncoder.apply(c)
@@ -67,11 +67,11 @@ object FeatureSchema {
             case Right(other) => Left(DecodingFailure(s"term matching method $other is not supported", c.history))
             case Left(err)    => Left(err)
           }
-        case "referer"   => implicitly[Decoder[RefererSchema]].apply(c)
-        case "position"  => implicitly[Decoder[PositionFeatureSchema]].apply(c)
-        case "vector"    => implicitly[Decoder[VectorFeatureSchema]].apply(c)
-        case "random"    => implicitly[Decoder[RandomFeatureSchema]].apply(c)
-        case "diversity" => implicitly[Decoder[DiversitySchema]].apply(c)
+        case "referer"   => summon[Decoder[RefererSchema]].apply(c)
+        case "position"  => summon[Decoder[PositionFeatureSchema]].apply(c)
+        case "vector"    => summon[Decoder[VectorFeatureSchema]].apply(c)
+        case "random"    => summon[Decoder[RandomFeatureSchema]].apply(c)
+        case "diversity" => summon[Decoder[DiversitySchema]].apply(c)
         case other       => Left(DecodingFailure(s"feature type $other is not supported", c.history))
       }
     } yield {
@@ -79,7 +79,7 @@ object FeatureSchema {
     }
   )
 
-  implicit val featureSchemaEncoder: Encoder[FeatureSchema] = Encoder.instance {
+  given featureSchemaEncoder: Encoder[FeatureSchema] = Encoder.instance {
     case c: NumberFeatureSchema          => encode(c, "number")
     case c: BooleanFeatureSchema         => encode(c, "boolean")
     case c: StringFeatureSchema          => encode(c, "string")
@@ -98,7 +98,7 @@ object FeatureSchema {
     case c: RandomFeatureSchema          => encode(c, "random")
   }
 
-  def encode[T <: FeatureSchema](c: T, name: String)(implicit enc: Encoder[T]): Json = {
+  def encode[T <: FeatureSchema](c: T, name: String)(using enc: Encoder[T]): Json = {
     enc(c).deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(name)))))
   }
 }

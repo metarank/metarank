@@ -9,7 +9,7 @@ import cats.effect.IO
 import com.github.benmanes.caffeine.cache.RemovalCause
 import com.github.blemale.scaffeine.Scaffeine
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class CachedModelStore(fast: ModelStore, slow: ModelStore) extends ModelStore {
   override def put(value: Model[?]): IO[Unit] = fast.put(value) *> slow.put(value)

@@ -1,7 +1,7 @@
 package ai.metarank.model
 
 import ai.metarank.model.FieldName.EventType
-import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.FieldName.EventType.*
 import io.circe.{Codec, Decoder, Encoder}
 
 import scala.util.{Failure, Success}
@@ -33,11 +33,11 @@ object FieldName {
     }
   }
 
-  implicit val encoder: Encoder[FieldName] = Encoder.encodeString.contramap(x => s"${x.event.asString}.${x.field}")
+  given encoder: Encoder[FieldName] = Encoder.encodeString.contramap(x => s"${x.event.asString}.${x.field}")
 
   val eventPattern       = "([a-z\\*]+)\\.([a-zA-Z0-9_]+)".r
   val interactionPattern = "interaction:([a-zA-Z0-9_]+)\\.([a-zA-Z0-9_]+)".r
-  implicit val decoder: Decoder[FieldName] = Decoder.decodeString.emapTry {
+  given decoder: Decoder[FieldName] = Decoder.decodeString.emapTry {
     case interactionPattern(tpe, field) => Success(FieldName(Interaction(tpe), field))
     case eventPattern(source, field) =>
       source match {
@@ -57,5 +57,5 @@ object FieldName {
       )
   }
 
-  implicit val codec: Codec[FieldName] = Codec.from(decoder, encoder)
+  given codec: Codec[FieldName] = Codec.from(decoder, encoder)
 }

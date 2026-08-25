@@ -40,6 +40,12 @@ trait Persistence {
   def models: ModelStore
   def healthcheck(): IO[Unit]
   def sync: IO[Unit]
+
+  /** Write-read barrier for the state store: after this completes, all previously submitted state writes must be
+    * visible to subsequent state reads. Only needed for backends with buffered writes and a separate read path (redis
+    * pipelining), so a no-op by default.
+    */
+  def syncState: IO[Unit] = IO.unit
 }
 
 object Persistence extends Logging {

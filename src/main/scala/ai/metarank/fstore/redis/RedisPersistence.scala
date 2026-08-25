@@ -125,6 +125,10 @@ case class RedisPersistence(
   } yield {
     logger.info(s"redis pipeline flushed, took ${System.currentTimeMillis() - start}ms")
   }
+
+  // flushes only the state pipeline: values and models are not read on the write-read boundary
+  override def syncState: IO[Unit] =
+    stateClient.doFlush { stateClient.writer.ping().toCompletableFuture }
 }
 
 object RedisPersistence extends Logging {

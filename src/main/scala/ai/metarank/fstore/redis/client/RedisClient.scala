@@ -125,14 +125,14 @@ case class RedisClient(
     }
 
   def doFlush[T](last: () => CompletableFuture[T]): IO[Unit] = {
+    // the last command's response is awaited even with pipelining disabled: reads go over a separate connection and
+    // can otherwise reach redis before a submitted-but-unacknowledged write
     for {
       _ <- bufferSize.set(0)
-      _ <- IO.whenA(conf.enabled)(
-        IO.fromCompletableFuture(IO {
-          writerConn.flushCommands()
-          last()
-        }).void
-      )
+      _ <- IO.fromCompletableFuture(IO {
+        if (conf.enabled) writerConn.flushCommands()
+        last()
+      }).void
     } yield {}
 
   }

@@ -60,7 +60,7 @@ case class RedisClient(
   def mget(keys: List[String]): IO[Map[String, Array[Byte]]] = keys match {
     case Nil => IO.pure(Map.empty)
     case _ =>
-      IO.fromCompletableFuture(IO(reader.mget(keys: _*).toCompletableFuture))
+      IO.fromCompletableFuture(IO(reader.mget(keys*).toCompletableFuture))
         .map(_.asScala.toList.flatMap(kv => kv.optional().toScala.map(v => kv.getKey -> v)).toMap)
   }
 
@@ -94,7 +94,7 @@ case class RedisClient(
     IO(writer.hset(key, values.asJava).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hdel(key: String, keys: List[String]): IO[Unit] =
-    IO(writer.hdel(key, keys: _*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
+    IO(writer.hdel(key, keys*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def hincrby(key: String, subkey: String, by: Int): IO[Unit] =
     IO(writer.hincrby(key, subkey, by).toCompletableFuture).flatMap(x => maybeFlush(() => x))
@@ -106,7 +106,7 @@ case class RedisClient(
     IO(writer.lpush(key, value).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def lpush(key: String, values: List[Array[Byte]]): IO[Unit] =
-    IO(writer.lpush(key, values: _*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
+    IO(writer.lpush(key, values*).toCompletableFuture).flatMap(x => maybeFlush(() => x))
 
   def ltrim(key: String, start: Int, end: Int): IO[Unit] =
     IO(writer.ltrim(key, start, end).toCompletableFuture).flatMap(x => maybeFlush(() => x))

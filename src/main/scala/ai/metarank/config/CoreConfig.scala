@@ -2,7 +2,7 @@ package ai.metarank.config
 
 import ai.metarank.config.CoreConfig.{ClickthroughJoinConfig, ImportConfig, TrackingConfig}
 import cats.effect.IO
-import io.circe.generic.semiauto.{deriveEncoder, deriveFor}
+import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Decoder, Encoder}
 
 import scala.concurrent.duration._

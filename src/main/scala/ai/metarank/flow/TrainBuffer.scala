@@ -40,8 +40,6 @@ case class TrainBuffer(
         IO(ticker.tick(event)) *> handleUser(e) *> flushQueue()
       case e: ItemEvent =>
         IO(ticker.tick(event)) *> handleItem(e) *> flushQueue()
-      case _ =>
-        IO(ticker.tick(event)) *> flushQueue()
     }
   }
 

@@ -36,28 +36,25 @@ object Train extends Logging {
             case None => info(s"Training all models: ${mapping.models.keys.toList}") *> IO.pure(mapping.models)
           }
           _ <- models.toList
-            .map {
-              case (name, pred) =>
-                store match {
-                  case MemPersistence(_) =>
-                    IO.raiseError(
-                      new Exception(
-                        """=======
-                          |You're using an in-mem persistence and invoked a train sub-command.
-                          |In-mem persistence is not actually persisting anything between metarank invocations,
-                          |so it has zero saved click-through records for model training.
-                          |
-                          |You probably need to enable redis persistence in the config file, or use
-                          |a standalone mode (which imports data and trains ML model within a single
-                          |JVM process)
-                          |=======""".stripMargin
-                      )
+            .map { case (name, pred) =>
+              store match {
+                case MemPersistence(_) =>
+                  IO.raiseError(
+                    new Exception(
+                      """=======
+                        |You're using an in-mem persistence and invoked a train sub-command.
+                        |In-mem persistence is not actually persisting anything between metarank invocations,
+                        |so it has zero saved click-through records for model training.
+                        |
+                        |You probably need to enable redis persistence in the config file, or use
+                        |a standalone mode (which imports data and trains ML model within a single
+                        |JVM process)
+                        |=======""".stripMargin
                     )
-                  case _ =>
-                    train(store, cts, pred).void
-                }
-
-              case _ => IO.raiseError(new Exception(s"model ${args.model} is not defined in config"))
+                  )
+                case _ =>
+                  train(store, cts, pred).void
+              }
             }
             .sequence
             .void
@@ -71,7 +68,7 @@ object Train extends Logging {
   def train(
       store: Persistence,
       cts: TrainStore,
-      predictor: Predictor[_ <: ModelConfig, _, _ <: Model[_ <: Context]]
+      predictor: Predictor[? <: ModelConfig, ?, ? <: Model[? <: Context]]
   ): IO[TrainResult] = for {
     model <- predictor.fit(cts.getall().filter(c => predictor.config.selector.accept(c)))
     weights = (model, predictor) match {

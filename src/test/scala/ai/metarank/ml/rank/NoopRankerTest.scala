@@ -14,7 +14,7 @@ class NoopRankerTest extends PredictorSuite[NoopConfig, QueryRequest, NoopModel]
   override def request(n: Int): QueryRequest = TestQueryRequest(n)
 
   it should "return the same items" in {
-    val rec    = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val rec    = predictor.fit(fs2.Stream(cts*)).unsafeRunSync()
     val r      = request(10)
     val result = rec.predict(r).unsafeRunSync()
     result.items.map(_.item) shouldBe r.items.map(_.id)

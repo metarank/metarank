@@ -51,7 +51,7 @@ case class FeatureValueFlow(
     case w: PutFreqSample     => commitWrite(w, store.freqs.get(FeatureKey(w.key)))
   }
 
-  private def commitWrite[W <: Write, F <: Feature[W, _]](
+  private def commitWrite[W <: Write, F <: Feature[W, ?]](
       write: W,
       featureOption: Option[F]
   ): IO[Unit] = {
@@ -91,7 +91,7 @@ case class FeatureValueFlow(
     }
   }
 
-  private def makeValue[W <: Write, F <: Feature[W, _ <: FeatureValue]](
+  private def makeValue[W <: Write, F <: Feature[W, ? <: FeatureValue]](
       write: W,
       featureOption: Option[F]
   ): IO[Option[FeatureValue]] =

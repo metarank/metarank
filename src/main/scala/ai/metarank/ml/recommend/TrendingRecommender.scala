@@ -39,7 +39,7 @@ object TrendingRecommender {
     override def fit(data: fs2.Stream[IO, TrainValues]): IO[TrendingModel] = for {
       ints <- data
         .collect { case ct: ClickthroughValues => ct }
-        .flatMap(ct => fs2.Stream(ct.ct.interactions.map(ti => ItemInteraction(ti.item, ti.tpe, ct.ct.ts)): _*))
+        .flatMap(ct => fs2.Stream(ct.ct.interactions.map(ti => ItemInteraction(ti.item, ti.tpe, ct.ct.ts))*))
         .compile
         .toList
       now   <- IO.fromOption(ints.map(_.ts).maxByOption(_.ts))(new Exception("no interactions found"))
@@ -101,7 +101,7 @@ object TrendingRecommender {
                 TrendingItemScore(id, score)
               })
               items.toList match {
-                case head :: tail => Right(TrendingModel(name, NonEmptyList.of(head, tail: _*)))
+                case head :: tail => Right(TrendingModel(name, NonEmptyList.of(head, tail*)))
                 case _            => Left(new Exception("no items found"))
               }
             case other => Left(new Exception(s"unsupported format $other"))
@@ -115,7 +115,7 @@ object TrendingRecommender {
   case class TrendingModel(name: String, items: NonEmptyList[TrendingItemScore]) extends RecommendModel {
     override def predict(request: RecommendRequest): IO[Model.Response] = {
       IO(items.take(request.count).map(i => ItemScore(i.item, i.score))).flatMap {
-        case head :: tail => IO.pure(Response(NonEmptyList.of(head, tail: _*)))
+        case head :: tail => IO.pure(Response(NonEmptyList.of(head, tail*)))
         case _            => IO.raiseError(new Exception("count should be greater than 0"))
       }
     }

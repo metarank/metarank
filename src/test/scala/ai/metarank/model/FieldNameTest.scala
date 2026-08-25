@@ -32,7 +32,7 @@ class FieldNameTest extends AnyFlatSpec with Matchers with TableDrivenPropertyCh
 
   it should "fail on broken input" in {
     forAll(negative) { (field: String) =>
-      decode[FieldName](s""""$field"""") shouldBe a[Left[_, _]]
+      decode[FieldName](s""""$field"""") shouldBe a[Left[?, ?]]
     }
   }
 }

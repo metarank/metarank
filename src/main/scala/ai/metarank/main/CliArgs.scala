@@ -13,7 +13,7 @@ import ai.metarank.main.command.train.SplitStrategy.TimeSplit
 import ai.metarank.source.format.JsonFormat
 import ai.metarank.source.format.SnowplowFormat.{SnowplowJSONFormat, SnowplowTSVFormat}
 import ai.metarank.util.{Logging, Version}
-import org.rogach.scallop.{ScallopConf, ScallopOption, Subcommand, ValueConverter, singleArgConverter}
+import org.rogach.scallop.{*, given}
 
 import java.nio.file.Path
 import scala.concurrent.duration.FiniteDuration

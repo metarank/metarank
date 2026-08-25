@@ -38,7 +38,7 @@ class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   it should "fail decoding schema with user scope" in {
     val in =
       "name: ctr\ntype: rate\ntop: click\nbottom: impression\nbucket: 24h\nperiods: [7,14]\nscope: user\nrefresh: 0s"
-    parse(in).flatMap(_.as[FeatureSchema]) shouldBe a[Left[_, _]]
+    parse(in).flatMap(_.as[FeatureSchema]) shouldBe a[Left[?, ?]]
   }
 
   it should "extract writes" in {

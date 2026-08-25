@@ -9,8 +9,7 @@ import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers
 
 class VectorFeatureRuleTest extends AnyFlatSpec with Matchers {
   it should "generate embedding configs" in {

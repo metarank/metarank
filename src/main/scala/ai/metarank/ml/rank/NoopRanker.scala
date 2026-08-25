@@ -28,7 +28,7 @@ object NoopRanker {
 
   implicit val noopDecoder: Decoder[NoopConfig] =
     Decoder.instance(c =>
-      c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector())).map(NoopConfig)
+      c.downField("selector").as[Option[Selector]].map(_.getOrElse(AcceptSelector())).map(NoopConfig.apply)
     )
   implicit val noopEncoder: Encoder[NoopConfig] = deriveEncoder[NoopConfig]
 

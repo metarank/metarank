@@ -7,7 +7,7 @@ import ai.metarank.model.Write.PeriodicIncrement
 import ai.metarank.model.{Key, Timestamp}
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemPeriodicCounter(
     config: PeriodicCounterConfig,

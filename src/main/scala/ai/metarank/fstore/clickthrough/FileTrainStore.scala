@@ -37,7 +37,7 @@ case class FileTrainStore(file: File, output: DataOutput, stream: OutputStream, 
   override def flush(): IO[Unit] = IO(stream.flush())
 
   override def getall(): fs2.Stream[IO, TrainValues] = {
-    Stream(dir.listFiles().toList.sortBy(_.getName): _*)
+    Stream(dir.listFiles().toList.sortBy(_.getName)*)
       .evalFilter(f =>
         IO {
           if (f.getName.endsWith(FILE_EXT)) {

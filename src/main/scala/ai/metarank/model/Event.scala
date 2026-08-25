@@ -2,10 +2,8 @@ package ai.metarank.model
 
 import ai.metarank.model.Field.NumberField
 import cats.data.NonEmptyList
-import io.circe.generic.extras.Configuration
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
 import io.circe.generic.semiauto._
-import io.circe.generic.extras.semiauto.{deriveConfiguredCodec, deriveConfiguredDecoder, deriveConfiguredEncoder}
 import ai.metarank.model.Identifier._
 
 import java.time.format.DateTimeFormatter
@@ -79,7 +77,6 @@ object Event {
         .map(Timestamp.apply),
       encodeA = Encoder.encodeString.contramap(_.ts.toString)
     )
-    implicit val conf: Configuration                 = Configuration.default.withDefaults
     implicit val relevancyEncoder: Encoder[RankItem] = deriveEncoder
     implicit val relevancyDecoder: Decoder[RankItem] = Decoder.instance(c =>
       for {
@@ -93,10 +90,72 @@ object Event {
     )
     implicit val relevancyCodec: Codec[RankItem] = Codec.from(relevancyDecoder, relevancyEncoder)
 
-    implicit val itemCodec: Codec[ItemEvent]               = deriveConfiguredCodec
-    implicit val userCodec: Codec[UserEvent]               = deriveConfiguredCodec
-    implicit val rankingCodec: Codec[RankingEvent]         = deriveConfiguredCodec
-    implicit val interactionCodec: Codec[InteractionEvent] = deriveConfiguredCodec
+    implicit val itemCodec: Codec[ItemEvent] = Codec.from(
+      decodeA = Decoder.instance(c =>
+        for {
+          id        <- c.downField("id").as[EventId]
+          item      <- c.downField("item").as[ItemId]
+          timestamp <- c.downField("timestamp").as[Timestamp]
+          fields    <- c.getOrElse[List[Field]]("fields")(Nil)
+        } yield ItemEvent(id = id, item = item, timestamp = timestamp, fields = fields)
+      ),
+      encodeA = deriveEncoder
+    )
+    implicit val userCodec: Codec[UserEvent] = Codec.from(
+      decodeA = Decoder.instance(c =>
+        for {
+          id        <- c.downField("id").as[EventId]
+          user      <- c.downField("user").as[UserId]
+          timestamp <- c.downField("timestamp").as[Timestamp]
+          fields    <- c.getOrElse[List[Field]]("fields")(Nil)
+        } yield UserEvent(id = id, user = user, timestamp = timestamp, fields = fields)
+      ),
+      encodeA = deriveEncoder
+    )
+    implicit val rankingCodec: Codec[RankingEvent] = Codec.from(
+      decodeA = Decoder.instance(c =>
+        for {
+          id        <- c.downField("id").as[EventId]
+          timestamp <- c.downField("timestamp").as[Timestamp]
+          user      <- c.downField("user").as[Option[UserId]]
+          session   <- c.downField("session").as[Option[SessionId]]
+          fields    <- c.getOrElse[List[Field]]("fields")(Nil)
+          items     <- c.downField("items").as[NonEmptyList[RankItem]]
+        } yield RankingEvent(
+          id = id,
+          timestamp = timestamp,
+          user = user,
+          session = session,
+          fields = fields,
+          items = items
+        )
+      ),
+      encodeA = deriveEncoder
+    )
+    implicit val interactionCodec: Codec[InteractionEvent] = Codec.from(
+      decodeA = Decoder.instance(c =>
+        for {
+          id        <- c.downField("id").as[EventId]
+          item      <- c.downField("item").as[ItemId]
+          timestamp <- c.downField("timestamp").as[Timestamp]
+          ranking   <- c.downField("ranking").as[Option[EventId]]
+          user      <- c.downField("user").as[Option[UserId]]
+          session   <- c.downField("session").as[Option[SessionId]]
+          tpe       <- c.downField("type").as[String]
+          fields    <- c.getOrElse[List[Field]]("fields")(Nil)
+        } yield InteractionEvent(
+          id = id,
+          item = item,
+          timestamp = timestamp,
+          ranking = ranking,
+          user = user,
+          session = session,
+          `type` = tpe,
+          fields = fields
+        )
+      ),
+      encodeA = deriveEncoder
+    )
   }
 
   import EventCodecs.itemCodec
@@ -104,17 +163,12 @@ object Event {
   import EventCodecs.rankingCodec
   import EventCodecs.interactionCodec
 
-  implicit val conf: Configuration = Configuration.default
-    .withDiscriminator("event")
-    .withKebabCaseMemberNames
-    .copy(transformConstructorNames = {
-      case "ItemEvent"        => "item"
-      case "UserEvent"        => "user"
-      case "RankingEvent"     => "ranking"
-      case "InteractionEvent" => "interaction"
-    })
-
-  implicit val eventEncoder: Encoder[Event] = deriveConfiguredEncoder
+  implicit val eventEncoder: Encoder[Event] = Encoder.instance {
+    case e: ItemEvent        => itemCodec(e).deepMerge(Json.obj("event" -> Json.fromString("item")))
+    case e: UserEvent        => userCodec(e).deepMerge(Json.obj("event" -> Json.fromString("user")))
+    case e: RankingEvent     => rankingCodec(e).deepMerge(Json.obj("event" -> Json.fromString("ranking")))
+    case e: InteractionEvent => interactionCodec(e).deepMerge(Json.obj("event" -> Json.fromString("interaction")))
+  }
   implicit val eventDecoder: Decoder[Event] = Decoder.instance(c =>
     c.downField("event").as[String] match {
       case Left(error) => Left(DecodingFailure(s"required field 'event' missing in JSON", c.history))

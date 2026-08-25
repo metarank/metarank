@@ -26,7 +26,7 @@ object RandomRecommender {
     override def predict(request: RecommendRequest): IO[Model.Response] = {
       if (request.count >= items.length) {
         IO(Random.shuffle(items.toList.map(i => ItemScore.apply(i, Random.nextDouble())))).flatMap {
-          case head :: tail => IO.pure(Response(NonEmptyList.of(head, tail: _*)))
+          case head :: tail => IO.pure(Response(NonEmptyList.of(head, tail*)))
           case _            => IO.raiseError(new Exception("should never happen?"))
           // asked more than we have items
         }
@@ -81,7 +81,7 @@ object RandomRecommender {
     override def fit(data: fs2.Stream[IO, TrainValues]): IO[RandomModel] = {
       data
         .collect { case ct: ClickthroughValues => ct }
-        .flatMap(ct => fs2.Stream(ct.ct.items: _*))
+        .flatMap(ct => fs2.Stream(ct.ct.items*))
         .compile
         .fold(Set.empty[ItemId])((set, next) => set + next)
         .flatTap(buffer => info(s"trained random recommender model: items=${buffer.size}"))

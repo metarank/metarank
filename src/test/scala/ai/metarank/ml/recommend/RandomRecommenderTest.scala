@@ -10,14 +10,14 @@ class RandomRecommenderTest extends PredictorSuite[RandomConfig, RecommendReques
   override def request(n: Int) = RecommendRequest(n)
 
   it should "return all items for large N" in {
-    val rec      = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val rec      = predictor.fit(fs2.Stream(cts*)).unsafeRunSync()
     val items    = cts.collect { case c: ClickthroughValues => c }.flatMap(_.ct.items).distinct
     val response = rec.predict(RecommendRequest(items.size * 2)).unsafeRunSync()
     response.items.size shouldBe items.size
   }
 
   it should "return subsample for small N" in {
-    val rec      = predictor.fit(fs2.Stream(cts: _*)).unsafeRunSync()
+    val rec      = predictor.fit(fs2.Stream(cts*)).unsafeRunSync()
     val response = rec.predict(RecommendRequest(2)).unsafeRunSync()
     response.items.size shouldBe 2
   }

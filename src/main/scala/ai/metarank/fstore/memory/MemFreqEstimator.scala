@@ -7,7 +7,7 @@ import ai.metarank.model.{Feature, Key, Timestamp}
 import ai.metarank.model.Write.PutFreqSample
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemFreqEstimator(config: FreqEstimatorConfig, cache: Cache[Key, AnyRef] = Scaffeine().build())
     extends FreqEstimatorFeature {

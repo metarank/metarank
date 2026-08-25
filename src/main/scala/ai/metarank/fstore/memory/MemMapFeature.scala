@@ -6,7 +6,7 @@ import ai.metarank.model.FeatureValue.MapValue
 import ai.metarank.model.{Key, Scalar, Timestamp, Write}
 import cats.effect.IO
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 case class MemMapFeature(config: MapConfig, cache: Cache[Key, AnyRef] = Scaffeine().build()) extends MapFeature {
   override def put(action: Write.PutTuple): IO[Unit] = IO {

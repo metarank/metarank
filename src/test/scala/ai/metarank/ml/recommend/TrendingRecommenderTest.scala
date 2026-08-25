@@ -33,7 +33,7 @@ class TrendingRecommenderTest extends PredictorSuite[TrendingConfig, RecommendRe
       int("p2", "click"),
       int("p2", "click")
     )
-    val model = predictor.fit(fs2.Stream(clicks: _*)).unsafeRunSync()
+    val model = predictor.fit(fs2.Stream(clicks*)).unsafeRunSync()
     model.items.toList shouldBe List(
       TrendingItemScore(ItemId("p2"), 3.0),
       TrendingItemScore(ItemId("p1"), 1.0),
@@ -48,7 +48,7 @@ class TrendingRecommenderTest extends PredictorSuite[TrendingConfig, RecommendRe
       int("p3", "click", now),
       int("p2", "click", now.minus(1.day))
     )
-    val model = predictor.fit(fs2.Stream(clicks: _*)).unsafeRunSync()
+    val model = predictor.fit(fs2.Stream(clicks*)).unsafeRunSync()
     model.items.toList shouldBe List(
       TrendingItemScore(ItemId("p2"), 1.5),
       TrendingItemScore(ItemId("p1"), 1.0),
@@ -63,7 +63,7 @@ class TrendingRecommenderTest extends PredictorSuite[TrendingConfig, RecommendRe
       int("p3", "click", now),
       int("p2", "purchase", now)
     )
-    val model = predictor.fit(fs2.Stream(clicks: _*)).unsafeRunSync()
+    val model = predictor.fit(fs2.Stream(clicks*)).unsafeRunSync()
     model.items.toList shouldBe List(
       TrendingItemScore(ItemId("p2"), 6.0),
       TrendingItemScore(ItemId("p1"), 1.0),

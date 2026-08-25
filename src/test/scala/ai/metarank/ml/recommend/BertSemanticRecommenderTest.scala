@@ -26,7 +26,7 @@ class BertSemanticRecommenderTest extends AnyFlatSpec with Matchers {
     )
     val model                    = BertSemanticPredictor("foo", conf)
     val events: List[ItemValues] = RanklensEvents.apply().collect { case e: ItemEvent => ItemValues(e) }
-    val p                        = model.fit(fs2.Stream(events.take(500): _*)).unsafeRunSync()
+    val p                        = model.fit(fs2.Stream(events.take(500)*)).unsafeRunSync()
   }
 
   it should "decode semantic config" in {

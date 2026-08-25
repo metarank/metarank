@@ -33,7 +33,7 @@ object LambdaMARTConfigGenerator extends ModelGenerator with Logging {
           logger.info(s"cannot generate lmart model: cannot generate at least one feature definitions")
           None
         case head :: tail =>
-          val featuresNel = NonEmptyList.of(head, tail: _*)
+          val featuresNel = NonEmptyList.of(head, tail*)
           Some(
             ModelConfigMirror(
               "default",

@@ -20,13 +20,13 @@ trait PredictorSuite[C <: ModelConfig, T <: Context, M <: Model[T]] extends AnyF
   )
 
   it should "be created from a stream of click-throughs" in {
-    val rec = predictor.fit(fs2.Stream.apply(cts: _*)).unsafeRunSync()
+    val rec = predictor.fit(fs2.Stream.apply(cts*)).unsafeRunSync()
     val req = rec.predict(request(10)).unsafeRunSync()
     req.items.toList shouldNot be(empty)
   }
 
   it should "save-restore" in {
-    val rec     = predictor.fit(fs2.Stream.apply(cts: _*)).unsafeRunSync()
+    val rec     = predictor.fit(fs2.Stream.apply(cts*)).unsafeRunSync()
     val bytes   = rec.save()
     val restore = predictor.load(bytes)
     val req     = restore.flatMap(_.predict(request(10))).unsafeRunSync()

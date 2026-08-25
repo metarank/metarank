@@ -4,7 +4,7 @@ import ai.metarank.feature.BaseFeature.ItemFeature
 import ai.metarank.feature.RateFeature.RateFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.model.Dimension.VectorDim
-import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent, conf}
+import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Feature.FeatureConfig
 import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodRange, PeriodicCounterConfig}
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
@@ -40,13 +40,13 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.{deriveCodec, deriveDecoder, deriveEncoder}
-import shapeless.syntax.typeable._
+import shapeless3.typeable.syntax.typeable.*
 
 import scala.concurrent.duration._
 import scala.concurrent.duration.FiniteDuration
 
 case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Logging {
-  override val dim = VectorDim(schema.periods.size)
+  override val dim: VectorDim = VectorDim(schema.periods.size)
 
   val topGlobal = PeriodicCounterConfig(
     scope = GlobalScopeType,
@@ -166,11 +166,6 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
 
                     case _ => IO.pure(Nil)
                   }
-                case Some(other) =>
-                  warn(s"feature ${schema.name.value} expects field '$fieldName' to be string, but got $other") *> IO
-                    .pure(
-                      Nil
-                    )
                 case None => IO.pure(Nil)
               }
             } yield {
@@ -200,11 +195,6 @@ case class RateFeature(schema: RateFeatureSchema) extends ItemFeature with Loggi
 
                     case _ => IO.pure(Nil)
                   }
-                case Some(other) =>
-                  warn(s"feature ${schema.name.value} expects field '$fieldName' to be string, but got $other") *> IO
-                    .pure(
-                      Nil
-                    )
                 case None => IO.pure(Nil)
               }
             } yield {

@@ -35,6 +35,5 @@ object TrainStore {
         RedisTrainStore(rankings, RedisPersistence.Prefix.CT, c.format, c.ttl)
       }
     case _: MemoryTrainConfig => Resource.pure(MemTrainStore())
-    case other => Resource.raiseError[IO, TrainStore, Throwable](new Exception(s"conf $other is not supported"))
   }
 }

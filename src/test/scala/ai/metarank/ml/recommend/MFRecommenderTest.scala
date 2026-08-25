@@ -32,7 +32,7 @@ class MFRecommenderTest extends PredictorSuite[MFModelConfig, RecommendRequest, 
     .toList
 
   it should "fail on empty context" in {
-    val rec = predictor.fit(fs2.Stream.apply(cts: _*)).unsafeRunSync()
+    val rec = predictor.fit(fs2.Stream.apply(cts*)).unsafeRunSync()
     val req = Try(rec.predict(request(10).copy(items = Nil)).unsafeRunSync())
     req.isFailure shouldBe true
   }

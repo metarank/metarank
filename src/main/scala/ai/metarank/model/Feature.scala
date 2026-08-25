@@ -216,8 +216,8 @@ object Feature {
     def fromPool(key: Key, ts: Timestamp, pool: Seq[Double]): NumStatsValue = {
       val quantile = Quantiles
         .percentiles()
-        .indexes(config.percentiles: _*)
-        .compute(pool: _*)
+        .indexes(config.percentiles*)
+        .compute(pool*)
         .asScala
         .map { case (k, v) =>
           k.intValue() -> v.doubleValue()

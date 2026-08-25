@@ -14,8 +14,9 @@ import org.scalatest.matchers.should.Matchers
 import scala.concurrent.duration._
 
 class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
-  val now     = Timestamp.now
-  lazy val kv = RedisKVStore[String, String](client, "x", _ => 90.days)(KCodec.wrap(identity, identity), StringVCodec)
+  val now = Timestamp.now
+  lazy val kv =
+    RedisKVStore[String, String](client, "x", _ => 90.days)(using KCodec.wrap(identity, identity), StringVCodec)
 
   it should "get empty" in {
     kv.get(List("a", "b")).unsafeRunSync() shouldBe Map.empty
@@ -28,7 +29,7 @@ class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
 
   it should "accept state" in {
     val fmt = BinaryStoreFormat
-    val f   = RedisKVStore[Key, FeatureValue](client, "fv", _ => 90.days)(fmt.key, fmt.featureValue)
+    val f   = RedisKVStore[Key, FeatureValue](client, "fv", _ => 90.days)(using fmt.key, fmt.featureValue)
     RedisKVStore.valueSink
       .sink(f, fs2.Stream(ScalarValue(Key(GlobalScope, FeatureName("a")), now, SString("foo"), 90.days)))
       .unsafeRunSync()

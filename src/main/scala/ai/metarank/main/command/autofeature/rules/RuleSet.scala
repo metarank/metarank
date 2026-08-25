@@ -25,15 +25,13 @@ object RuleSet {
     )
   )
 
-  sealed trait RuleSetType {
-    def create(args: AutoFeatureArgs): RuleSet
-  }
-  object RuleSetType {
-    case object StableRuleSet extends RuleSetType {
-      override def create(args: AutoFeatureArgs): RuleSet = stable(args)
-    }
-    case object AllRuleSet extends RuleSetType {
-      override def create(args: AutoFeatureArgs): RuleSet = all(args)
+  enum RuleSetType {
+    case StableRuleSet
+    case AllRuleSet
+
+    def create(args: AutoFeatureArgs): RuleSet = this match {
+      case StableRuleSet => stable(args)
+      case AllRuleSet    => all(args)
     }
   }
 }

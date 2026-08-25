@@ -56,42 +56,26 @@ case class LocalDateTimeFeature(schema: LocalDateTimeSchema) extends RankingFeat
 }
 
 object LocalDateTimeFeature {
-  sealed trait DateTimeMapper {
-    def name: String
-    def map(ts: ZonedDateTime): Double
-  }
-  case object TimeOfDay extends DateTimeMapper {
-    val name                 = "time_of_day"
-    lazy val SECONDS_IN_HOUR = Duration.ofHours(1).getSeconds.toDouble
-    override def map(ts: ZonedDateTime): Double = {
-      val second = ts.toLocalTime.toSecondOfDay
-      second / SECONDS_IN_HOUR
+  enum DateTimeMapper(val name: String) {
+    case TimeOfDay   extends DateTimeMapper("time_of_day")
+    case DayOfWeek   extends DateTimeMapper("day_of_week")
+    case MonthOfYear extends DateTimeMapper("month_of_year")
+    case Year        extends DateTimeMapper("year")
+    case Second      extends DateTimeMapper("second")
+
+    def map(ts: ZonedDateTime): Double = this match {
+      case TimeOfDay   => ts.toLocalTime.toSecondOfDay / DateTimeMapper.SECONDS_IN_HOUR
+      case DayOfWeek   => ts.getDayOfWeek.getValue.toDouble
+      case MonthOfYear => ts.getMonth.getValue.toDouble
+      case Year        => ts.getYear.toDouble
+      case Second      => ts.toEpochSecond.toDouble
     }
   }
-  case object DayOfWeek extends DateTimeMapper {
-    val name = "day_of_week"
-    override def map(ts: ZonedDateTime): Double = {
-      ts.getDayOfWeek.getValue.toDouble
-    }
+  object DateTimeMapper {
+    private lazy val SECONDS_IN_HOUR = Duration.ofHours(1).getSeconds.toDouble
   }
-  case object MonthOfYear extends DateTimeMapper {
-    val name = "month_of_year"
-    override def map(ts: ZonedDateTime): Double = {
-      ts.getMonth.getValue.toDouble
-    }
-  }
-  case object Year extends DateTimeMapper {
-    val name = "year"
-    override def map(ts: ZonedDateTime): Double = {
-      ts.getYear.toDouble
-    }
-  }
-  case object Second extends DateTimeMapper {
-    val name = "second"
-    override def map(ts: ZonedDateTime): Double = {
-      ts.toEpochSecond.toDouble
-    }
-  }
+  // enum cases live in the DateTimeMapper namespace: re-exported to keep the historical flat paths working
+  export DateTimeMapper.{TimeOfDay, DayOfWeek, MonthOfYear, Year, Second}
   case class LocalDateTimeSchema(
       name: FeatureName,
       source: FieldName,

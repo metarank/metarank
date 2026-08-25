@@ -5,24 +5,21 @@ import io.circe.Decoder
 
 import scala.util.{Failure, Success}
 
-sealed trait Normalize {
-  def scale(values: List[SingleValue]): List[SingleValue]
-}
+enum Normalize {
+  case MinMaxNormalize
+  case PositionNormalize
+  case NoopNormalize
 
-object Normalize {
-  case object MinMaxNormalize extends Normalize {
-    override def scale(values: List[SingleValue]): List[SingleValue] = {
+  def scale(values: List[SingleValue]): List[SingleValue] = this match {
+    case MinMaxNormalize =>
       val scores = values.map(_.value).filterNot(_.isNaN)
       (scores.minOption, scores.maxOption) match {
         case (Some(min), Some(max)) =>
           values.map(v => v.copy(value = (v.value - min) / (max - min)))
         case _ => values
       }
-    }
-  }
 
-  case object PositionNormalize extends Normalize {
-    override def scale(values: List[SingleValue]): List[SingleValue] = {
+    case PositionNormalize =>
       val size = values.size.toDouble
       values.zipWithIndex
         .sortBy(_._1.value)
@@ -37,13 +34,12 @@ object Normalize {
         }
         .sortBy(_._2)
         .map(_._1)
-    }
-  }
 
-  case object NoopNormalize extends Normalize {
-    override def scale(values: List[SingleValue]): List[SingleValue] = values
+    case NoopNormalize => values
   }
+}
 
+object Normalize {
   given normalizeDecoder: Decoder[Normalize] = Decoder.decodeString.emapTry {
     case "noop"     => Success(NoopNormalize)
     case "linear"   => Success(MinMaxNormalize)

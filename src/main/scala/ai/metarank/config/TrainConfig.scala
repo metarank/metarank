@@ -15,25 +15,13 @@ sealed trait TrainConfig
 object TrainConfig {
   import ai.metarank.util.DurationJson.given
 
-  sealed trait CompressionType {
-    def ext: String
+  enum CompressionType(val ext: String) {
+    case GzipCompressionType extends CompressionType(".gz")
+    case ZstdCompressionType extends CompressionType(".zst")
+    case NoCompressionType   extends CompressionType(".bin")
   }
   object CompressionType {
-    case object GzipCompressionType extends CompressionType {
-      def ext = ".gz"
-    }
-    case object ZstdCompressionType extends CompressionType {
-      def ext = ".zst"
-    }
-    case object NoCompressionType extends CompressionType {
-      def ext = ".bin"
-    }
-
-    def fromKey(key: String): Option[CompressionType] =
-      if (key.endsWith(GzipCompressionType.ext)) Some(GzipCompressionType)
-      else if (key.endsWith(ZstdCompressionType.ext)) Some(ZstdCompressionType)
-      else if (key.endsWith(NoCompressionType.ext)) Some(NoCompressionType)
-      else None
+    def fromKey(key: String): Option[CompressionType] = CompressionType.values.find(c => key.endsWith(c.ext))
   }
 
   given compressEncoder: Encoder[CompressionType] = Encoder.instance {

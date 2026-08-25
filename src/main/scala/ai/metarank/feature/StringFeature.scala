@@ -137,16 +137,11 @@ object StringFeature {
     }
   }
 
-  sealed trait EncoderName {
-    def name: String
+  enum EncoderName(val name: String) {
+    case OnehotEncoderName extends EncoderName("onehot")
+    case IndexEncoderName  extends EncoderName("index")
   }
   object EncoderName {
-    case object OnehotEncoderName extends EncoderName {
-      val name = "onehot"
-    }
-    case object IndexEncoderName extends EncoderName {
-      val name = "index"
-    }
     given methodNameDecoder: Decoder[EncoderName] = Decoder.decodeString.emapTry {
       case IndexEncoderName.name  => Success(IndexEncoderName)
       case OnehotEncoderName.name => Success(OnehotEncoderName)

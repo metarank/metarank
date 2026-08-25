@@ -1,7 +1,7 @@
 package ai.metarank.ml.onnx.encoder
 
 import ai.metarank.ml.onnx.ModelHandle
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import io.circe.{Decoder, DecodingFailure}
 
 sealed trait EncoderConfig
@@ -14,7 +14,7 @@ object EncoderConfig {
       tokenizerFile: String = "tokenizer.json"
   ) extends EncoderConfig
 
-  implicit val crossDecoder: Decoder[CrossEncoderConfig] = Decoder.instance(c =>
+  given crossDecoder: Decoder[CrossEncoderConfig] = Decoder.instance(c =>
     for {
       model         <- c.downField("model").as[Option[ModelHandle]]
       modelFile     <- c.downField("modelFile").as[Option[String]]
@@ -35,7 +35,7 @@ object EncoderConfig {
     }
   )
 
-  implicit val crossEncoder: io.circe.Encoder[CrossEncoderConfig] = deriveEncoder
+  given crossEncoder: io.circe.Encoder[CrossEncoderConfig] = deriveEncoder
 
   case class BiEncoderConfig(
       model: Option[ModelHandle],
@@ -46,7 +46,7 @@ object EncoderConfig {
       dim: Int
   ) extends EncoderConfig
 
-  implicit val biencDecoder: Decoder[BiEncoderConfig] = Decoder.instance(c =>
+  given biencDecoder: Decoder[BiEncoderConfig] = Decoder.instance(c =>
     for {
       model         <- c.downField("model").as[Option[ModelHandle]]
       modelFile     <- c.downField("modelFile").as[Option[String]]
@@ -72,9 +72,9 @@ object EncoderConfig {
       )
     }
   )
-  implicit val bertEncoder: io.circe.Encoder[BiEncoderConfig] = deriveEncoder[BiEncoderConfig]
+  given bertEncoder: io.circe.Encoder[BiEncoderConfig] = deriveEncoder[BiEncoderConfig]
 
-  implicit val encoderTypeDecoder: Decoder[EncoderConfig] = Decoder.instance(c =>
+  given encoderTypeDecoder: Decoder[EncoderConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Left(err)              => Left(err)
       case Right("bi-encoder")    => biencDecoder.tryDecode(c)

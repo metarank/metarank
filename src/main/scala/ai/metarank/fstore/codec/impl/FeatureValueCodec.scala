@@ -24,12 +24,12 @@ import ai.metarank.model.Scope.{
 }
 import ai.metarank.model.{FeatureValue, Key, Scope, Timestamp}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import java.io.{DataInput, DataOutput}
 import java.util.concurrent.TimeUnit
 
 object FeatureValueCodec extends BinaryCodec[FeatureValue] {
-  import CodecOps._
+  import CodecOps.{*, given}
 
   val mapIntDoubleCodec       = new MapCodec(BinaryCodec.int, BinaryCodec.double)
   val mapStringScalarCodec    = new MapCodec(BinaryCodec.string, ScalarCodec)

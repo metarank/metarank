@@ -6,8 +6,8 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
-import cats.implicits._
+import scala.concurrent.duration.*
+import cats.implicits.*
 
 class RedisKVStorePipelineTest extends AnyFlatSpec with Matchers with RedisTest {
   override def cache    = CacheConfig(ttl = 0.seconds, maxSize = 0)

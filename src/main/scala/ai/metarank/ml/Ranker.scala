@@ -28,9 +28,9 @@ case class Ranker(mapping: FeatureMapping, store: Persistence) extends Logging {
     for {
       start <- IO { System.currentTimeMillis() }
       predictor <- mapping.models.get(modelName) match {
-        case Some(existing: RankPredictor[_, _]) => IO.pure(existing)
-        case Some(existing: RecommendPredictor[_, _]) =>
-          val otherRankModels = mapping.models.values.collect { case predictor: RankPredictor[_, _] =>
+        case Some(existing: RankPredictor[?, ?]) => IO.pure(existing)
+        case Some(existing: RecommendPredictor[?, ?]) =>
+          val otherRankModels = mapping.models.values.collect { case predictor: RankPredictor[?, ?] =>
             predictor.name
           }
           IO.raiseError(

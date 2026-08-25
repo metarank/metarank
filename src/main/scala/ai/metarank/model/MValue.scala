@@ -3,7 +3,7 @@ package ai.metarank.model
 import ai.metarank.model.Dimension.{SingleDim, VectorDim}
 import ai.metarank.model.Key.FeatureName
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
-import cats.implicits._
+import cats.implicits.*
 
 import java.util
 import scala.util.hashing.{Hashing, MurmurHash3}
@@ -67,7 +67,7 @@ object MValue {
     override def hashCode(): Int = name.value.hashCode ^ cat.hashCode ^ index.hashCode()
   }
 
-  implicit val mvalueListEncoder: Encoder[List[MValue]] = Encoder.instance(values =>
+  given mvalueListEncoder: Encoder[List[MValue]] = Encoder.instance(values =>
     Json.fromJsonObject(JsonObject.fromMap(values.map {
       case SingleValue(name, value)        => name.value -> Json.fromDoubleOrNull(value)
       case VectorValue(name, values, dim)  => name.value -> Json.fromValues(values.map(Json.fromDoubleOrNull))
@@ -75,7 +75,7 @@ object MValue {
     }.toMap))
   )
 
-  implicit val mvalueListDecoder: Decoder[List[MValue]] = Decoder.instance(c =>
+  given mvalueListDecoder: Decoder[List[MValue]] = Decoder.instance(c =>
     c.value.asObject match {
       case Some(obj) =>
         obj.toMap

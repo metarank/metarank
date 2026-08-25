@@ -5,8 +5,8 @@ import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
 import io.circe.DecodingFailure
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
-import io.circe.parser._
+import io.circe.syntax.*
+import io.circe.parser.*
 
 class MValueJsonTest extends AnyFlatSpec with Matchers {
   it should "encode single value" in {

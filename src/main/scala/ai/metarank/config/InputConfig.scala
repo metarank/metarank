@@ -8,11 +8,11 @@ import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 sealed trait InputConfig
 
 object InputConfig {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
   sealed trait SourceOffset
   object SourceOffset {
     case object Latest                                    extends SourceOffset
@@ -22,7 +22,7 @@ object InputConfig {
 
     val tsPattern       = "ts=([0-9]+)".r
     val durationPattern = "last=([0-9]+)([smhd])".r
-    implicit val sourceOffsetDecoder: Decoder[SourceOffset] = Decoder.decodeString.emapTry {
+    given sourceOffsetDecoder: Decoder[SourceOffset] = Decoder.decodeString.emapTry {
       case "earliest"                   => Success(Earliest)
       case "latest"                     => Success(Latest)
       case tsPattern(ts)                => Success(ExactTimestamp(ts.toLong))
@@ -48,13 +48,12 @@ object InputConfig {
   ) extends InputConfig
 
   object FileInputConfig {
-    sealed trait SortingType
-    object SortingType {
-      case object SortByName extends SortingType
-      case object SortByTime extends SortingType
+    enum SortingType {
+      case SortByName
+      case SortByTime
     }
 
-    implicit val sortDecoder: Decoder[SortingType] = Decoder.decodeString.emapTry {
+    given sortDecoder: Decoder[SortingType] = Decoder.decodeString.emapTry {
       case "name" => Success(SortByName)
       case "time" => Success(SortByTime)
       case other  => Failure(new IllegalAccessException(s"cannot decode sorting type $other"))
@@ -83,7 +82,7 @@ object InputConfig {
       format: SourceFormat = JsonFormat
   ) extends InputConfig
 
-  implicit val kafkaDecoder: Decoder[KafkaInputConfig] = Decoder.instance(c =>
+  given kafkaDecoder: Decoder[KafkaInputConfig] = Decoder.instance(c =>
     for {
       brokers <- c.downField("brokers").as[NonEmptyList[String]]
       topic   <- c.downField("topic").as[String]
@@ -101,7 +100,7 @@ object InputConfig {
     )
   )
 
-  implicit val fileDecoder: Decoder[FileInputConfig] = Decoder.instance(c =>
+  given fileDecoder: Decoder[FileInputConfig] = Decoder.instance(c =>
     for {
       path   <- c.downField("path").as[String]
       offset <- c.getOrElse[SourceOffset]("offset")(SourceOffset.Earliest)
@@ -110,7 +109,7 @@ object InputConfig {
     } yield FileInputConfig(path = path, offset = offset, format = format, sort = sort)
   )
 
-  implicit val pulsarDecoder: Decoder[PulsarInputConfig] = Decoder.instance(c =>
+  given pulsarDecoder: Decoder[PulsarInputConfig] = Decoder.instance(c =>
     for {
       serviceUrl       <- c.downField("serviceUrl").as[String]
       adminUrl         <- c.downField("adminUrl").as[String]
@@ -132,7 +131,7 @@ object InputConfig {
     )
   )
 
-  implicit val kinesisDecoder: Decoder[KinesisInputConfig] = Decoder.instance(c =>
+  given kinesisDecoder: Decoder[KinesisInputConfig] = Decoder.instance(c =>
     for {
       topic                <- c.downField("topic").as[String]
       offset               <- c.downField("offset").as[SourceOffset]
@@ -154,7 +153,7 @@ object InputConfig {
     )
   )
 
-  implicit val eventSourceDecoder: Decoder[InputConfig] = Decoder.instance(c =>
+  given eventSourceDecoder: Decoder[InputConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Left(_)          => Left(DecodingFailure("required field 'type' missing in input config", c.history))
       case Right("file")    => fileDecoder.tryDecode(c)

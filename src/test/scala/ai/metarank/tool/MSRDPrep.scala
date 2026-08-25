@@ -9,10 +9,10 @@ import better.files.File
 import cats.data.NonEmptyList
 import cats.effect.{ExitCode, IO, IOApp}
 import com.opencsv.{CSVParserBuilder, CSVReaderBuilder}
-import io.circe.syntax._
+import io.circe.syntax.*
 import java.io.{FileReader, InputStreamReader}
-import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
+import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
 /** A MSRD dataset converter into the Metarank format.
   */

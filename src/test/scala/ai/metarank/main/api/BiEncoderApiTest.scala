@@ -10,8 +10,8 @@ import org.http4s.{Entity, Method, Request, Uri}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import scodec.bits.ByteVector
-import io.circe.parser._
-import io.circe.syntax._
+import io.circe.parser.*
+import io.circe.syntax.*
 
 class BiEncoderApiTest extends AnyFlatSpec with Matchers {
   lazy val service = BiEncoderApi

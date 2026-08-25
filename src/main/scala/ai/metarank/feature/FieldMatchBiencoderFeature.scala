@@ -29,7 +29,7 @@ import cats.effect.{IO, Ref}
 import io.circe.{Decoder, DecodingFailure}
 
 import java.io.File
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.duration.FiniteDuration
 
 case class FieldMatchBiencoderFeature(
@@ -110,7 +110,7 @@ case class FieldMatchBiencoderFeature(
 }
 
 object FieldMatchBiencoderFeature extends Logging {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
   case class FieldMatchBiencoderSchema(
       name: FeatureName,
       rankingField: FieldName,
@@ -148,7 +148,7 @@ object FieldMatchBiencoderFeature extends Logging {
   }
 
   object FieldMatchBiencoderSchema {
-    implicit val biencSchemaDecoder: Decoder[FieldMatchBiencoderSchema] = Decoder.instance(c =>
+    given biencSchemaDecoder: Decoder[FieldMatchBiencoderSchema] = Decoder.instance(c =>
       for {
         name <- c.downField("name").as[FeatureName]
         rankingField <- c.downField("rankingField").as[FieldName].flatMap {

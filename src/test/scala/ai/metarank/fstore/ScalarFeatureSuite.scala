@@ -14,7 +14,7 @@ import ai.metarank.model.Write.Put
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait ScalarFeatureSuite extends FeatureSuite[Put, ScalarConfig, ScalarFeature] {
   val config = ScalarConfig(scope = ItemScopeType, FeatureName("counter"), 90.day)

@@ -11,7 +11,7 @@ import ai.metarank.model.Scope.GlobalScope
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class RedisKVStoreTest extends AnyFlatSpec with Matchers with RedisTest {
   val now = Timestamp.now

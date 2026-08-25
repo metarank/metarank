@@ -38,7 +38,7 @@ trait FeatureSchema {
 
 object FeatureSchema {
 
-  implicit val featureSchemaDecoder: Decoder[FeatureSchema] = Decoder.instance(c =>
+  given featureSchemaDecoder: Decoder[FeatureSchema] = Decoder.instance(c =>
     for {
       tpe <- c.downField("type").as[String]
       decoded <- tpe match {
@@ -79,7 +79,7 @@ object FeatureSchema {
     }
   )
 
-  implicit val featureSchemaEncoder: Encoder[FeatureSchema] = Encoder.instance {
+  given featureSchemaEncoder: Encoder[FeatureSchema] = Encoder.instance {
     case c: NumberFeatureSchema          => encode(c, "number")
     case c: BooleanFeatureSchema         => encode(c, "boolean")
     case c: StringFeatureSchema          => encode(c, "string")
@@ -98,7 +98,7 @@ object FeatureSchema {
     case c: RandomFeatureSchema          => encode(c, "random")
   }
 
-  def encode[T <: FeatureSchema](c: T, name: String)(implicit enc: Encoder[T]): Json = {
+  def encode[T <: FeatureSchema](c: T, name: String)(using enc: Encoder[T]): Json = {
     enc(c).deepMerge(Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(name)))))
   }
 }

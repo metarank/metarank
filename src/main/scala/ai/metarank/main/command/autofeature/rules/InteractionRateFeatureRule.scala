@@ -7,7 +7,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.util.Logging
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object InteractionRateFeatureRule extends FeatureRule with Logging {
   override def make(model: EventModel): List[FeatureSchema] = for {

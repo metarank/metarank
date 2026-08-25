@@ -6,7 +6,7 @@ import ai.metarank.model.Scalar.{SBoolean, SDouble, SDoubleList, SString, SStrin
 import java.io.{DataInput, DataOutput}
 
 object ScalarCodec extends BinaryCodec[Scalar] {
-  import CodecOps._
+  import CodecOps.{*, given}
 
   def write(value: Scalar, out: DataOutput): Unit = value match {
     case Scalar.SString(value) =>

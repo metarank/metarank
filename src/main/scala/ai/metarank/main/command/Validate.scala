@@ -18,7 +18,7 @@ import ai.metarank.validate.checks.{
   InteractionTypeValidation
 }
 import cats.effect.IO
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.io.FileOutputStream
 

@@ -2,7 +2,7 @@ package ai.metarank.util
 
 import ai.metarank.model.Event.{RankItem, RankingEvent}
 import ai.metarank.model.{Event, EventId, Timestamp}
-import ai.metarank.model.Identifier._
+import ai.metarank.model.Identifier.{*, given}
 import cats.data.NonEmptyList
 
 import java.util.UUID

@@ -7,14 +7,14 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.model.Event.InteractionEvent
 import ai.metarank.model.{FeatureSchema, FieldName}
 import ai.metarank.model.ScopeType.ItemScopeType
-import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.FieldName.EventType.{*, given}
 import ai.metarank.model.Key.FeatureName
 import cats.data.NonEmptyList
 import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FeatureSchemaTest extends AnyFlatSpec with Matchers {
   it should "decode config for number" in {

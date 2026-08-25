@@ -12,7 +12,7 @@ import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.ScopeType.SessionScopeType
 import ai.metarank.model.Write.Put
-import ai.metarank.model._
+import ai.metarank.model.*
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
@@ -104,7 +104,7 @@ object LocalDateTimeFeature {
     override def create(): IO[BaseFeature] = IO.pure(LocalDateTimeFeature(this))
   }
 
-  implicit val tdMapperDecoder: Decoder[DateTimeMapper] = Decoder.decodeString.emapTry {
+  given tdMapperDecoder: Decoder[DateTimeMapper] = Decoder.decodeString.emapTry {
     case TimeOfDay.name   => Success(TimeOfDay)
     case DayOfWeek.name   => Success(DayOfWeek)
     case MonthOfYear.name => Success(MonthOfYear)
@@ -113,9 +113,9 @@ object LocalDateTimeFeature {
     case other            => Failure(new IllegalArgumentException(s"parsing method $other is not supported"))
   }
 
-  implicit val tdMapperEncoder: Encoder[DateTimeMapper] = Encoder.encodeString.contramap(_.name)
+  given tdMapperEncoder: Encoder[DateTimeMapper] = Encoder.encodeString.contramap(_.name)
 
-  implicit val timeDayDecoder: Decoder[LocalDateTimeSchema] =
+  given timeDayDecoder: Decoder[LocalDateTimeSchema] =
     deriveDecoder[LocalDateTimeSchema]
       .ensure(
         _.source.event == EventType.Ranking,
@@ -123,5 +123,5 @@ object LocalDateTimeFeature {
       )
       .withErrorMessage("cannot parse a feature definition of type 'local_time'")
 
-  implicit val timeDayEncoder: Encoder[LocalDateTimeSchema] = deriveEncoder
+  given timeDayEncoder: Encoder[LocalDateTimeSchema] = deriveEncoder
 }

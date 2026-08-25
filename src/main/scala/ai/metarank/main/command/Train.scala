@@ -13,7 +13,7 @@ import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.implicits._
+import cats.implicits.*
 
 object Train extends Logging {
   def run(

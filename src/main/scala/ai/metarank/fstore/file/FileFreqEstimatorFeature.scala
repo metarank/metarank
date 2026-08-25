@@ -35,7 +35,7 @@ case class FileFreqEstimatorFeature(config: FreqEstimatorConfig, db: SortedDB[St
 
 object FileFreqEstimatorFeature {
   case class FreqSample(key: Key, s: String)
-  implicit val fileFreqSource: StateSource[FreqEstimatorState, FileFreqEstimatorFeature] =
+  given fileFreqSource: StateSource[FreqEstimatorState, FileFreqEstimatorFeature] =
     new StateSource[FreqEstimatorState, FileFreqEstimatorFeature] {
       override def source(f: FileFreqEstimatorFeature): Stream[IO, FreqEstimatorState] = {
         Stream

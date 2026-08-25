@@ -4,7 +4,7 @@ import java.io.{DataInput, DataOutput}
 import scala.reflect.ClassTag
 
 class ArrayCodec[T: ClassTag](ec: BinaryCodec[T]) extends BinaryCodec[Array[T]] {
-  import CodecOps._
+  import CodecOps.{*, given}
   override def read(in: DataInput): Array[T] = {
     val size  = in.readVarInt()
     val items = new Array[T](size)

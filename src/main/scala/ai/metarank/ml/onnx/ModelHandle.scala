@@ -28,14 +28,14 @@ object ModelHandle {
   val localPattern1      = "file:/(/.+)".r
   val localPattern2      = "file://(/.+)".r
 
-  implicit val modelHandleDecoder: Decoder[ModelHandle] = Decoder.decodeString.emapTry {
+  given modelHandleDecoder: Decoder[ModelHandle] = Decoder.decodeString.emapTry {
     case huggingFacePattern(ns, name) => Success(HuggingFaceHandle(ns, name))
     case localPattern2(path)          => Success(LocalModelHandle(path))
     case localPattern1(path)          => Success(LocalModelHandle(path))
     case other                        => Failure(new Exception(s"cannot parse model handle '$other'"))
   }
 
-  implicit val modelHandleEncoder: Encoder[ModelHandle] = Encoder.instance {
+  given modelHandleEncoder: Encoder[ModelHandle] = Encoder.instance {
     case HuggingFaceHandle(ns, name) => Json.fromString(s"$ns/$name")
     case LocalModelHandle(path)      => Json.fromString(s"file://$path")
   }

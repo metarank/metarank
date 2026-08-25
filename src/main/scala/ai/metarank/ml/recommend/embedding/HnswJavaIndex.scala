@@ -8,8 +8,8 @@ import cats.effect.IO
 import com.github.jelmerk.hnswlib.core.{DistanceFunctions, Index, Item, ProgressListener, SearchResult}
 import com.github.jelmerk.hnswlib.core.hnsw.HnswIndex
 
-import scala.jdk.CollectionConverters._
-import scala.jdk.OptionConverters._
+import scala.jdk.CollectionConverters.*
+import scala.jdk.OptionConverters.*
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util
 import fs2.{Chunk, Stream}

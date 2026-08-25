@@ -62,7 +62,7 @@ case class FileMapFeature(config: MapConfig, db: SortedDB[Array[Byte]], format: 
 
 object FileMapFeature {
   case class KKV(key: Key, mapKey: String, value: Scalar)
-  implicit val mapStateSource: StateSource[MapState, FileMapFeature] = new StateSource[MapState, FileMapFeature] {
+  given mapStateSource: StateSource[MapState, FileMapFeature] = new StateSource[MapState, FileMapFeature] {
     override def source(f: FileMapFeature): fs2.Stream[IO, MapState] =
       Stream
         .fromBlockingIterator[IO](f.db.all(), 128)

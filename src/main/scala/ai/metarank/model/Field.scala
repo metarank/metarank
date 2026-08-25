@@ -1,7 +1,7 @@
 package ai.metarank.model
 
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 import java.util
 
@@ -33,7 +33,7 @@ object Field {
     }
     .mkString("[", ", ", "]")
 
-  implicit val fieldDecoder: Decoder[Field] = Decoder.instance(c =>
+  given fieldDecoder: Decoder[Field] = Decoder.instance(c =>
     for {
       name <- c.downField("name").as[String]
       fieldJson <- c.downField("value").focus match {
@@ -59,13 +59,13 @@ object Field {
     }
   )
 
-  implicit val stringEncoder: Encoder[StringField]         = deriveEncoder
-  implicit val boolEncoder: Encoder[BooleanField]          = deriveEncoder
-  implicit val numEncoder: Encoder[NumberField]            = deriveEncoder
-  implicit val stringListEncoder: Encoder[StringListField] = deriveEncoder
-  implicit val numListEncoder: Encoder[NumberListField]    = deriveEncoder
+  given stringEncoder: Encoder[StringField]         = deriveEncoder
+  given boolEncoder: Encoder[BooleanField]          = deriveEncoder
+  given numEncoder: Encoder[NumberField]            = deriveEncoder
+  given stringListEncoder: Encoder[StringListField] = deriveEncoder
+  given numListEncoder: Encoder[NumberListField]    = deriveEncoder
 
-  implicit val fieldEncoder: Encoder[Field] = Encoder.instance {
+  given fieldEncoder: Encoder[Field] = Encoder.instance {
     case f: StringField     => stringEncoder.apply(f)
     case f: BooleanField    => boolEncoder.apply(f)
     case f: NumberField     => numEncoder.apply(f)
@@ -73,5 +73,5 @@ object Field {
     case f: NumberListField => numListEncoder.apply(f)
   }
 
-  implicit val fieldCodec: Codec[Field] = Codec.from(fieldDecoder, fieldEncoder)
+  given fieldCodec: Codec[Field] = Codec.from(fieldDecoder, fieldEncoder)
 }

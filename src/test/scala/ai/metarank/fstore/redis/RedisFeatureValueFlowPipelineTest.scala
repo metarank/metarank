@@ -16,7 +16,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import fs2.Stream
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class RedisFeatureValueFlowPipelineTest extends AnyFlatSpec with Matchers with RedisTest {
   // a write batch smaller than maxSize stays in the pipeline buffer, so computeValue

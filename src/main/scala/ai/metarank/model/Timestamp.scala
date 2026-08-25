@@ -5,7 +5,7 @@ import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import java.time.format.DateTimeFormatter
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
 
 case class Timestamp(ts: Long) {
@@ -53,8 +53,8 @@ object Timestamp {
   val MAX_UNIXTIME = 2000000000L
   val MIN_MILLIS   = 1000000000000L
 
-  implicit val timestampEncoder: Encoder[Timestamp] = Encoder.encodeLong.contramap(_.ts)
-  implicit val timestampDecoder: Decoder[Timestamp] = Decoder.instance(c =>
+  given timestampEncoder: Encoder[Timestamp] = Encoder.encodeLong.contramap(_.ts)
+  given timestampDecoder: Decoder[Timestamp] = Decoder.instance(c =>
     c.as[String] match {
       case Left(_) =>
         c.as[Long] match {
@@ -70,6 +70,6 @@ object Timestamp {
     }
   )
 
-  implicit val timestampJsonCodec: Codec[Timestamp] = Codec.from(timestampDecoder, timestampEncoder)
+  given timestampJsonCodec: Codec[Timestamp] = Codec.from(timestampDecoder, timestampEncoder)
 
 }

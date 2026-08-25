@@ -14,7 +14,7 @@ import org.apache.commons.io.{FileUtils, IOUtils}
 import java.io.InputStream
 import java.nio.LongBuffer
 import java.nio.charset.StandardCharsets
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.collection.mutable.ArrayBuffer
 
 case class OnnxCrossEncoder(env: OrtEnvironment, session: OrtSession, tokenizer: HuggingFaceTokenizer) {

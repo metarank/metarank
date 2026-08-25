@@ -18,7 +18,7 @@ import ai.metarank.util.{TestItemEvent, TestRankingEvent}
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import java.time.{ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 

@@ -1,7 +1,7 @@
 package ai.metarank.main.command.autofeature
 
 import ai.metarank.config.BoosterConfig.XGBoostConfig
-import ai.metarank.config._
+import ai.metarank.config.*
 import ai.metarank.main.command.autofeature.model.{
   LambdaMARTConfigGenerator,
   ModelGenerator,
@@ -21,7 +21,7 @@ case class ConfigMirror(
     models: Map[String, ModelConfig]
 )
 object ConfigMirror {
-  implicit val configMirrorEncoder: Encoder[ConfigMirror] = deriveEncoder[ConfigMirror]
+  given configMirrorEncoder: Encoder[ConfigMirror] = deriveEncoder[ConfigMirror]
 
   val generators: List[ModelGenerator] = List(
     LambdaMARTConfigGenerator,

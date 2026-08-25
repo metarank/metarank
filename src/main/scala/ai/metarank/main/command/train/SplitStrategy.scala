@@ -105,8 +105,8 @@ object SplitStrategy {
     case other                            => Left(new Exception(s"split pattern $other cannot be parsed"))
   }
 
-  implicit val splitDecoder: Decoder[SplitStrategy] = Decoder.decodeString.emapTry(str => parse(str).toTry)
-  implicit val splitEncoder: Encoder[SplitStrategy] = Encoder.instance {
+  given splitDecoder: Decoder[SplitStrategy] = Decoder.decodeString.emapTry(str => parse(str).toTry)
+  given splitEncoder: Encoder[SplitStrategy] = Encoder.instance {
     case RandomSplit(ratio)                          => Json.fromString(s"random=$ratio%")
     case TimeSplit(ratio)                            => Json.fromString(s"time=$ratio%")
     case HoldLastStrategy(ratio)                     => Json.fromString(s"hold_last=$ratio%")

@@ -4,7 +4,7 @@ import ai.metarank.model.Clickthrough.TypedInteraction
 import ai.metarank.model.Event.{InteractionEvent, RankItem, RankingEvent}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
 import io.circe.Codec
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 case class Clickthrough(
     id: EventId,
@@ -22,7 +22,7 @@ case class Clickthrough(
 
 object Clickthrough {
   case class TypedInteraction(item: ItemId, tpe: String, rel: Option[Int] = None)
-  import ai.metarank.model.Event.EventCodecs._
-  implicit val wiCodec: Codec[TypedInteraction] = deriveCodec[TypedInteraction]
-  implicit val ctCodec: Codec[Clickthrough]     = deriveCodec[Clickthrough]
+  import ai.metarank.model.Event.EventCodecs.{*, given}
+  given wiCodec: Codec[TypedInteraction] = deriveCodec[TypedInteraction]
+  given ctCodec: Codec[Clickthrough]     = deriveCodec[Clickthrough]
 }

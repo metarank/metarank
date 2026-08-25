@@ -1,9 +1,9 @@
 package ai.metarank.main.command.autofeature
 
-import ai.metarank.main.command.autofeature.FieldStat._
+import ai.metarank.main.command.autofeature.FieldStat.{*, given}
 import ai.metarank.model.Event.{ItemEvent, RankingEvent}
 import ai.metarank.model.{Event, Field}
-import ai.metarank.model.Field._
+import ai.metarank.model.Field.{*, given}
 
 case class ItemFieldStat(
     strings: Map[String, StringFieldStat] = Map.empty,

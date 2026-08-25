@@ -7,9 +7,9 @@ import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.util.Logging
 import cats.effect.IO
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
-case class RedisModelStore(client: RedisClient, prefix: String)(implicit kc: KCodec[ModelName], vc: VCodec[Array[Byte]])
+case class RedisModelStore(client: RedisClient, prefix: String)(using kc: KCodec[ModelName], vc: VCodec[Array[Byte]])
     extends ModelStore
     with Logging {
   override def put(value: Model[?]): IO[Unit] = for {

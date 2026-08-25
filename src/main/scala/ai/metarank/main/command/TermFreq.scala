@@ -14,10 +14,10 @@ import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.source.FileEventSource
 import ai.metarank.util.{Logging, TextAnalyzer}
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 import fs2.io.file.{Files, Path}
 import fs2.{Chunk, Stream}
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.apache.commons.io.FileUtils
 
 object TermFreq extends Logging {

@@ -23,7 +23,7 @@ import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import ua_parser.{Client, Parser}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success}
 
 case class UserAgentFeature(schema: UserAgentSchema, parser: Parser) extends RankingFeature {
@@ -70,7 +70,7 @@ case class UserAgentFeature(schema: UserAgentSchema, parser: Parser) extends Ran
 }
 
 object UserAgentFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
 
   case class UserAgentSchema(
       name: FeatureName,
@@ -90,7 +90,7 @@ object UserAgentFeature {
     def possibleValues: List[String]
     def value(client: Client): Option[String]
   }
-  implicit val uaFieldDecoder: Decoder[UAField] = Decoder.decodeString.emapTry {
+  given uaFieldDecoder: Decoder[UAField] = Decoder.decodeString.emapTry {
     case PlatformField.name => Success(PlatformField)
     case OSField.name       => Success(OSField)
     case BrowserField.name  => Success(BrowserField)
@@ -98,11 +98,11 @@ object UserAgentFeature {
     case other              => Failure(DecodingFailure(s"UA field type $other is not yet supported", Nil))
   }
 
-  implicit val uaFieldEncoder: Encoder[UAField] = Encoder.encodeString.contramap(_.name)
+  given uaFieldEncoder: Encoder[UAField] = Encoder.encodeString.contramap(_.name)
 
-  implicit val uaDecoder: Decoder[UserAgentSchema] =
+  given uaDecoder: Decoder[UserAgentSchema] =
     deriveDecoder[UserAgentSchema].withErrorMessage("cannot parse a feature definition of type 'ua'")
 
-  implicit val uaEncoder: Encoder[UserAgentSchema] = deriveEncoder[UserAgentSchema]
+  given uaEncoder: Encoder[UserAgentSchema] = deriveEncoder[UserAgentSchema]
 
 }

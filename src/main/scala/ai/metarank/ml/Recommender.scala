@@ -18,9 +18,9 @@ case class Recommender(mapping: FeatureMapping, store: Persistence) extends Logg
   def recommend(request: RecommendRequest, modelName: String): IO[RankResponse] = for {
     start <- IO(System.currentTimeMillis())
     predictor <- mapping.models.get(modelName) match {
-      case Some(existing: RecommendPredictor[_, _]) => IO.pure(existing)
-      case Some(_: RankPredictor[_, _]) =>
-        val otherRecommenderModels = mapping.models.values.collect { case predictor: RecommendPredictor[_, _] =>
+      case Some(existing: RecommendPredictor[?, ?]) => IO.pure(existing)
+      case Some(_: RankPredictor[?, ?]) =>
+        val otherRecommenderModels = mapping.models.values.collect { case predictor: RecommendPredictor[?, ?] =>
           predictor.name
         }
         IO.raiseError(

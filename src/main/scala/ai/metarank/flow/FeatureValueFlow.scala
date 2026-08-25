@@ -6,15 +6,15 @@ import ai.metarank.model.Event.{InteractionEvent, RankingEvent}
 import ai.metarank.model.Identifier.SessionId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scope.SessionScope
-import ai.metarank.model.Write._
+import ai.metarank.model.Write.{*, given}
 import ai.metarank.model.{Event, Feature, FeatureKey, FeatureValue, Key, Timestamp, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.{Chunk, Pipe, Stream}
-import cats.implicits._
+import cats.implicits.*
 import com.github.blemale.scaffeine.{Cache, Scaffeine}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class FeatureValueFlow(
     mapping: FeatureMapping,

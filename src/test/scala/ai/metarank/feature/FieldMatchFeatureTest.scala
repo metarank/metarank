@@ -31,7 +31,7 @@ class FieldMatchFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val store = MemPersistence(Schema(feature.states))
   val event = TestItemEvent("p1", List(StringField("title", "foobar"))).copy(timestamp = now)
 
-  import FieldMatchFeature._
+  import FieldMatchFeature.{*, given}
 
   it should "parse ngram config" in {
     val result = parse("type: ngram\nn: 3\nlanguage: en").flatMap(_.as[FieldMatcherType])

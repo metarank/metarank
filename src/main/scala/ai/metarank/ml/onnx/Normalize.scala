@@ -44,7 +44,7 @@ object Normalize {
     override def scale(values: List[SingleValue]): List[SingleValue] = values
   }
 
-  implicit val normalizeDecoder: Decoder[Normalize] = Decoder.decodeString.emapTry {
+  given normalizeDecoder: Decoder[Normalize] = Decoder.decodeString.emapTry {
     case "noop"     => Success(NoopNormalize)
     case "linear"   => Success(MinMaxNormalize)
     case "position" => Success(PositionNormalize)

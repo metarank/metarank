@@ -11,7 +11,7 @@ import ai.metarank.model.State.PeriodicCounterState
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PeriodicIncrement
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 
 case class RedisPeriodicCounterFeature(
     config: PeriodicCounterConfig,
@@ -44,7 +44,7 @@ case class RedisPeriodicCounterFeature(
 }
 
 object RedisPeriodicCounterFeature {
-  implicit val periodicSink: StateSink[PeriodicCounterState, RedisPeriodicCounterFeature] =
+  given periodicSink: StateSink[PeriodicCounterState, RedisPeriodicCounterFeature] =
     new StateSink[PeriodicCounterState, RedisPeriodicCounterFeature] {
       override def sink(
           f: RedisPeriodicCounterFeature,

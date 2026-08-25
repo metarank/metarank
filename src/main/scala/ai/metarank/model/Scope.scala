@@ -64,8 +64,8 @@ object Scope {
     override val getType: ScopeType = SessionScopeType
   }
 
-  implicit val scopeDecoder: Decoder[Scope] = Decoder.decodeString.emapTry(str => ScopeCodec.decode(str).toTry)
-  implicit val scopeEncoder: Encoder[Scope] = Encoder.encodeString.contramap(_.asString)
-  implicit val scopeCodec: Codec[Scope]     = Codec.from(scopeDecoder, scopeEncoder)
+  given scopeDecoder: Decoder[Scope] = Decoder.decodeString.emapTry(str => ScopeCodec.decode(str).toTry)
+  given scopeEncoder: Encoder[Scope] = Encoder.encodeString.contramap(_.asString)
+  given scopeCodec: Codec[Scope]     = Codec.from(scopeDecoder, scopeEncoder)
 
 }

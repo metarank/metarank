@@ -7,8 +7,8 @@ import cats.effect.IO
 import fs2.Stream
 
 import java.io.InputStream
-import fs2.io._
-import fs2.text._
+import fs2.io.*
+import fs2.text.*
 
 object MovielensRatingsSource {
   def fromInputStream(ratings: InputStream): Stream[IO, Event] = {

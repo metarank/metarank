@@ -14,7 +14,7 @@ import fs2.Chunk
 import io.circe.Encoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.http4s.{Entity, Method, Request, Response, Uri}
 import scodec.bits.ByteVector
 

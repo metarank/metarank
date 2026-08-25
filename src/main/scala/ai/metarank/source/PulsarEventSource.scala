@@ -11,11 +11,11 @@ import org.apache.pulsar.client.api.{
   PulsarClient,
   SubscriptionInitialPosition,
   SubscriptionType,
-  Consumer => PulsarConsumer
+  Consumer as PulsarConsumer
 }
 import fs2.{Chunk, Stream}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class PulsarEventSource(conf: PulsarInputConfig) extends EventSource {
   override def stream: fs2.Stream[IO, Event] = Stream

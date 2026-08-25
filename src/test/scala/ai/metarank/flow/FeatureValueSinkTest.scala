@@ -12,7 +12,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FeatureValueSinkTest extends AnyFlatSpec with Matchers {
   it should "write values to store" in {

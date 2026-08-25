@@ -2,8 +2,8 @@ package ai.metarank.model
 
 import ai.metarank.model.FeatureValue.BoundedListValue.TimeValue
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
-import io.circe._
-import io.circe.generic.semiauto._
+import io.circe.*
+import io.circe.generic.semiauto.*
 
 import java.util
 import scala.concurrent.duration.FiniteDuration
@@ -48,19 +48,19 @@ object FeatureValue {
     case class TimeValue(ts: Timestamp, value: Scalar)
   }
 
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
 
-  implicit val scalarCodec: Codec[ScalarValue]                        = deriveCodec
-  implicit val freqCodec: Codec[FrequencyValue]                       = deriveCodec
-  implicit val counterCodec: Codec[CounterValue]                      = deriveCodec
-  implicit val numStatsCodec: Codec[NumStatsValue]                    = deriveCodec
-  implicit val periodicValueCodec: Codec[PeriodicValue]               = deriveCodec
-  implicit val periodicCounterValueCodec: Codec[PeriodicCounterValue] = deriveCodec
-  implicit val timeValueCodec: Codec[TimeValue]                       = deriveCodec
-  implicit val boundedListCodec: Codec[BoundedListValue]              = deriveCodec
-  implicit val mapCodec: Codec[MapValue]                              = deriveCodec
+  given scalarCodec: Codec[ScalarValue]                        = deriveCodec
+  given freqCodec: Codec[FrequencyValue]                       = deriveCodec
+  given counterCodec: Codec[CounterValue]                      = deriveCodec
+  given numStatsCodec: Codec[NumStatsValue]                    = deriveCodec
+  given periodicValueCodec: Codec[PeriodicValue]               = deriveCodec
+  given periodicCounterValueCodec: Codec[PeriodicCounterValue] = deriveCodec
+  given timeValueCodec: Codec[TimeValue]                       = deriveCodec
+  given boundedListCodec: Codec[BoundedListValue]              = deriveCodec
+  given mapCodec: Codec[MapValue]                              = deriveCodec
 
-  implicit val featureValueEncoder: Encoder[FeatureValue] = Encoder.instance {
+  given featureValueEncoder: Encoder[FeatureValue] = Encoder.instance {
     case v: ScalarValue          => scalarCodec.apply(v).deepMerge(tpe("scalar"))
     case v: CounterValue         => counterCodec.apply(v).deepMerge(tpe("counter"))
     case v: NumStatsValue        => numStatsCodec.apply(v).deepMerge(tpe("stats"))
@@ -72,7 +72,7 @@ object FeatureValue {
 
   def tpe(value: String) = Json.fromJsonObject(JsonObject.fromMap(Map("type" -> Json.fromString(value))))
 
-  implicit val featureValueDecoder: Decoder[FeatureValue] = Decoder.instance(c =>
+  given featureValueDecoder: Decoder[FeatureValue] = Decoder.instance(c =>
     for {
       tpe <- c.downField("type").as[String]
       decoded <- tpe match {
@@ -90,6 +90,6 @@ object FeatureValue {
     }
   )
 
-  implicit val featureValueCodec: Codec[FeatureValue] = Codec.from(featureValueDecoder, featureValueEncoder)
+  given featureValueCodec: Codec[FeatureValue] = Codec.from(featureValueDecoder, featureValueEncoder)
 
 }

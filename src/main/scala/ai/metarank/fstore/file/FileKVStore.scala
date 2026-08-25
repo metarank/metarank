@@ -49,7 +49,7 @@ case class FileKVStore(db: HashDB[Array[Byte]], format: StoreFormat) extends KVS
 }
 
 object FileKVStore {
-  implicit val kvStateSource: StateSource[FeatureValue, FileKVStore] = new StateSource[FeatureValue, FileKVStore] {
+  given kvStateSource: StateSource[FeatureValue, FileKVStore] = new StateSource[FeatureValue, FileKVStore] {
     override def source(f: FileKVStore): fs2.Stream[IO, FeatureValue] =
       Stream
         .fromBlockingIterator[IO](f.db.all(), 128)

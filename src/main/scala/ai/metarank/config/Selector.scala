@@ -4,7 +4,7 @@ import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.{Clickthrough, FieldName, TrainValues}
 import cats.data.NonEmptyList
 import io.circe.{ACursor, Codec, Decoder, DecodingFailure, Encoder, HCursor, Json}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 import scala.util.Random
 
@@ -66,34 +66,34 @@ object Selector {
     override def accept(event: Clickthrough): Boolean = accept
   }
 
-  implicit val fieldSelectorCodec: Codec[FieldSelector] = deriveCodec
+  given fieldSelectorCodec: Codec[FieldSelector] = deriveCodec
 
-  implicit val rankingLengthEncoder: Encoder[RankingLengthSelector] = deriveEncoder
-  implicit val rankingLengthDecoder: Decoder[RankingLengthSelector] = deriveDecoder[RankingLengthSelector].ensure(
+  given rankingLengthEncoder: Encoder[RankingLengthSelector] = deriveEncoder
+  given rankingLengthDecoder: Decoder[RankingLengthSelector] = deriveDecoder[RankingLengthSelector].ensure(
     s => s.maxItems.isDefined || s.minItems.isDefined,
     "min or max items should be defined"
   )
-  implicit val rankingLengthCodec: Codec[RankingLengthSelector] = Codec.from(rankingLengthDecoder, rankingLengthEncoder)
+  given rankingLengthCodec: Codec[RankingLengthSelector] = Codec.from(rankingLengthDecoder, rankingLengthEncoder)
 
-  implicit val sampleSelectorEncoder: Encoder[SampleSelector] = deriveEncoder
-  implicit val sampleSelectorDecoder: Decoder[SampleSelector] = deriveDecoder[SampleSelector].ensure(
+  given sampleSelectorEncoder: Encoder[SampleSelector] = deriveEncoder
+  given sampleSelectorDecoder: Decoder[SampleSelector] = deriveDecoder[SampleSelector].ensure(
     s => (s.ratio >= 0.0) && (s.ratio <= 1.0),
     "ratio should be withing 0.0..1.0 range"
   )
-  implicit val sampleSelectorCodec: Codec[SampleSelector] = Codec.from(sampleSelectorDecoder, sampleSelectorEncoder)
+  given sampleSelectorCodec: Codec[SampleSelector] = Codec.from(sampleSelectorDecoder, sampleSelectorEncoder)
 
-  implicit val maxPositionEncoder: Encoder[InteractionPositionSelector] = deriveEncoder
-  implicit val maxPositionDecoder: Decoder[InteractionPositionSelector] =
+  given maxPositionEncoder: Encoder[InteractionPositionSelector] = deriveEncoder
+  given maxPositionDecoder: Decoder[InteractionPositionSelector] =
     deriveDecoder[InteractionPositionSelector].ensure(
       pred = s => s.maxInteractionPosition.isDefined || s.minInteractionPosition.isDefined,
       message = "max or min position should be defined"
     )
-  implicit val maxPositionCodec: Codec[InteractionPositionSelector] =
+  given maxPositionCodec: Codec[InteractionPositionSelector] =
     Codec.from(maxPositionDecoder, maxPositionEncoder)
 
-  implicit val acceptSelectorCodec: Codec[AcceptSelector] = deriveCodec
+  given acceptSelectorCodec: Codec[AcceptSelector] = deriveCodec
 
-  implicit val selectorDecoder: Decoder[Selector] = Decoder.instance(c =>
+  given selectorDecoder: Decoder[Selector] = Decoder.instance(c =>
     decodeChain[Selector](
       c,
       NonEmptyList.of(
@@ -120,7 +120,7 @@ object Selector {
     }
   }
 
-  implicit val selectorEncoder: Encoder[Selector] = Encoder.instance {
+  given selectorEncoder: Encoder[Selector] = Encoder.instance {
     case f: FieldSelector               => fieldSelectorCodec(f)
     case s: SampleSelector              => sampleSelectorEncoder(s)
     case a: AndSelector                 => andSelectorCodec(a)
@@ -130,9 +130,9 @@ object Selector {
     case m: InteractionPositionSelector => maxPositionCodec(m)
     case r: RankingLengthSelector       => rankingLengthCodec(r)
   }
-  implicit val selectorCodec: Codec[Selector] = Codec.from(selectorDecoder, selectorEncoder)
+  given selectorCodec: Codec[Selector] = Codec.from(selectorDecoder, selectorEncoder)
 
-  implicit val andSelectorCodec: Codec[AndSelector] = deriveCodec
-  implicit val orSelectorCodec: Codec[OrSelector]   = deriveCodec
-  implicit val notSelectorCodec: Codec[NotSelector] = deriveCodec
+  given andSelectorCodec: Codec[AndSelector] = deriveCodec
+  given orSelectorCodec: Codec[OrSelector]   = deriveCodec
+  given notSelectorCodec: Codec[NotSelector] = deriveCodec
 }

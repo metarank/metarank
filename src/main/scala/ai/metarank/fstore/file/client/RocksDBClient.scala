@@ -11,7 +11,7 @@ import org.rocksdb.{BlockBasedTableConfig, CompressionType, Filter, LRUCache, Op
 
 import java.util
 import scala.collection.mutable.ArrayBuffer
-import org.rocksdb.{RocksDB => RDB}
+import org.rocksdb.{RocksDB as RDB}
 
 import java.io.File
 

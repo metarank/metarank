@@ -3,11 +3,11 @@ package ai.metarank.fstore.file.client.mapdb
 import ai.metarank.fstore.file.client.{FileClient, SortedDB}
 import org.mapdb.BTreeMap
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class MapdbSortedDB[T](tree: BTreeMap[String, T], sz: T => Int) extends SortedDB[T] {
-  import SortedDB._
-  import FileClient._
+  import SortedDB.{*, given}
+  import FileClient.{*, given}
 
   override def get(key: String): Option[T]      = Option(tree.get(key))
   override def put(key: String, value: T): Unit = tree.put(key, value)

@@ -11,7 +11,7 @@ import ai.metarank.source.FileEventSource
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Stream
-import io.circe.syntax._
+import io.circe.syntax.*
 import io.circe.yaml.Printer
 
 import java.io.FileOutputStream

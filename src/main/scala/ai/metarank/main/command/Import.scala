@@ -20,7 +20,7 @@ import ai.metarank.validate.EventValidation.ValidationError
 import ai.metarank.validate.checks.EventOrderValidation.EventOrderError
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.implicits._
+import cats.implicits.*
 import java.nio.file.Files
 
 object Import extends Logging {

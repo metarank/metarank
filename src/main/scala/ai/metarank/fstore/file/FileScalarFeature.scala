@@ -31,7 +31,7 @@ case class FileScalarFeature(config: ScalarConfig, db: HashDB[Array[Byte]], form
 }
 
 object FileScalarFeature {
-  implicit val fileScalarSource: StateSource[ScalarState, FileScalarFeature] =
+  given fileScalarSource: StateSource[ScalarState, FileScalarFeature] =
     new StateSource[ScalarState, FileScalarFeature] {
       override def source(f: FileScalarFeature): fs2.Stream[IO, ScalarState] =
         fs2.Stream

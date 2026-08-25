@@ -4,7 +4,7 @@ import ai.metarank.fstore.Persistence
 import ai.metarank.model.FeatureValue
 import cats.effect.IO
 import fs2.Pipe
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class FeatureValueSink(store: Persistence) {
   def write: Pipe[IO, List[FeatureValue], Nothing] = values =>

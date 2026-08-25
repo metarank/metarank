@@ -67,7 +67,7 @@ object StoreFormat {
     }
   }
 
-  implicit val formatCodec: Codec[StoreFormat] = Codec.from[StoreFormat](
+  given formatCodec: Codec[StoreFormat] = Codec.from[StoreFormat](
     decodeA = Decoder.decodeString.emapTry {
       case "json"   => Success(JsonStoreFormat)
       case "binary" => Success(BinaryStoreFormat)
@@ -79,7 +79,7 @@ object StoreFormat {
     }
   )
 
-  implicit val byteArrayCodec: Codec[Array[Byte]] = Codec.from[Array[Byte]](
+  given byteArrayCodec: Codec[Array[Byte]] = Codec.from[Array[Byte]](
     decodeA = Decoder.decodeString.map(str => Base64.decodeBase64(str)),
     encodeA = Encoder.encodeString.contramap(b => Base64.encodeBase64String(b))
   )

@@ -11,7 +11,7 @@ import ai.metarank.model.State.StatsEstimatorState
 import ai.metarank.model.{Key, Timestamp}
 import ai.metarank.model.Write.PutStatSample
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.*
 
 case class RedisStatsEstimatorFeature(
     config: StatsEstimatorConfig,
@@ -44,7 +44,7 @@ case class RedisStatsEstimatorFeature(
 }
 
 object RedisStatsEstimatorFeature {
-  implicit val statsSink: StateSink[StatsEstimatorState, RedisStatsEstimatorFeature] =
+  given statsSink: StateSink[StatsEstimatorState, RedisStatsEstimatorFeature] =
     new StateSink[StatsEstimatorState, RedisStatsEstimatorFeature] {
       override def sink(f: RedisStatsEstimatorFeature, state: fs2.Stream[IO, StatsEstimatorState]): IO[TransferResult] =
         state

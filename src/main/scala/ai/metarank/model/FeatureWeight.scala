@@ -1,6 +1,6 @@
 package ai.metarank.model
 
-import io.circe._
+import io.circe.*
 
 sealed trait FeatureWeight
 
@@ -9,11 +9,11 @@ object FeatureWeight {
 
   case class VectorWeight(values: Array[Double]) extends FeatureWeight
 
-  implicit val featureWeightEncoder: Encoder[FeatureWeight] = Encoder.instance {
+  given featureWeightEncoder: Encoder[FeatureWeight] = Encoder.instance {
     case SingularWeight(value) => Json.fromDoubleOrNull(value)
     case VectorWeight(values)  => Json.fromValues(values.map(Json.fromDoubleOrNull))
   }
-  implicit val featureWeightDecoder: Decoder[FeatureWeight] = Decoder.instance(c =>
+  given featureWeightDecoder: Decoder[FeatureWeight] = Decoder.instance(c =>
     c.focus match {
       case Some(value) =>
         value.fold(
@@ -27,5 +27,5 @@ object FeatureWeight {
       case None => Left(DecodingFailure("empty json", c.history))
     }
   )
-  implicit val featureWeightCodec: Codec[FeatureWeight] = Codec.from(featureWeightDecoder, featureWeightEncoder)
+  given featureWeightCodec: Codec[FeatureWeight] = Codec.from(featureWeightDecoder, featureWeightEncoder)
 }

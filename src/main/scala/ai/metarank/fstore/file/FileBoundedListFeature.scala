@@ -82,7 +82,7 @@ case class FileBoundedListFeature(
 object FileBoundedListFeature {
   case class KeyTimeValue(key: Key, ts: Timestamp, s: Scalar)
 
-  implicit val fileListSource: StateSource[BoundedListState, FileBoundedListFeature] =
+  given fileListSource: StateSource[BoundedListState, FileBoundedListFeature] =
     new StateSource[BoundedListState, FileBoundedListFeature] {
       override def source(f: FileBoundedListFeature): fs2.Stream[IO, BoundedListState] = {
         Stream

@@ -5,17 +5,17 @@ import ai.metarank.model.Event
 import cats.effect.IO
 import fs2.{Pipe, Stream, text}
 import io.circe.{Codec, Json}
-import io.circe.parser._
+import io.circe.parser.*
 
 object SnowplowFormat {
-  import io.circe.generic.semiauto._
+  import io.circe.generic.semiauto.*
   case class MetarankEvent(schema: String, data: Json)
   case class UnstructuredData(schema: String, data: MetarankEvent)
   case class SnowplowEnrichedEvent(unstruct_event: UnstructuredData)
 
-  implicit val metarankEventCodec: Codec[MetarankEvent]                 = deriveCodec[MetarankEvent]
-  implicit val unstructuredDataCodec: Codec[UnstructuredData]           = deriveCodec[UnstructuredData]
-  implicit val snowplowEnrichedEventCodec: Codec[SnowplowEnrichedEvent] = deriveCodec[SnowplowEnrichedEvent]
+  given metarankEventCodec: Codec[MetarankEvent]                 = deriveCodec[MetarankEvent]
+  given unstructuredDataCodec: Codec[UnstructuredData]           = deriveCodec[UnstructuredData]
+  given snowplowEnrichedEventCodec: Codec[SnowplowEnrichedEvent] = deriveCodec[SnowplowEnrichedEvent]
 
   val supportedSchemas = Set(
     "iglu:ai.metarank/item/jsonschema/1-0-0",

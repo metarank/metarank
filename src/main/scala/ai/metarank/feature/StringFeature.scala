@@ -20,9 +20,9 @@ import ai.metarank.util.{Logging, OneHotEncoder}
 import cats.data.NonEmptyList
 import cats.effect.IO
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.{Failure, Success}
 
 case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with Logging {
@@ -109,7 +109,7 @@ case class StringFeature(schema: StringFeatureSchema) extends ItemFeature with L
 }
 
 object StringFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
 
   sealed trait CategoricalEncoder {
     def dim: Dimension
@@ -147,12 +147,12 @@ object StringFeature {
     case object IndexEncoderName extends EncoderName {
       val name = "index"
     }
-    implicit val methodNameDecoder: Decoder[EncoderName] = Decoder.decodeString.emapTry {
+    given methodNameDecoder: Decoder[EncoderName] = Decoder.decodeString.emapTry {
       case IndexEncoderName.name  => Success(IndexEncoderName)
       case OnehotEncoderName.name => Success(OnehotEncoderName)
       case other                  => Failure(new Exception(s"string encoding method $other is not supported"))
     }
-    implicit val methodNameEncoder: Encoder[EncoderName] = Encoder.encodeString.contramap(_.name)
+    given methodNameEncoder: Encoder[EncoderName] = Encoder.encodeString.contramap(_.name)
   }
 
   case class StringFeatureSchema(
@@ -167,7 +167,7 @@ object StringFeature {
     override def create(): IO[BaseFeature] = IO.pure(StringFeature(this))
   }
 
-  implicit val stringSchemaDecoder: Decoder[StringFeatureSchema] = Decoder
+  given stringSchemaDecoder: Decoder[StringFeatureSchema] = Decoder
     .instance(c =>
       for {
         name <- c.downField("name").as[FeatureName]
@@ -186,5 +186,5 @@ object StringFeature {
     )
     .withErrorMessage("cannot parse a feature definition of type 'string'")
 
-  implicit val stringSchemaEncoder: Encoder[StringFeatureSchema] = deriveEncoder[StringFeatureSchema]
+  given stringSchemaEncoder: Encoder[StringFeatureSchema] = deriveEncoder[StringFeatureSchema]
 }

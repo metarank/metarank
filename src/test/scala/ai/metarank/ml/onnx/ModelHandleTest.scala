@@ -5,8 +5,8 @@ import ai.metarank.ml.onnx.ModelHandleTest.HandleTest
 import io.circe.Decoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.parser._
-import io.circe.generic.semiauto._
+import io.circe.parser.*
+import io.circe.generic.semiauto.*
 
 class ModelHandleTest extends AnyFlatSpec with Matchers {
   it should "decode HF handle" in {
@@ -28,5 +28,5 @@ class ModelHandleTest extends AnyFlatSpec with Matchers {
 
 object ModelHandleTest {
   case class HandleTest(handle: ModelHandle)
-  implicit val handleDecoder: Decoder[HandleTest] = deriveDecoder
+  given handleDecoder: Decoder[HandleTest] = deriveDecoder
 }

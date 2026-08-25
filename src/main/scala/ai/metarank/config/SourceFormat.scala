@@ -16,7 +16,7 @@ trait SourceFormat {
 
 object SourceFormat {
 
-  implicit val sourceFormatDecoder: Decoder[SourceFormat] = Decoder.decodeString.emapTry {
+  given sourceFormatDecoder: Decoder[SourceFormat] = Decoder.decodeString.emapTry {
     case "json"          => Success(JsonFormat)
     case "snowplow"      => Success(SnowplowTSVFormat)
     case "snowplow:tsv"  => Success(SnowplowTSVFormat)

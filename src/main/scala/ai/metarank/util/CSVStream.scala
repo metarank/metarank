@@ -4,7 +4,7 @@ import cats.effect.{IO, Resource}
 import com.opencsv.{AbstractCSVParser, CSVParser, CSVParserBuilder, CSVReader, CSVReaderBuilder, RFC4180ParserBuilder}
 import fs2.Stream
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import java.io.{File, FileInputStream, InputStream, InputStreamReader}
 
 object CSVStream extends Logging {

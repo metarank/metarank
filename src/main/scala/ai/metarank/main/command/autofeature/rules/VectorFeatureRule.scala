@@ -1,6 +1,6 @@
 package ai.metarank.main.command.autofeature.rules
 
-import ai.metarank.feature.NumVectorFeature.Reducer._
+import ai.metarank.feature.NumVectorFeature.Reducer.{*, given}
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.main.command.autofeature.EventModel
 import ai.metarank.main.command.autofeature.FieldStat.NumericListFieldStat

@@ -7,7 +7,7 @@ import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class StateStoreConfigTest extends AnyFlatSpec with Matchers {
   it should "decode redis" in {

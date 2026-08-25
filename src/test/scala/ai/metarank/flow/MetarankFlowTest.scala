@@ -30,7 +30,7 @@ import org.scalatest.matchers.should.Matchers
 import fs2.Stream
 
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class MetarankFlowTest extends AnyFlatSpec with Matchers {
   val features = List(
@@ -148,7 +148,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
         )
       )
     )
-    import ai.metarank.util.DoubleNaNEquality._
+    import ai.metarank.util.DoubleNaNEquality.{*, given}
     q.query.values.toList should contain theSameElementsInOrderAs List(
       10.0,
       1.0,
@@ -203,7 +203,7 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
         )
       )
     )
-    import ai.metarank.util.DoubleNaNEquality._
+    import ai.metarank.util.DoubleNaNEquality.{*, given}
     q.query.values.toList should contain theSameElementsInOrderAs List(
       10.0,
       1.0,

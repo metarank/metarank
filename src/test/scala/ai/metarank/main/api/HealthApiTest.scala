@@ -4,7 +4,7 @@ import ai.metarank.api.routes.HealthApi
 import ai.metarank.fstore.memory.MemPersistence
 import ai.metarank.util.{TestConfig, TestFeatureMapping}
 import cats.effect.unsafe.implicits.global
-import org.http4s._
+import org.http4s.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

@@ -20,7 +20,7 @@ import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Logging {
   override def dim = SingleDim
@@ -77,7 +77,7 @@ case class WordCountFeature(schema: WordCountSchema) extends ItemFeature with Lo
 }
 
 object WordCountFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
   case class WordCountSchema(
       name: FeatureName,
       source: FieldName,
@@ -88,8 +88,8 @@ object WordCountFeature {
     override def create(): IO[BaseFeature] = IO.pure(WordCountFeature(this))
   }
 
-  implicit val wcSchemaDecoder: Decoder[WordCountSchema] =
+  given wcSchemaDecoder: Decoder[WordCountSchema] =
     deriveDecoder[WordCountSchema].withErrorMessage("cannot parse a feature definition of type 'word_count'")
 
-  implicit val wcSchemaEncoder: Encoder[WordCountSchema] = deriveEncoder
+  given wcSchemaEncoder: Encoder[WordCountSchema] = deriveEncoder
 }

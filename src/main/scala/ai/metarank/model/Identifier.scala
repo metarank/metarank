@@ -12,10 +12,10 @@ object Identifier {
   }
 
   object UserId {
-    implicit val userEncoder: Encoder[UserId] = Encoder.encodeString.contramap(_.value)
-    implicit val userDecoder: Decoder[UserId] =
+    given userEncoder: Encoder[UserId] = Encoder.encodeString.contramap(_.value)
+    given userDecoder: Decoder[UserId] =
       Decoder.decodeString.ensure(_.nonEmpty, "user id cannot be empty").map(UserId.apply)
-    implicit val userCodec: Codec[UserId] = Codec.from(userDecoder, userEncoder)
+    given userCodec: Codec[UserId] = Codec.from(userDecoder, userEncoder)
   }
 
   case class ItemId(value: String) extends AnyVal with Identifier {
@@ -23,10 +23,10 @@ object Identifier {
   }
 
   object ItemId {
-    implicit val itemEncoder: Encoder[ItemId] = Encoder.encodeString.contramap(_.value)
-    implicit val itemDecoder: Decoder[ItemId] =
+    given itemEncoder: Encoder[ItemId] = Encoder.encodeString.contramap(_.value)
+    given itemDecoder: Decoder[ItemId] =
       Decoder.decodeString.ensure(_.nonEmpty, "item id cannot be empty").map(ItemId.apply)
-    implicit val itemCodec: Codec[ItemId] = Codec.from(itemDecoder, itemEncoder)
+    given itemCodec: Codec[ItemId] = Codec.from(itemDecoder, itemEncoder)
   }
 
   case class RankingId(value: String) extends AnyVal with Identifier {
@@ -34,11 +34,11 @@ object Identifier {
   }
 
   object RankingId {
-    implicit val rankingEncoder: Encoder[RankingId] = Encoder.encodeString.contramap(_.value)
-    implicit val rankingDecoder: Decoder[RankingId] =
+    given rankingEncoder: Encoder[RankingId] = Encoder.encodeString.contramap(_.value)
+    given rankingDecoder: Decoder[RankingId] =
       Decoder.decodeString.ensure(_.nonEmpty, "item id cannot be empty").map(RankingId.apply)
-    implicit val rankingCodec: Codec[RankingId] = Codec.from(rankingDecoder, rankingEncoder)
-    def apply(e: EventId)                       = new RankingId(e.value)
+    given rankingCodec: Codec[RankingId] = Codec.from(rankingDecoder, rankingEncoder)
+    def apply(e: EventId)                = new RankingId(e.value)
   }
 
   case class SessionId(value: String) extends AnyVal with Identifier {
@@ -46,8 +46,8 @@ object Identifier {
   }
 
   object SessionId {
-    implicit val sessionEncoder: Encoder[SessionId] = Encoder.encodeString.contramap(_.value)
-    implicit val sessionDecoder: Decoder[SessionId] =
+    given sessionEncoder: Encoder[SessionId] = Encoder.encodeString.contramap(_.value)
+    given sessionDecoder: Decoder[SessionId] =
       Decoder.decodeString.ensure(_.nonEmpty, "session id cannot be empty").map(SessionId.apply)
   }
 

@@ -15,7 +15,7 @@ import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.model.TrainValues
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait TrainStore {
   def put(cts: List[TrainValues]): IO[Unit]

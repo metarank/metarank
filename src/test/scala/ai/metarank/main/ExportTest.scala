@@ -11,7 +11,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.jdk.StreamConverters._
+import scala.jdk.StreamConverters.*
 import java.nio.file.Files
 
 class ExportTest extends AnyFlatSpec with Matchers {

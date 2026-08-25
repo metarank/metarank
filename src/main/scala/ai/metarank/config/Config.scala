@@ -10,7 +10,7 @@ import ai.metarank.util.Logging
 import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.IO
 import io.circe.Decoder
-import io.circe.yaml.parser.{parse => parseYaml}
+import io.circe.yaml.parser.{parse as parseYaml}
 
 case class Config(
     core: CoreConfig = CoreConfig(),
@@ -25,7 +25,7 @@ case class Config(
 
 object Config extends Logging {
 
-  implicit val configDecoder: Decoder[Config] = Decoder
+  given configDecoder: Decoder[Config] = Decoder
     .instance(c =>
       for {
         coreOption  <- c.downField("core").as[Option[CoreConfig]]

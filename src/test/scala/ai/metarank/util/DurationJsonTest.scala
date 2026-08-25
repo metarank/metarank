@@ -8,8 +8,8 @@ import scala.concurrent.duration.FiniteDuration
 
 class DurationJsonTest extends AnyFlatSpec with Matchers {
   it should "decode durations" in {
-    import DurationJson._
-    import scala.concurrent.duration._
+    import DurationJson.{*, given}
+    import scala.concurrent.duration.*
     parse("1d").flatMap(_.as[FiniteDuration]) shouldBe Right(1.day)
     parse("1s").flatMap(_.as[FiniteDuration]) shouldBe Right(1.second)
     parse("1m").flatMap(_.as[FiniteDuration]) shouldBe Right(1.minute)

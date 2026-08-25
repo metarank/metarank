@@ -3,7 +3,7 @@ package ai.metarank.fstore.codec
 import ai.metarank.fstore.codec.impl.BinaryCodec
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
 import com.google.common.io.ByteStreams
-import io.circe.{Json, Codec => CirceCodec}
+import io.circe.{Json, Codec as CirceCodec}
 import org.typelevel.jawn.AsyncParser
 import org.typelevel.jawn.AsyncParser.ValueStream
 

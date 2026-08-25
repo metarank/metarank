@@ -38,7 +38,7 @@ case class RedisScalarFeature(
 }
 
 object RedisScalarFeature {
-  implicit val scalarSink: StateSink[ScalarState, RedisScalarFeature] = new StateSink[ScalarState, RedisScalarFeature] {
+  given scalarSink: StateSink[ScalarState, RedisScalarFeature] = new StateSink[ScalarState, RedisScalarFeature] {
     override def sink(f: RedisScalarFeature, state: fs2.Stream[IO, ScalarState]): IO[TransferResult] =
       state
         .evalMap(s =>

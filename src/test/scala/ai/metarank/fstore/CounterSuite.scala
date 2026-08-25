@@ -13,7 +13,7 @@ import ai.metarank.model.Write.Increment
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.Random
 
 trait CounterSuite extends FeatureSuite[Increment, CounterConfig, CounterFeature] {

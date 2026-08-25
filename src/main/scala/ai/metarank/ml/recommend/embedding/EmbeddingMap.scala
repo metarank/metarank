@@ -2,7 +2,7 @@ package ai.metarank.ml.recommend.embedding
 
 import com.google.common.collect.BiMap
 import net.librec.math.structure.DenseMatrix
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class EmbeddingMap(ids: Array[String], embeddings: Array[Array[Double]], rows: Int, cols: Int)
 

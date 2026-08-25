@@ -20,7 +20,7 @@ import ai.metarank.feature.StringFeature.StringFeatureSchema
 import ai.metarank.feature.UserAgentFeature.UserAgentSchema
 import ai.metarank.feature.WindowInteractionCountFeature.WindowInteractionCountSchema
 import ai.metarank.feature.WordCountFeature.WordCountSchema
-import ai.metarank.feature._
+import ai.metarank.feature.*
 import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.model.{Dimension, FeatureSchema, FieldName, Key, MValue, Schema, ScopeType}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
@@ -36,7 +36,7 @@ import cats.data.{NonEmptyList, NonEmptyMap}
 import cats.effect.IO
 import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{CategoryFeature, SingularFeature, VectorFeature}
-import cats.implicits._
+import cats.implicits.*
 
 case class FeatureMapping(
     features: List[BaseFeature],

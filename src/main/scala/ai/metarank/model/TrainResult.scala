@@ -2,7 +2,7 @@ package ai.metarank.model
 
 import ai.metarank.model.TrainResult.{FeatureStatus, IterationStatus}
 import io.circe.Codec
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
 case class TrainResult(features: List[FeatureStatus])
 
@@ -22,7 +22,7 @@ object TrainResult {
     }
   }
 
-  implicit val featureStatusCodec: Codec[FeatureStatus]     = deriveCodec
-  implicit val iterationStatusCodec: Codec[IterationStatus] = deriveCodec
-  implicit val trainResultCodec: Codec[TrainResult]         = deriveCodec
+  given featureStatusCodec: Codec[FeatureStatus]     = deriveCodec
+  given iterationStatusCodec: Codec[IterationStatus] = deriveCodec
+  given trainResultCodec: Codec[TrainResult]         = deriveCodec
 }

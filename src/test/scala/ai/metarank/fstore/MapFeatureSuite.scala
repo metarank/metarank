@@ -9,7 +9,7 @@ import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.Write.PutTuple
 import ai.metarank.util.TestKey
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait MapFeatureSuite extends FeatureSuite[PutTuple, MapConfig, MapFeature] {
   val config = MapConfig(scope = ItemScopeType, FeatureName("counter"), 90.days)

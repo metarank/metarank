@@ -12,7 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import scala.util.Random
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FileKVStoreTest extends AnyFlatSpec with Matchers with FileTest {
   val now = Timestamp.now

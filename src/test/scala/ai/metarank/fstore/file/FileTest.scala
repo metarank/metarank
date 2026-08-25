@@ -9,7 +9,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.BeforeAndAfterAll
 
 import java.nio.file.{Files, Path, Paths}
-import cats.implicits._
+import cats.implicits.*
 
 trait FileTest {
   lazy val db: FileClient = MapDBClient.createUnsafe(Files.createTempDirectory("boop"), MapDBBackend())

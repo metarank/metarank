@@ -5,7 +5,7 @@ import cats.effect.IO
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Decoder, Encoder}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class CoreConfig(
     tracking: TrackingConfig = TrackingConfig(),
@@ -14,7 +14,7 @@ case class CoreConfig(
 )
 
 object CoreConfig {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
   case class TrackingConfig(analytics: Boolean = true, errors: Boolean = true)
   object TrackingConfig {
     def fromEnv(env: Map[String, String]): IO[TrackingConfig] = ConfigEnvSubst.substTracking(TrackingConfig(), env)
@@ -25,7 +25,7 @@ object CoreConfig {
 
   case class ImportCacheConfig(enabled: Boolean = true, size: Int = 256 * 1024)
 
-  implicit val importCacheDecoder: Decoder[ImportCacheConfig] = Decoder.instance(c =>
+  given importCacheDecoder: Decoder[ImportCacheConfig] = Decoder.instance(c =>
     for {
       enabled <- c.downField("enabled").as[Option[Boolean]]
       size    <- c.downField("size").as[Option[Int]]
@@ -38,7 +38,7 @@ object CoreConfig {
     }
   )
 
-  implicit val importConfigDecoder: Decoder[ImportConfig] = Decoder.instance(c =>
+  given importConfigDecoder: Decoder[ImportConfig] = Decoder.instance(c =>
     for {
       cache <- c.downField("cache").as[Option[ImportCacheConfig]]
     } yield {
@@ -46,7 +46,7 @@ object CoreConfig {
     }
   )
 
-  implicit val clickthroughJoinConfigDecoder: Decoder[ClickthroughJoinConfig] = Decoder.instance(c =>
+  given clickthroughJoinConfigDecoder: Decoder[ClickthroughJoinConfig] = Decoder.instance(c =>
     for {
       maxSessionLength    <- c.downField("maxSessionLength").as[Option[FiniteDuration]]
       maxParallelSessions <- c.downField("maxParallelSessions").as[Option[Int]]
@@ -55,7 +55,7 @@ object CoreConfig {
     }
   )
 
-  implicit val trackingConfigDecoder: Decoder[TrackingConfig] = Decoder.instance(c =>
+  given trackingConfigDecoder: Decoder[TrackingConfig] = Decoder.instance(c =>
     for {
       analytics <- c.downField("analytics").as[Option[Boolean]]
       errors    <- c.downField("errors").as[Option[Boolean]]
@@ -64,7 +64,7 @@ object CoreConfig {
     }
   )
 
-  implicit val coreConfigDecoder: Decoder[CoreConfig] = Decoder.instance(c =>
+  given coreConfigDecoder: Decoder[CoreConfig] = Decoder.instance(c =>
     for {
       tracking     <- c.downField("tracking").as[Option[TrackingConfig]]
       clickthrough <- c.downField("clickthrough").as[Option[ClickthroughJoinConfig]]

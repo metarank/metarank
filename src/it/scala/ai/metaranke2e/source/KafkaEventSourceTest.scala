@@ -6,7 +6,7 @@ import ai.metarank.source.KafkaSource
 import ai.metarank.util.{Logging, TestItemEvent}
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.apache.kafka.clients.admin.{Admin, AdminClientConfig, NewTopic}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.apache.kafka.common.serialization.{Serializer, StringSerializer}
@@ -18,9 +18,9 @@ import scala.util.Random
 
 class KafkaEventSourceTest extends AnyFlatSpec with Matchers with Logging {
 
-  implicit val serializer: Serializer[String] = new StringSerializer()
-  val event: Event                            = TestItemEvent("p1")
-  val topic                                   = s"topic${Random.nextInt(10240000)}"
+  given serializer: Serializer[String] = new StringSerializer()
+  val event: Event                     = TestItemEvent("p1")
+  val topic                            = s"topic${Random.nextInt(10240000)}"
 
   it should "receive events from kafka" in {
 

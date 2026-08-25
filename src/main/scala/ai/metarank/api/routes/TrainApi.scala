@@ -9,7 +9,7 @@ import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTPredictor
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Chunk
-import org.http4s.dsl.io._
+import org.http4s.dsl.io.*
 import org.http4s.{Entity, HttpRoutes, Response, Status}
 import scodec.bits.ByteVector
 

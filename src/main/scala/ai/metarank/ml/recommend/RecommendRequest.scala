@@ -8,7 +8,7 @@ import io.circe.Decoder
 case class RecommendRequest(count: Int, user: Option[UserId] = None, items: List[ItemId] = Nil) extends Context {}
 
 object RecommendRequest {
-  implicit val recommendRequestDecoder: Decoder[RecommendRequest] = Decoder.instance(c =>
+  given recommendRequestDecoder: Decoder[RecommendRequest] = Decoder.instance(c =>
     for {
       count <- c.downField("count").as[Int]
       user  <- c.downField("user").as[Option[UserId]]

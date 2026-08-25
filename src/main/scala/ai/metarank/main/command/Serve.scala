@@ -21,7 +21,7 @@ import ai.metarank.util.Logging
 import ai.metarank.util.analytics.Metrics
 import cats.effect.IO
 import cats.effect.kernel.Resource
-import cats.implicits._
+import cats.implicits.*
 import com.comcast.ip4s.{Hostname, Port}
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.hotspot.DefaultExports
@@ -33,7 +33,7 @@ import fs2.Stream
 import org.http4s.Request
 import org.http4s.server.middleware.{ErrorAction, Logger}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object Serve extends Logging {
   def run(
@@ -77,7 +77,7 @@ object Serve extends Logging {
       buffer: TrainBuffer,
       inference: Map[String, EncoderConfig]
   ): IO[Unit] = {
-    implicit val logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
+    given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     for {
 
       health     <- IO.pure(HealthApi(store).routes)

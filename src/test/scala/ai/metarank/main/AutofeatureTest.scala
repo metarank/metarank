@@ -19,7 +19,7 @@ import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import fs2.Stream
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.nio.file.Paths
 

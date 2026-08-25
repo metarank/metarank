@@ -8,7 +8,7 @@ import ai.metarank.fstore.codec.StoreFormat.JsonStoreFormat
 import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.ScopeType.ItemScopeType
 import ai.metarank.model.FieldName
-import ai.metarank.model.FieldName.EventType._
+import ai.metarank.model.FieldName.EventType.{*, given}
 import ai.metarank.model.Key.FeatureName
 import better.files.Resource
 import cats.data.{NonEmptyList, NonEmptyMap}

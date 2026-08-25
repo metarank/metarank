@@ -14,7 +14,7 @@ import io.github.metarank.ltrlib.model.DatasetDescriptor
 import io.github.metarank.ltrlib.model.Feature.{SingularFeature, VectorFeature}
 
 import scala.util.{Failure, Success, Try}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest, LambdaMARTModel] {
   val conf = LambdaMARTConfig(
     backend = XGBoostConfig(),

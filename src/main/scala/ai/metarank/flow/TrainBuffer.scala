@@ -164,7 +164,7 @@ object TrainBuffer extends Logging {
       .executor(MoreExecutors.directExecutor())
       .build[String, ClickthroughValues]()
     val userItemTrainingNeeded = mapping.models.values.toList.exists {
-      case _: RecommendPredictor[_, _] => true
+      case _: RecommendPredictor[?, ?] => true
       case _                           => false
     }
     new TrainBuffer(

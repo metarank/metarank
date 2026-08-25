@@ -30,6 +30,6 @@ case class NgramMatcher(n: Int, language: TextAnalyzer) extends FieldMatcher {
 }
 
 object NgramMatcher {
-  implicit val ngramDecoder: Decoder[NgramMatcher] = deriveDecoder
-  implicit val ngramEncoder: Encoder[NgramMatcher] = deriveEncoder
+  given ngramDecoder: Decoder[NgramMatcher] = deriveDecoder
+  given ngramEncoder: Encoder[NgramMatcher] = deriveEncoder
 }

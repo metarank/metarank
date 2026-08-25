@@ -15,7 +15,7 @@ import io.circe.yaml.parser.parse
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class RateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf = RateFeatureSchema(

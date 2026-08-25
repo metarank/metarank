@@ -13,9 +13,9 @@ import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import ai.metarank.model.Key.FeatureName
 import cats.data.{NonEmptyList, NonEmptyMap}
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json, JsonObject}
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.Random
 
 trait ModelConfig {
@@ -23,9 +23,9 @@ trait ModelConfig {
 }
 
 object ModelConfig {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
 
-  implicit val modelConfigEncoder: Encoder[ModelConfig] = Encoder.instance {
+  given modelConfigEncoder: Encoder[ModelConfig] = Encoder.instance {
     case lm: LambdaMARTConfig => LambdaMARTRanker.lmEncoder(lm).deepMerge(withType("lambdamart"))
     case s: ShuffleConfig     => ShuffleRanker.shuffleEncoder(s).deepMerge(withType("shuffle"))
     case n: NoopConfig        => NoopRanker.noopEncoder(n).deepMerge(withType("noop"))
@@ -33,7 +33,7 @@ object ModelConfig {
     case n: ALSConfig         => ALSRecImpl.alsConfigEncoder(n).deepMerge(withType("als"))
   }
 
-  implicit val modelConfigDecoder: Decoder[ModelConfig] = Decoder.instance(c =>
+  given modelConfigDecoder: Decoder[ModelConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Right("lambdamart") => LambdaMARTRanker.lmDecoder.tryDecode(c)
       case Right("shuffle")    => ShuffleRanker.shuffleDecoder.tryDecode(c)

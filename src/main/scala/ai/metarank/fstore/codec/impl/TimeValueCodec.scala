@@ -6,7 +6,7 @@ import ai.metarank.model.Timestamp
 import java.io.{DataInput, DataOutput}
 
 object TimeValueCodec extends BinaryCodec[TimeValue] {
-  import CodecOps._
+  import CodecOps.{*, given}
   override def read(in: DataInput): TimeValue = {
     val ts     = Timestamp(in.readVarLong())
     val scalar = ScalarCodec.read(in)

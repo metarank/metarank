@@ -15,9 +15,9 @@ import ai.metarank.model.{Key, Scalar, Timestamp}
 import ai.metarank.model.Write.Append
 import ai.metarank.util.Logging
 import cats.effect.IO
-import io.circe.syntax._
-import io.circe.parser._
-import cats.implicits._
+import io.circe.syntax.*
+import io.circe.parser.*
+import cats.implicits.*
 
 case class RedisBoundedListFeature(
     config: BoundedListConfig,
@@ -59,7 +59,7 @@ case class RedisBoundedListFeature(
 }
 
 object RedisBoundedListFeature {
-  implicit val listStateSink: StateSink[BoundedListState, RedisBoundedListFeature] =
+  given listStateSink: StateSink[BoundedListState, RedisBoundedListFeature] =
     new StateSink[BoundedListState, RedisBoundedListFeature] {
       override def sink(f: RedisBoundedListFeature, state: fs2.Stream[IO, BoundedListState]): IO[TransferResult] =
         state

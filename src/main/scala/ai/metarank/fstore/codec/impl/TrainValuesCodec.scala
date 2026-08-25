@@ -7,7 +7,7 @@ import ai.metarank.model.{Clickthrough, EventId, Field, ItemValue, MValue, Times
 import java.io.{DataInput, DataOutput}
 
 object TrainValuesCodec extends BinaryCodec[TrainValues] {
-  import CodecOps._
+  import CodecOps.{*, given}
   val VERSION        = 3
   val listFieldCodec = new ListCodec(FieldCodec)
 
@@ -78,7 +78,7 @@ object TrainValuesCodec extends BinaryCodec[TrainValues] {
   }
 
   case class ClickthroughValuesCodec(version: Int) extends BinaryCodec[ClickthroughValues] {
-    import CodecOps._
+    import CodecOps.{*, given}
 
     val ctvCodec           = ClickthroughCodec(version)
     val listItemValueCodec = new ListCodec(ItemValueCodec)

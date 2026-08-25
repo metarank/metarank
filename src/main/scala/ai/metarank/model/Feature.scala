@@ -8,8 +8,8 @@ import ai.metarank.model.Feature.PeriodicCounterFeature.{PeriodicCounterConfig, 
 import ai.metarank.model.Feature.ScalarFeature.ScalarConfig
 import ai.metarank.model.Feature.StatsEstimatorFeature.StatsEstimatorConfig
 import ai.metarank.model.FeatureValue.PeriodicCounterValue.PeriodicValue
-import ai.metarank.model.Write._
-import ai.metarank.model.FeatureValue._
+import ai.metarank.model.Write.{*, given}
+import ai.metarank.model.FeatureValue.{*, given}
 import ai.metarank.model.Identifier.RankingId
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scope.{GlobalScope, ItemScope, RankingFieldScope, RankingScope, SessionScope, UserScope}
@@ -29,7 +29,7 @@ import it.unimi.dsi.fastutil.ints.IntComparator
 
 import java.util
 import java.util.Comparator
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.util.Random
 
 sealed trait Feature[W <: Write, T <: FeatureValue] {
@@ -212,7 +212,7 @@ object Feature {
 
   trait StatsEstimatorFeature extends Feature[PutStatSample, NumStatsValue] {
     def config: StatsEstimatorConfig
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     def fromPool(key: Key, ts: Timestamp, pool: Seq[Double]): NumStatsValue = {
       val quantile = Quantiles
         .percentiles()

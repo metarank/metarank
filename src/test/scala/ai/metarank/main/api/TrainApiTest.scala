@@ -11,10 +11,10 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
+import io.circe.syntax.*
 import org.http4s.{Entity, Method, Request, Uri}
 import fs2.Stream
-import io.circe.parser._
+import io.circe.parser.*
 
 class TrainApiTest extends AnyFlatSpec with Matchers {
   lazy val dataset = RandomDataset.generate(1000)

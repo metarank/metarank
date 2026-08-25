@@ -20,8 +20,8 @@ import io.lettuce.core.{
   SslOptions,
   SslVerifyMode,
   TimeoutOptions,
-  RedisClient => LettuceClient,
-  ScanCursor => LettuceCursor
+  RedisClient as LettuceClient,
+  ScanCursor as LettuceCursor
 }
 import io.lettuce.core.api.async.RedisAsyncCommands
 import io.lettuce.core.codec.{ByteArrayCodec, RedisCodec, StringCodec}
@@ -36,9 +36,9 @@ import java.security.cert.{CertificateFactory, X509Certificate}
 import java.util.concurrent.CompletableFuture
 import javax.naming.ldap.LdapName
 import javax.net.ssl.{SSLContext, SSLHandshakeException, TrustManagerFactory}
-import scala.jdk.CollectionConverters._
-import scala.jdk.OptionConverters._
-import scala.concurrent.duration._
+import scala.jdk.CollectionConverters.*
+import scala.jdk.OptionConverters.*
+import scala.concurrent.duration.*
 
 case class RedisClient(
     lettuce: LettuceClient,
@@ -129,10 +129,12 @@ case class RedisClient(
     // can otherwise reach redis before a submitted-but-unacknowledged write
     for {
       _ <- bufferSize.set(0)
-      _ <- IO.fromCompletableFuture(IO {
-        if (conf.enabled) writerConn.flushCommands()
-        last()
-      }).void
+      _ <- IO
+        .fromCompletableFuture(IO {
+          if (conf.enabled) writerConn.flushCommands()
+          last()
+        })
+        .void
     } yield {}
 
   }

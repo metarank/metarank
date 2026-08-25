@@ -3,18 +3,18 @@ package ai.metarank.util
 import ai.metarank.model.Event.{InteractionEvent, ItemEvent, RankItem, RankingEvent}
 import ai.metarank.model.Field.{NumberField, StringField, StringListField}
 import ai.metarank.model.Identifier.{ItemId, SessionId, UserId}
-import ai.metarank.model._
+import ai.metarank.model.*
 import better.files.File
 import cats.data.NonEmptyList
 import io.circe.generic.semiauto.deriveCodec
 import io.circe.parser.decode
 import io.circe.{Codec, Decoder}
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.{LocalDate, LocalDateTime, ZoneOffset}
 import java.util.UUID
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 /** Converter of Ranklens dataset (https://github.com/metarank/ranklens/) into metarank-compatible event schema with
   * meta/impression/interaction events
@@ -45,10 +45,10 @@ object RanklensDatasetGenerator {
   case class Genre(id: Int, name: String)
   case class Task(ts: String, id: Int, user: String, shown: List[Int], liked: List[Int])
 
-  implicit val taskCodec: Codec[Task]   = deriveCodec
-  implicit val genreCodec: Codec[Genre] = deriveCodec
-  implicit val castCodec: Codec[Cast]   = deriveCodec
-  implicit val movieCodec: Codec[Movie] = deriveCodec
+  given taskCodec: Codec[Task]   = deriveCodec
+  given genreCodec: Codec[Genre] = deriveCodec
+  given castCodec: Codec[Cast]   = deriveCodec
+  given movieCodec: Codec[Movie] = deriveCodec
 
   def read(dir: File): RankLens = {
     val movies  = parseJSONL[Movie](dir / "metadata.jsonl")

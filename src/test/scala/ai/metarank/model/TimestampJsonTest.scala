@@ -2,7 +2,7 @@ package ai.metarank.model
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.parser._
+import io.circe.parser.*
 
 class TimestampJsonTest extends AnyFlatSpec with Matchers {
   it should "decode unixtime" in {

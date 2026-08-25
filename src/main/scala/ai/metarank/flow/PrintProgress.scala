@@ -11,8 +11,8 @@ import cats.effect.IO
 import fs2.Pipe
 
 import java.lang.management.ManagementFactory
-import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
+import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
 object PrintProgress extends Logging {
   case class ProgressPeriod(

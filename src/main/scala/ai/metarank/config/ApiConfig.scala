@@ -2,14 +2,14 @@ package ai.metarank.config
 
 import ai.metarank.util.Logging
 import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto._
-import scala.concurrent.duration._
+import io.circe.generic.semiauto.*
+import scala.concurrent.duration.*
 
 case class ApiConfig(host: Hostname = Hostname("0.0.0.0"), port: Port = Port(8080), timeout: FiniteDuration = 5.minutes)
 
 object ApiConfig extends Logging {
-  import ai.metarank.util.DurationJson._
-  implicit val apiConfigDecoder: Decoder[ApiConfig] = Decoder.instance(c =>
+  import ai.metarank.util.DurationJson.{*, given}
+  given apiConfigDecoder: Decoder[ApiConfig] = Decoder.instance(c =>
     for {
       host <- c.downField("host").as[Option[Hostname]].map {
         case Some(value) => value

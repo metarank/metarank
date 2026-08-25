@@ -1,7 +1,7 @@
 package ai.metarank.util
 
 import ai.metarank.config.{ApiConfig, Config, CoreConfig, Hostname, Port}
-import ai.metarank.config.InputConfig._
+import ai.metarank.config.InputConfig.{*, given}
 import ai.metarank.config.StateStoreConfig.MemoryStateConfig
 import ai.metarank.config.TrainConfig.MemoryTrainConfig
 import ai.metarank.feature.NumberFeature.NumberFeatureSchema

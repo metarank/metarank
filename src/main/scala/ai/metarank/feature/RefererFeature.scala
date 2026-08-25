@@ -25,7 +25,7 @@ import cats.effect.IO
 import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.duration.FiniteDuration
 
 case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends RankingFeature with Logging {
@@ -109,7 +109,7 @@ case class RefererFeature(schema: RefererSchema, parser: RefererParser) extends 
 }
 
 object RefererFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
 
   case class RefererSchema(
       name: FeatureName,
@@ -131,12 +131,12 @@ object RefererFeature {
 
   }
 
-  implicit val refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
+  given refererDecoder: Decoder[RefererSchema] = deriveDecoder[RefererSchema]
     .ensure(validType, "source type can be only interaction or ranking")
     .ensure(validScope, "scope can be only user or session")
     .withErrorMessage("cannot parse a feature definition of type 'referer'")
 
-  implicit val refererEncoder: Encoder[RefererSchema] = deriveEncoder
+  given refererEncoder: Encoder[RefererSchema] = deriveEncoder
 
   private def validType(schema: RefererSchema) = schema.source.event match {
     case EventType.Interaction(_) => true

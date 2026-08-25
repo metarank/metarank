@@ -43,10 +43,9 @@ sealed trait BaseFeature {
 
 object BaseFeature {
 
-  sealed trait ValueMode
-  object ValueMode {
-    case object OnlineInference extends ValueMode
-    case object OfflineTraining extends ValueMode
+  enum ValueMode {
+    case OnlineInference
+    case OfflineTraining
   }
 
   trait ItemFeature extends BaseFeature {

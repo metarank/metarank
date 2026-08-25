@@ -8,7 +8,7 @@ import ai.metarank.util.TestItemEvent
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.syntax._
+import io.circe.syntax.*
 import software.amazon.awssdk.core.SdkBytes
 import software.amazon.awssdk.services.kinesis.model.PutRecordRequest
 import java.nio.charset.StandardCharsets

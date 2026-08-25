@@ -3,8 +3,8 @@ package ai.metarank.model
 import ai.metarank.model.Field.NumberField
 import cats.data.NonEmptyList
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
-import io.circe.generic.semiauto._
-import ai.metarank.model.Identifier._
+import io.circe.generic.semiauto.*
+import ai.metarank.model.Identifier.{*, given}
 
 import java.time.format.DateTimeFormatter
 import scala.util.Try
@@ -66,7 +66,7 @@ object Event {
 
   object EventCodecs {
     val dateTimeFormat = DateTimeFormatter.ISO_DATE_TIME
-    implicit val timestampCodec: Codec[Timestamp] = Codec.from(
+    given timestampCodec: Codec[Timestamp] = Codec.from(
       decodeA = Decoder.decodeLong
         .or(
           Decoder
@@ -77,8 +77,8 @@ object Event {
         .map(Timestamp.apply),
       encodeA = Encoder.encodeString.contramap(_.ts.toString)
     )
-    implicit val relevancyEncoder: Encoder[RankItem] = deriveEncoder
-    implicit val relevancyDecoder: Decoder[RankItem] = Decoder.instance(c =>
+    given relevancyEncoder: Encoder[RankItem] = deriveEncoder
+    given relevancyDecoder: Decoder[RankItem] = Decoder.instance(c =>
       for {
         id     <- c.downField("id").as[ItemId]
         rel    <- c.downField("relevancy").as[Option[Double]]
@@ -88,9 +88,9 @@ object Event {
         RankItem(id, rel.toList.map(r => NumberField("relevancy", r)) ++ fields.toList.flatten, label)
       }
     )
-    implicit val relevancyCodec: Codec[RankItem] = Codec.from(relevancyDecoder, relevancyEncoder)
+    given relevancyCodec: Codec[RankItem] = Codec.from(relevancyDecoder, relevancyEncoder)
 
-    implicit val itemCodec: Codec[ItemEvent] = Codec.from(
+    given itemCodec: Codec[ItemEvent] = Codec.from(
       decodeA = Decoder.instance(c =>
         for {
           id        <- c.downField("id").as[EventId]
@@ -101,7 +101,7 @@ object Event {
       ),
       encodeA = deriveEncoder
     )
-    implicit val userCodec: Codec[UserEvent] = Codec.from(
+    given userCodec: Codec[UserEvent] = Codec.from(
       decodeA = Decoder.instance(c =>
         for {
           id        <- c.downField("id").as[EventId]
@@ -112,7 +112,7 @@ object Event {
       ),
       encodeA = deriveEncoder
     )
-    implicit val rankingCodec: Codec[RankingEvent] = Codec.from(
+    given rankingCodec: Codec[RankingEvent] = Codec.from(
       decodeA = Decoder.instance(c =>
         for {
           id        <- c.downField("id").as[EventId]
@@ -132,7 +132,7 @@ object Event {
       ),
       encodeA = deriveEncoder
     )
-    implicit val interactionCodec: Codec[InteractionEvent] = Codec.from(
+    given interactionCodec: Codec[InteractionEvent] = Codec.from(
       decodeA = Decoder.instance(c =>
         for {
           id        <- c.downField("id").as[EventId]
@@ -163,13 +163,13 @@ object Event {
   import EventCodecs.rankingCodec
   import EventCodecs.interactionCodec
 
-  implicit val eventEncoder: Encoder[Event] = Encoder.instance {
+  given eventEncoder: Encoder[Event] = Encoder.instance {
     case e: ItemEvent        => itemCodec(e).deepMerge(Json.obj("event" -> Json.fromString("item")))
     case e: UserEvent        => userCodec(e).deepMerge(Json.obj("event" -> Json.fromString("user")))
     case e: RankingEvent     => rankingCodec(e).deepMerge(Json.obj("event" -> Json.fromString("ranking")))
     case e: InteractionEvent => interactionCodec(e).deepMerge(Json.obj("event" -> Json.fromString("interaction")))
   }
-  implicit val eventDecoder: Decoder[Event] = Decoder.instance(c =>
+  given eventDecoder: Decoder[Event] = Decoder.instance(c =>
     c.downField("event").as[String] match {
       case Left(error) => Left(DecodingFailure(s"required field 'event' missing in JSON", c.history))
       case Right("metadata") | Right("item") => itemCodec.tryDecode(c)
@@ -179,5 +179,5 @@ object Event {
       case Right(other) => Left(DecodingFailure(s"event type '$other' is not supported", c.history))
     }
   )
-  implicit val eventCodec: Codec[Event] = Codec.from(eventDecoder, eventEncoder)
+  given eventCodec: Codec[Event] = Codec.from(eventDecoder, eventEncoder)
 }

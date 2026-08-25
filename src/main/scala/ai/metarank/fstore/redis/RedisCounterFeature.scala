@@ -35,7 +35,7 @@ case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefi
 }
 
 object RedisCounterFeature {
-  implicit val counterSink: StateSink[CounterState, RedisCounterFeature] =
+  given counterSink: StateSink[CounterState, RedisCounterFeature] =
     new StateSink[CounterState, RedisCounterFeature] {
       override def sink(f: RedisCounterFeature, state: fs2.Stream[IO, CounterState]): IO[TransferResult] =
         state

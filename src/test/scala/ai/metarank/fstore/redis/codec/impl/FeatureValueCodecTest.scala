@@ -19,7 +19,7 @@ import ai.metarank.model.Scalar.SString
 import ai.metarank.model.Scope.UserScope
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FeatureValueCodecTest extends AnyFlatSpec with Matchers with BinCodecTest {
   val k  = Key(UserScope(UserId("u1")), FeatureName("foo"))

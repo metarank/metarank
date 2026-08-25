@@ -26,7 +26,7 @@ case class FileCounterFeature(config: CounterConfig, db: SortedDB[Int], format: 
 }
 
 object FileCounterFeature {
-  implicit val counterSource: StateSource[CounterState, FileCounterFeature] =
+  given counterSource: StateSource[CounterState, FileCounterFeature] =
     new StateSource[CounterState, FileCounterFeature] {
       override def source(f: FileCounterFeature): Stream[IO, CounterState] = {
         Stream

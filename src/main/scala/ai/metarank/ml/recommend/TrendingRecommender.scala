@@ -15,7 +15,7 @@ import io.circe.{Codec, Decoder, Encoder}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import scala.collection.mutable
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 object TrendingRecommender {
   case class InteractionWeight(
@@ -133,8 +133,8 @@ object TrendingRecommender {
     }
   }
 
-  import ai.metarank.util.DurationJson._
-  implicit val intWeightDecoder: Decoder[InteractionWeight] = Decoder.instance(c =>
+  import ai.metarank.util.DurationJson.{*, given}
+  given intWeightDecoder: Decoder[InteractionWeight] = Decoder.instance(c =>
     for {
       tpe    <- c.downField("interaction").as[String]
       weight <- c.downField("weight").as[Option[Double]]
@@ -151,10 +151,10 @@ object TrendingRecommender {
     }
   )
 
-  implicit val intWeightEncoder: Encoder[InteractionWeight] = deriveEncoder
-  implicit val intWeightCodec: Codec[InteractionWeight]     = Codec.from(intWeightDecoder, intWeightEncoder)
+  given intWeightEncoder: Encoder[InteractionWeight] = deriveEncoder
+  given intWeightCodec: Codec[InteractionWeight]     = Codec.from(intWeightDecoder, intWeightEncoder)
 
-  implicit val trendingConfigDecoder: Decoder[TrendingConfig] = Decoder.instance(c =>
+  given trendingConfigDecoder: Decoder[TrendingConfig] = Decoder.instance(c =>
     for {
       weights  <- c.downField("weights").as[List[InteractionWeight]]
       selector <- c.downField("selector").as[Option[Selector]]
@@ -162,6 +162,6 @@ object TrendingRecommender {
       TrendingConfig(weights, selector.getOrElse(Selector.AcceptSelector()))
     }
   )
-  implicit val trendingConfigEncoder: Encoder[TrendingConfig] = deriveEncoder
-  implicit val trendingConfigCodec: Codec[TrendingConfig]     = Codec.from(trendingConfigDecoder, trendingConfigEncoder)
+  given trendingConfigEncoder: Encoder[TrendingConfig] = deriveEncoder
+  given trendingConfigCodec: Codec[TrendingConfig]     = Codec.from(trendingConfigDecoder, trendingConfigEncoder)
 }

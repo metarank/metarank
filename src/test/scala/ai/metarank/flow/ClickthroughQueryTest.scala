@@ -14,15 +14,15 @@ import ai.metarank.model.FieldName.EventType.Item
 import ai.metarank.model.Identifier.{ItemId, UserId}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.MValue.{CategoryValue, SingleValue, VectorValue}
-import ai.metarank.model.ScopeType._
+import ai.metarank.model.ScopeType.{*, given}
 import ai.metarank.model.TrainValues.ClickthroughValues
-import ai.metarank.model._
+import ai.metarank.model.*
 import cats.data.NonEmptyList
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class ClickthroughQueryTest extends AnyFlatSpec with Matchers {
   lazy val features = List(

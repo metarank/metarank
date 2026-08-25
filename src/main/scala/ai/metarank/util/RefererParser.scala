@@ -15,8 +15,8 @@
   */
 package ai.metarank.util
 
-import ai.metarank.util.RefererParser._
-import cats.implicits._
+import ai.metarank.util.RefererParser.{*, given}
+import cats.implicits.*
 import io.circe.{ACursor, Decoder, Json}
 
 import java.net.{URI, URLDecoder}
@@ -169,7 +169,7 @@ object RefererParser {
       parameters: Option[List[String]]
   )
 
-  implicit private val jsonEntryDecoder: Decoder[JsonEntry] = Decoder.instance { c =>
+  private given jsonEntryDecoder: Decoder[JsonEntry] = Decoder.instance { c =>
     for {
       domains    <- c.get[List[String]]("domains")
       parameters <- c.get[Option[List[String]]]("parameters")

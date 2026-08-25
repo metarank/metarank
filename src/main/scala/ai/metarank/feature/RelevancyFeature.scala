@@ -60,8 +60,8 @@ object RelevancyFeature {
     override def create(): IO[BaseFeature] = IO.pure(RelevancyFeature(this))
   }
 
-  implicit val relDecoder: Decoder[RelevancySchema] =
+  given relDecoder: Decoder[RelevancySchema] =
     deriveDecoder[RelevancySchema].withErrorMessage("cannot parse a feature definition of type 'relevancy'")
 
-  implicit val relEncoder: Encoder[RelevancySchema] = deriveEncoder
+  given relEncoder: Encoder[RelevancySchema] = deriveEncoder
 }

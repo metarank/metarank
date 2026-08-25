@@ -12,6 +12,6 @@ case class TermMatcher(language: TextAnalyzer) extends FieldMatcher {
 }
 
 object TermMatcher {
-  implicit val termDecoder: Decoder[TermMatcher] = deriveDecoder
-  implicit val termEncoder: Encoder[TermMatcher] = deriveEncoder
+  given termDecoder: Decoder[TermMatcher] = deriveDecoder
+  given termEncoder: Encoder[TermMatcher] = deriveEncoder
 }

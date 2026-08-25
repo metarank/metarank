@@ -24,7 +24,7 @@ import ai.metarank.model.{
   ScopeType,
   Write
 }
-import ai.metarank.model.Identifier._
+import ai.metarank.model.Identifier.{*, given}
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.{SString, SStringList}
 import ai.metarank.model.Scope.{ItemScope, SessionScope, UserScope}
@@ -36,7 +36,7 @@ import io.circe.{Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import shapeless3.typeable.syntax.typeable.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
@@ -166,7 +166,7 @@ case class InteractedWithFeature(schema: InteractedWithSchema) extends ItemFeatu
 }
 
 object InteractedWithFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
   case class InteractedWithSchema(
       name: FeatureName,
       interaction: String,
@@ -180,7 +180,7 @@ object InteractedWithFeature {
     override def create(): IO[BaseFeature] = IO.pure(InteractedWithFeature(this))
   }
 
-  implicit val interWithDecoder: Decoder[InteractedWithSchema] = Decoder.instance(c =>
+  given interWithDecoder: Decoder[InteractedWithSchema] = Decoder.instance(c =>
     for {
       name        <- c.downField("name").as[FeatureName]
       interaction <- c.downField("interaction").as[String]
@@ -202,7 +202,7 @@ object InteractedWithFeature {
     .ensure(onlyUserSession, "can only be scoped to user/session")
     .withErrorMessage("cannot parse a feature definition of type 'interacted_with'")
 
-  implicit val interWithEncoder: Encoder[InteractedWithSchema] = deriveEncoder
+  given interWithEncoder: Encoder[InteractedWithSchema] = deriveEncoder
 
   def onlyItem(schema: InteractedWithSchema) = schema.field.forall(f =>
     f.event match {

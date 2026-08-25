@@ -1,6 +1,6 @@
 package ai.metarank.feature
 
-import ai.metarank.feature.NumVectorFeature.Reducer._
+import ai.metarank.feature.NumVectorFeature.Reducer.{*, given}
 import ai.metarank.feature.NumVectorFeature.VectorFeatureSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence

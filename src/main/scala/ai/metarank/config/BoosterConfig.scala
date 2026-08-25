@@ -37,7 +37,7 @@ object BoosterConfig {
       debias: Boolean = false
   ) extends BoosterConfig
 
-  implicit val lgbmDecoder: Decoder[LightGBMConfig] = Decoder.instance(c =>
+  given lgbmDecoder: Decoder[LightGBMConfig] = Decoder.instance(c =>
     for {
       iterationsOption   <- c.downField("iterations").as[Option[Int]]
       learningRateOption <- c.downField("learningRate").as[Option[Double]]
@@ -61,10 +61,10 @@ object BoosterConfig {
       )
     }
   )
-  implicit val lgbmEncoder: Encoder[LightGBMConfig] = deriveEncoder[LightGBMConfig]
-  implicit val lgbmCodec: Codec[LightGBMConfig]     = Codec.from(lgbmDecoder, lgbmEncoder)
+  given lgbmEncoder: Encoder[LightGBMConfig] = deriveEncoder[LightGBMConfig]
+  given lgbmCodec: Codec[LightGBMConfig]     = Codec.from(lgbmDecoder, lgbmEncoder)
 
-  implicit val xgboostDecoder: Decoder[XGBoostConfig] = Decoder.instance(c =>
+  given xgboostDecoder: Decoder[XGBoostConfig] = Decoder.instance(c =>
     for {
       iterationsOption   <- c.downField("iterations").as[Option[Int]]
       learningRateOption <- c.downField("learningRate").as[Option[Double]]
@@ -86,14 +86,14 @@ object BoosterConfig {
       )
     }
   )
-  implicit val xgboostEncoder: Encoder[XGBoostConfig] = deriveEncoder[XGBoostConfig]
-  implicit val xgboostCodec: Codec[XGBoostConfig]     = Codec.from(xgboostDecoder, xgboostEncoder)
+  given xgboostEncoder: Encoder[XGBoostConfig] = deriveEncoder[XGBoostConfig]
+  given xgboostCodec: Codec[XGBoostConfig]     = Codec.from(xgboostDecoder, xgboostEncoder)
 
-  implicit val boosterConfigEncoder: Encoder[BoosterConfig] = Encoder.instance {
+  given boosterConfigEncoder: Encoder[BoosterConfig] = Encoder.instance {
     case l: LightGBMConfig => lgbmEncoder(l).deepMerge(withType("lightgbm"))
     case x: XGBoostConfig  => xgboostEncoder(x).deepMerge(withType("xgboost"))
   }
-  implicit val boosterConfigDecoder: Decoder[BoosterConfig] = Decoder.instance(c =>
+  given boosterConfigDecoder: Decoder[BoosterConfig] = Decoder.instance(c =>
     c.downField("type").as[String] match {
       case Left(err)         => Left(err)
       case Right("lightgbm") => lgbmDecoder.tryDecode(c)
@@ -101,5 +101,5 @@ object BoosterConfig {
       case Right(other)      => Left(DecodingFailure(s"cannot decode model type $other", c.history))
     }
   )
-  implicit val boosterConfigCodec: Codec[BoosterConfig] = Codec.from(boosterConfigDecoder, boosterConfigEncoder)
+  given boosterConfigCodec: Codec[BoosterConfig] = Codec.from(boosterConfigDecoder, boosterConfigEncoder)
 }

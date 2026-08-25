@@ -30,7 +30,7 @@ object DistanceFunction {
     override def dist(query: Array[Float], item: Array[Double]): Double = ???
   }
 
-  implicit val distanceFunctionDecoder: Decoder[DistanceFunction] = Decoder.decodeString.emapTry {
+  given distanceFunctionDecoder: Decoder[DistanceFunction] = Decoder.decodeString.emapTry {
     case "cos" | "Cos" | "cosine" | "Cosine" => Success(CosineDistance)
     case "dot"                               => Success(DotDistance)
     case other                               => Failure(new Exception(s"distance '$other' is not supported"))

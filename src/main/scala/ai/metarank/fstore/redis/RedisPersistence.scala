@@ -21,10 +21,10 @@ import io.lettuce.core.api.push.{PushListener, PushMessage}
 
 import java.nio.ByteBuffer
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import shapeless3.typeable.syntax.typeable.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class RedisPersistence(
     schema: Schema,
@@ -36,7 +36,7 @@ case class RedisPersistence(
     format: StoreFormat
 ) extends Persistence
     with Logging {
-  import RedisPersistence._
+  import RedisPersistence.{*, given}
 
   stateClient.readerConn.addListener(new PushListener {
     override def onPushMessage(message: PushMessage): Unit = if (message.getType == "invalidate") {

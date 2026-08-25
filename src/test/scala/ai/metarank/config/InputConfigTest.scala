@@ -2,21 +2,21 @@ package ai.metarank.config
 
 import ai.metarank.config.InputConfig.FileInputConfig.SortingType.SortByName
 import ai.metarank.config.InputConfig.{KafkaInputConfig, SourceOffset}
-import ai.metarank.config.InputConfig.SourceOffset._
+import ai.metarank.config.InputConfig.SourceOffset.{*, given}
 import ai.metarank.config.InputConfigTest.Source
 import ai.metarank.source.format.SnowplowFormat.SnowplowTSVFormat
 import cats.data.NonEmptyList
 import io.circe.Decoder
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import io.circe.generic.semiauto._
-import io.circe.yaml.parser.{parse => parseYaml}
-import io.circe.parser._
+import io.circe.generic.semiauto.*
+import io.circe.yaml.parser.{parse as parseYaml}
+import io.circe.parser.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class InputConfigTest extends AnyFlatSpec with Matchers {
-  import InputConfig._
+  import InputConfig.{*, given}
   def parse(offset: String) = {
     parseYaml(s"offset: $offset").flatMap(_.as[Source])
   }
@@ -195,5 +195,5 @@ class InputConfigTest extends AnyFlatSpec with Matchers {
 
 object InputConfigTest {
   case class Source(offset: SourceOffset)
-  implicit val sourceTestDecoder: Decoder[Source] = deriveDecoder
+  given sourceTestDecoder: Decoder[Source] = deriveDecoder
 }

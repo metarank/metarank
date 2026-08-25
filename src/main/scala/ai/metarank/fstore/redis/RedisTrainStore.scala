@@ -11,10 +11,10 @@ import ai.metarank.model.{Clickthrough, Event, EventId, Identifier, ItemValue, T
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.{Chunk, Stream}
-import cats.implicits._
+import cats.implicits.*
 import io.circe.{Codec, Decoder, Encoder}
 import io.circe.generic.semiauto.deriveCodec
-import cats.implicits._
+import cats.implicits.*
 
 import scala.concurrent.duration.FiniteDuration
 

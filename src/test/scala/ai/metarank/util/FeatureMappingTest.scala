@@ -12,7 +12,7 @@ import io.github.metarank.ltrlib.model.Feature.VectorFeature
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class FeatureMappingTest extends AnyFlatSpec with Matchers {
   it should "use vector features for single-bucket counters" in {

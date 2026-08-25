@@ -21,7 +21,7 @@ trait FeatureSuite[W <: Write, C <: FeatureConfig, F <: Feature[W, ? <: FeatureV
     values.lastOption.flatMap(last => f.computeValue(last.key, last.ts).unsafeRunSync())
   }
 
-  def stateSource[S](f: F)(implicit s: StateSource[S, F]) = s.source(f)
+  def stateSource[S](f: F)(using s: StateSource[S, F]) = s.source(f)
 
   it should "be empty" in {
     write(Nil) shouldBe None

@@ -14,7 +14,7 @@ import ai.metarank.model.Write.Append
 import ai.metarank.util.TestKey
 import cats.effect.unsafe.implicits.global
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 trait BoundedListSuite extends FeatureSuite[Append, BoundedListConfig, BoundedListFeature] {
   val config = BoundedListConfig(

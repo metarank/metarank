@@ -13,7 +13,7 @@ import org.apache.commons.io.IOUtils
 import fs2.{Chunk, Stream}
 
 import java.io.{File, FileInputStream, FileReader, InputStreamReader, Reader}
-import io.circe.parser._
+import io.circe.parser.*
 
 import java.util.zip.GZIPInputStream
 
@@ -96,7 +96,7 @@ object BM25Matcher {
       }
     }
   }
-  implicit val termDicEncoder: Encoder[TermFreqDic] = Encoder.instance(dic =>
+  given termDicEncoder: Encoder[TermFreqDic] = Encoder.instance(dic =>
     Json.fromJsonObject(
       JsonObject.fromMap(
         Map(
@@ -113,6 +113,6 @@ object BM25Matcher {
       )
     )
   )
-  implicit val termDicDecoder: Decoder[TermFreqDic] = deriveDecoder[TermFreqDic]
+  given termDicDecoder: Decoder[TermFreqDic] = deriveDecoder[TermFreqDic]
 
 }

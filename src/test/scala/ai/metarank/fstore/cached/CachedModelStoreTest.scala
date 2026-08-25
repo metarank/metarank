@@ -17,7 +17,7 @@ import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class CachedModelStoreTest extends AnyFlatSpec with Matchers {
   lazy val ticker                   = new EventTicker

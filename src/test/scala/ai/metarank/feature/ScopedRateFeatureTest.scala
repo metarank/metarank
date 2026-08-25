@@ -17,7 +17,7 @@ import org.scalatest.matchers.should.Matchers
 import cats.effect.unsafe.implicits.global
 import io.circe.yaml.parser.parse
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class ScopedRateFeatureTest extends AnyFlatSpec with Matchers with FeatureTest {
   val conf =

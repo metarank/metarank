@@ -6,7 +6,7 @@ import ai.metarank.validate.checks.InteractionMetadataValidation
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 class InteractionMetadataValidationTest extends AnyFlatSpec with Matchers {
   val now = Timestamp.now

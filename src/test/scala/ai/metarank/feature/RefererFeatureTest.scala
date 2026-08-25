@@ -3,7 +3,7 @@ package ai.metarank.feature
 import ai.metarank.feature.RefererFeature.RefererSchema
 import ai.metarank.fstore.Persistence
 import ai.metarank.fstore.memory.MemPersistence
-import ai.metarank.model.ScopeType._
+import ai.metarank.model.ScopeType.{*, given}
 import ai.metarank.model.Field.StringField
 import ai.metarank.model.{FieldName, Key, Schema, Timestamp}
 import ai.metarank.model.FieldName.EventType.{Ranking, User}

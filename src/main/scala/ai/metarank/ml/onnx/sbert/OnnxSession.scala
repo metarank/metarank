@@ -15,7 +15,7 @@ import org.apache.commons.io.{FileUtils, IOUtils}
 import java.io.{ByteArrayInputStream, File, FileInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class OnnxSession(env: OrtEnvironment, session: OrtSession, tokenizer: HuggingFaceTokenizer, dim: Int) {
   def close(): Unit = {

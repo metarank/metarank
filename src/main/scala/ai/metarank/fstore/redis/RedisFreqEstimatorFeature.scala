@@ -40,7 +40,7 @@ case class RedisFreqEstimatorFeature(
 }
 
 object RedisFreqEstimatorFeature {
-  implicit val freqSink: StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] =
+  given freqSink: StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] =
     new StateSink[FreqEstimatorState, RedisFreqEstimatorFeature] {
       override def sink(f: RedisFreqEstimatorFeature, state: fs2.Stream[IO, FreqEstimatorState]): IO[TransferResult] =
         state

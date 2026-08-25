@@ -2,7 +2,7 @@ package ai.metarank.fstore.file.client.rocksdb
 
 import ai.metarank.fstore.file.client.rocksdb.RocksDB.Codec
 import ai.metarank.fstore.file.client.{CloseableIterator, DB, SortedDB}
-import org.rocksdb.{ReadOptions, RocksDB => RDB}
+import org.rocksdb.{ReadOptions, RocksDB as RDB}
 
 case class RocksSortedDB[T](db: RDB, codec: Codec[T]) extends RocksDB[T] with SortedDB[T] {
   override def firstN(prefix: String, n: Int): Iterator[(String, T)] = {

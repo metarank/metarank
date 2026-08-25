@@ -17,7 +17,7 @@ import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import shapeless3.typeable.syntax.typeable.*
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 
 case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) extends ItemFeature {
   override val dim: VectorDim = VectorDim(schema.periods.size)
@@ -65,7 +65,7 @@ case class WindowInteractionCountFeature(schema: WindowInteractionCountSchema) e
 }
 
 object WindowInteractionCountFeature {
-  import ai.metarank.util.DurationJson._
+  import ai.metarank.util.DurationJson.{*, given}
   case class WindowInteractionCountSchema(
       name: FeatureName,
       interaction: String,
@@ -78,10 +78,10 @@ object WindowInteractionCountFeature {
     override def create(): IO[BaseFeature] = IO.pure(WindowInteractionCountFeature(this))
   }
 
-  implicit val windowCountDecoder: Decoder[WindowInteractionCountSchema] =
+  given windowCountDecoder: Decoder[WindowInteractionCountSchema] =
     deriveDecoder[WindowInteractionCountSchema].withErrorMessage(
       "cannot parse a feature definition of type 'window_count'"
     )
 
-  implicit val windowCountEncoder: Encoder[WindowInteractionCountSchema] = deriveEncoder
+  given windowCountEncoder: Encoder[WindowInteractionCountSchema] = deriveEncoder
 }

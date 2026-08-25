@@ -9,15 +9,15 @@ import cats.effect.IO
 import com.fasterxml.sort.std.{RawTextLineReader, RawTextLineWriter}
 import com.fasterxml.sort.{DataReader, DataReaderFactory, DataWriter, DataWriterFactory, SortConfig, Sorter}
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
-import io.circe.syntax._
-import io.circe.parser._
+import io.circe.syntax.*
+import io.circe.parser.*
 import org.apache.commons.io.FileUtils
 
 import java.io.{BufferedInputStream, BufferedOutputStream, FileInputStream, FileOutputStream, InputStream, OutputStream}
 import java.nio.file.{Files, Path}
 import java.util.Comparator
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object Sort extends Logging {
   case class SortableEvent(ts: Timestamp, json: String) extends Comparable[SortableEvent] {

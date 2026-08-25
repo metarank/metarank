@@ -40,7 +40,7 @@ import ai.metarank.model.State.{
 import ai.metarank.util.Logging
 import cats.effect.IO
 import fs2.Stream
-import cats.implicits._
+import cats.implicits.*
 
 import scala.annotation.tailrec
 

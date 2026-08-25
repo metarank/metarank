@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          # sbt-dynver derives the version from `git describe`, which needs tags + history
+          fetch-depth: 0
+          fetch-tags: true
 
       - uses: actions/cache@v6
         with:
@@ -33,8 +37,10 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-      - name: Verify tag matches build.sbt version
-        run: .github/check_release_version.sh "${GITHUB_REF_NAME}"
+      # fails if sbt-dynver did not resolve the version to an exact tag (e.g. broken
+      # tag fetch), so we never publish artifacts with a garbage version
+      - name: Verify version is derived from the tag
+        run: sbt -mem 5000 assertTagVersion
 
       # multi-arch buildx: qemu for the arm64 layers, buildx builder for sbt's
       # `docker buildx build --platform linux/amd64,linux/arm64 --push`

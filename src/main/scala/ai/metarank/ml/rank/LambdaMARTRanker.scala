@@ -35,7 +35,6 @@ import scala.util.Random
 
 object LambdaMARTRanker extends Logging {
 
-
   case class LambdaMARTConfig(
       backend: BoosterConfig,
       features: NonEmptyList[FeatureName],

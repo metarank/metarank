@@ -10,7 +10,6 @@ import ai.metarank.ml.recommend.mf.ALSRecImpl
 import ai.metarank.ml.recommend.mf.ALSRecImpl.ALSConfig
 import io.circe.{Decoder, DecodingFailure, Encoder, Json, JsonObject}
 
-
 trait ModelConfig {
   def selector: Selector
 }

@@ -1,6 +1,5 @@
 package ai.metarank.model
 
-
 import java.nio.file.Paths
 import scala.util.{Failure, Success, Try}
 

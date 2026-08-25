@@ -1,6 +1,5 @@
 package ai.metarank.fstore.codec
 
-
 import java.io.{DataInput, DataOutput}
 
 trait VCodec[T] {

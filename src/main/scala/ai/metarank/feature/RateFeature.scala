@@ -23,17 +23,7 @@ import ai.metarank.model.ScopeType.{
   RankingScopeType
 }
 import ai.metarank.model.Write.{PeriodicIncrement, Put}
-import ai.metarank.model.{
-  Event,
-  FeatureKey,
-  FeatureSchema,
-  FeatureValue,
-  Key,
-  MValue,
-  Scope,
-  ScopeType,
-  Write
-}
+import ai.metarank.model.{Event, FeatureKey, FeatureSchema, FeatureValue, Key, MValue, Scope, ScopeType, Write}
 import ai.metarank.util.Logging
 import cats.effect.IO
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}

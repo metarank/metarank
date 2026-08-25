@@ -31,7 +31,6 @@ import fs2.Stream
 import org.http4s.Request
 import org.http4s.server.middleware.{ErrorAction, Logger}
 
-
 object Serve extends Logging {
   def run(
       conf: Config,

@@ -19,7 +19,6 @@ import ai.metarank.validate.checks.{
 }
 import cats.effect.IO
 
-
 object Validate extends Logging {
   def run(conf: Config, args: ValidateArgs): IO[Unit] = for {
     _ <- validate(

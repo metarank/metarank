@@ -38,7 +38,6 @@ import ai.metarank.util.Logging
 import cats.effect.IO
 import cats.implicits.*
 
-
 object FileRedisTransfer extends Logging {
   def copy(source: FilePersistence, dest: RedisPersistence) = for {
     _ <- copyGroup[CounterState, FileCounterFeature, RedisCounterFeature](source.counters, dest.counters)

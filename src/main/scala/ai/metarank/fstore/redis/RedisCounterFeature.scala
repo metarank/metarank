@@ -13,7 +13,6 @@ import ai.metarank.model.Write.Increment
 import ai.metarank.util.Logging
 import cats.effect.IO
 
-
 case class RedisCounterFeature(config: CounterConfig, client: RedisClient, prefix: String, format: StoreFormat)
     extends CounterFeature
     with Logging {

@@ -20,7 +20,6 @@ import java.nio.ByteBuffer
 import java.util
 import scala.jdk.CollectionConverters.*
 
-
 case class RedisPersistence(
     schema: Schema,
     stateClient: RedisClient,

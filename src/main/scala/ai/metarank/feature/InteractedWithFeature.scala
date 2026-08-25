@@ -12,17 +12,7 @@ import ai.metarank.model.FeatureValue.{BoundedListValue, ScalarValue}
 import ai.metarank.model.Field.{StringField, StringListField}
 import ai.metarank.model.FieldName.EventType
 import ai.metarank.model.MValue.VectorValue
-import ai.metarank.model.{
-  Event,
-  FeatureSchema,
-  FeatureValue,
-  Field,
-  FieldName,
-  Key,
-  MValue,
-  ScopeType,
-  Write
-}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Write}
 import ai.metarank.model.Identifier.*
 import ai.metarank.model.Key.FeatureName
 import ai.metarank.model.Scalar.{SString, SStringList}

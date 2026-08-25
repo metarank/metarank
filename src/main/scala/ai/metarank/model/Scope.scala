@@ -13,7 +13,6 @@ import ai.metarank.model.ScopeType.{
 }
 import io.circe.{Codec, Decoder, Encoder}
 
-
 sealed trait Scope {
   def asString: String
   def getType: ScopeType

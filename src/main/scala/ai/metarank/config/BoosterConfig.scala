@@ -4,7 +4,6 @@ import ai.metarank.config.ModelConfig.withType
 import io.circe.generic.semiauto.deriveEncoder
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 
-
 sealed trait BoosterConfig {
   def iterations: Int
   def learningRate: Double

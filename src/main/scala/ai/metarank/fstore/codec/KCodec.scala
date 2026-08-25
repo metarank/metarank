@@ -1,6 +1,5 @@
 package ai.metarank.fstore.codec
 
-
 trait KCodec[T] {
   def encode(prefix: String, value: T): String
   def encodeNoPrefix(value: T): String

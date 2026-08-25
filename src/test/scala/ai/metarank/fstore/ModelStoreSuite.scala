@@ -14,7 +14,6 @@ import org.apache.commons.io.IOUtils
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-
 trait ModelStoreSuite extends AnyFlatSpec with Matchers {
   def store: ModelStore
 

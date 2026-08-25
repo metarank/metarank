@@ -224,12 +224,12 @@ api:
 
 ## Data sources
 
-The optional "source" section describes the source of the data, and by default expects you to submit all
+The optional "input" section describes the source of the data, and by default expects you to submit all
 user feedback using [the API](../api.md). Check [Supported data sources](data-sources.md) for more information.
 
 ```yaml
-source:
-  type: file # source type, available options: file, kafka, pulsar, kinesis
+#input:
+  #type: file # source type, available options: file, kafka, pulsar, kinesis
   #path: /home/user/ranklens/events/ # path to events file, alternatively you can use CLI to provide file location
   #offset: earliest|latest|ts=<unixtime>|last=<duration> #default: earliest
   #format: <json|snowplow:tsv|snowplow:json> # file format, default: json

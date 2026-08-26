@@ -233,6 +233,13 @@ curl http://localhost:8080/feedback -d '{
 }'
 ```
 
+Metarank normally waits for the session window to close (30 minutes of inactivity by default) before joining
+rankings and interactions together, so to make our experiment immediate, let's force it with the
+[flush API](../api.md#flush):
+```bash
+curl -XPOST http://localhost:8080/flush
+```
+
 ## Getting personalized ranking
 
 Now, we are ready to get some personalized!

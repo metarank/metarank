@@ -220,6 +220,29 @@ class MetarankFlowTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "not flush clickthroughs on api-style calls until an explicit flush" in {
+    val store2  = MemPersistence(mapping.schema)
+    val cs2     = MemTrainStore()
+    val buffer2 = TrainBuffer(ClickthroughJoinConfig(), store2.values, cs2, mapping)
+    val ranking = TestRankingEvent(List("p1", "p2", "p3"))
+    val click   = TestInteractionEvent("p2", ranking.id.value)
+    // two /feedback-style requests: the joined clickthrough must stay buffered
+    MetarankFlow
+      .process(store2, Stream.emits(List(ranking, click)), mapping, buffer2, flushOnComplete = false)
+      .unsafeRunSync()
+    MetarankFlow
+      .process(store2, Stream.emit(TestItemEvent("p4")), mapping, buffer2, flushOnComplete = false)
+      .unsafeRunSync()
+    cs2.getall().compile.toList.unsafeRunSync() shouldBe empty
+    // an explicit flush finalizes it exactly once, a repeated flush is a no-op
+    MetarankFlow.flush(store2, mapping, buffer2).unsafeRunSync()
+    MetarankFlow.flush(store2, mapping, buffer2).unsafeRunSync()
+    val cts = cs2.getall().compile.toList.unsafeRunSync().collect {
+      case ClickthroughValues(ct, _) if ct.interactions.nonEmpty => ct
+    }
+    cts.map(_.id) shouldBe List(ranking.id)
+  }
+
   it should "create updated clickthrough in store" in {
     MetarankFlow.process(store, Stream.emits(List(rankingEvent2, clickEvent2)), mapping, buffer).unsafeRunSync()
     buffer.flushAll().unsafeRunSync()

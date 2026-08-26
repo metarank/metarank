@@ -22,7 +22,19 @@ case class FeedbackApi(store: Persistence, mapping: FeatureMapping, buffer: Trai
     case post @ POST -> Root / "feedback" => {
       for {
         stream <- IO(post.entity.body.through(JsonFormat.parse).chunkN(1024).evalTap(logEvents))
-        result <- MetarankFlow.process(store, stream.unchunks, mapping, buffer)
+        result <- MetarankFlow.process(store, stream.unchunks, mapping, buffer, flushOnComplete = false)
+        _      <- store.sync
+      } yield {
+        Response(
+          status = Status.Ok,
+          entity = Entity.strict(JsonChunk(FeedbackResponse("ok", result.events, result.updates, result.tookMillis)))
+        )
+      }
+    }
+    case POST -> Root / "flush" => {
+      for {
+        _      <- info("flushing the clickthrough buffer on request")
+        result <- MetarankFlow.flush(store, mapping, buffer)
         _      <- store.sync
       } yield {
         Response(

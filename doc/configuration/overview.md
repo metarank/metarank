@@ -295,6 +295,9 @@ interactions are allowed to happen. Default values is 30m, as in Google Analytic
 * `core.clickthrough.maxParallelSessions`: how many parallel sessions may hang in buffer awaiting interactions. Default 
 is 10k.
 
+Buffered click-throughs can also be finalized on demand with the [flush API endpoint](../api.md#flush), without
+waiting for the `maxSessionLength` timeout.
+
 ### Anonymous usage analytics
 
 By default, Metarank collects anonymous usage analytics to improve the tool. No IP addresses are being tracked,

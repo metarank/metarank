@@ -1,11 +1,18 @@
 package ai.metarank.main.api
 
+import ai.metarank.FeatureMapping
 import ai.metarank.api.routes.FeedbackApi
+import ai.metarank.config.BoosterConfig.XGBoostConfig
 import ai.metarank.config.CoreConfig.ClickthroughJoinConfig
+import ai.metarank.feature.RandomFeature.RandomFeatureSchema
 import ai.metarank.flow.TrainBuffer
 import ai.metarank.fstore.memory.{MemTrainStore, MemPersistence}
+import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event
+import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
+import cats.data.NonEmptyList
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import io.circe.Encoder
@@ -66,13 +73,46 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
     response.status.code shouldBe 200
   }
 
-  def send(payload: String): Response[IO] = {
+  it should "flush buffered clickthroughs on /flush" in {
+    val models = Map(
+      "lm" -> LambdaMARTConfig(
+        backend = XGBoostConfig(),
+        features = NonEmptyList.of(FeatureName("rand")),
+        weights = Map("click" -> 1)
+      )
+    )
+    val mapping2 = FeatureMapping.fromFeatureSchema(List(RandomFeatureSchema(FeatureName("rand"))), models).unsafeRunSync()
+    val store2   = MemPersistence(mapping2.schema)
+    val cs2      = MemTrainStore()
+    val buffer2  = TrainBuffer(ClickthroughJoinConfig(), store2.values, cs2, mapping2)
+    val service2 = FeedbackApi(store2, mapping2, buffer2)
+    val ranking  = TestRankingEvent(List("p1", "p2"))
+    send((ranking: Event).asJson.noSpaces, service2).status.code shouldBe 200
+    send((TestInteractionEvent("p2", ranking.id.value): Event).asJson.noSpaces, service2).status.code shouldBe 200
+    cs2.getall().compile.toList.unsafeRunSync() shouldBe empty
+    flush(service2).status.code shouldBe 200
+    flush(service2).status.code shouldBe 200
+    val cts = cs2.getall().compile.toList.unsafeRunSync().collect {
+      case ClickthroughValues(ct, _) if ct.interactions.nonEmpty => ct
+    }
+    cts.map(_.id) shouldBe List(ranking.id)
+  }
+
+  def send(payload: String, svc: FeedbackApi = service): Response[IO] = {
     val request = Request[IO](
       method = Method.POST,
       uri = Uri.unsafeFromString("http://localhost:8080/feedback"),
       entity = Entity.strict(ByteVector(payload.getBytes()))
     )
 
-    service.routes(request).value.unsafeRunSync().get
+    svc.routes(request).value.unsafeRunSync().get
+  }
+
+  def flush(svc: FeedbackApi = service): Response[IO] = {
+    val request = Request[IO](
+      method = Method.POST,
+      uri = Uri.unsafeFromString("http://localhost:8080/flush")
+    )
+    svc.routes(request).value.unsafeRunSync().get
   }
 }

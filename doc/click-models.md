@@ -106,3 +106,8 @@ Interactions are generated properly even for multiple clicks that happened for a
 * ranking shown items A-B-C-D-E-F
 * visitor clicked items B and D
 * when the clickthrough is finalized, Metarank will emit impression interactions for items A-B-C-D.
+
+Because of this, `impression` is a [reserved interaction type](event-schema.md#reserved-interaction-type-impression):
+you should not send your own interaction events with `type: impression`. Metarank cannot tell them apart from the
+synthetic ones, so each examined item would be counted twice. If you track item visibility on your side, use another
+type name like `view`.

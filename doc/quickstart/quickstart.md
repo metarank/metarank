@@ -45,7 +45,7 @@ The dataset is used to build a [Metarank Demo](https://demo.metarank.ai/) websit
 
 </details>
 
-<details><summary>Visitor impressions: what was displayed to a visitor</summary>
+<details><summary>Rankings: what was displayed to a visitor</summary>
 
 ```json
 {
@@ -196,13 +196,13 @@ interaction events yet.
 
 ## Sending visitor feedback
 
-Metarank expects to receive impression events (what was displayed to the visitor) and interaction events (what the visitor
+Metarank expects to receive ranking events (what was displayed to the visitor) and interaction events (what the visitor
 did after seeing the listing). 
 
-Impression event contains only the items that were displayed to the user, so if your response is paginated, impression event will indicate
+Ranking event contains only the items that were displayed to the user, so if your response is paginated, ranking event will indicate
 only items from the current page.
 
-In our case, the impression event is a set of top 12 movies from the previous `/rank` request, 
+In our case, the ranking event is a set of top 12 movies from the previous `/rank` request, 
 starting with `Terminator 2` and ending with `MIIB`:
 ```bash
 curl http://localhost:8080/feedback -d '{

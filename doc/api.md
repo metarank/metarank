@@ -151,7 +151,7 @@ define which model to invoke.
 }
 ```
 
-- `id`: a request identifier later used to join ranking and interaction events. This will be the same value that you will pass to feedback endpoint for impression and ranking events.
+- `id`: a request identifier later used to join ranking and interaction events. This will be the same value that you will pass to the feedback endpoint in the ranking event and in the `ranking` field of interaction events.
 - `user`: an optional unique visitor identifier.
 - `session`: an optional session identifier, a single visitor may have multiple sessions.
 - `timestamp`: when this event happened. (see [timestamp format description](timestamp-formats.md) on which formats are supported)

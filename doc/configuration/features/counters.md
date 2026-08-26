@@ -13,6 +13,11 @@ In Metarank, there are two different types of counters implemented:
   session, cart size and so on.
 * window_counter: when you need to time-frame all the events. Good for item popularities.
 
+Both counter types can be set to `interaction: impression` to count the synthetic `impression` events Metarank
+generates from clickthroughs (see [click models](../../click-models.md)). As `impression` is a
+[reserved interaction type](../../event-schema.md#reserved-interaction-type-impression), never send your own
+`type: impression` events: the counter will see both yours and the synthetic ones, counting each impression twice.
+
 ## Interaction counter
 
 Interaction counter is configured in a following way:

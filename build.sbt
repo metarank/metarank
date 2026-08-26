@@ -145,7 +145,7 @@ lazy val root = (project in file("."))
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
-    assembly / assemblyJarName := "metarank.jar"
+    assembly / assemblyOutputPath := baseDirectory.value / "target" / "metarank.jar"
   )
 
 // release guard: fails when the dynver version is not an exact clean git tag (extra

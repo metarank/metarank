@@ -62,7 +62,7 @@ jobs:
 
       # keep the original metarank.jar in place — the docker image mapping expects it
       - name: Rename jar with version suffix
-        run: cp target/out/jvm/scala-3.7.4/metarank/metarank.jar "metarank-${GITHUB_REF_NAME}.jar"
+        run: cp target/metarank.jar "metarank-${GITHUB_REF_NAME}.jar"
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v3

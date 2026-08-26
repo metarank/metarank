@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MV=`javap -v target/out/jvm/scala-3.7.4/metarank/classes/ai/metarank/util/VarNum.class|grep "major version"`
+MV=`javap -v -classpath target/metarank.jar ai.metarank.util.VarNum|grep "major version"`
 
 echo "$MV"
 

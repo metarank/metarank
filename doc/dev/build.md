@@ -4,7 +4,7 @@ Metarank is written in [Scala](https://www.scala-lang.org) and uses an [SBT](htt
 It can be built on Windows, Linux and MacOS in the following way:
 1. Clone the `metarank/metarank` repo with your favourite git client.
 2. Install JDK 21+ and SBT 2.x, using the sbt [official installation manual](https://www.scala-sbt.org/download.html) for your OS.
-3. From shell, run the `sbt assembly` command, and the metarank fat jar will be built into `target/out/jvm/scala-3.7.4/metarank/metarank.jar`
+3. From shell, run the `sbt assembly` command, and the metarank fat jar will be built into `target/metarank.jar`
 
 ```bash
 $ sbt assembly

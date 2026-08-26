@@ -1,6 +1,6 @@
 package ai.metarank.fstore.redis
 
-import ai.metarank.fstore.codec.{StoreFormat, VCodec}
+import ai.metarank.fstore.codec.StoreFormat
 import ai.metarank.fstore.redis.client.RedisClient
 import ai.metarank.fstore.transfer.StateSink
 import ai.metarank.fstore.transfer.StateSink.TransferResult

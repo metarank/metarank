@@ -1,6 +1,6 @@
 package ai.metarank.ml.recommend
 
-import ai.metarank.ml.{Predictor, PredictorSuite}
+import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.recommend.TrendingRecommender.{
   InteractionWeight,
   TrendingConfig,

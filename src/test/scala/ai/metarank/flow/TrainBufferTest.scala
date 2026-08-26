@@ -9,6 +9,7 @@ import ai.metarank.ml.rank.LambdaMARTRanker.LambdaMARTConfig
 import ai.metarank.model.Event.RankItem
 import ai.metarank.model.Identifier.ItemId
 import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model.{EventId, Timestamp}
 import ai.metarank.util.{TestFeatureMapping, TestInteractionEvent, TestRankingEvent}
 import cats.data.NonEmptyList
@@ -39,6 +40,23 @@ class TrainBufferTest extends AnyFlatSpec with Matchers {
     buffer.flushAll().unsafeRunSync()
     val cts = cs.getall().compile.toList.unsafeRunSync()
     cts shouldNot be(empty)
+  }
+
+  it should "not flush the same clickthrough twice" in {
+    val state  = MemPersistence(mapping.schema)
+    val cs     = MemTrainStore()
+    val buffer = TrainBuffer(conf = ClickthroughJoinConfig(), values = state.values, cs, mapping = mapping)
+    val now    = Timestamp.now
+    buffer.process(TestRankingEvent(List("p1")).copy(id = EventId("i1"), timestamp = now)).unsafeRunSync()
+    buffer.process(TestInteractionEvent("p1", "i1").copy(timestamp = now.plus(1.second))).unsafeRunSync()
+    val first  = buffer.flushAll().unsafeRunSync()
+    val second = buffer.flushAll().unsafeRunSync()
+    first shouldNot be(empty)
+    second shouldBe empty
+    val cts = cs.getall().compile.toList.unsafeRunSync().collect {
+      case ClickthroughValues(ct, _) if ct.interactions.nonEmpty => ct
+    }
+    cts.map(_.id) shouldBe List(EventId("i1"))
   }
 
   it should "not emit cts on no click" in {

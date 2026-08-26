@@ -137,9 +137,11 @@ case class TrainBuffer(
   }
 
   def flushAll(): IO[List[TrainValues]] = for {
-    items <- IO(cache.asMap().values)
-    _     <- IO(items.foreach(ct => queue.add(ct)))
-    cts   <- flushQueue()
+    snapshot <- IO(cache.asMap().toList)
+    _        <- IO(snapshot.foreach { case (_, ct) => queue.add(ct) })
+    // explicit invalidation does not trigger the evictionListener, so flushed entries are not re-queued
+    _   <- IO(cache.invalidateAll(snapshot.map(_._1)))
+    cts <- flushQueue()
   } yield {
     cts
   }

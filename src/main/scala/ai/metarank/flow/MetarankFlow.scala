@@ -13,7 +13,8 @@ object MetarankFlow {
       store: Persistence,
       source: Stream[IO, Event],
       mapping: FeatureMapping,
-      clickthrough: TrainBuffer
+      clickthrough: TrainBuffer,
+      flushOnComplete: Boolean = true
   ): IO[ProcessResult] = {
     val event = FeatureValueFlow(mapping, store)
     val sink  = FeatureValueSink(store)
@@ -29,27 +30,12 @@ object MetarankFlow {
         .through(ai.metarank.flow.PrintProgress.tap(Some(store), "events"))
         .flatMap(event =>
           Stream.evalSeq[IO, List, Event](
-            clickthrough
-              .process(event)
-              .map(cts =>
-                event +: cts.flatMap {
-                  case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
-                  case _                                     => Nil
-                }
-              )
+            clickthrough.process(event).map(cts => event +: injectImpressions(cts))
           )
         )
         .onComplete(
-          Stream.evalSeq[IO, List, Event](
-            clickthrough
-              .flushAll()
-              .map(cts =>
-                cts.flatMap {
-                  case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
-                  case _                                     => Nil
-                }
-              )
-          )
+          if (flushOnComplete) Stream.evalSeq[IO, List, Event](clickthrough.flushAll().map(injectImpressions))
+          else Stream.empty
         )
         .through(event.process)
         .evalTapChunk(values => updateCounter.update(_ + values.size))
@@ -62,5 +48,14 @@ object MetarankFlow {
     } yield {
       ProcessResult(events, updates, end - start)
     }
+  }
+
+  // finalizes all buffered clickthroughs and runs the synthetic impressions through the feature pipeline
+  def flush(store: Persistence, mapping: FeatureMapping, clickthrough: TrainBuffer): IO[ProcessResult] =
+    process(store, Stream.empty, mapping, clickthrough)
+
+  private def injectImpressions(cts: List[TrainValues]): List[Event] = cts.flatMap {
+    case TrainValues.ClickthroughValues(ct, _) => ImpressionInject.process(ct)
+    case _                                     => Nil
   }
 }

@@ -1,7 +1,6 @@
 package ai.metarank.main.command
 
 import ai.metarank.FeatureMapping
-import ai.metarank.api.routes
 import ai.metarank.api.routes.inference.{BiEncoderApi, CrossEncoderApi}
 import ai.metarank.api.routes.{FeedbackApi, HealthApi, MetricsApi, RankApi, RecommendApi, TrainApi}
 import ai.metarank.config.{ApiConfig, Config}
@@ -119,9 +118,15 @@ object Serve extends Logging {
       )
       _ <- info(Logo.raw)
       _ <- info("Starting API...")
-      _ <- api.build.use(_ => IO.never)
+      _ <- api.build.use(_ => IO.never).guarantee(flushBuffer(store, mapping, buffer))
     } yield {}
   }
+
+  def flushBuffer(store: Persistence, mapping: FeatureMapping, buffer: TrainBuffer): IO[Unit] = for {
+    _ <- info("flushing the clickthrough buffer before shutdown")
+    _ <- MetarankFlow.flush(store, mapping, buffer)
+    _ <- store.sync
+  } yield {}
 
   def maybeWarmup(mapping: FeatureMapping, store: Persistence, ranker: Ranker) = for {
     lmart <- Stream.emits(mapping.models.values.collect { case lm: LambdaMARTPredictor => lm }.toSeq)

@@ -11,7 +11,7 @@ import ai.metarank.model.FeatureValue.ScalarValue
 import ai.metarank.model.Field.NumberField
 import ai.metarank.model.FieldName.EventType.*
 import ai.metarank.model.Key.FeatureName
-import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, ScopeType, Timestamp}
+import ai.metarank.model.{Event, FeatureSchema, FeatureValue, Field, FieldName, Key, MValue, Timestamp}
 import ai.metarank.model.MValue.SingleValue
 import ai.metarank.model.Scalar.SDouble
 import ai.metarank.model.Scope.ItemScope

@@ -29,7 +29,8 @@ import scala.util.Try
 
 object Main extends IOApp with Logging {
   override def run(args: List[String]): IO[ExitCode] = args match {
-    case "--help" :: Nil | Nil => IO(CliArgs.printHelp()) *> IO.pure(ExitCode.Success)
+    case _ if args.contains("--help") => IO(CliArgs.printHelp()) *> IO.pure(ExitCode.Success)
+    case "--version" :: Nil | Nil => info("Metarank v" + Version().getOrElse("unknown")) *> IO.pure(ExitCode.Success)
     case _ =>
       for {
         env <- IO(System.getenv().asScala.toMap)

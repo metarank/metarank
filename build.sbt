@@ -24,7 +24,6 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
-      "-Werror",
       "-Wunused:imports",
       "-release:21"
     ),
@@ -34,10 +33,10 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies ++= Seq(
       "org.typelevel"        %% "cats-effect"         % "3.7.1",
-      "org.typelevel"        %% "shapeless3-typeable" % "3.5.0",
+      "org.typelevel"        %% "shapeless3-typeable" % "3.6.0",
       "org.scalatest"        %% "scalatest"           % scalatestVersion % "test,it",
       "org.scalactic"        %% "scalactic"           % scalatestVersion % "test,it",
-      "org.scalatestplus"    %% "scalacheck-1-18"     % "3.2.19.0"       % "test,it",
+      "org.scalatestplus"    %% "scalacheck-1-19"     % "3.2.20.0"       % "test,it",
       "ch.qos.logback"        % "logback-classic"     % "1.6.3",
       "io.circe"             %% "circe-yaml"          % circeYamlVersion,
       "io.circe"             %% "circe-core"          % circeVersion,

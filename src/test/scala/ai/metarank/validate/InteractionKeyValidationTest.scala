@@ -1,6 +1,5 @@
 package ai.metarank.validate
 
-import ai.metarank.model.Event.RankingEvent
 import ai.metarank.model.EventId
 import ai.metarank.util.{TestConfig, TestInteractionEvent, TestRankingEvent}
 import ai.metarank.validate.checks.InteractionKeyValidation

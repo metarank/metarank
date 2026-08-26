@@ -7,6 +7,15 @@ ThisBuild / scalaVersion := "3.8.4"
 ThisBuild / dynverVTagPrefix := false // tags are "0.8.0", not "v0.8.0"
 ThisBuild / dynverSeparator  := "-"   // dynver's default "+" is not allowed in docker tags
 
+// these DockerPlugin/UniversalPlugin defaults are unused because dockerCommands
+// and Docker/mappings are fully overridden below
+Global / excludeLintKeys ++= Set(
+  Universal / executableScriptName,
+  UniversalDocs / name,
+  UniversalSrc / name,
+  dockerEntrypoint
+)
+
 lazy val It = config("it").extend(Test)
 
 lazy val root = (project in file("."))

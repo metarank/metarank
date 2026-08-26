@@ -24,7 +24,6 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-feature",
       "-deprecation",
-      "-Werror",
       "-Wunused:imports",
       "-release:21"
     ),

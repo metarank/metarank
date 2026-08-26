@@ -81,7 +81,8 @@ class FeedbackApiTest extends AnyFlatSpec with Matchers {
         weights = Map("click" -> 1)
       )
     )
-    val mapping2 = FeatureMapping.fromFeatureSchema(List(RandomFeatureSchema(FeatureName("rand"))), models).unsafeRunSync()
+    val mapping2 =
+      FeatureMapping.fromFeatureSchema(List(RandomFeatureSchema(FeatureName("rand"))), models).unsafeRunSync()
     val store2   = MemPersistence(mapping2.schema)
     val cs2      = MemTrainStore()
     val buffer2  = TrainBuffer(ClickthroughJoinConfig(), store2.values, cs2, mapping2)

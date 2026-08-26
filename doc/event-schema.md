@@ -149,3 +149,11 @@ The `type` field must match the `name` provided in the [Configuration](configura
 - `type`: internal name of the event.
 - `item`: id of the content item. Should match the `item` property from metadata event.
 - `fields`: an optional array of extra fields that you can use in your model, as described above.
+
+### Reserved interaction type: `impression`
+
+The interaction type `impression` is reserved: Metarank emits synthetic `impression` interactions on its own for
+items examined by the visitor, based on the [cascade click model](click-models.md#cascade-model-and-click-through-rate).
+Don't send your own interaction events with `type: impression` — they will be counted on top of the synthetic ones,
+so counter and rate features will see each impression twice (see [issue #1554](https://github.com/metarank/metarank/issues/1554)).
+If you track item visibility on your side, use a different type name like `view`.

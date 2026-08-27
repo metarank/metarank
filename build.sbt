@@ -79,7 +79,7 @@ lazy val root = (project in file("."))
       "io.lettuce"             % "lettuce-core"            % "6.8.2.RELEASE",
       "com.google.guava"       % "guava"                   % "33.7.1-jre",
       "commons-io"             % "commons-io"              % "2.22.0",
-      "io.sentry"              % "sentry-logback"          % "8.53.0",
+      "io.sentry"              % "sentry-logback"          % "8.54.0",
       "com.fasterxml.util"     % "java-merge-sort"         % "1.1.0",
       "io.prometheus"          % "simpleclient"            % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"    % prometheusVersion,

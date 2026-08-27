@@ -131,6 +131,31 @@ selector:
   maxItems: 20 # both min and max are optional
 ```
 
+* **User selector**: only accept click-through events belonging to a single user. Useful to single out a known bot or service account:
+```yaml
+selector:
+  user: monitoring-bot
+```
+
+* **Cadence selector**: only accept click-through events landing within a fixed slot of a repeating period. Periods are aligned to the epoch, so a 300 second period starts on every wall-clock 5-minute mark in UTC. Both bounds are inclusive and must satisfy `0 <= secondFrom <= secondTo < periodSeconds`:
+```yaml
+selector:
+  periodSeconds: 300 # the period repeats every 5 minutes
+  secondFrom: 90     # accept events from 90s into the period
+  secondTo: 110      # up to and including 110s into the period
+```
+This is mostly useful in combination with NOT, to drop synthetic traffic from a scheduler firing on a strict interval:
+```yaml
+selector:
+  not:
+    and:
+      - minItems: 2
+        maxItems: 2
+      - periodSeconds: 300
+        secondFrom: 90
+        secondTo: 110
+```
+
 * **AND/OR/NOT selector**: combine multiple selectors within a single boolean combination:
 ```yaml
 selector:

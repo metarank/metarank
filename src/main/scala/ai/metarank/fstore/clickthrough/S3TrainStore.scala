@@ -4,7 +4,7 @@ import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.TrainStore
 import ai.metarank.fstore.clickthrough.S3TrainStore.{Buffer, format}
 import ai.metarank.fstore.codec.VCodec
-import ai.metarank.model.TrainValues
+import ai.metarank.model.{EventId, TrainValues}
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
@@ -50,23 +50,28 @@ case class S3TrainStore(
   } yield {}
 
   override def getall(): fs2.Stream[IO, TrainValues] =
-    fs2.Stream
-      .evalSeq(listKeys())
-      .evalFilter(key =>
-        CompressionType.fromKey(key) match {
-          case Some(_) => IO.pure(true)
-          case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
-        }
-      )
-      .flatMap(key =>
-        // A single truncated/corrupt part (e.g. left behind by an interrupted or
-        // concurrent write) must not abort the whole training run: log it and skip
-        // the rest of that part, keeping the records already read from it and every
-        // other part.
-        getPart(key).handleErrorWith(e =>
-          fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
+    // Suspend so each materialisation of the stream gets its own seen-set
+    fs2.Stream.suspend {
+      val seen = scala.collection.mutable.HashSet.empty[EventId]
+      fs2.Stream
+        .evalSeq(listKeys())
+        .evalFilter(key =>
+          CompressionType.fromKey(key) match {
+            case Some(_) => IO.pure(true)
+            case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
+          }
         )
-      )
+        .flatMap(key =>
+          // A single truncated/corrupt part (e.g. left behind by an interrupted or
+          // concurrent write) must not abort the whole training run: log it and skip
+          // the rest of that part, keeping the records already read from it and every
+          // other part.
+          getPart(key).handleErrorWith(e =>
+            fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
+          )
+        )
+        .filter(tv => seen.add(tv.id))
+    }
 
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream

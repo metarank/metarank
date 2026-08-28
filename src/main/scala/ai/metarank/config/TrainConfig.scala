@@ -48,7 +48,8 @@ object TrainConfig {
       partSizeEvents: Int = 1024,
       partInterval: FiniteDuration = 1.hour,
       endpoint: Option[String] = None,
-      format: StoreFormat = BinaryStoreFormat
+      format: StoreFormat = BinaryStoreFormat,
+      deduplicate: Boolean = false
   ) extends TrainConfig
   given s3TrainConfigDecoder: Decoder[S3TrainConfig] = Decoder.instance(c =>
     for {
@@ -63,6 +64,7 @@ object TrainConfig {
       partInterval    <- c.downField("partInterval").as[Option[FiniteDuration]]
       endpoint        <- c.downField("endpoint").as[Option[String]]
       format          <- c.downField("format").as[Option[StoreFormat]]
+      deduplicate     <- c.downField("deduplicate").as[Option[Boolean]]
     } yield {
       S3TrainConfig(
         key,
@@ -75,7 +77,8 @@ object TrainConfig {
         batchSizeEvents.getOrElse(1024),
         partInterval.getOrElse(1.hour),
         endpoint,
-        format.getOrElse(BinaryStoreFormat)
+        format.getOrElse(BinaryStoreFormat),
+        deduplicate.getOrElse(false)
       )
     }
   )

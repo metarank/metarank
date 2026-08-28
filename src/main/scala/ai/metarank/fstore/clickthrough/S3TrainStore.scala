@@ -49,29 +49,33 @@ case class S3TrainStore(
     _ <- maybeFlush()
   } yield {}
 
-  override def getall(): fs2.Stream[IO, TrainValues] =
-    // Suspend so each materialisation of the stream gets its own seen-set
-    fs2.Stream.suspend {
-      val seen = scala.collection.mutable.HashSet.empty[EventId]
-      fs2.Stream
-        .evalSeq(listKeys())
-        .evalFilter(key =>
-          CompressionType.fromKey(key) match {
-            case Some(_) => IO.pure(true)
-            case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
-          }
+  override def getall(): fs2.Stream[IO, TrainValues] = {
+    val parts = fs2.Stream
+      .evalSeq(listKeys())
+      .evalFilter(key =>
+        CompressionType.fromKey(key) match {
+          case Some(_) => IO.pure(true)
+          case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
+        }
+      )
+      .flatMap(key =>
+        // A single truncated/corrupt part (e.g. left behind by an interrupted or
+        // concurrent write) must not abort the whole training run: log it and skip
+        // the rest of that part, keeping the records already read from it and every
+        // other part.
+        getPart(key).handleErrorWith(e =>
+          fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
         )
-        .flatMap(key =>
-          // A single truncated/corrupt part (e.g. left behind by an interrupted or
-          // concurrent write) must not abort the whole training run: log it and skip
-          // the rest of that part, keeping the records already read from it and every
-          // other part.
-          getPart(key).handleErrorWith(e =>
-            fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
-          )
-        )
-        .filter(tv => seen.add(tv.id))
-    }
+      )
+
+    if (conf.deduplicate)
+      // Suspend so each materialisation of the stream gets its own seen-set
+      fs2.Stream.suspend {
+        val seen = scala.collection.mutable.HashSet.empty[EventId]
+        parts.filter(tv => seen.add(tv.id))
+      }
+    else parts
+  }
 
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream

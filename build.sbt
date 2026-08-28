@@ -74,9 +74,12 @@ lazy val root = (project in file("."))
       "org.apache.lucene"      % "lucene-analysis-smartcn"  % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-kuromoji" % luceneVersion,
       "org.apache.lucene"      % "lucene-analysis-stempel"  % luceneVersion,
-      "software.amazon.awssdk" % "kinesis"                  % awsVersion,
-      // lettuce 7.x is built on netty 4.2, which conflicts with netty 4.1 pulled by pulsar/awssdk in the fat jar
-      "io.lettuce"             % "lettuce-core"            % "6.8.2.RELEASE",
+      ("software.amazon.awssdk" % "kinesis" % awsVersion).excludeAll(
+        ExclusionRule("io.netty", "netty-codec") // monolithic jar, split into netty-codec-base in netty 4.2
+      ),
+      // lettuce 7.x needs netty 4.2 while awssdk's netty-nio-client is built on 4.1; the conflicting
+      // monolithic netty-codec is excluded from awssdk below (pulsar shades its own netty, so is unaffected)
+      "io.lettuce"             % "lettuce-core"            % "7.7.0.RELEASE",
       "com.google.guava"       % "guava"                   % "33.7.1-jre",
       "commons-io"             % "commons-io"              % "2.22.0",
       "io.sentry"              % "sentry-logback"          % "8.53.0",
@@ -84,8 +87,8 @@ lazy val root = (project in file("."))
       "io.prometheus"          % "simpleclient"            % prometheusVersion,
       "io.prometheus"          % "simpleclient_hotspot"    % prometheusVersion,
       "io.prometheus"          % "simpleclient_httpserver" % prometheusVersion,
-      "software.amazon.awssdk" % "s3"                      % awsVersion,
-      "software.amazon.awssdk" % "sts"                     % awsVersion,
+      ("software.amazon.awssdk" % "s3" % awsVersion).excludeAll(ExclusionRule("io.netty", "netty-codec")),
+      ("software.amazon.awssdk" % "sts" % awsVersion).excludeAll(ExclusionRule("io.netty", "netty-codec")),
       "org.apache.commons"     % "commons-rng-sampling"    % "1.7",
       "org.apache.commons"     % "commons-rng-simple"      % "1.7",
       ("io.github.metarank"    % "librec-core"             % "3.0.0-1").excludeAll(

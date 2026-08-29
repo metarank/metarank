@@ -110,6 +110,8 @@ train:
   partInterval: 1h            # optional, default: 1h
   endpoint: <endpoint URI>    # optional, custom S3 endpoint
   format: json | binary       # optional, default: binary
+  deduplicate: false          # optional, default: false, drop records whose event id was
+  # already seen while reading, for buckets holding parts uploaded more than once
   awsKey: "<key>"             # optional, you should prefer setting
   # AWS_KEY_ID and AWS_SECRET_KEY_ID env vars
   awsKeySecret: "<secret>"    # optional

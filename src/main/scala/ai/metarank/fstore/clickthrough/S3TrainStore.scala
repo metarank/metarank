@@ -4,7 +4,7 @@ import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.TrainStore
 import ai.metarank.fstore.clickthrough.S3TrainStore.{Buffer, format}
 import ai.metarank.fstore.codec.VCodec
-import ai.metarank.model.TrainValues
+import ai.metarank.model.{EventId, TrainValues}
 import ai.metarank.util.Logging
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
@@ -49,8 +49,8 @@ case class S3TrainStore(
     _ <- maybeFlush()
   } yield {}
 
-  override def getall(): fs2.Stream[IO, TrainValues] =
-    fs2.Stream
+  override def getall(): fs2.Stream[IO, TrainValues] = {
+    val parts = fs2.Stream
       .evalSeq(listKeys())
       .evalFilter(key =>
         CompressionType.fromKey(key) match {
@@ -67,6 +67,15 @@ case class S3TrainStore(
           fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
         )
       )
+
+    if (conf.deduplicate)
+      // Suspend so each materialisation of the stream gets its own seen-set
+      fs2.Stream.suspend {
+        val seen = scala.collection.mutable.HashSet.empty[EventId]
+        parts.filter(tv => seen.add(tv.id))
+      }
+    else parts
+  }
 
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {
     fs2.Stream

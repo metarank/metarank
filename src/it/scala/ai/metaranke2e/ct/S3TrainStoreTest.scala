@@ -50,6 +50,33 @@ class S3TrainStoreTest extends AnyFlatSpec with Matchers {
     read should contain theSameElementsAs events
   }
 
+  it should "keep records with repeating ids by default, and drop them when deduplicate is set" in {
+    val prefix = s"test_${Random.nextInt(100000)}"
+    val events = List.fill(100)(ct)
+    val plain  = makeStore(config(prefix))
+    plain.put(events).unsafeRunSync()
+    plain.flush().unsafeRunSync()
+    plain.getall().compile.toList.unsafeRunSync() shouldBe events
+
+    val dedup = makeStore(config(prefix).copy(deduplicate = true))
+    dedup.getall().compile.toList.unsafeRunSync() shouldBe List(ct)
+  }
+
+  it should "drop records duplicated across parts when deduplicate is set" in {
+    val prefix = s"test_${Random.nextInt(100000)}"
+    val events = (0 until 10).map(i => TestClickthroughValues(List(s"a$i", s"b$i"))).toList
+    val writer = makeStore(config(prefix))
+    // The same batch written twice, as a retried upload or a flush racing a restart leaves it
+    writer.put(events).unsafeRunSync()
+    writer.flush().unsafeRunSync()
+    writer.put(events).unsafeRunSync()
+    writer.flush().unsafeRunSync()
+
+    makeStore(config(prefix)).getall().compile.toList.unsafeRunSync() should have size 20
+    val dedup = makeStore(config(prefix).copy(deduplicate = true))
+    dedup.getall().compile.toList.unsafeRunSync() should contain theSameElementsAs events
+  }
+
   it should "read parts written with a different compression config" in {
     val prefix    = s"test_${Random.nextInt(100000)}"
     val gzipStore = makeStore(config(prefix, compress = GzipCompressionType))

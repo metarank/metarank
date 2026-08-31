@@ -45,8 +45,10 @@ case class S3TrainStore(
   val tmpdir = System.getProperty("java.io.tmpdir")
 
   override def put(cts: List[TrainValues]): IO[Unit] = for {
-    _ <- bufferRef.update(_.put(cts))
-    _ <- maybeFlush()
+    // Encode outside the Ref so a CAS retry repeats only append()
+    chunk <- IO.blocking(Buffer.encode(cts, conf.format.ctv))
+    _     <- bufferRef.update(_.append(chunk))
+    _     <- maybeFlush()
   } yield {}
 
   override def getall(): fs2.Stream[IO, TrainValues] =
@@ -140,8 +142,9 @@ case class S3TrainStore(
         s"flushing part key=$key size=(${FileUtils.byteCountToDisplaySize(buffer.byteSize)}, ${buffer.eventCount} events)"
       )
       request <- IO(PutObjectRequest.builder().bucket(conf.bucket).key(key).build())
-      body    <- IO(AsyncRequestBody.fromBytes(buffer.toByteArray()))
-      _       <- IO.fromCompletableFuture(IO(client.putObject(request, body)))
+      // Compressing a multi-MB part takes hundreds of ms and would starve the compute pool
+      body <- IO.blocking(AsyncRequestBody.fromBytes(buffer.toByteArray()))
+      _    <- IO.fromCompletableFuture(IO(client.putObject(request, body)))
     } yield {})
   } yield {}
 
@@ -194,19 +197,19 @@ object S3TrainStore extends Logging {
 
     def put(event: TrainValues): Buffer = put(List(event))
 
-    def put(events: List[TrainValues]): Buffer =
-      if (events.isEmpty) this
-      else {
-        val bytes      = new ByteArrayOutputStream()
-        val out        = new DataOutputStream(bytes)
-        val extraBytes = events.foldLeft(0)((size, next) => size + codec.encodeDelimited(next, out))
-        out.close()
+    def put(events: List[TrainValues]): Buffer = append(encode(events))
+
+    // Cheap enough for a Ref.update CAS loop, which repeats it on retry
+    def append(chunk: Chunk): Buffer =
+      if (chunk.eventCount == 0) this
+      else
         copy(
-          chunks = chunks :+ bytes.toByteArray,
-          eventCount = eventCount + events.size,
-          byteSize = byteSize + extraBytes
+          chunks = chunks :+ chunk.bytes,
+          eventCount = eventCount + chunk.eventCount,
+          byteSize = byteSize + chunk.byteSize
         )
-      }
+
+    def encode(events: List[TrainValues]): Chunk = Buffer.encode(events, codec)
 
     def toByteArray(): Array[Byte] = {
       val stream = new ByteArrayOutputStream()
@@ -224,6 +227,24 @@ object S3TrainStore extends Logging {
   object Buffer {
     def apply(compress: CompressionType, codec: VCodec[TrainValues]): Buffer =
       new Buffer(Vector.empty, 0, 0, codec, compress, System.currentTimeMillis())
+
+    // CPU-bound, so callers in IO wrap it in IO.blocking
+    def encode(events: List[TrainValues], codec: VCodec[TrainValues]): Chunk =
+      if (events.isEmpty) Chunk.empty
+      else {
+        val bytes      = new ByteArrayOutputStream()
+        val out        = new DataOutputStream(bytes)
+        val extraBytes = events.foldLeft(0)((size, next) => size + codec.encodeDelimited(next, out))
+        out.close()
+        Chunk(bytes.toByteArray, events.size, extraBytes)
+      }
+  }
+
+  // Encoded bytes of one put, plus the counters Buffer needs for its flush triggers
+  case class Chunk(bytes: Array[Byte], eventCount: Int, byteSize: Int)
+
+  object Chunk {
+    val empty = Chunk(Array.empty, 0, 0)
   }
 
   def create(conf: S3TrainConfig): Resource[IO, S3TrainStore] = {

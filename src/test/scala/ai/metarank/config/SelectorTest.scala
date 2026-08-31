@@ -2,12 +2,17 @@ package ai.metarank.config
 
 import ai.metarank.config.Selector.{
   AndSelector,
+  CadenceSelector,
   FieldSelector,
   InteractionPositionSelector,
+  NotSelector,
   OrSelector,
-  RankingLengthSelector
+  RankingLengthSelector,
+  UserSelector
 }
 import ai.metarank.model.Field.StringField
+import ai.metarank.model.Identifier.UserId
+import ai.metarank.model.Timestamp
 import ai.metarank.util.TestClickthrough
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -56,5 +61,43 @@ class SelectorTest extends AnyFlatSpec with Matchers {
     a.accept(ct1) shouldBe true
     a.accept(ct2) shouldBe true
     a.accept(ct3) shouldBe false
+  }
+
+  it should "accept events with user selector" in {
+    val ct1 = TestClickthrough(List("p1"), List("p1")).copy(user = Some(UserId("monitoring-bot")))
+    val ct2 = TestClickthrough(List("p1"), List("p1"))
+    val ct3 = TestClickthrough(List("p1"), List("p1")).copy(user = None)
+    val us  = UserSelector("monitoring-bot")
+    us.accept(ct1) shouldBe true
+    us.accept(ct2) shouldBe false
+    us.accept(ct3) shouldBe false
+  }
+
+  it should "accept events landing in the cadence slot" in {
+    val cs = CadenceSelector(300, 90, 110)
+    // 10:11:36 UTC -> minute 11 is 1 mod 5, so 96s into the 5-minute period
+    val inSlot = TestClickthrough(List("p1", "p2"), List("p1"))
+      .copy(ts = Timestamp.date(2026, 8, 19, 10, 11, 36))
+    // 10:13:20 UTC -> 200s into the period
+    val outOfSlot = TestClickthrough(List("p1", "p2"), List("p1"))
+      .copy(ts = Timestamp.date(2026, 8, 19, 10, 13, 20))
+    cs.accept(inSlot) shouldBe true
+    cs.accept(outOfSlot) shouldBe false
+  }
+
+  it should "exclude synthetic traffic with cadence and ranking length combined" in {
+    // the shape a monitoring bot leaves: a fixed-size ranking on a strict 5-minute tick
+    val bot = TestClickthrough(List("p1", "p2"), List("p1"))
+      .copy(ts = Timestamp.date(2026, 8, 19, 10, 11, 36))
+    // a genuine ranking of the same size that happens to be off-cadence
+    val realSmall = TestClickthrough(List("p1", "p2"), List("p1"))
+      .copy(ts = Timestamp.date(2026, 8, 19, 10, 13, 20))
+    // a genuine ranking on the tick, but with a full slate of items
+    val realOnTick = TestClickthrough(List("p1", "p2", "p3", "p4"), List("p1"))
+      .copy(ts = Timestamp.date(2026, 8, 19, 10, 11, 36))
+    val keep = NotSelector(AndSelector(List(RankingLengthSelector(Some(2), Some(2)), CadenceSelector(300, 90, 110))))
+    keep.accept(bot) shouldBe false
+    keep.accept(realSmall) shouldBe true
+    keep.accept(realOnTick) shouldBe true
   }
 }

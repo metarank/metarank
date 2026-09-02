@@ -39,5 +39,21 @@ class S3TrainBufferTest extends AnyFlatSpec with Matchers {
     val buffer = S3TrainStore.Buffer(GzipCompressionType, codec)
     buffer.nonEmpty shouldBe false
     buffer.put(Nil) shouldBe buffer
+    buffer.append(S3TrainStore.Chunk.empty) shouldBe buffer
+  }
+
+  // Both routes must produce byte-identical parts
+  it should "produce the same part whether encoding happens inside or outside the buffer" in {
+    val events: List[TrainValues] = List.fill(100)(ct)
+    val viaPut =
+      events.grouped(7).foldLeft(S3TrainStore.Buffer(GzipCompressionType, codec))((buf, b) => buf.put(b.toList))
+    val viaAppend = events
+      .grouped(7)
+      .foldLeft(S3TrainStore.Buffer(GzipCompressionType, codec))((buf, b) =>
+        buf.append(S3TrainStore.Buffer.encode(b.toList, codec))
+      )
+    viaAppend.eventCount shouldBe viaPut.eventCount
+    viaAppend.byteSize shouldBe viaPut.byteSize
+    viaAppend.toByteArray() shouldBe viaPut.toByteArray()
   }
 }

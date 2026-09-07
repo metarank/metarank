@@ -103,7 +103,7 @@ object HuggingFaceClient {
     given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     for {
       uri    <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
-      client <- EmberClientBuilder.default[IO].withTimeout(200.seconds).build
+      client <- EmberClientBuilder.default[IO].withTimeout(Duration.Inf).withIdleConnectionTime(60.seconds).build
     } yield {
       HuggingFaceClient(withRetry(client), uri)
     }

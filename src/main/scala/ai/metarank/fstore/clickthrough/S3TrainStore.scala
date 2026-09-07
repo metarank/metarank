@@ -4,8 +4,8 @@ import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.TrainStore
 import ai.metarank.fstore.clickthrough.S3TrainStore.{Buffer, format}
 import ai.metarank.fstore.codec.VCodec
-import ai.metarank.model.{EventId, TrainValues}
-import ai.metarank.util.Logging
+import ai.metarank.model.TrainValues
+import ai.metarank.util.{DeduplicateByKey, Logging}
 import cats.effect.{IO, Ref}
 import cats.effect.kernel.Resource
 import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
@@ -68,13 +68,7 @@ case class S3TrainStore(
         )
       )
 
-    if (conf.deduplicate)
-      // Suspend so each materialisation of the stream gets its own seen-set
-      fs2.Stream.suspend {
-        val seen = scala.collection.mutable.HashSet.empty[EventId]
-        parts.filter(tv => seen.add(tv.id))
-      }
-    else parts
+    parts.through(if (conf.deduplicate) DeduplicateByKey(_.id) else identity)
   }
 
   def getPart(key: String): fs2.Stream[IO, TrainValues] = {

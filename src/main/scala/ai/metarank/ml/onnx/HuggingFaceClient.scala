@@ -82,7 +82,7 @@ object HuggingFaceClient {
   given modelSiblingCodec: Codec[Sibling]        = deriveCodec[Sibling]
   given modelResponseCodec: Codec[ModelResponse] = deriveCodec[ModelResponse]
 
-  val DEFAULT_MAX_RETRIES  = 5
+  val DEFAULT_MAX_RETRIES    = 5
   val DEFAULT_MAX_RETRY_WAIT = 30.seconds
 
   /** HuggingFace rate-limits anonymous downloads per IP with HTTP 429, which http4s does not treat as retriable by

@@ -24,7 +24,7 @@ class HuggingFaceClientTest extends AnyFlatSpec with Matchers {
         if (n <= failures) Response[IO](failStatus) else Response[IO](Status.Ok).withEntity("ok")
       }
     }
-    raw = Client.fromHttpApp(app)
+    raw    = Client.fromHttpApp(app)
     client = HuggingFaceClient.withRetry(raw, maxRetries = 3, maxWait = 10.millis)
   } yield (HuggingFaceClient(client, Uri.unsafeFromString("http://localhost")), counter)
 

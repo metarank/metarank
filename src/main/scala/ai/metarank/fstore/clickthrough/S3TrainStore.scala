@@ -21,7 +21,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model.{
   GetObjectRequest,
   HeadObjectRequest,
-  ListObjectsRequest,
+  ListObjectsV2Request,
   PutObjectRequest
 }
 import software.amazon.awssdk.services.s3.S3AsyncClient
@@ -99,13 +99,28 @@ case class S3TrainStore(
     _ <- info(s"downloaded part $key size=${FileUtils.byteCountToDisplaySize(size)}")
   } yield {}
 
-  def listKeys(): IO[List[String]] = for {
-    request  <- IO(ListObjectsRequest.builder().bucket(conf.bucket).prefix(conf.prefix).build())
-    response <- IO.fromCompletableFuture(IO(client.listObjects(request)))
-    files    <- IO(response.contents().asScala.map(_.key()).toList.sorted)
-    _        <- info(s"S3 list objects: count=${files.size} values=$files")
-  } yield {
-    files
+  def listKeys(): IO[List[String]] = {
+    // S3 caps a list response at 1000 keys
+    def loop(token: Option[String], acc: List[String]): IO[List[String]] = for {
+      request <- IO {
+        val builder = ListObjectsV2Request.builder().bucket(conf.bucket).prefix(conf.prefix)
+        token.foreach(builder.continuationToken)
+        builder.build()
+      }
+      response <- IO.fromCompletableFuture(IO(client.listObjectsV2(request)))
+      keys = acc ++ response.contents().asScala.map(_.key()).toList
+      // isTruncated and nextContinuationToken are boxed and may be absent from the response
+      next = Option(response.nextContinuationToken()).filter(_ => Option(response.isTruncated).exists(_.booleanValue))
+      result <- next match {
+        case Some(token) => loop(Some(token), keys)
+        case None        => IO.pure(keys)
+      }
+    } yield result
+
+    for {
+      files <- loop(None, Nil).map(_.sorted)
+      _     <- info(s"S3 list objects: count=${files.size}")
+    } yield files
   }
 
   def tick(): IO[Unit] = for {

@@ -4,10 +4,14 @@ import ai.metarank.config.TrainConfig.CompressionType.{GzipCompressionType, Zstd
 import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.clickthrough.S3TrainStore
 import ai.metarank.util.TestClickthroughValues
+import cats.effect.IO
+import cats.effect.syntax.all.*
 import cats.effect.unsafe.implicits.global
 import cats.implicits.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 import scala.util.Random
 
@@ -59,5 +63,25 @@ class S3TrainStoreTest extends AnyFlatSpec with Matchers {
     val zstdStore = makeStore(config(prefix, compress = ZstdCompressionType))
     val read      = zstdStore.getall().compile.toList.unsafeRunSync()
     read shouldBe events
+  }
+
+  it should "list keys past the 1000-key page limit" in {
+    val prefix = s"test_${Random.nextInt(100000)}"
+    val store  = makeStore(config(prefix))
+    val count  = 1001
+    (0 until count).toList
+      .parTraverseN(16)(i =>
+        IO.fromCompletableFuture(
+          IO(
+            store.client.putObject(
+              PutObjectRequest.builder().bucket("bucket").key(s"$prefix/part_$i.bin").build(),
+              AsyncRequestBody.fromString("x")
+            )
+          )
+        )
+      )
+      .unsafeRunSync()
+
+    store.listKeys().unsafeRunSync().size shouldBe count
   }
 }

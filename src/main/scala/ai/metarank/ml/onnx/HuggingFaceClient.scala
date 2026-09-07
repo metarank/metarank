@@ -9,8 +9,9 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
-import org.http4s.{EntityDecoder, Request, Uri}
+import org.http4s.{EntityDecoder, Request, Response, Status, Uri}
 import org.http4s.client.Client
+import org.http4s.client.middleware.{Retry, RetryPolicy}
 import org.http4s.circe.*
 import org.http4s.ember.client.EmberClientBuilder
 import org.typelevel.ci.CIString
@@ -81,13 +82,30 @@ object HuggingFaceClient {
   given modelSiblingCodec: Codec[Sibling]        = deriveCodec[Sibling]
   given modelResponseCodec: Codec[ModelResponse] = deriveCodec[ModelResponse]
 
+  val DEFAULT_MAX_RETRIES    = 5
+  val DEFAULT_MAX_RETRY_WAIT = 30.seconds
+
+  /** HuggingFace rate-limits anonymous downloads per IP with HTTP 429, which http4s does not treat as retriable by
+    * default. Retries GET requests on 429 + the standard 5xx/timeout set with exponential backoff, honouring the
+    * Retry-After header when present.
+    */
+  def withRetry(
+      client: Client[IO],
+      maxRetries: Int = DEFAULT_MAX_RETRIES,
+      maxWait: FiniteDuration = DEFAULT_MAX_RETRY_WAIT
+  )(using LoggerFactory[IO]): Client[IO] = {
+    val retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean = (req, result) =>
+      RetryPolicy.defaultRetriable(req, result) || result.exists(_.status == Status.TooManyRequests)
+    Retry[IO](RetryPolicy(RetryPolicy.exponentialBackoff(maxWait, maxRetries), retriable))(client)
+  }
+
   def create(endpoint: String = HUGGINGFACE_API_ENDPOINT): Resource[IO, HuggingFaceClient] = {
     given logging: LoggerFactory[IO] = Slf4jFactory.create[IO]
     for {
       uri    <- Resource.eval(IO.fromEither(Uri.fromString(endpoint)))
-      client <- EmberClientBuilder.default[IO].withTimeout(200.seconds).build
+      client <- EmberClientBuilder.default[IO].withTimeout(Duration.Inf).withIdleConnectionTime(60.seconds).build
     } yield {
-      HuggingFaceClient(client, uri)
+      HuggingFaceClient(withRetry(client), uri)
     }
   }
 

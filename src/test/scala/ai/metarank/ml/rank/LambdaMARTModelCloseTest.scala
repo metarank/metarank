@@ -44,12 +44,12 @@ class LambdaMARTModelCloseTest extends AnyFlatSpec with Matchers {
   it should "survive a close from another thread while predicting" in {
     // repeat with fresh boosters so the close lands at different points of the native call
     for (round <- 1 to 20) {
-      val model       = loadModel()
-      val req         = request(100)
-      val successes   = new AtomicInteger(0)
-      val unexpected  = new AtomicReference[Option[Throwable]](None)
-      val warmedUp    = new CountDownLatch(1)
-      val sawClosed   = new CountDownLatch(1)
+      val model      = loadModel()
+      val req        = request(100)
+      val successes  = new AtomicInteger(0)
+      val unexpected = new AtomicReference[Option[Throwable]](None)
+      val warmedUp   = new CountDownLatch(1)
+      val sawClosed  = new CountDownLatch(1)
 
       val inference = new Thread(
         () => {

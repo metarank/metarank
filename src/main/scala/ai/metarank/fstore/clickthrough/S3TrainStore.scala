@@ -60,40 +60,35 @@ case class S3TrainStore(
           case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
         }
       )
-      .map(key =>
-        // A single truncated/corrupt part (e.g. left behind by an interrupted or
-        // concurrent write) must not abort the whole training run: log it and skip
-        // the rest of that part, keeping the records already read from it and every
-        // other part.
-        getPart(key).handleErrorWith(e =>
-          fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))
-        )
+      .parEvalMap(conf.readConcurrency)(key =>
+        fetchPart(key)
+          .map(path => readPart(key, path))
+          .handleErrorWith(e => warn(s"skipping undownloadable train part $key: ${e.getMessage}").as(fs2.Stream.empty))
+          .map(_.handleErrorWith(e => fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))))
       )
-      .parJoin(conf.readConcurrency)
+      .flatten
 
     parts.through(if (conf.deduplicate) DeduplicateByKey(_.id) else identity)
   }
 
-  def getPart(key: String): fs2.Stream[IO, TrainValues] = {
-    fs2.Stream
-      .eval(for {
-        file <- IO(Path.of(tmpdir, key))
-        _    <- IO(Files.createDirectories(file.getParent))
-        head <- IO.fromCompletableFuture(
-          IO(client.headObject(HeadObjectRequest.builder().bucket(conf.bucket).key(key).build()))
-        )
-        remoteSize <- IO(head.contentLength().longValue())
-        cached     <- IO(Files.exists(file) && Files.size(file) == remoteSize)
-        _ <-
-          if (cached) info(s"found part $key in local cache, size=${FileUtils.byteCountToDisplaySize(remoteSize)}")
-          else downloadPart(key, file, remoteSize)
-      } yield {
-        file
-      })
-      .flatMap(path =>
-        fs2.Stream.bracket(IO(new FileInputStream(path.toFile)))(s => IO(s.close())).flatMap(s => read(s, key))
-      )
+  // Resolve a part to a local file: reuse the cached copy when its size matches S3, otherwise download.
+  def fetchPart(key: String): IO[Path] = for {
+    file <- IO(Path.of(tmpdir, key))
+    _    <- IO(Files.createDirectories(file.getParent))
+    head <- IO.fromCompletableFuture(
+      IO(client.headObject(HeadObjectRequest.builder().bucket(conf.bucket).key(key).build()))
+    )
+    remoteSize <- IO(head.contentLength().longValue())
+    cached     <- IO(Files.exists(file) && Files.size(file) == remoteSize)
+    _ <-
+      if (cached) info(s"found part $key in local cache, size=${FileUtils.byteCountToDisplaySize(remoteSize)}")
+      else downloadPart(key, file, remoteSize)
+  } yield {
+    file
   }
+
+  def readPart(key: String, path: Path): fs2.Stream[IO, TrainValues] =
+    fs2.Stream.bracket(IO(new FileInputStream(path.toFile)))(s => IO(s.close())).flatMap(s => read(s, key))
 
   def downloadPart(key: String, file: Path, size: Long): IO[Unit] = for {
     tmp     <- IO(file.resolveSibling(file.getFileName.toString + ".tmp." + UUID.randomUUID().toString.take(8)))

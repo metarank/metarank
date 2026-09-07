@@ -37,7 +37,7 @@ object TrainConfig {
     case other          => Failure(new Exception(s"compression type $other not supported. Try gzip/zstd/none."))
   }
 
-  // How many train parts to download and decode concurrently in S3TrainStore.getall
+  // How many train parts to download concurrently in S3TrainStore.getall; parts are decoded sequentially in key order
   val defaultReadConcurrency: Int = Runtime.getRuntime.availableProcessors()
 
   case class S3TrainConfig(

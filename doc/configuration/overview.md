@@ -108,7 +108,7 @@ train:
   partSizeBytes: 10485760     # optional, pre-compression, default: 10Mb
   partSizeEvents: 1024        # optional, default: 1024 events
   partInterval: 1h            # optional, default: 1h
-  readConcurrency: 8          # optional, parts read in parallel during train,
+  readConcurrency: 8          # optional, parts downloaded in parallel during train (decoded in order),
   # default: number of available CPUs, set to 1 for sequential reads
   endpoint: <endpoint URI>    # optional, custom S3 endpoint
   format: json | binary       # optional, default: binary

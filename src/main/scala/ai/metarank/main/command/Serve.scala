@@ -21,7 +21,7 @@ import cats.effect.IO
 import cats.effect.kernel.Resource
 import cats.implicits.*
 import com.comcast.ip4s.{Hostname, Port}
-import io.prometheus.client.hotspot.DefaultExports
+import io.prometheus.metrics.instrumentation.jvm.JvmMetrics
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Router
 import org.typelevel.log4cats.LoggerFactory
@@ -82,7 +82,7 @@ object Serve extends Logging {
       feedback   <- IO.pure(FeedbackApi(store, mapping, buffer).routes)
       train      <- IO.pure(TrainApi(mapping, store, cts).routes)
       rec        <- IO.pure(RecommendApi(Recommender(mapping, store), store).routes)
-      metricsApi <- IO(DefaultExports.initialize()) *> IO.pure(MetricsApi().routes)
+      metricsApi <- IO(JvmMetrics.builder().register()) *> IO.pure(MetricsApi().routes)
       inferenceEncoder <- BiEncoderApi.create(
         models = inference,
         existing = mapping.features.collect { case x: FieldMatchBiencoderFeature => x }

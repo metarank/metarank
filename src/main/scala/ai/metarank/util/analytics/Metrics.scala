@@ -1,15 +1,18 @@
 package ai.metarank.util.analytics
 
-import io.prometheus.client.{Counter, Summary}
+import io.prometheus.metrics.core.metrics.{Counter, Summary}
 
 object Metrics {
   lazy val requests =
-    Counter.build("metarank_rank_requests", "Number of /rank requests").labelNames("model").register()
+    Counter.builder().name("metarank_rank_requests").help("Number of /rank requests").labelNames("model").register()
 
-  lazy val events = Counter.build("metarank_feedback_events", "Number of feedback events received").register()
+  lazy val events =
+    Counter.builder().name("metarank_feedback_events").help("Number of feedback events received").register()
 
   lazy val requestLatency = Summary
-    .build("metarank_rank_latency_seconds", "rank endpoint latency")
+    .builder()
+    .name("metarank_rank_latency_seconds")
+    .help("rank endpoint latency")
     .labelNames("model")
     .maxAgeSeconds(600)
     .quantile(0.5, 0.01)

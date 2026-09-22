@@ -24,8 +24,8 @@ case class RankApi(ranker: Ranker) extends Logging {
 
   val routes = HttpRoutes.of[IO] { case post @ POST -> Root / "rank" / model :? ExplainParamDecoder(explain) =>
     for {
-      _           <- IO(Metrics.requests.labels(model).inc())
-      start       <- IO(Metrics.requestLatency.labels(model).startTimer())
+      _           <- IO(Metrics.requests.labelValues(model).inc())
+      start       <- IO(Metrics.requestLatency.labelValues(model).startTimer())
       requestJson <- post.as[String]
       request     <- IO.fromEither(decode[RankingEvent](requestJson))
       _           <- IO { logRequest(model, request) }

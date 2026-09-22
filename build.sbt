@@ -82,7 +82,7 @@ lazy val root = (project in file("."))
       "io.lettuce"         % "lettuce-core"            % "7.7.0.RELEASE",
       "com.google.guava"   % "guava"                   % "33.7.1-jre",
       "commons-io"         % "commons-io"              % "2.22.0",
-      "io.sentry"          % "sentry-logback"          % "8.55.0",
+      "io.sentry"          % "sentry-logback"          % "8.57.0",
       "com.fasterxml.util" % "java-merge-sort"         % "1.1.0",
       "io.prometheus"      % "simpleclient"            % prometheusVersion,
       "io.prometheus"      % "simpleclient_hotspot"    % prometheusVersion,
@@ -102,7 +102,7 @@ lazy val root = (project in file("."))
       ("org.mapdb"                % "mapdb"          % "3.1.0").exclude("net.jpountz.lz4", "lz4"),
       "com.github.jelmerk"        % "hnswlib-core"   % "1.2.1",
       "org.slf4j"                 % "jcl-over-slf4j" % "2.0.20", // librec uses commons-logging, which is JCL
-      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.29.0",
+      "com.microsoft.onnxruntime" % "onnxruntime"    % "1.30.0",
       "ai.djl"                    % "api"            % djlVersion,
       "ai.djl.huggingface"        % "tokenizers"     % djlVersion,
       "co.fs2"                   %% "fs2-core"       % fs2Version,

@@ -79,7 +79,7 @@ lazy val root = (project in file("."))
       ),
       // lettuce 7.x needs netty 4.2 while awssdk's netty-nio-client is built on 4.1; the conflicting
       // monolithic netty-codec is excluded from awssdk below (pulsar shades its own netty, so is unaffected)
-      "io.lettuce"         % "lettuce-core"                              % "7.7.0.RELEASE",
+      "io.lettuce"         % "lettuce-core"                              % "7.8.0.RELEASE",
       "com.google.guava"   % "guava"                                     % "33.7.1-jre",
       "commons-io"         % "commons-io"                                % "2.22.0",
       "io.sentry"          % "sentry-logback"                            % "8.57.0",

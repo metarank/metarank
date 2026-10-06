@@ -195,6 +195,9 @@ Each strategy definition in a config file can be optionally configured with a sp
 * *sampling*: *optional*, default: 0.8, fraction of features used to build a tree, useful to prevent over-fitting.
 * *debias*: *optional*, default: false. Enable booster-native position bias removal support. See these two articles about the unbiased LTR for [XGBoost](https://xgboost.readthedocs.io/en/latest/tutorials/learning_to_rank.html#position-bias) and [LightGBM](https://lightgbm.readthedocs.io/en/latest/Advanced-Topics.html#support-for-position-bias-treatment) for details.
 
+XGBoost also supports these specific options:
+* *treeMethod*: *optional*, *string*, default: *hist*, one of *hist*, *approx* or *exact*, the [tree construction algorithm](https://xgboost.readthedocs.io/en/stable/treemethod.html). Only *hist* and *approx* handle `encode: index` features as categories; *exact* splits them as plain numbers and is much slower.
+
 LightGBM also supports these specific options:
 * *numLeaves*: *optional*, *number*, default: *16*, how many leaves the tree may have.
 

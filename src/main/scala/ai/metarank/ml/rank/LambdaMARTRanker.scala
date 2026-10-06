@@ -168,7 +168,13 @@ object LambdaMARTRanker extends Logging {
             debias = debias
           )
           LambdaMART(split.train, LightGBMBooster, Some(split.test), opts).fit(opts)
-        case XGBoostConfig(it, lr, ndcg, depth, seed, sampling, debias) =>
+        case XGBoostConfig(it, lr, ndcg, depth, seed, sampling, debias, treeMethod) =>
+          if (treeMethod == "exact" && split.train.desc.features.exists(_.isInstanceOf[Feature.CategoryFeature])) {
+            logger.warn(
+              "XGBoost treeMethod 'exact' does not support categorical features, " +
+                "index-encoded features will be split as plain numbers. Use 'hist' or 'approx' instead."
+            )
+          }
           val opts = XGBoostOptions(
             trees = it,
             randomSeed = seed,
@@ -177,7 +183,7 @@ object LambdaMARTRanker extends Logging {
             maxDepth = depth,
             subsample = sampling,
             earlyStopping = Some(20),
-            treeMethod = "exact", // hist/approx do not work with categories
+            treeMethod = treeMethod, // Only hist and approx make categorical splits
             debias = debias
           )
           LambdaMART(split.train, XGBoostBooster, Some(split.test), opts).fit(opts)

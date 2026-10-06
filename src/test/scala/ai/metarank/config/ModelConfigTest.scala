@@ -32,6 +32,18 @@ class ModelConfigTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "parse treeMethod for xgboost" in {
+    val yaml    = "type: xgboost\nseed: 0\ntreeMethod: exact"
+    val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[BoosterConfig])
+    decoded shouldBe Right(XGBoostConfig(seed = 0, treeMethod = "exact"))
+  }
+
+  it should "fail on unknown xgboost treeMethod" in {
+    val yaml    = "type: xgboost\ntreeMethod: gpu_hist"
+    val decoded = io.circe.yaml.parser.parse(yaml).flatMap(_.as[BoosterConfig])
+    decoded.isLeft shouldBe true
+  }
+
   it should "decode minimal lambdamart model config" in {
     val yaml =
       """

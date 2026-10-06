@@ -179,6 +179,15 @@ click-through joins, and write them to the state store:
 java -jar metarank.jar import --config config.yml --data src/test/resources/ranklens/events/
 ```
 
+Or, from the same directory, use Docker:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest import --config /data/config.yml --data /data/src/test/resources/ranklens/events/
+```
+
+For separate Docker jobs, configure the same persistent state store for import, training, and serving.
+The store must be reachable from each container; see [Docker deployment](deploy/docker.md).
+
 ### 2. Training the Machine Learning model
 
 When the import is finished, you can train the model using the same `config.yml`. The training job will build the
@@ -186,6 +195,12 @@ dataset from the imported click-throughs, do the actual training and store the m
 
 ```shell
 java -jar metarank.jar train --config config.yml --model xgboost
+```
+
+With Docker:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest train --config /data/config.yml --model xgboost
 ```
 
 ### 3. Inference
@@ -197,9 +212,21 @@ and get personalized ranking from `http://<ip>:8080/rank/<MODEL_NAME>`.
 java -jar metarank.jar serve --config config.yml
 ```
 
+With Docker, publish port 8080 to access the API from the host:
+
+```shell
+docker run --rm -p 8080:8080 -v "$(pwd):/data" metarank/metarank:latest serve --config /data/config.yml
+```
+
 You can also run all three stages at once with the `standalone` mode:
 ```shell
 java -jar metarank.jar standalone --config config.yml --data src/test/resources/ranklens/events/
+```
+
+With Docker:
+
+```shell
+docker run --rm -p 8080:8080 -v "$(pwd):/data" metarank/metarank:latest standalone --config /data/config.yml --data /data/src/test/resources/ranklens/events/
 ```
 
 ## Playing with it

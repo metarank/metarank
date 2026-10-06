@@ -41,11 +41,12 @@ $ java -jar metarank.jar standalone --data /path/to/events.json --config /path/t
 
 Another option is to run Metarank standalone mode from a docker container:
 ```bash
-$ docker run -v /data/:<path to data dir> metarank/metarank:latest standalone --data /data/events.json --config /data/config.yml
+$ docker run --rm -p 8080:8080 -v "$(pwd):/data" metarank/metarank:latest standalone --data /data/events.json --config /data/config.yml
 ```
 
 The following options are used for the docker container:
-* `-v /data:<path to data dir>` to map a directory with input files and configuration into the container
+* `-v "$(pwd):/data"` to map the current directory with input files and configuration to `/data` in the container
+* `-p 8080:8080` to make the inference API accessible on the host
 * `--data /data/events.json` to pass the name of [input events file](../event-schema.md), from the mapped volume
 * `--config /data/config.yml` to pass the [configuration file](../configuration/overview.md)
 

@@ -8,6 +8,12 @@ To run the main app, download the [latest jar file](https://github.com/metarank/
 java -jar metarank-x.x.x.jar
 ```
 
+Or run the Docker image:
+
+```shell
+docker run --rm metarank/metarank:latest --help
+```
+
 ```shell
                 __                              __    
   _____   _____/  |______ ____________    ____ |  | __
@@ -123,6 +129,19 @@ The command-line argument structure is:
 java -jar metarank.jar <command> <args>
 ```
 
+With Docker, put the command and its arguments after the image name:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest <command> <args>
+```
+
+The Docker examples below mount the current directory at `/data`. Put input files there and use
+`/data/...` paths inside the container; output files under `/data` will be available on the host.
+For `serve` and `standalone`, also publish the API port with `-p 8080:8080`.
+When running `import`, `train`, and `serve` in separate containers, configure the same
+[persistent state store](configuration/persistence.md) for all three. Its address must be reachable
+from the container; `localhost` refers to the container itself. See the [Docker deployment guide](deploy/docker.md).
+
 
 ## Running modes
 
@@ -144,6 +163,12 @@ Metarank CLI provides `validate` command to validate both your data and configur
 You will need to provide both data and configuration files
 ```shell
 java -jar metarank-x.x.x.jar validate --config config.yml --data events.jsonl.gz
+```
+
+With Docker:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest validate --config /data/config.yml --data /data/events.jsonl.gz
 ```
 
 The above command will output validation checks performed on the files provided and will output information similar to the following:
@@ -182,9 +207,21 @@ Sorting one file is a simple as
 java -jar metarank.jar sort --data unsorted_file.jsonl.gz --out sorted_file.jsonl.gz
 ```
 
+With Docker:
+
+```bash
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest sort --data /data/unsorted_file.jsonl.gz --out /data/sorted_file.jsonl.gz
+```
+
 You can do sorting with a folder as well
 ```bash
 java -jar metarank.jar sort --data /my_folder --out sorted_file.jsonl.gz
+```
+
+If `my_folder` is in the current directory, the Docker equivalent is:
+
+```bash
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest sort --data /data/my_folder --out /data/sorted_file.jsonl.gz
 ```
 
 ### Auto feature generation
@@ -198,6 +235,12 @@ Simply run
 java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/config.yaml
 ```
 
+With `events.json` in the current directory:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest autofeature --data /data/events.json --out /data/config.yaml
+```
+
 Check out more about `autofeature` sub-command in our [Automatic feature engineering guide](/doc/howto/autofeature.md).
 
 ### Training the model
@@ -205,6 +248,12 @@ Check out more about `autofeature` sub-command in our [Automatic feature enginee
 You can train the underlying ML ranking model:
 ```shell
 java -jar metarank.jar train --config /path/to/config.yaml
+```
+
+With `config.yaml` in the current directory:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest train --config /data/config.yaml
 ```
 
 * if the `--model <name>` option is not given, then Metarank will train all the defined models sequentially.
@@ -230,6 +279,12 @@ Metarank can emit CSV/LibSVM formatted datasets and corresponding config files f
 
 ```shell
 java -jar metarank.jar export --config /path/to/config.yaml --model <modelname> --out /export/dir
+```
+
+With Docker, replace `my-model` with a model name from `config.yaml`:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest export --config /data/config.yaml --model my-model --out /data/export
 ```
 
 Metarank export format is dependent on model backend type:
@@ -343,6 +398,16 @@ Metarank supports the same train/test split strategies for `export` subcommand a
 To use the BM25 score in the [field_match](configuration/features/text.md#fieldmatch), you need to compute a bit of statistics over your textual information.
 
 To do so, run the `termfreq` subcommand:
+
+With Docker and `events.jsonl.gz` in the current directory:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest termfreq --data /data/events.jsonl.gz \
+  --out /data/term-freq.json --fields title,description --language en
+```
+
+The JAR equivalent and example output are:
+
 ```shell
 
 $> java -jar metarank.jar termfreq --data <path-to-data>\

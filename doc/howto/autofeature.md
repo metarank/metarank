@@ -43,6 +43,14 @@ An example minimal command to generate the config file for your dataset:
 java -jar metarank.jar autofeature --data /path/to/events.json --out /path/to/config.yaml
 ```
 
+Or, with `events.json` in the current directory, use Docker:
+
+```bash
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest autofeature --data /data/events.json --out /data/config.yaml
+```
+
+The generated `config.yaml` will be written to the current directory on the host.
+
 For a [RankLens](https://github.com/metarank/ranklens) dataset, for example, it will emit the following:
 ```
 15:32:11.284 INFO  a.metarank.main.command.AutoFeature$ - Generating config file

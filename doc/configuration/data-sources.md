@@ -160,3 +160,11 @@ for batch dataset import instead of a separate `import` step:
 $ java -jar metarank serve --config conf.yaml
 $ curl -d @events.json http://localhost:8080/feedback
 ```
+
+With `conf.yaml` in the current directory, start the Docker container and publish the API port:
+
+```bash
+docker run --rm -p 8080:8080 -v "$(pwd):/data" metarank/metarank:latest serve --config /data/conf.yaml
+```
+
+Then run the same `curl` command from another terminal on the host.

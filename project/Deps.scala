@@ -4,7 +4,7 @@ object Deps {
   lazy val http4sVersion     = "1.0.0-M48"
   lazy val log4catsVersion   = "2.8.0"
   lazy val scalatestVersion  = "3.2.20"
-  lazy val circeVersion      = "0.14.16"
+  lazy val circeVersion      = "0.14.17"
   lazy val circeYamlVersion  = "0.16.1"
   lazy val fs2Version        = "3.14.0"
   lazy val luceneVersion     = "10.5.1"

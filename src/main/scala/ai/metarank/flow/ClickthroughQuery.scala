@@ -13,6 +13,7 @@ object ClickthroughQuery {
       weights: Map[String, Double],
       dataset: DatasetDescriptor
   ): Query = {
+    val group = math.abs(id.hashCode)
     val items = for {
       item <- values
     } yield {
@@ -22,7 +23,7 @@ object ClickthroughQuery {
           case Some(TypedInteraction(_, tpe, _))       => weights.getOrElse(tpe, 0.0)
           case None                                    => 0.0
         },
-        group = math.abs(id.hashCode),
+        group = group,
         values = collectFeatureValues(dataset, item.values)
       )
     }

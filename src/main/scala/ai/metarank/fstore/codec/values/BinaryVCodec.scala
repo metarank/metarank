@@ -2,11 +2,10 @@ package ai.metarank.fstore.codec.values
 
 import ai.metarank.fstore.codec.VCodec
 import ai.metarank.fstore.codec.impl.BinaryCodec
-import com.github.luben.zstd.{ZstdInputStream, ZstdOutputStream}
+import com.github.luben.zstd.{RecyclingBufferPool, ZstdInputStreamNoFinalizer, ZstdOutputStream}
 import ai.metarank.util.Logging
 
 import java.io.{
-  BufferedInputStream,
   BufferedOutputStream,
   ByteArrayInputStream,
   ByteArrayOutputStream,
@@ -19,17 +18,18 @@ import scala.util.{Failure, Success, Try}
 
 case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCodec[T] with Logging {
   override def decode(bytes: Array[Byte]): Either[Throwable, T] = {
-    val stream = if (compress) {
-      new DataInputStream(new BufferedInputStream(new ZstdInputStream(new ByteArrayInputStream(bytes)), 1024 * 32))
-    } else {
-      new DataInputStream(new ByteArrayInputStream(bytes))
-    }
-    val result = Try(codec.read(stream)) match {
-      case Failure(exception) => Left(exception)
-      case Success(value)     => Right(value)
-    }
-    stream.close()
-    result
+    val result = for {
+      raw   <- if (compress) Try(decompress(bytes)) else Success(bytes)
+      value <- Try(codec.read(new DataInputStream(new ByteArrayInputStream(raw))))
+    } yield value
+    result.toEither
+  }
+
+  // Pooled buffers: a zstd stream allocates ~128 KB, a record is a few KB
+  private def decompress(bytes: Array[Byte]): Array[Byte] = {
+    val zstd = new ZstdInputStreamNoFinalizer(new ByteArrayInputStream(bytes), RecyclingBufferPool.INSTANCE)
+    try zstd.readAllBytes()
+    finally zstd.close()
   }
 
   override def encode(value: T): Array[Byte] = {

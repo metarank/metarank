@@ -16,6 +16,13 @@ class BinaryVCodecTest extends VCodecTest[Scalar] {
     codec.decodeDelimited(ByteStreams.newDataInput(bytes.toByteArray)) shouldBe Right(None)
   }
 
+  it should "stop on a record larger than the size limit without allocating it" in {
+    val bytes = ByteStreams.newDataOutput()
+    bytes.writeInt(Int.MaxValue)
+    bytes.write(Array[Byte](1, 2, 3))
+    codec.decodeDelimited(ByteStreams.newDataInput(bytes.toByteArray)) shouldBe Right(None)
+  }
+
   it should "stop on a truncated record" in {
     val bytes = ByteStreams.newDataOutput()
     bytes.writeInt(100)

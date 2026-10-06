@@ -57,6 +57,10 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
       case Success(size) if size < 0 =>
         logger.warn(s"corrupted stream: record size=$size is negative")
         Right(None)
+      case Success(size) if size > BinaryVCodec.MAX_RECORD_SIZE =>
+        // A corrupted length prefix must not size the buffer
+        logger.warn(s"corrupted stream: record size=$size exceeds ${BinaryVCodec.MAX_RECORD_SIZE} bytes")
+        Right(None)
       case Success(size) =>
         val buf = new Array[Byte](size)
         Try(in.readFully(buf)) match {
@@ -68,4 +72,8 @@ case class BinaryVCodec[T](compress: Boolean, codec: BinaryCodec[T]) extends VCo
       case Failure(_) => Right(None)
     }
   }
+}
+
+object BinaryVCodec {
+  val MAX_RECORD_SIZE: Int = 64 * 1024 * 1024
 }

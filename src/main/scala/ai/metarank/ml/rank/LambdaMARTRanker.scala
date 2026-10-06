@@ -20,7 +20,7 @@ import ai.metarank.util.{Logging, RankingEventFormat}
 import cats.data.NonEmptyList
 import cats.effect.std.Queue
 import cats.effect.IO
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.deriveEncoder
 import io.github.metarank.ltrlib.booster.{Booster, LightGBMBooster, LightGBMOptions, XGBoostBooster, XGBoostOptions}
 import io.github.metarank.ltrlib.metric.{MAP, MRR, Metric, NDCG}
@@ -390,7 +390,10 @@ object LambdaMARTRanker extends Logging {
     }
 
     def weights(desc: DatasetDescriptor): Map[String, FeatureWeight] = {
-      val w = booster.weights()
+      val w = booster match {
+        case xgb: XGBoostBooster => xgboostSplitCounts(xgb, desc.dim)
+        case other               => other.weights()
+      }
       val result = for {
         feature <- desc.features
         offset  <- desc.offsets.get(feature)
@@ -402,6 +405,34 @@ object LambdaMARTRanker extends Logging {
         }
       }
       result.toMap
+    }
+
+    // XGBoost 2.0 cannot dump trees once a feature is categorical, so splits are counted in the JSON model
+    private def xgboostSplitCounts(xgb: XGBoostBooster, dim: Int): Array[Double] = {
+      val stream = new ByteArrayOutputStream()
+      xgb.model.saveModel(stream, "json")
+      // XGBoost writes non-finite floats as bare tokens, which are not valid JSON
+      val json = stream.toString("UTF-8").replaceAll("-?\\b(NaN|Infinity)\\b", "null")
+      val trees = io.circe.parser
+        .parse(json)
+        .flatMap(
+          _.hcursor
+            .downField("learner")
+            .downField("gradient_booster")
+            .downField("model")
+            .downField("trees")
+            .as[List[Json]]
+        )
+      val counts = new Array[Double](dim)
+      for {
+        tree             <- trees.fold(err => throw new Exception(s"cannot read XGBoost model: $err"), identity)
+        left             <- tree.hcursor.downField("left_children").as[List[Int]].toOption.toList
+        index            <- tree.hcursor.downField("split_indices").as[List[Int]].toOption.toList
+        (child, feature) <- left.zip(index) if child != -1
+      } {
+        counts(feature) += 1
+      }
+      counts
     }
 
     def eval(dataset: Dataset, metric: Metric): IO[MetricValue] = {

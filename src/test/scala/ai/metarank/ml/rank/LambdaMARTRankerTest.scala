@@ -6,6 +6,7 @@ import ai.metarank.ml.Predictor.EmptyDatasetException
 import ai.metarank.ml.PredictorSuite
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTConfig, LambdaMARTModel, LambdaMARTPredictor}
 import ai.metarank.model.Key.FeatureName
+import ai.metarank.model.FeatureWeight.SingularWeight
 import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.util.{TestClickthroughValues, TestQueryRequest}
 import cats.data.NonEmptyList
@@ -127,5 +128,25 @@ class LambdaMARTRankerTest extends PredictorSuite[LambdaMARTConfig, QueryRequest
     val loaded = pred.load(model.save()).unsafeRunSync()
     val row    = Array(3.0, 0.5, 4.0, 0.5)
     loaded.booster.predictMat(row, 2, 2).toList shouldBe model.booster.predictMat(row, 2, 2).toList
+  }
+
+  it should "report weights of categorical splits" in {
+    val weights = fitCategorical("hist").weights(catDesc)
+    weights("cat") should matchPattern { case SingularWeight(w) if w > 0 => }
+  }
+
+  it should "report the booster's xgboost weights without categorical features" in {
+    val numDesc = DatasetDescriptor(List(SingularFeature("cat"), SingularFeature("num")))
+    val numData = Dataset(numDesc, catDataset.groups)
+    val conf = LambdaMARTConfig(
+      backend = XGBoostConfig(iterations = 10),
+      features = NonEmptyList.of(FeatureName("cat"), FeatureName("num")),
+      weights = Map("click" -> 1.0)
+    )
+    val booster = LambdaMARTPredictor("foo", conf, numDesc).makeBooster(Split(numData, numData))
+    val w       = booster.weights()
+    w.sum should be > 0.0
+    LambdaMARTModel("foo", conf, booster, Nil).weights(numDesc) shouldBe
+      Map("cat" -> SingularWeight(w(0)), "num" -> SingularWeight(w(1)))
   }
 }

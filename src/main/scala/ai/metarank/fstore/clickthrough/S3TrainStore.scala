@@ -26,7 +26,14 @@ import software.amazon.awssdk.services.s3.model.{
 }
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
-import java.io.{BufferedInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream}
+import java.io.{
+  BufferedInputStream,
+  ByteArrayOutputStream,
+  DataInputStream,
+  DataOutputStream,
+  FileInputStream,
+  InputStream
+}
 import java.net.URI
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.UUID

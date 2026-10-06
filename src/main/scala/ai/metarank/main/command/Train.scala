@@ -8,6 +8,7 @@ import ai.metarank.main.CliArgs.TrainArgs
 import ai.metarank.ml.{Context, Model, Predictor}
 import ai.metarank.ml.rank.LambdaMARTRanker.{LambdaMARTModel, LambdaMARTPredictor}
 import ai.metarank.model.{TrainResult, TrainValues}
+import ai.metarank.model.TrainValues.ClickthroughValues
 import ai.metarank.model.TrainResult.FeatureStatus
 import ai.metarank.util.Logging
 import cats.effect.IO
@@ -56,7 +57,7 @@ object Train extends Logging {
             case (_, pred) :: Nil => train(store, cts, pred).void
             case many =>
               for {
-                data <- cts.getall().compile.toVector
+                data <- cts.getall().filter(c => many.exists { case (_, pred) => usable(pred, c) }).compile.toVector
                 _    <- info(s"loaded ${data.size} train records, reused across ${many.size} models")
                 _    <- many.traverse { case (_, pred) => trainShared(store, data, pred) }.void
               } yield {}
@@ -81,6 +82,15 @@ object Train extends Logging {
       predictor: Predictor[? <: ModelConfig, ?, ? <: Model[? <: Context]]
   ): IO[TrainResult] =
     fitAndStore(store, fs2.Stream.emits(data).covary[IO], predictor)
+
+  // LambdaMART skips clickthroughs without interactions or values, so buffering them only costs heap
+  private def usable(predictor: Predictor[? <: ModelConfig, ?, ? <: Model[? <: Context]], tv: TrainValues): Boolean =
+    (predictor, tv) match {
+      case (p: LambdaMARTPredictor, c: ClickthroughValues) =>
+        c.ct.interactions.nonEmpty && c.values.nonEmpty && p.config.selector.accept(c)
+      case (_: LambdaMARTPredictor, _) => false
+      case _                           => true
+    }
 
   private def fitAndStore(
       store: Persistence,

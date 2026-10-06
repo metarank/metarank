@@ -4,6 +4,7 @@ import ai.metarank.fstore.codec.StoreFormat.BinaryStoreFormat
 import ai.metarank.util.TestClickthroughValues
 import cats.effect.unsafe.implicits.global
 import cats.implicits.*
+import com.google.common.io.ByteStreams
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -75,6 +76,26 @@ class FileTrainStoreTest extends AnyFlatSpec with Matchers {
       .allocated
       .unsafeRunSync()
     store.put(List(ctv, ctv, ctv)).unsafeRunSync()
+    store.flush().unsafeRunSync()
+    val read = store.getall().compile.toList.unsafeRunSync()
+    read shouldBe List(ctv, ctv, ctv)
+    close.unsafeRunSync()
+  }
+
+  it should "skip the rest of a file after an undecodable record" in {
+    val dir     = Files.createTempDirectory("meta-cts")
+    val corrupt = ByteStreams.newDataOutput()
+    BinaryStoreFormat.ctv.encodeDelimited(ctv, corrupt)
+    corrupt.writeInt(3)
+    corrupt.write(Array[Byte](1, 2, 3))
+    BinaryStoreFormat.ctv.encodeDelimited(ctv, corrupt)
+    // Sorts before the store's own timestamped file
+    Files.write(dir.resolve("0-corrupt.bin"), corrupt.toByteArray)
+    val (store, close) = FileTrainStore
+      .create(dir.toString, BinaryStoreFormat)
+      .allocated
+      .unsafeRunSync()
+    store.put(List(ctv, ctv)).unsafeRunSync()
     store.flush().unsafeRunSync()
     val read = store.getall().compile.toList.unsafeRunSync()
     read shouldBe List(ctv, ctv, ctv)

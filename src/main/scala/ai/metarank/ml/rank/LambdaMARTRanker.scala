@@ -265,7 +265,7 @@ object LambdaMARTRanker extends Logging {
         .filter(_.values.nonEmpty)
         .map(ct =>
           QueryMetadata(
-            query = ClickthroughQuery(ct.values, ct.ct.interactions, ct, config.weights, desc),
+            query = ClickthroughQuery(ct.values, ct.ct.interactions, ct.id.value, config.weights, desc),
             ts = ct.ct.ts,
             user = ct.ct.user,
             fields = ct.ct.rankingFields

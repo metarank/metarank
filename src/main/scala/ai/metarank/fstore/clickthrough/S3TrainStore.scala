@@ -2,7 +2,7 @@ package ai.metarank.fstore.clickthrough
 
 import ai.metarank.config.TrainConfig.{CompressionType, S3TrainConfig}
 import ai.metarank.fstore.TrainStore
-import ai.metarank.fstore.clickthrough.S3TrainStore.{Buffer, format}
+import ai.metarank.fstore.clickthrough.S3TrainStore.{Buffer, READ_BUFFER_SIZE, format}
 import ai.metarank.fstore.codec.VCodec
 import ai.metarank.model.TrainValues
 import ai.metarank.util.{DeduplicateByKey, Logging}
@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.s3.model.{
 }
 import software.amazon.awssdk.services.s3.S3AsyncClient
 
-import java.io.{ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream}
+import java.io.{BufferedInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream, FileInputStream, InputStream}
 import java.net.URI
 import java.nio.file.{Files, Path, StandardCopyOption}
 import java.util.UUID
@@ -60,13 +60,18 @@ case class S3TrainStore(
           case None    => warn(s"part $key has an unsupported extension (expected .gz/.zst/.bin), skipping").as(false)
         }
       )
+      // Parts decode concurrently but stay in key order, as deduplication keeps the first copy
       .parEvalMap(conf.readConcurrency)(key =>
         fetchPart(key)
-          .map(path => readPart(key, path))
-          .handleErrorWith(e => warn(s"skipping undownloadable train part $key: ${e.getMessage}").as(fs2.Stream.empty))
-          .map(_.handleErrorWith(e => fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}"))))
+          .flatMap(path =>
+            readPart(key, path)
+              .handleErrorWith(e => fs2.Stream.exec(warn(s"skipping unreadable train part $key: ${e.getMessage}")))
+              .compile
+              .toVector
+          )
+          .handleErrorWith(e => warn(s"skipping undownloadable train part $key: ${e.getMessage}").as(Vector.empty))
       )
-      .flatten
+      .flatMap(fs2.Stream.emits)
 
     parts.through(if (conf.deduplicate) DeduplicateByKey(_.id) else identity)
   }
@@ -88,7 +93,9 @@ case class S3TrainStore(
   }
 
   def readPart(key: String, path: Path): fs2.Stream[IO, TrainValues] =
-    fs2.Stream.bracket(IO(new FileInputStream(path.toFile)))(s => IO(s.close())).flatMap(s => read(s, key))
+    fs2.Stream
+      .bracket(IO(new BufferedInputStream(new FileInputStream(path.toFile), READ_BUFFER_SIZE)))(s => IO(s.close()))
+      .flatMap(s => read(s, key))
 
   def downloadPart(key: String, file: Path, size: Long): IO[Unit] = for {
     tmp     <- IO(file.resolveSibling(file.getFileName.toString + ".tmp." + UUID.randomUUID().toString.take(8)))
@@ -165,11 +172,12 @@ case class S3TrainStore(
   def read(stream: InputStream, key: String): fs2.Stream[IO, TrainValues] = {
     val compress = CompressionType.fromKey(key).getOrElse(conf.compress)
     val raw = compress match {
-      case CompressionType.GzipCompressionType => new GZIPInputStream(stream)
+      case CompressionType.GzipCompressionType => new GZIPInputStream(stream, READ_BUFFER_SIZE)
       case CompressionType.ZstdCompressionType => new ZstdInputStream(stream)
       case CompressionType.NoCompressionType   => stream
     }
-    val in = new DataInputStream(raw)
+    // Records are read with many small readInt/readFully calls
+    val in = new DataInputStream(new BufferedInputStream(raw, READ_BUFFER_SIZE))
 
     fs2.Stream.fromBlockingIterator[IO](
       Iterator
@@ -191,6 +199,8 @@ case class S3TrainStore(
 }
 
 object S3TrainStore extends Logging {
+
+  val READ_BUFFER_SIZE = 128 * 1024
 
   val format = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss_SSS").withZone(ZoneId.systemDefault())
 

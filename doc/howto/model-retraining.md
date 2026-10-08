@@ -23,6 +23,15 @@ Metarank collects click-through records automatically, you don't need to tune an
 
 Given that you have a production Metarank instance running somewhere in the cloud, you can re-train a ML model based on a history of already collected click-through records locally:
 
+With `config.yml` in the current directory, you can also retrain using Docker:
+
+```shell
+docker run --rm -v "$(pwd):/data" metarank/metarank:latest train --config /data/config.yml
+```
+
+The state store in `config.yml` must be the same as the serving instance's and reachable from the container.
+See [Docker deployment](../deploy/docker.md) for volume and networking options.
+
 ```shell
 $> java -jar metarank.jar train --config /path/to/config.yml
 

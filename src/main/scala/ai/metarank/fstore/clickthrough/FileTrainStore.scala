@@ -68,7 +68,12 @@ case class FileTrainStore(
                 iterator = Iterator.continually(fmt.ctv.decodeDelimited(input)),
                 chunkSize = 32
               )
-              .evalMap(x => IO.fromEither(x))
+              // An undecodable record skips the rest of its file, as in S3TrainStore
+              .evalMap {
+                case Right(value) => IO.pure(value)
+                case Left(ex) =>
+                  IO(logger.warn(s"failed to decode a record in file $f, skipping the rest of the file", ex)).as(None)
+              }
               .takeWhile(_.isDefined)
               .flatMap(x => Stream.fromOption(x))
           })

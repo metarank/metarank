@@ -156,6 +156,14 @@ selector:
         secondTo: 110
 ```
 
+* **Time range selector**: only accept click-through events recorded within a period. `after` is inclusive, `before` is exclusive, both are ISO-8601 instants and either may be left out:
+```yaml
+selector:
+  after: 2024-03-01T00:00:00Z
+  before: 2024-04-01T00:00:00Z # optional
+```
+Useful when a feature was added recently: click-throughs recorded before then carry a zero for it, so training only on newer ones shows whether the feature actually helps.
+
 * **AND/OR/NOT selector**: combine multiple selectors within a single boolean combination:
 ```yaml
 selector:

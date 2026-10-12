@@ -8,6 +8,7 @@ import ai.metarank.config.Selector.{
   NotSelector,
   OrSelector,
   RankingLengthSelector,
+  TimeRangeSelector,
   UserSelector
 }
 import ai.metarank.model.Field.StringField
@@ -15,6 +16,8 @@ import ai.metarank.model.Identifier.UserId
 import ai.metarank.model.Timestamp
 import ai.metarank.util.TestClickthrough
 import org.scalatest.flatspec.AnyFlatSpec
+
+import java.time.Instant
 import org.scalatest.matchers.should.Matchers
 
 class SelectorTest extends AnyFlatSpec with Matchers {
@@ -99,5 +102,19 @@ class SelectorTest extends AnyFlatSpec with Matchers {
     keep.accept(bot) shouldBe false
     keep.accept(realSmall) shouldBe true
     keep.accept(realOnTick) shouldBe true
+  }
+
+  it should "accept events within the time range, inclusive of after and exclusive of before" in {
+    val ts = TimeRangeSelector(Some(Instant.parse("2026-08-21T00:00:00Z")), Some(Instant.parse("2026-09-01T00:00:00Z")))
+    def at(t: Timestamp) = TestClickthrough(List("p1", "p2"), List("p1")).copy(ts = t)
+    ts.accept(at(Timestamp.date(2026, 8, 20, 23, 59, 59))) shouldBe false
+    ts.accept(at(Timestamp.date(2026, 8, 21, 0, 0, 0))) shouldBe true
+    ts.accept(at(Timestamp.date(2026, 8, 31, 23, 59, 59))) shouldBe true
+    ts.accept(at(Timestamp.date(2026, 9, 1, 0, 0, 0))) shouldBe false
+  }
+
+  it should "leave an open end unbounded" in {
+    val ts = TimeRangeSelector(Some(Instant.parse("2026-08-21T00:00:00Z")), None)
+    ts.accept(TestClickthrough(List("p1"), List("p1")).copy(ts = Timestamp.date(2030, 1, 1, 0, 0, 0))) shouldBe true
   }
 }

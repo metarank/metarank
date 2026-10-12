@@ -9,6 +9,7 @@ import ai.metarank.config.Selector.{
   NotSelector,
   RankingLengthSelector,
   SampleSelector,
+  TimeRangeSelector,
   UserSelector
 }
 import ai.metarank.ml.rank.NoopRanker.NoopConfig
@@ -148,4 +149,22 @@ class SelectorYamlTest extends AnyFlatSpec with Matchers {
     )
   }
 
+  it should "decode a time range selector" in {
+    val yaml =
+      """type: noop
+        |selector:
+        |  after: 2026-08-21T00:00:00Z""".stripMargin
+    parse(yaml).flatMap(_.as[ModelConfig]) shouldBe Right(
+      NoopConfig(selector = TimeRangeSelector(Some(java.time.Instant.parse("2026-08-21T00:00:00Z")), None))
+    )
+  }
+
+  it should "reject a time range selector ending before it starts" in {
+    val yaml =
+      """type: noop
+        |selector:
+        |  after: 2026-09-01T00:00:00Z
+        |  before: 2026-08-21T00:00:00Z""".stripMargin
+    parse(yaml).flatMap(_.as[ModelConfig]) shouldBe Symbol("left")
+  }
 }

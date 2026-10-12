@@ -6,6 +6,7 @@ import cats.data.NonEmptyList
 import io.circe.{ACursor, Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.generic.semiauto.*
 
+import java.time.Instant
 import scala.util.Random
 
 sealed trait Selector {
@@ -80,6 +81,12 @@ object Selector {
     }
   }
 
+  // Selects clickthroughs in [after, before), e.g. to train only on rows recorded once a feature existed
+  case class TimeRangeSelector(after: Option[Instant], before: Option[Instant]) extends Selector {
+    override def accept(event: Clickthrough): Boolean =
+      after.forall(a => event.ts.ts >= a.toEpochMilli) && before.forall(b => event.ts.ts < b.toEpochMilli)
+  }
+
   given fieldSelectorCodec: Codec[FieldSelector] = deriveCodec
 
   given userSelectorCodec: Codec[UserSelector] = deriveCodec
@@ -90,6 +97,13 @@ object Selector {
     "cadence selector needs 0 <= secondFrom <= secondTo < periodSeconds"
   )
   given cadenceCodec: Codec[CadenceSelector] = Codec.from(cadenceDecoder, cadenceEncoder)
+
+  given timeRangeEncoder: Encoder[TimeRangeSelector] = deriveEncoder
+  given timeRangeDecoder: Decoder[TimeRangeSelector] = deriveDecoder[TimeRangeSelector].ensure(
+    s => (s.after.isDefined || s.before.isDefined) && s.after.zip(s.before).forall((a, b) => a.isBefore(b)),
+    "after or before should be defined, and after should precede before"
+  )
+  given timeRangeCodec: Codec[TimeRangeSelector] = Codec.from(timeRangeDecoder, timeRangeEncoder)
 
   given rankingLengthEncoder: Encoder[RankingLengthSelector] = deriveEncoder
   given rankingLengthDecoder: Decoder[RankingLengthSelector] = deriveDecoder[RankingLengthSelector].ensure(
@@ -122,6 +136,7 @@ object Selector {
       NonEmptyList.of(
         rankingLengthCodec,
         cadenceCodec,
+        timeRangeCodec,
         userSelectorCodec,
         maxPositionCodec,
         fieldSelectorCodec,
@@ -156,6 +171,7 @@ object Selector {
     case r: RankingLengthSelector       => rankingLengthCodec(r)
     case u: UserSelector                => userSelectorCodec(u)
     case c: CadenceSelector             => cadenceCodec(c)
+    case t: TimeRangeSelector           => timeRangeCodec(t)
   }
   given selectorCodec: Codec[Selector] = Codec.from(selectorDecoder, selectorEncoder)
 

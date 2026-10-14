@@ -66,7 +66,7 @@ lazy val root = (project in file("."))
       "org.typelevel"          %% "log4cats-core"            % log4catsVersion,
       "org.typelevel"          %% "log4cats-slf4j"           % log4catsVersion,
       "io.github.metarank"     %% "ltrlib"                   % "0.3.0",
-      "io.github.metarank"      % "lightgbm4j"               % "4.6.0-2",
+      "io.github.metarank"      % "lightgbm4j"               % "4.6.0-3",
       "com.github.ua-parser"    % "uap-java"                 % "1.6.1",
       "org.apache.lucene"       % "lucene-core"              % luceneVersion,
       "org.apache.lucene"       % "lucene-analysis-common"   % luceneVersion,

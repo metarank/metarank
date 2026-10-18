@@ -3,7 +3,7 @@ package ai.metarank.model
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDateTime, ZoneOffset}
+import java.time.{Instant, LocalDateTime, ZoneOffset, ZonedDateTime}
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.*
 import scala.util.{Failure, Success, Try}
@@ -47,7 +47,11 @@ object Timestamp {
     val pattern = DateTimeFormatter.ISO_DATE_TIME
     def unapply(in: String): Option[Timestamp] = Try(LocalDateTime.parse(in, format)) match {
       case Success(ts) => Some(Timestamp(ts.toInstant(ZoneOffset.UTC).toEpochMilli))
-      case Failure(ex) => None
+      case Failure(_) =>
+        Try(ZonedDateTime.parse(in, pattern)) match {
+          case Success(ts) => Some(Timestamp(ts.toInstant.toEpochMilli))
+          case Failure(_)  => None
+        }
     }
   }
   val MAX_UNIXTIME = 2000000000L

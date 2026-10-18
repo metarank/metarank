@@ -19,6 +19,11 @@ class TimestampJsonTest extends AnyFlatSpec with Matchers {
     decode[Timestamp]("\"2022-12-16 14:14:09\"") shouldBe Right(Timestamp(1671200049000L))
   }
 
+  it should "decode zoned time in ISO 8601" in {
+    decode[Timestamp]("\"2022-12-16T14:14:09Z\"") shouldBe Right(Timestamp(1671200049000L))
+    decode[Timestamp]("\"2022-12-16T15:14:09+01:00\"") shouldBe Right(Timestamp(1671200049000L))
+  }
+
   it should "fail on broken string" in {
     decode[Timestamp]("\"foo\"") shouldBe a[Left[?, ?]]
   }
